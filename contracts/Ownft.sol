@@ -1,5 +1,5 @@
 pragma solidity  ^0.8.9;
 
-contract NFTLend {
+contract Ownft {
 
 }
