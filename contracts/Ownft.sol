@@ -5,12 +5,20 @@ import './libraries/ownership/Ownable.sol';
 import './libraries/utils/Address.sol';
 
 contract Ownft is Ownable {
+    // last_update_time will be updated when deposit/claim happens
+    struct DepositInfo {
+        address user;
+        uint principal;
+        uint last_update_time;
+    }
+
     using Address for address;
 
     bytes4 private constant SELECTOR = bytes4(keccak256(bytes('transfer(address,uint256)')));
 
-
     mapping(address => bool) _depositWhitelist;
+
+    mapping(address => DepositInfo) _depositInfo;
 
     constructor() public {}
 
