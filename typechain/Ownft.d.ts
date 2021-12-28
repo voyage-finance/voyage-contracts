@@ -83,14 +83,41 @@ interface OwnftInterface extends ethers.utils.Interface {
   ): Result;
 
   events: {
+    "Deposit(address,address,uint256,uint256)": EventFragment;
+    "InterestRateSet(uint256,address)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
+    "WhilteListToken(address,bool,address)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "Deposit"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "InterestRateSet"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "WhilteListToken"): EventFragment;
 }
+
+export type DepositEvent = TypedEvent<
+  [string, string, BigNumber, BigNumber] & {
+    _token: string;
+    _user: string;
+    _amount: BigNumber;
+    _timestamp: BigNumber;
+  }
+>;
+
+export type InterestRateSetEvent = TypedEvent<
+  [BigNumber, string] & { _interest_rate: BigNumber; _operator: string }
+>;
 
 export type OwnershipTransferredEvent = TypedEvent<
   [string, string] & { previousOwner: string; newOwner: string }
+>;
+
+export type WhilteListTokenEvent = TypedEvent<
+  [string, boolean, string] & {
+    _token: string;
+    _enable: boolean;
+    _operator: string;
+  }
 >;
 
 export class Ownft extends BaseContract {
@@ -221,12 +248,12 @@ export class Ownft extends BaseContract {
       token: string,
       enable: boolean,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<void>;
 
     setInterestRate(
       interest_rate: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<void>;
 
     transferOwnership(
       newOwner: string,
@@ -235,6 +262,52 @@ export class Ownft extends BaseContract {
   };
 
   filters: {
+    "Deposit(address,address,uint256,uint256)"(
+      _token?: null,
+      _user?: null,
+      _amount?: null,
+      _timestamp?: null
+    ): TypedEventFilter<
+      [string, string, BigNumber, BigNumber],
+      {
+        _token: string;
+        _user: string;
+        _amount: BigNumber;
+        _timestamp: BigNumber;
+      }
+    >;
+
+    Deposit(
+      _token?: null,
+      _user?: null,
+      _amount?: null,
+      _timestamp?: null
+    ): TypedEventFilter<
+      [string, string, BigNumber, BigNumber],
+      {
+        _token: string;
+        _user: string;
+        _amount: BigNumber;
+        _timestamp: BigNumber;
+      }
+    >;
+
+    "InterestRateSet(uint256,address)"(
+      _interest_rate?: null,
+      _operator?: null
+    ): TypedEventFilter<
+      [BigNumber, string],
+      { _interest_rate: BigNumber; _operator: string }
+    >;
+
+    InterestRateSet(
+      _interest_rate?: null,
+      _operator?: null
+    ): TypedEventFilter<
+      [BigNumber, string],
+      { _interest_rate: BigNumber; _operator: string }
+    >;
+
     "OwnershipTransferred(address,address)"(
       previousOwner?: string | null,
       newOwner?: string | null
@@ -249,6 +322,24 @@ export class Ownft extends BaseContract {
     ): TypedEventFilter<
       [string, string],
       { previousOwner: string; newOwner: string }
+    >;
+
+    "WhilteListToken(address,bool,address)"(
+      _token?: null,
+      _enable?: null,
+      _operator?: null
+    ): TypedEventFilter<
+      [string, boolean, string],
+      { _token: string; _enable: boolean; _operator: string }
+    >;
+
+    WhilteListToken(
+      _token?: null,
+      _enable?: null,
+      _operator?: null
+    ): TypedEventFilter<
+      [string, boolean, string],
+      { _token: string; _enable: boolean; _operator: string }
     >;
   };
 

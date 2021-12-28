@@ -7,8 +7,9 @@ import './libraries/math/SafeMath.sol';
 import './libraries/math/WadRayMath.sol';
 import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
 
-contract Ownft is Ownable {
+contract Ownft is Ownable, ReentrancyGuard {
 
     // last_update_time will be updated when deposit/claim happens
     struct UserInfo {
@@ -22,8 +23,25 @@ contract Ownft is Ownable {
     using SafeMath for uint256;
     using WadRayMath for uint256;
 
-    uint256 internal constant SECONDS_PER_YEAR = 365 days;
+    event Deposit(
+        address _token,
+        address _user,
+        uint256 _amount,
+        uint256 _timestamp
+    );
 
+    event WhilteListToken(
+        address _token,
+        bool _enable,
+        address _operator
+    );
+
+    event InterestRateSet(
+        uint256 _interest_rate,
+        address _operator
+    );
+
+    uint256 internal constant SECONDS_PER_YEAR = 365 days;
 
     mapping(address => bool) _depositWhitelist;
 
@@ -60,22 +78,22 @@ contract Ownft is Ownable {
     function setDepositWhiteList(
         address token,
         bool enable
-    ) onlyOwner public returns(uint) {
+    ) onlyOwner external {
         _depositWhitelist[token] = enable;
-        return 0;
+        emit WhilteListToken(token, enable, msg.sender);
     }
 
     function setInterestRate(
         uint256 interest_rate
-    ) onlyOwner public returns(uint) {
+    ) onlyOwner external {
         _interest_rate = interest_rate;
-        return 0;
+        emit InterestRateSet(interest_rate, msg.sender);
     }
 
     function deposit(
         address token,
         uint amount
-    ) public {
+    ) external nonReentrant {
         require(_depositWhitelist[token] == true, 'Ownft: TOKEN NOT ENABLED');
         // update user state
         UserInfo storage user = _userInfo[msg.sender];
@@ -86,6 +104,6 @@ contract Ownft is Ownable {
         ERC20(token).safeTransferFrom(msg.sender, address(this), amount);
         user.principal += amount;
         user.last_update_time = block.timestamp;
-
+        emit Deposit(token, msg.sender, amount, block.timestamp);
     }
 }
