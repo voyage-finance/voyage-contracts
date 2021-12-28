@@ -2,11 +2,10 @@
 pragma solidity  ^0.8.9;
 
 import './libraries/ownership/Ownable.sol';
-import './libraries/math/SafeMath.sol';
-import './libraries/math/SafeMath.sol';
 import './libraries/math/WadRayMath.sol';
 import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
 
 contract Ownft is Ownable, ReentrancyGuard {
