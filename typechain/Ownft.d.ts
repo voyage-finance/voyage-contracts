@@ -27,7 +27,7 @@ interface OwnftInterface extends ethers.utils.Interface {
     "owner()": FunctionFragment;
     "pendingOwner()": FunctionFragment;
     "setDepositWhiteList(address,bool)": FunctionFragment;
-    "setInterestRate(uint256)": FunctionFragment;
+    "setInterestRate(address,uint256)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
   };
 
@@ -51,7 +51,7 @@ interface OwnftInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setInterestRate",
-    values: [BigNumberish]
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
@@ -84,7 +84,7 @@ interface OwnftInterface extends ethers.utils.Interface {
 
   events: {
     "Deposit(address,address,uint256,uint256)": EventFragment;
-    "InterestRateSet(uint256,address)": EventFragment;
+    "InterestRateSet(address,uint256,address)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
     "WhilteListToken(address,bool,address)": EventFragment;
   };
@@ -105,7 +105,11 @@ export type DepositEvent = TypedEvent<
 >;
 
 export type InterestRateSetEvent = TypedEvent<
-  [BigNumber, string] & { _interest_rate: BigNumber; _operator: string }
+  [string, BigNumber, string] & {
+    token: string;
+    _interest_rate: BigNumber;
+    _operator: string;
+  }
 >;
 
 export type OwnershipTransferredEvent = TypedEvent<
@@ -187,6 +191,7 @@ export class Ownft extends BaseContract {
     ): Promise<ContractTransaction>;
 
     setInterestRate(
+      token: string,
       interest_rate: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -220,6 +225,7 @@ export class Ownft extends BaseContract {
   ): Promise<ContractTransaction>;
 
   setInterestRate(
+    token: string,
     interest_rate: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -251,6 +257,7 @@ export class Ownft extends BaseContract {
     ): Promise<void>;
 
     setInterestRate(
+      token: string,
       interest_rate: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -292,20 +299,22 @@ export class Ownft extends BaseContract {
       }
     >;
 
-    "InterestRateSet(uint256,address)"(
+    "InterestRateSet(address,uint256,address)"(
+      token?: null,
       _interest_rate?: null,
       _operator?: null
     ): TypedEventFilter<
-      [BigNumber, string],
-      { _interest_rate: BigNumber; _operator: string }
+      [string, BigNumber, string],
+      { token: string; _interest_rate: BigNumber; _operator: string }
     >;
 
     InterestRateSet(
+      token?: null,
       _interest_rate?: null,
       _operator?: null
     ): TypedEventFilter<
-      [BigNumber, string],
-      { _interest_rate: BigNumber; _operator: string }
+      [string, BigNumber, string],
+      { token: string; _interest_rate: BigNumber; _operator: string }
     >;
 
     "OwnershipTransferred(address,address)"(
@@ -367,6 +376,7 @@ export class Ownft extends BaseContract {
     ): Promise<BigNumber>;
 
     setInterestRate(
+      token: string,
       interest_rate: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -401,6 +411,7 @@ export class Ownft extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     setInterestRate(
+      token: string,
       interest_rate: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;

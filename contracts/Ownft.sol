@@ -37,6 +37,7 @@ contract Ownft is Ownable, ReentrancyGuard {
     );
 
     event InterestRateSet(
+        address token,
         uint256 _interest_rate,
         address _operator
     );
@@ -47,14 +48,10 @@ contract Ownft is Ownable, ReentrancyGuard {
 
     mapping(address => UserInfo) _userInfo;
 
-    // we are using a fixed golbal interest_rate for investor here
-    // better to define a ReservePool if we are going to support
-    // multiple deposit assets in the future
-    // expressed in Ray
-    uint256 _interest_rate;
+    // token => interest rate, expressed in ray
+    mapping(address => uint256) _investor_interest;
 
-    constructor(uint256 interest_rate) public {
-      _interest_rate = interest_rate;
+    constructor() public {
     }
 
     function calculateLinearInterest(
@@ -83,11 +80,12 @@ contract Ownft is Ownable, ReentrancyGuard {
         emit WhilteListToken(token, enable, msg.sender);
     }
 
-    function setInterestRate(
+    function setInvestorInterestRate(
+        address token,
         uint256 interest_rate
     ) onlyOwner external {
-        _interest_rate = interest_rate;
-        emit InterestRateSet(interest_rate, msg.sender);
+        _investor_interest[token] = interest_rate;
+        emit InterestRateSet(msg.sender, interest_rate, msg.sender);
     }
 
     function deposit(
@@ -95,10 +93,11 @@ contract Ownft is Ownable, ReentrancyGuard {
         uint amount
     ) external nonReentrant {
         require(_depositWhitelist[token] == true, 'Ownft: TOKEN NOT ENABLED');
+        require(_investor_interest[token] > 0, 'Ownft: TOKEN INTEREST RATE NOT SET');
         // update user state
         UserInfo storage user = _userInfo[msg.sender];
         if (user.principals[token] > 0) {
-            uint256 pending_rewards = calculateLinearInterest(user.principals[token], _interest_rate, user.last_update_time);
+            uint256 pending_rewards = calculateLinearInterest(user.principals[token], _investor_interest[token], user.last_update_time);
             ERC20(token).safeTransfer(msg.sender, pending_rewards);
         }
         ERC20(token).safeTransferFrom(msg.sender, address(this), amount);
