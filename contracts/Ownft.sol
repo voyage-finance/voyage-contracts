@@ -14,7 +14,7 @@ contract Ownft is Ownable, ReentrancyGuard {
     // last_update_time will be updated when deposit/claim happens
     struct UserInfo {
         address user;
-        uint principal;
+        mapping(address => uint) principals;
         uint last_update_time;
     }
 
@@ -97,12 +97,12 @@ contract Ownft is Ownable, ReentrancyGuard {
         require(_depositWhitelist[token] == true, 'Ownft: TOKEN NOT ENABLED');
         // update user state
         UserInfo storage user = _userInfo[msg.sender];
-        if (user.principal > 0) {
-            uint256 pending_rewards = calculateLinearInterest(user.principal, _interest_rate, user.last_update_time);
+        if (user.principals[token] > 0) {
+            uint256 pending_rewards = calculateLinearInterest(user.principals[token], _interest_rate, user.last_update_time);
             ERC20(token).safeTransfer(msg.sender, pending_rewards);
         }
         ERC20(token).safeTransferFrom(msg.sender, address(this), amount);
-        user.principal += amount;
+        user.principals[token] += amount;
         user.last_update_time = block.timestamp;
         emit Deposit(token, msg.sender, amount, block.timestamp);
     }
