@@ -32,6 +32,7 @@ contract Ownft is Ownable {
     // we are using a fixed golbal interest_rate for investor here
     // better to define a ReservePool if we are going to support
     // multiple deposit assets in the future
+    // expressed in Ray
     uint256 _interest_rate;
 
     constructor(uint256 interest_rate) public {
@@ -52,7 +53,7 @@ contract Ownft is Ownable {
 
         uint256 timeDelta = timeDifference.wadToRay().rayDiv(SECONDS_PER_YEAR.wadToRay());
 
-        return _rate.rayMul(timeDelta).rayMul(principal);
+        return _rate.rayMul(timeDelta).mul(principal);
     }
 
     // set up assets that can be deposited
