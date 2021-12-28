@@ -2,7 +2,8 @@
 pragma solidity  ^0.8.9;
 
 import './libraries/ownership/Ownable.sol';
-import './libraries/utils/Address.sol';
+import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 
 contract Ownft is Ownable {
     // last_update_time will be updated when deposit/claim happens
@@ -13,23 +14,13 @@ contract Ownft is Ownable {
     }
 
     using Address for address;
-
-    bytes4 private constant SELECTOR = bytes4(keccak256(bytes('transfer(address,uint256)')));
+    using SafeERC20 for ERC20;
 
     mapping(address => bool) _depositWhitelist;
 
     mapping(address => DepositInfo) _depositInfo;
 
     constructor() public {}
-
-    function _safeTransfer(
-        address token,
-        address to,
-        uint value
-    ) private {
-       (bool success, bytes memory data) = token.call(abi.encodeWithSelector(SELECTOR, to, value));
-       require(success && (data.length == 0 || abi.decode(data, (bool))), 'Ownft: TRANSFER_FAILED');
-    }
 
     // set up assets that can be deposited
     function setDepositWhiteList(
@@ -44,6 +35,8 @@ contract Ownft is Ownable {
         address token,
         uint amount
     ) public {
-
+        require(_depositWhitelist[token] == true, 'Ownft: TOKEN NOT ENABLED');
+        ERC20(token).safeTransferFrom(msg.sender, address(this), amount);
+        // update user state
     }
 }
