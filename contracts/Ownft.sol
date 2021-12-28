@@ -39,6 +39,7 @@ contract Ownft is Ownable {
     }
 
     function calculateLinearInterest(
+        uint256 principal,
         uint256 _rate,
         uint256 _lastUpdateTimestamp
     )
@@ -51,7 +52,7 @@ contract Ownft is Ownable {
 
         uint256 timeDelta = timeDifference.wadToRay().rayDiv(SECONDS_PER_YEAR.wadToRay());
 
-        return _rate.rayMul(timeDelta).add(WadRayMath.ray());
+        return _rate.rayMul(timeDelta).rayMul(principal);
     }
 
     // set up assets that can be deposited
@@ -78,7 +79,7 @@ contract Ownft is Ownable {
         // update user state
         UserInfo storage user = _userInfo[msg.sender];
         if (user.principal > 0) {
-            uint256 pending_rewards = calculateLinearInterest(_interest_rate, user.last_update_time);
+            uint256 pending_rewards = calculateLinearInterest(user.principal, _interest_rate, user.last_update_time);
             ERC20(token).safeTransfer(msg.sender, pending_rewards);
         }
         ERC20(token).safeTransferFrom(msg.sender, address(this), amount);
