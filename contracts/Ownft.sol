@@ -15,7 +15,7 @@ contract Ownft is Ownable, ReentrancyGuard {
     struct UserInfo {
         address user;
         mapping(address => uint) principals;
-        uint last_update_time;
+        mapping(address => uint) last_update_timestamps;
     }
 
     using Address for address;
@@ -97,12 +97,12 @@ contract Ownft is Ownable, ReentrancyGuard {
         // update user state
         UserInfo storage user = _userInfo[msg.sender];
         if (user.principals[token] > 0) {
-            uint256 pending_rewards = calculateLinearInterest(user.principals[token], _investor_interest[token], user.last_update_time);
+            uint256 pending_rewards = calculateLinearInterest(user.principals[token], _investor_interest[token], user.last_update_timestamps[token]);
             ERC20(token).safeTransfer(msg.sender, pending_rewards);
         }
         ERC20(token).safeTransferFrom(msg.sender, address(this), amount);
         user.principals[token] += amount;
-        user.last_update_time = block.timestamp;
+        user.last_update_timestamps[token] = block.timestamp;
         emit Deposit(token, msg.sender, amount, block.timestamp);
     }
 }

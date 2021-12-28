@@ -27,7 +27,7 @@ interface OwnftInterface extends ethers.utils.Interface {
     "owner()": FunctionFragment;
     "pendingOwner()": FunctionFragment;
     "setDepositWhiteList(address,bool)": FunctionFragment;
-    "setInterestRate(address,uint256)": FunctionFragment;
+    "setInvestorInterestRate(address,uint256)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
   };
 
@@ -50,7 +50,7 @@ interface OwnftInterface extends ethers.utils.Interface {
     values: [string, boolean]
   ): string;
   encodeFunctionData(
-    functionFragment: "setInterestRate",
+    functionFragment: "setInvestorInterestRate",
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
@@ -74,7 +74,7 @@ interface OwnftInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "setInterestRate",
+    functionFragment: "setInvestorInterestRate",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -190,7 +190,7 @@ export class Ownft extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setInterestRate(
+    setInvestorInterestRate(
       token: string,
       interest_rate: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -224,7 +224,7 @@ export class Ownft extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setInterestRate(
+  setInvestorInterestRate(
     token: string,
     interest_rate: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -256,7 +256,7 @@ export class Ownft extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setInterestRate(
+    setInvestorInterestRate(
       token: string,
       interest_rate: BigNumberish,
       overrides?: CallOverrides
@@ -375,7 +375,7 @@ export class Ownft extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setInterestRate(
+    setInvestorInterestRate(
       token: string,
       interest_rate: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -410,7 +410,7 @@ export class Ownft extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    setInterestRate(
+    setInvestorInterestRate(
       token: string,
       interest_rate: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
