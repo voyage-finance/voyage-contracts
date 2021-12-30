@@ -3,6 +3,8 @@ pragma solidity  ^0.8.9;
 
 import './libraries/ownership/Ownable.sol';
 import './libraries/math/WadRayMath.sol';
+import './Deposit.sol';
+import './interfaces/IDeposit.sol';
 import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
@@ -22,7 +24,7 @@ contract Ownft is Ownable, ReentrancyGuard {
     using SafeMath for uint256;
     using WadRayMath for uint256;
 
-    event Deposit(
+    event UserDeposit(
         address _token,
         address _user,
         uint256 _amount,
@@ -103,6 +105,20 @@ contract Ownft is Ownable, ReentrancyGuard {
         emit InterestRateSet(msg.sender, interest_rate, msg.sender);
     }
 
+    function createDeposit(
+        address user,
+        address owner
+    ) internal returns (address) {
+      bytes memory bytecode = type(Deposit).creationCode;
+      bytes32 salt = keccak256(abi.encodePacked(user));
+      address d;
+      assembly {
+        d := create2(0, add(bytecode, 32), mload(bytecode), salt)
+      }
+      IDeposit(d).initialize(user);
+      return d;
+    }
+
     function deposit(
         address token,
         uint amount
@@ -118,6 +134,6 @@ contract Ownft is Ownable, ReentrancyGuard {
         ERC20(token).safeTransferFrom(msg.sender, address(this), amount);
         user.principals[token] += amount;
         user.last_update_timestamps[token] = block.timestamp;
-        emit Deposit(token, msg.sender, amount, block.timestamp);
+        emit UserDeposit(token, msg.sender, amount, block.timestamp);
     }
 }
