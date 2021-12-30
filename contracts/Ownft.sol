@@ -35,6 +35,12 @@ contract Ownft is Ownable, ReentrancyGuard {
         address _operator
     );
 
+    event WhiteListNFT(
+        address _nft,
+        bool _enable,
+        address _operator
+    );
+
     event InterestRateSet(
         address token,
         uint256 _interest_rate,
@@ -46,6 +52,8 @@ contract Ownft is Ownable, ReentrancyGuard {
     mapping(address => bool) _depositWhitelist;
 
     mapping(address => UserInfo) _userInfo;
+
+    mapping(address => bool) _nftWhitelist;
 
     // token => interest rate, expressed in ray
     mapping(address => uint256) _investor_interest;
@@ -77,6 +85,14 @@ contract Ownft is Ownable, ReentrancyGuard {
     ) onlyOwner external {
         _depositWhitelist[token] = enable;
         emit WhilteListToken(token, enable, msg.sender);
+    }
+
+    function setNFTWhiteList(
+        address nft,
+        bool enable
+    ) onlyOwner external {
+        _nftWhitelist[nft] = enable;
+        emit WhiteListNFT(nft, enable, msg.sender);
     }
 
     function setInvestorInterestRate(
