@@ -170,10 +170,10 @@ contract Ownft is Ownable, ReentrancyGuard {
         borrower.token = lendingToken;
 
         // 3. deploy deposit contract
-        address deoisitContract = createDepositContract(msg.sender, address(this));
-        borrower.deposit_contract = deoisitContract;
+        address depositContract = createDepositContract(msg.sender, address(this));
+        borrower.deposit_contract = depositContract;
 
         // 4. transfer token to the deposit contract
-        ERC20(lendingToken).safeTransfer(deoisitContract, lendingAmount);
+        ERC20(lendingToken).safeTransfer(depositContract, lendingAmount);
     }
 }
