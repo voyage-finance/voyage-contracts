@@ -19,6 +19,13 @@ contract Ownft is Ownable, ReentrancyGuard {
         mapping(address => uint) last_update_timestamps;
     }
 
+    struct BorrowInfo {
+        address deposit_contract;
+        address token;
+        uint principal;
+        uint last_update_timestamp;
+    }
+
     using Address for address;
     using SafeERC20 for ERC20;
     using SafeMath for uint256;
@@ -53,12 +60,19 @@ contract Ownft is Ownable, ReentrancyGuard {
 
     mapping(address => bool) _depositWhitelist;
 
-    mapping(address => UserInfo) _userInfo;
-
     mapping(address => bool) _nftWhitelist;
 
     // token => interest rate, expressed in ray
     mapping(address => uint256) _investor_interest;
+
+    // borrower address => borrow info
+    mapping(address => BorrowInfo) _borrowers;
+
+    // investor address => user info
+    mapping(address => UserInfo) _userInfo;
+
+    // nft address => lending token address
+    mapping(address => address) _lending_tokens;
 
     constructor() public {
     }
@@ -105,7 +119,7 @@ contract Ownft is Ownable, ReentrancyGuard {
         emit InterestRateSet(msg.sender, interest_rate, msg.sender);
     }
 
-    function createDeposit(
+    function createDepositContract(
         address user,
         address owner
     ) internal returns (address) {
@@ -113,6 +127,8 @@ contract Ownft is Ownable, ReentrancyGuard {
       bytes32 salt = keccak256(abi.encodePacked(user));
       address d;
       assembly {
+          // derived from uniswap contract
+          // todo test this carefully
         d := create2(0, add(bytecode, 32), mload(bytecode), salt)
       }
       IDeposit(d).initialize(user);
@@ -135,5 +151,29 @@ contract Ownft is Ownable, ReentrancyGuard {
         user.principals[token] += amount;
         user.last_update_timestamps[token] = block.timestamp;
         emit UserDeposit(token, msg.sender, amount, block.timestamp);
+    }
+
+    function borrow(
+        address nft
+    ) external nonReentrant {
+        require(_nftWhitelist[nft] == true, 'Ownft: NFT NOT ENABLED');
+        BorrowInfo storage borrower = _borrowers[msg.sender];
+        require(borrower.principal > 0, 'Ownft: INVALID BORROWER');
+        // 1. transfer some of our token as collateral
+
+        // todo how much we should transfer
+        uint lendingAmount = 0;
+        address lendingToken = _lending_tokens[nft];
+        // 2. update state
+        borrower.principal += lendingAmount;
+        borrower.last_update_timestamp = block.timestamp;
+        borrower.token = lendingToken;
+
+        // 3. deploy deposit contract
+        address deoisitContract = createDepositContract(msg.sender, address(this));
+        borrower.deposit_contract = deoisitContract;
+
+        // 4. transfer token to the deposit contract
+        ERC20(lendingToken).safeTransfer(deoisitContract, lendingAmount);
     }
 }

@@ -21,6 +21,7 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface OwnftInterface extends ethers.utils.Interface {
   functions: {
+    "borrow(address)": FunctionFragment;
     "claimOwnership()": FunctionFragment;
     "deposit(address,uint256)": FunctionFragment;
     "isOwner()": FunctionFragment;
@@ -32,6 +33,7 @@ interface OwnftInterface extends ethers.utils.Interface {
     "transferOwnership(address)": FunctionFragment;
   };
 
+  encodeFunctionData(functionFragment: "borrow", values: [string]): string;
   encodeFunctionData(
     functionFragment: "claimOwnership",
     values?: undefined
@@ -63,6 +65,7 @@ interface OwnftInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
 
+  decodeFunctionResult(functionFragment: "borrow", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "claimOwnership",
     data: BytesLike
@@ -187,6 +190,11 @@ export class Ownft extends BaseContract {
   interface: OwnftInterface;
 
   functions: {
+    borrow(
+      nft: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     claimOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -226,6 +234,11 @@ export class Ownft extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
+
+  borrow(
+    nft: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   claimOwnership(
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -267,6 +280,8 @@ export class Ownft extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    borrow(nft: string, overrides?: CallOverrides): Promise<void>;
+
     claimOwnership(overrides?: CallOverrides): Promise<void>;
 
     deposit(
@@ -408,6 +423,11 @@ export class Ownft extends BaseContract {
   };
 
   estimateGas: {
+    borrow(
+      nft: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     claimOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -449,6 +469,11 @@ export class Ownft extends BaseContract {
   };
 
   populateTransaction: {
+    borrow(
+      nft: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     claimOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
