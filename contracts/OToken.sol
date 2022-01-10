@@ -5,6 +5,7 @@ import './Ownft.sol';
 contract OToken is ERC20 {
     using WadRayMath for uint256;
 
+    mapping (address => uint256) private userIndexes;
     address public underlyingAssetAddress;
 
     Ownft private ownft;
@@ -22,6 +23,14 @@ contract OToken is ERC20 {
         string memory _name,
         string memory _symbol
     ) ERC20(_name, _symbol) {
+
+    }
+
+
+    function calculateCumulatedBalanceInternal(
+        address _user,
+        uint256 _balance
+    ) internal view returns (uint256) {
 
     }
 

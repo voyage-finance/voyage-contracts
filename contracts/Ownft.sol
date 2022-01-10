@@ -12,8 +12,15 @@ import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
 
 contract Ownft is Ownable, ReentrancyGuard {
 
+    struct Reserve {
+        uint256 interest_rate;
+        uint last_update_timestamps;
+        uint256 last_liquidity_cumulative_index;
+        bool enabled;
+    }
+
     // last_update_time will be updated when deposit/claim happens
-    struct UserInfo {
+    struct DepositInfo {
         address user;
         mapping(address => uint) principals;
         mapping(address => uint) last_update_timestamps;
@@ -25,6 +32,7 @@ contract Ownft is Ownable, ReentrancyGuard {
         uint principal;
         uint last_update_timestamp;
     }
+
 
     using Address for address;
     using SafeERC20 for ERC20;
@@ -58,18 +66,16 @@ contract Ownft is Ownable, ReentrancyGuard {
 
     uint256 internal constant SECONDS_PER_YEAR = 365 days;
 
-    mapping(address => bool) _depositWhitelist;
-
     mapping(address => bool) _nftWhitelist;
 
     // token => interest rate, expressed in ray
-    mapping(address => uint256) _investor_interest;
+    mapping(address => Reserve) _reserves;
 
     // borrower address => borrow info
     mapping(address => BorrowInfo) _borrowers;
 
     // investor address => user info
-    mapping(address => UserInfo) _userInfo;
+    mapping(address => DepositInfo) _depositInfo;
 
     // nft address => lending token address
     mapping(address => address) _lending_tokens;
@@ -99,7 +105,8 @@ contract Ownft is Ownable, ReentrancyGuard {
         address token,
         bool enable
     ) onlyOwner external {
-        _depositWhitelist[token] = enable;
+        Reserve storage reserve = _reserves[token];
+        reserve.enabled = enable;
         emit WhilteListToken(token, enable, msg.sender);
     }
 
@@ -115,7 +122,8 @@ contract Ownft is Ownable, ReentrancyGuard {
         address token,
         uint256 interest_rate
     ) onlyOwner external {
-        _investor_interest[token] = interest_rate;
+        Reserve storage reserve = _reserves[token];
+        reserve.interest_rate = interest_rate;
         emit InterestRateSet(msg.sender, interest_rate, msg.sender);
     }
 
@@ -139,17 +147,17 @@ contract Ownft is Ownable, ReentrancyGuard {
         address token,
         uint amount
     ) external nonReentrant {
-        require(_depositWhitelist[token] == true, 'Ownft: TOKEN NOT ENABLED');
-        require(_investor_interest[token] > 0, 'Ownft: TOKEN INTEREST RATE NOT SET');
+        //require(_depositWhitelist[token] == true, 'Ownft: TOKEN NOT ENABLED');
+        //require(_investor_interest[token] > 0, 'Ownft: TOKEN INTEREST RATE NOT SET');
         // update user state
-        UserInfo storage user = _userInfo[msg.sender];
-        if (user.principals[token] > 0) {
-            uint256 pending_rewards = calculateLinearInterest(user.principals[token], _investor_interest[token], user.last_update_timestamps[token]);
-            ERC20(token).safeTransfer(msg.sender, pending_rewards);
-        }
-        ERC20(token).safeTransferFrom(msg.sender, address(this), amount);
-        user.principals[token] += amount;
-        user.last_update_timestamps[token] = block.timestamp;
+        // DepositInfo storage user = _depositInfo[msg.sender];
+        // if (user.principals[token] > 0) {
+        //     uint256 pending_rewards = calculateLinearInterest(user.principals[token], _investor_interest[token], user.last_update_timestamps[token]);
+        //     ERC20(token).safeTransfer(msg.sender, pending_rewards);
+        // }
+        // ERC20(token).safeTransferFrom(msg.sender, address(this), amount);
+        // user.principals[token] += amount;
+        // user.last_update_timestamps[token] = block.timestamp;
         emit UserDeposit(token, msg.sender, amount, block.timestamp);
     }
 
