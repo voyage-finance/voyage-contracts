@@ -2,6 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { Deposit } from "./Deposit";
+export type { ICreditAccount } from "./ICreditAccount";
 export type { IDeposit } from "./IDeposit";
 export type { IERC20 } from "./IERC20";
 export type { Ownable } from "./Ownable";
@@ -13,6 +14,7 @@ export type { ERC20 } from "./ERC20";
 export type { IERC20Metadata } from "./IERC20Metadata";
 
 export { Deposit__factory } from "./factories/Deposit__factory";
+export { ICreditAccount__factory } from "./factories/ICreditAccount__factory";
 export { IDeposit__factory } from "./factories/IDeposit__factory";
 export { IERC20__factory } from "./factories/IERC20__factory";
 export { Ownable__factory } from "./factories/Ownable__factory";

@@ -1,7 +1,7 @@
 import './libraries/ownership/Ownable.sol';
 import './libraries/math/WadRayMath.sol';
-import './Deposit.sol';
-import './interfaces/IDeposit.sol';
+import './credit/CreditAccount.sol';
+import './interfaces/ICreditAccount.sol';
 import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";

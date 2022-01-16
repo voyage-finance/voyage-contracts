@@ -17,6 +17,14 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Deposit__factory>;
     getContractFactory(
+      name: "Deposit",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Deposit__factory>;
+    getContractFactory(
+      name: "ICreditAccount",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ICreditAccount__factory>;
+    getContractFactory(
       name: "IDeposit",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IDeposit__factory>;
@@ -45,6 +53,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Ownft__factory>;
     getContractFactory(
+      name: "OToken",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.OToken__factory>;
+    getContractFactory(
       name: "ERC20",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ERC20__factory>;
@@ -62,6 +74,16 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.Deposit>;
+    getContractAt(
+      name: "Deposit",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Deposit>;
+    getContractAt(
+      name: "ICreditAccount",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ICreditAccount>;
     getContractAt(
       name: "IDeposit",
       address: string,
@@ -97,6 +119,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.Ownft>;
+    getContractAt(
+      name: "OToken",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.OToken>;
     getContractAt(
       name: "ERC20",
       address: string,

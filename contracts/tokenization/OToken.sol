@@ -1,6 +1,6 @@
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
-import './libraries/math/WadRayMath.sol';
-import './Ownft.sol';
+import '../libraries/math/WadRayMath.sol';
+import '../Main.sol';
 
 contract OToken is ERC20 {
     using WadRayMath for uint256;
@@ -8,7 +8,7 @@ contract OToken is ERC20 {
     mapping (address => uint256) private userIndexes;
     address public underlyingAssetAddress;
 
-    Ownft private ownft;
+    Main private ownft;
 
     modifier onlyOwnft {
         require(

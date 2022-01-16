@@ -3,8 +3,8 @@ pragma solidity  ^0.8.9;
 
 import './libraries/ownership/Ownable.sol';
 import './libraries/math/WadRayMath.sol';
-import './Deposit.sol';
-import './interfaces/IDeposit.sol';
+import './credit/CreditAccount.sol';
+import './interfaces/ICreditAccount.sol';
 import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
@@ -139,7 +139,7 @@ contract Ownft is Ownable, ReentrancyGuard {
           // todo test this carefully
         d := create2(0, add(bytecode, 32), mload(bytecode), salt)
       }
-      IDeposit(d).initialize(user);
+      ICreditAccount(d).initialize(user);
       return d;
     }
 
