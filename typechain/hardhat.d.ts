@@ -33,6 +33,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ReentrancyGuard__factory>;
     getContractFactory(
+      name: "Main",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Main__factory>;
+    getContractFactory(
       name: "OToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.OToken__factory>;
@@ -78,6 +82,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.ReentrancyGuard>;
+    getContractAt(
+      name: "Main",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Main>;
     getContractAt(
       name: "OToken",
       address: string,
