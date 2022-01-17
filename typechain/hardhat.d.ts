@@ -17,17 +17,9 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Deposit__factory>;
     getContractFactory(
-      name: "Deposit",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.Deposit__factory>;
-    getContractFactory(
       name: "ICreditAccount",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ICreditAccount__factory>;
-    getContractFactory(
-      name: "IDeposit",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IDeposit__factory>;
     getContractFactory(
       name: "IERC20",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -44,10 +36,6 @@ declare module "hardhat/types/runtime" {
       name: "Main",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Main__factory>;
-    getContractFactory(
-      name: "OToken",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.OToken__factory>;
     getContractFactory(
       name: "Ownft",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -75,20 +63,10 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.Deposit>;
     getContractAt(
-      name: "Deposit",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.Deposit>;
-    getContractAt(
       name: "ICreditAccount",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.ICreditAccount>;
-    getContractAt(
-      name: "IDeposit",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IDeposit>;
     getContractAt(
       name: "IERC20",
       address: string,
@@ -109,11 +87,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.Main>;
-    getContractAt(
-      name: "OToken",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.OToken>;
     getContractAt(
       name: "Ownft",
       address: string,

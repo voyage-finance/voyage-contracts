@@ -20,6 +20,7 @@ contract OToken is ERC20 {
 
     constructor(
         address _underlyingAsset,
+        uint8 _underlyingAssetDecimals,
         string memory _name,
         string memory _symbol
     ) ERC20(_name, _symbol) {
