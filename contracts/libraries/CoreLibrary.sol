@@ -1,5 +1,14 @@
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity  ^0.8.9;
+
+import "./math/WadRayMath.sol";
+
 library CoreLibrary {
-     enum Tranche { JUNIOR, SENIOR }
+    using SafeMath for uint256;
+    using WadRayMath for uint256;
+
+
+    enum Tranche { JUNIOR, SENIOR }
 
     struct ReserveData {
         //the liquidity index. Expressed in ray
@@ -22,5 +31,25 @@ library CoreLibrary {
         // isActive = true means the reserve has been activated and properly configured
         bool isActive;
         Tranche tranche;
+    }
+
+    function init(
+        ReserveData storage _self,
+        address _oTokenAddress,
+        uint256 _decimals,
+        address _interestRateStrategyAddress,
+        Tranche _tranche
+    ) external {
+        require(_self.oTokenAddress == address(0), "Reserve has already been initialized");
+        if (_self.lastLiquidityCumulativeIndex == 0) {
+            _self.lastLiquidityCumulativeIndex = WadRayMath.ray();
+        }
+
+         _self.oTokenAddress = _oTokenAddress;
+        _self.decimals = _decimals;
+
+        _self.interestRateStrategyAddress = _interestRateStrategyAddress;
+        _self.tranche = _tranche;
+        _self.isActive = true;
     }
 }

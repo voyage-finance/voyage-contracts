@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity  ^0.8.9;
+
 import './libraries/ownership/Ownable.sol';
 import './libraries/math/WadRayMath.sol';
 import "./libraries/CoreLibrary.sol";
@@ -12,6 +15,20 @@ import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
 contract Main is Ownable, ReentrancyGuard {
 
     using CoreLibrary for CoreLibrary.ReserveData;
+    using SafeMath for uint256;
+
+
+       /**
+    * @dev emitted when a reserve is initialized.
+    * @param _reserve the address of the reserve
+    * @param _oToken the address of the overlying aToken contract
+    * @param _interestRateStrategyAddress the address of the interest rate strategy for the reserve
+    **/
+    event ReserveInitialized(
+        address indexed _reserve,
+        address indexed _oToken,
+        address _interestRateStrategyAddress
+    );
 
 
     mapping(address => CoreLibrary.ReserveData) _reserves;
@@ -40,6 +57,20 @@ contract Main is Ownable, ReentrancyGuard {
             _underlyingAssetDecimals,
             _oTokenName,
             _oTokenSymbol
+        );
+
+        _reserves[_reserve].init(
+            address(oTokenInstance),
+            _underlyingAssetDecimals,
+            _interestRateStrategyAddress,
+            tranche
+        );
+
+
+        emit ReserveInitialized(
+            _reserve,
+            address(oTokenInstance),
+            _interestRateStrategyAddress
         );
 
     }

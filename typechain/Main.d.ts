@@ -78,13 +78,23 @@ interface MainInterface extends ethers.utils.Interface {
 
   events: {
     "OwnershipTransferred(address,address)": EventFragment;
+    "ReserveInitialized(address,address,address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ReserveInitialized"): EventFragment;
 }
 
 export type OwnershipTransferredEvent = TypedEvent<
   [string, string] & { previousOwner: string; newOwner: string }
+>;
+
+export type ReserveInitializedEvent = TypedEvent<
+  [string, string, string] & {
+    _reserve: string;
+    _oToken: string;
+    _interestRateStrategyAddress: string;
+  }
 >;
 
 export class Main extends BaseContract {
@@ -246,6 +256,32 @@ export class Main extends BaseContract {
     ): TypedEventFilter<
       [string, string],
       { previousOwner: string; newOwner: string }
+    >;
+
+    "ReserveInitialized(address,address,address)"(
+      _reserve?: string | null,
+      _oToken?: string | null,
+      _interestRateStrategyAddress?: null
+    ): TypedEventFilter<
+      [string, string, string],
+      {
+        _reserve: string;
+        _oToken: string;
+        _interestRateStrategyAddress: string;
+      }
+    >;
+
+    ReserveInitialized(
+      _reserve?: string | null,
+      _oToken?: string | null,
+      _interestRateStrategyAddress?: null
+    ): TypedEventFilter<
+      [string, string, string],
+      {
+        _reserve: string;
+        _oToken: string;
+        _interestRateStrategyAddress: string;
+      }
     >;
   };
 
