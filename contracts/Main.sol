@@ -30,6 +30,12 @@ contract Main is Ownable, ReentrancyGuard {
         address _interestRateStrategyAddress
     );
 
+    /**
+    * @dev emitted when a reserve is activated
+    * @param _reserve the address of the reserve
+    **/
+    event ReserveActivated(address indexed _reserve);
+
 
     mapping(address => CoreLibrary.ReserveData) _reserves;
 
@@ -86,6 +92,19 @@ contract Main is Ownable, ReentrancyGuard {
         string memory oTokenName = string(abi.encodePacked("Ownft Interest bearing ", asset.name()));
         string memory oTokenSymbol = string(abi.encodePacked("a", asset.symbol()));
         initReserveWithData(_reserve, oTokenName, oTokenSymbol, _underlyingAssetDecimals, _interestRateStrategyAddress, tranche);
+    }
+
+    /**
+    * @dev activates a reserve
+    * @param _reserve the address of the reserve
+    **/
+    function activateReserve(address _reserve) external onlyLendingPoolManager {
+        CoreLibrary.ReserveData storage reserve = _reserves[_reserve];
+         require(
+            reserve.lastLiquidityCumulativeIndex > 0,
+            "Reserve has not been initialized yet"
+        );
+        emit ReserveActivated(_reserve);
     }
 
 }

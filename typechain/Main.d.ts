@@ -21,6 +21,7 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface MainInterface extends ethers.utils.Interface {
   functions: {
+    "activateReserve(address)": FunctionFragment;
     "claimOwnership()": FunctionFragment;
     "initReserve(address,uint8,address,uint8)": FunctionFragment;
     "initReserveWithData(address,string,string,uint8,address,uint8)": FunctionFragment;
@@ -30,6 +31,10 @@ interface MainInterface extends ethers.utils.Interface {
     "transferOwnership(address)": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "activateReserve",
+    values: [string]
+  ): string;
   encodeFunctionData(
     functionFragment: "claimOwnership",
     values?: undefined
@@ -53,6 +58,10 @@ interface MainInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "activateReserve",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "claimOwnership",
     data: BytesLike
@@ -78,16 +87,20 @@ interface MainInterface extends ethers.utils.Interface {
 
   events: {
     "OwnershipTransferred(address,address)": EventFragment;
+    "ReserveActivated(address)": EventFragment;
     "ReserveInitialized(address,address,address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ReserveActivated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ReserveInitialized"): EventFragment;
 }
 
 export type OwnershipTransferredEvent = TypedEvent<
   [string, string] & { previousOwner: string; newOwner: string }
 >;
+
+export type ReserveActivatedEvent = TypedEvent<[string] & { _reserve: string }>;
 
 export type ReserveInitializedEvent = TypedEvent<
   [string, string, string] & {
@@ -141,6 +154,11 @@ export class Main extends BaseContract {
   interface: MainInterface;
 
   functions: {
+    activateReserve(
+      _reserve: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     claimOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -174,6 +192,11 @@ export class Main extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
+
+  activateReserve(
+    _reserve: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   claimOwnership(
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -209,6 +232,8 @@ export class Main extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    activateReserve(_reserve: string, overrides?: CallOverrides): Promise<void>;
+
     claimOwnership(overrides?: CallOverrides): Promise<void>;
 
     initReserve(
@@ -258,6 +283,14 @@ export class Main extends BaseContract {
       { previousOwner: string; newOwner: string }
     >;
 
+    "ReserveActivated(address)"(
+      _reserve?: string | null
+    ): TypedEventFilter<[string], { _reserve: string }>;
+
+    ReserveActivated(
+      _reserve?: string | null
+    ): TypedEventFilter<[string], { _reserve: string }>;
+
     "ReserveInitialized(address,address,address)"(
       _reserve?: string | null,
       _oToken?: string | null,
@@ -286,6 +319,11 @@ export class Main extends BaseContract {
   };
 
   estimateGas: {
+    activateReserve(
+      _reserve: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     claimOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -321,6 +359,11 @@ export class Main extends BaseContract {
   };
 
   populateTransaction: {
+    activateReserve(
+      _reserve: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     claimOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
