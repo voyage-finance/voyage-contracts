@@ -17,6 +17,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Deposit__factory>;
     getContractFactory(
+      name: "DefaultReserveInterestRateStrategy",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.DefaultReserveInterestRateStrategy__factory>;
+    getContractFactory(
       name: "ICreditAccount",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ICreditAccount__factory>;
@@ -24,6 +28,14 @@ declare module "hardhat/types/runtime" {
       name: "IERC20",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC20__factory>;
+    getContractFactory(
+      name: "ILendingRateOracle",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ILendingRateOracle__factory>;
+    getContractFactory(
+      name: "IReserveInterestRateStrategy",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IReserveInterestRateStrategy__factory>;
     getContractFactory(
       name: "Ownable",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -63,6 +75,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.Deposit>;
     getContractAt(
+      name: "DefaultReserveInterestRateStrategy",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.DefaultReserveInterestRateStrategy>;
+    getContractAt(
       name: "ICreditAccount",
       address: string,
       signer?: ethers.Signer
@@ -72,6 +89,16 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IERC20>;
+    getContractAt(
+      name: "ILendingRateOracle",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ILendingRateOracle>;
+    getContractAt(
+      name: "IReserveInterestRateStrategy",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IReserveInterestRateStrategy>;
     getContractAt(
       name: "Ownable",
       address: string,
