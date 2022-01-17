@@ -23,6 +23,7 @@ interface MainInterface extends ethers.utils.Interface {
   functions: {
     "activateReserve(address)": FunctionFragment;
     "claimOwnership()": FunctionFragment;
+    "getReserveAvailableLiquidity(address)": FunctionFragment;
     "initReserve(address,uint8,address,uint8)": FunctionFragment;
     "initReserveWithData(address,string,string,uint8,address,uint8)": FunctionFragment;
     "isOwner()": FunctionFragment;
@@ -38,6 +39,10 @@ interface MainInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "claimOwnership",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getReserveAvailableLiquidity",
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "initReserve",
@@ -64,6 +69,10 @@ interface MainInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "claimOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getReserveAvailableLiquidity",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -163,6 +172,11 @@ export class Main extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    getReserveAvailableLiquidity(
+      _reserve: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     initReserve(
       _reserve: string,
       _underlyingAssetDecimals: BigNumberish,
@@ -202,6 +216,11 @@ export class Main extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  getReserveAvailableLiquidity(
+    _reserve: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   initReserve(
     _reserve: string,
     _underlyingAssetDecimals: BigNumberish,
@@ -235,6 +254,11 @@ export class Main extends BaseContract {
     activateReserve(_reserve: string, overrides?: CallOverrides): Promise<void>;
 
     claimOwnership(overrides?: CallOverrides): Promise<void>;
+
+    getReserveAvailableLiquidity(
+      _reserve: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     initReserve(
       _reserve: string,
@@ -328,6 +352,11 @@ export class Main extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    getReserveAvailableLiquidity(
+      _reserve: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     initReserve(
       _reserve: string,
       _underlyingAssetDecimals: BigNumberish,
@@ -366,6 +395,11 @@ export class Main extends BaseContract {
 
     claimOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getReserveAvailableLiquidity(
+      _reserve: string,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     initReserve(

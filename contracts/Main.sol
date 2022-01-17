@@ -4,6 +4,7 @@ pragma solidity  ^0.8.9;
 import './libraries/ownership/Ownable.sol';
 import './libraries/math/WadRayMath.sol';
 import "./libraries/CoreLibrary.sol";
+import "./libraries/EthAddressLib.sol";
 import './credit/CreditAccount.sol';
 import './interfaces/ICreditAccount.sol';
 import './tokenization/OToken.sol';
@@ -47,6 +48,22 @@ contract Main is Ownable, ReentrancyGuard {
             "The caller must be a lending pool manager"
         );
         _;
+    }
+
+    /**
+    * @dev gets the available liquidity in the reserve. The available liquidity is the balance of the core contract
+    * @param _reserve the reserve address
+    * @return the available liquidity
+    **/
+    function getReserveAvailableLiquidity(address _reserve) public view returns (uint256) {
+        uint256 balance = 0;
+
+        if (_reserve == EthAddressLib.ethAddress()) {
+            balance = address(this).balance;
+        } else {
+            balance = ERC20(_reserve).balanceOf(address(this));
+        }
+        return balance;
     }
 
 
