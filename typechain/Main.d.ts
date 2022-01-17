@@ -23,7 +23,9 @@ interface MainInterface extends ethers.utils.Interface {
   functions: {
     "activateReserve(address)": FunctionFragment;
     "claimOwnership()": FunctionFragment;
+    "deactivateReserve(address)": FunctionFragment;
     "getReserveAvailableLiquidity(address)": FunctionFragment;
+    "getReserveTotalLiquidity(address)": FunctionFragment;
     "initReserve(address,uint8,address,uint8)": FunctionFragment;
     "initReserveWithData(address,string,string,uint8,address,uint8)": FunctionFragment;
     "isOwner()": FunctionFragment;
@@ -41,7 +43,15 @@ interface MainInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "deactivateReserve",
+    values: [string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getReserveAvailableLiquidity",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getReserveTotalLiquidity",
     values: [string]
   ): string;
   encodeFunctionData(
@@ -72,7 +82,15 @@ interface MainInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "deactivateReserve",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getReserveAvailableLiquidity",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getReserveTotalLiquidity",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -97,11 +115,13 @@ interface MainInterface extends ethers.utils.Interface {
   events: {
     "OwnershipTransferred(address,address)": EventFragment;
     "ReserveActivated(address)": EventFragment;
+    "ReserveDeactivated(address)": EventFragment;
     "ReserveInitialized(address,address,address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ReserveActivated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ReserveDeactivated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ReserveInitialized"): EventFragment;
 }
 
@@ -110,6 +130,10 @@ export type OwnershipTransferredEvent = TypedEvent<
 >;
 
 export type ReserveActivatedEvent = TypedEvent<[string] & { _reserve: string }>;
+
+export type ReserveDeactivatedEvent = TypedEvent<
+  [string] & { _reserve: string }
+>;
 
 export type ReserveInitializedEvent = TypedEvent<
   [string, string, string] & {
@@ -172,7 +196,17 @@ export class Main extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    deactivateReserve(
+      _reserve: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     getReserveAvailableLiquidity(
+      _reserve: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    getReserveTotalLiquidity(
       _reserve: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
@@ -216,7 +250,17 @@ export class Main extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  deactivateReserve(
+    _reserve: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   getReserveAvailableLiquidity(
+    _reserve: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getReserveTotalLiquidity(
     _reserve: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
@@ -255,7 +299,17 @@ export class Main extends BaseContract {
 
     claimOwnership(overrides?: CallOverrides): Promise<void>;
 
+    deactivateReserve(
+      _reserve: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     getReserveAvailableLiquidity(
+      _reserve: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getReserveTotalLiquidity(
       _reserve: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -315,6 +369,14 @@ export class Main extends BaseContract {
       _reserve?: string | null
     ): TypedEventFilter<[string], { _reserve: string }>;
 
+    "ReserveDeactivated(address)"(
+      _reserve?: string | null
+    ): TypedEventFilter<[string], { _reserve: string }>;
+
+    ReserveDeactivated(
+      _reserve?: string | null
+    ): TypedEventFilter<[string], { _reserve: string }>;
+
     "ReserveInitialized(address,address,address)"(
       _reserve?: string | null,
       _oToken?: string | null,
@@ -352,7 +414,17 @@ export class Main extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    deactivateReserve(
+      _reserve: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     getReserveAvailableLiquidity(
+      _reserve: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getReserveTotalLiquidity(
       _reserve: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -397,7 +469,17 @@ export class Main extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    deactivateReserve(
+      _reserve: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     getReserveAvailableLiquidity(
+      _reserve: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getReserveTotalLiquidity(
       _reserve: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;

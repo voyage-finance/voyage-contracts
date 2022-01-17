@@ -37,6 +37,12 @@ contract Main is Ownable, ReentrancyGuard {
     **/
     event ReserveActivated(address indexed _reserve);
 
+    /**
+    * @dev emitted when a reserve is deactivated
+    * @param _reserve the address of the reserve
+    **/
+    event ReserveDeactivated(address indexed _reserve);
+
 
     mapping(address => CoreLibrary.ReserveData) _reserves;
 
@@ -64,6 +70,16 @@ contract Main is Ownable, ReentrancyGuard {
             balance = ERC20(_reserve).balanceOf(address(this));
         }
         return balance;
+    }
+
+    /**
+    * @dev gets the total liquidity in the reserve. The total liquidity is the balance of the core contract + total borrows
+    * @param _reserve the reserve address
+    * @return the total liquidity
+    **/
+    function getReserveTotalLiquidity(address _reserve) public view returns (uint256) {
+        CoreLibrary.ReserveData storage reserve = _reserves[_reserve];
+        return getReserveAvailableLiquidity(_reserve).add(reserve.totalBorrows);
     }
 
 
@@ -117,11 +133,20 @@ contract Main is Ownable, ReentrancyGuard {
     **/
     function activateReserve(address _reserve) external onlyLendingPoolManager {
         CoreLibrary.ReserveData storage reserve = _reserves[_reserve];
-         require(
-            reserve.lastLiquidityCumulativeIndex > 0,
-            "Reserve has not been initialized yet"
-        );
+        require(reserve.lastLiquidityCumulativeIndex > 0, "Reserve has not been initialized yet");
+        reserve.isActive = true;
         emit ReserveActivated(_reserve);
+    }
+
+     /**
+    * @dev deactivates a reserve
+    * @param _reserve the address of the reserve
+    **/
+    function deactivateReserve(address _reserve) external onlyLendingPoolManager {
+        CoreLibrary.ReserveData storage reserve = _reserves[_reserve];
+        require(getReserveTotalLiquidity(_reserve) == 0, "The liquidity of the reserve needs to be 0");
+        reserve.isActive = false;
+        emit ReserveDeactivated(_reserve);
     }
 
 }
