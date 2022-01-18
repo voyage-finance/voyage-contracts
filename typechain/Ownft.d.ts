@@ -21,6 +21,7 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface OwnftInterface extends ethers.utils.Interface {
   functions: {
+    "borrow(address)": FunctionFragment;
     "claimOwnership()": FunctionFragment;
     "deposit(address,uint256)": FunctionFragment;
     "isOwner()": FunctionFragment;
@@ -28,9 +29,11 @@ interface OwnftInterface extends ethers.utils.Interface {
     "pendingOwner()": FunctionFragment;
     "setDepositWhiteList(address,bool)": FunctionFragment;
     "setInvestorInterestRate(address,uint256)": FunctionFragment;
+    "setNFTWhiteList(address,bool)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
   };
 
+  encodeFunctionData(functionFragment: "borrow", values: [string]): string;
   encodeFunctionData(
     functionFragment: "claimOwnership",
     values?: undefined
@@ -54,10 +57,15 @@ interface OwnftInterface extends ethers.utils.Interface {
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "setNFTWhiteList",
+    values: [string, boolean]
+  ): string;
+  encodeFunctionData(
     functionFragment: "transferOwnership",
     values: [string]
   ): string;
 
+  decodeFunctionResult(functionFragment: "borrow", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "claimOwnership",
     data: BytesLike
@@ -78,31 +86,28 @@ interface OwnftInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "setNFTWhiteList",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "transferOwnership",
     data: BytesLike
   ): Result;
 
   events: {
-    "Deposit(address,address,uint256,uint256)": EventFragment;
     "InterestRateSet(address,uint256,address)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
+    "UserDeposit(address,address,uint256,uint256)": EventFragment;
     "WhilteListToken(address,bool,address)": EventFragment;
+    "WhiteListNFT(address,bool,address)": EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "Deposit"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "InterestRateSet"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "UserDeposit"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "WhilteListToken"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "WhiteListNFT"): EventFragment;
 }
-
-export type DepositEvent = TypedEvent<
-  [string, string, BigNumber, BigNumber] & {
-    _token: string;
-    _user: string;
-    _amount: BigNumber;
-    _timestamp: BigNumber;
-  }
->;
 
 export type InterestRateSetEvent = TypedEvent<
   [string, BigNumber, string] & {
@@ -116,9 +121,26 @@ export type OwnershipTransferredEvent = TypedEvent<
   [string, string] & { previousOwner: string; newOwner: string }
 >;
 
+export type UserDepositEvent = TypedEvent<
+  [string, string, BigNumber, BigNumber] & {
+    _token: string;
+    _user: string;
+    _amount: BigNumber;
+    _timestamp: BigNumber;
+  }
+>;
+
 export type WhilteListTokenEvent = TypedEvent<
   [string, boolean, string] & {
     _token: string;
+    _enable: boolean;
+    _operator: string;
+  }
+>;
+
+export type WhiteListNFTEvent = TypedEvent<
+  [string, boolean, string] & {
+    _nft: string;
     _enable: boolean;
     _operator: string;
   }
@@ -168,6 +190,11 @@ export class Ownft extends BaseContract {
   interface: OwnftInterface;
 
   functions: {
+    borrow(
+      nft: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     claimOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -196,11 +223,22 @@ export class Ownft extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    setNFTWhiteList(
+      nft: string,
+      enable: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     transferOwnership(
       newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
+
+  borrow(
+    nft: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   claimOwnership(
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -230,12 +268,20 @@ export class Ownft extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  setNFTWhiteList(
+    nft: string,
+    enable: boolean,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   transferOwnership(
     newOwner: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    borrow(nft: string, overrides?: CallOverrides): Promise<void>;
+
     claimOwnership(overrides?: CallOverrides): Promise<void>;
 
     deposit(
@@ -262,6 +308,12 @@ export class Ownft extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    setNFTWhiteList(
+      nft: string,
+      enable: boolean,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     transferOwnership(
       newOwner: string,
       overrides?: CallOverrides
@@ -269,36 +321,6 @@ export class Ownft extends BaseContract {
   };
 
   filters: {
-    "Deposit(address,address,uint256,uint256)"(
-      _token?: null,
-      _user?: null,
-      _amount?: null,
-      _timestamp?: null
-    ): TypedEventFilter<
-      [string, string, BigNumber, BigNumber],
-      {
-        _token: string;
-        _user: string;
-        _amount: BigNumber;
-        _timestamp: BigNumber;
-      }
-    >;
-
-    Deposit(
-      _token?: null,
-      _user?: null,
-      _amount?: null,
-      _timestamp?: null
-    ): TypedEventFilter<
-      [string, string, BigNumber, BigNumber],
-      {
-        _token: string;
-        _user: string;
-        _amount: BigNumber;
-        _timestamp: BigNumber;
-      }
-    >;
-
     "InterestRateSet(address,uint256,address)"(
       token?: null,
       _interest_rate?: null,
@@ -333,6 +355,36 @@ export class Ownft extends BaseContract {
       { previousOwner: string; newOwner: string }
     >;
 
+    "UserDeposit(address,address,uint256,uint256)"(
+      _token?: null,
+      _user?: null,
+      _amount?: null,
+      _timestamp?: null
+    ): TypedEventFilter<
+      [string, string, BigNumber, BigNumber],
+      {
+        _token: string;
+        _user: string;
+        _amount: BigNumber;
+        _timestamp: BigNumber;
+      }
+    >;
+
+    UserDeposit(
+      _token?: null,
+      _user?: null,
+      _amount?: null,
+      _timestamp?: null
+    ): TypedEventFilter<
+      [string, string, BigNumber, BigNumber],
+      {
+        _token: string;
+        _user: string;
+        _amount: BigNumber;
+        _timestamp: BigNumber;
+      }
+    >;
+
     "WhilteListToken(address,bool,address)"(
       _token?: null,
       _enable?: null,
@@ -350,9 +402,32 @@ export class Ownft extends BaseContract {
       [string, boolean, string],
       { _token: string; _enable: boolean; _operator: string }
     >;
+
+    "WhiteListNFT(address,bool,address)"(
+      _nft?: null,
+      _enable?: null,
+      _operator?: null
+    ): TypedEventFilter<
+      [string, boolean, string],
+      { _nft: string; _enable: boolean; _operator: string }
+    >;
+
+    WhiteListNFT(
+      _nft?: null,
+      _enable?: null,
+      _operator?: null
+    ): TypedEventFilter<
+      [string, boolean, string],
+      { _nft: string; _enable: boolean; _operator: string }
+    >;
   };
 
   estimateGas: {
+    borrow(
+      nft: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     claimOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -381,6 +456,12 @@ export class Ownft extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    setNFTWhiteList(
+      nft: string,
+      enable: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     transferOwnership(
       newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -388,6 +469,11 @@ export class Ownft extends BaseContract {
   };
 
   populateTransaction: {
+    borrow(
+      nft: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     claimOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -413,6 +499,12 @@ export class Ownft extends BaseContract {
     setInvestorInterestRate(
       token: string,
       interest_rate: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setNFTWhiteList(
+      nft: string,
+      enable: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

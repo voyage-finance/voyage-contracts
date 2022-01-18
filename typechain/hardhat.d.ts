@@ -13,9 +13,29 @@ import * as Contracts from ".";
 declare module "hardhat/types/runtime" {
   interface HardhatEthersHelpers extends HardhatEthersHelpersBase {
     getContractFactory(
+      name: "Deposit",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Deposit__factory>;
+    getContractFactory(
+      name: "DefaultReserveInterestRateStrategy",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.DefaultReserveInterestRateStrategy__factory>;
+    getContractFactory(
+      name: "ICreditAccount",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ICreditAccount__factory>;
+    getContractFactory(
       name: "IERC20",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC20__factory>;
+    getContractFactory(
+      name: "ILendingRateOracle",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ILendingRateOracle__factory>;
+    getContractFactory(
+      name: "IReserveInterestRateStrategy",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IReserveInterestRateStrategy__factory>;
     getContractFactory(
       name: "Ownable",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -25,9 +45,17 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ReentrancyGuard__factory>;
     getContractFactory(
+      name: "Main",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Main__factory>;
+    getContractFactory(
       name: "Ownft",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Ownft__factory>;
+    getContractFactory(
+      name: "OToken",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.OToken__factory>;
     getContractFactory(
       name: "ERC20",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -42,10 +70,35 @@ declare module "hardhat/types/runtime" {
     ): Promise<Contracts.IERC20__factory>;
 
     getContractAt(
+      name: "Deposit",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Deposit>;
+    getContractAt(
+      name: "DefaultReserveInterestRateStrategy",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.DefaultReserveInterestRateStrategy>;
+    getContractAt(
+      name: "ICreditAccount",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ICreditAccount>;
+    getContractAt(
       name: "IERC20",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IERC20>;
+    getContractAt(
+      name: "ILendingRateOracle",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ILendingRateOracle>;
+    getContractAt(
+      name: "IReserveInterestRateStrategy",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IReserveInterestRateStrategy>;
     getContractAt(
       name: "Ownable",
       address: string,
@@ -57,10 +110,20 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.ReentrancyGuard>;
     getContractAt(
+      name: "Main",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Main>;
+    getContractAt(
       name: "Ownft",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.Ownft>;
+    getContractAt(
+      name: "OToken",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.OToken>;
     getContractAt(
       name: "ERC20",
       address: string,
