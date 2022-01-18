@@ -7,6 +7,8 @@ library CoreLibrary {
     using SafeMath for uint256;
     using WadRayMath for uint256;
 
+    uint256 internal constant SECONDS_PER_YEAR = 365 days;
+
 
     enum Tranche { JUNIOR, SENIOR }
 
@@ -51,5 +53,47 @@ library CoreLibrary {
         _self.interestRateStrategyAddress = _interestRateStrategyAddress;
         _self.tranche = _tranche;
         _self.isActive = true;
+    }
+
+
+
+    /**
+    * @dev returns the ongoing normalized income for the reserve.
+    * a value of 1e27 means there is no income. As time passes, the income is accrued.
+    * A value of 2*1e27 means that the income of the reserve is double the initial amount.
+    * @param _reserve the reserve object
+    * @return the normalized income. expressed in ray
+    **/
+    function getNormalizedIncome(CoreLibrary.ReserveData storage _reserve)
+        internal
+        view
+        returns (uint256)
+    {
+        uint256 cumulated = calculateLinearInterest(
+            _reserve
+                .currentLiquidityRate,
+            _reserve
+                .lastUpdateTimestamp
+        )
+            .rayMul(_reserve.lastLiquidityCumulativeIndex);
+
+        return cumulated;
+
+    }
+
+    function calculateLinearInterest(
+        uint256 _rate,
+        uint40 _lastUpdateTimestamp
+    )
+        internal
+        view
+        returns (uint256)
+    {
+        //solium-disable-next-line
+        uint256 timeDifference = block.timestamp.sub(uint256(_lastUpdateTimestamp));
+
+        uint256 timeDelta = timeDifference.wadToRay().rayDiv(SECONDS_PER_YEAR.wadToRay());
+
+        return _rate.rayMul(timeDelta).add(WadRayMath.ray());
     }
 }
