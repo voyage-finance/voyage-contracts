@@ -117,10 +117,12 @@ interface OTokenInterface extends ethers.utils.Interface {
 
   events: {
     "Approval(address,address,uint256)": EventFragment;
+    "MintOnDeposit(address,uint256,uint256,uint256)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "MintOnDeposit"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
 }
 
@@ -129,6 +131,15 @@ export type ApprovalEvent = TypedEvent<
     owner: string;
     spender: string;
     value: BigNumber;
+  }
+>;
+
+export type MintOnDepositEvent = TypedEvent<
+  [string, BigNumber, BigNumber, BigNumber] & {
+    _from: string;
+    _value: BigNumber;
+    _fromBalanceIncrease: BigNumber;
+    _fromIndex: BigNumber;
   }
 >;
 
@@ -377,6 +388,36 @@ export class OToken extends BaseContract {
     ): TypedEventFilter<
       [string, string, BigNumber],
       { owner: string; spender: string; value: BigNumber }
+    >;
+
+    "MintOnDeposit(address,uint256,uint256,uint256)"(
+      _from?: string | null,
+      _value?: null,
+      _fromBalanceIncrease?: null,
+      _fromIndex?: null
+    ): TypedEventFilter<
+      [string, BigNumber, BigNumber, BigNumber],
+      {
+        _from: string;
+        _value: BigNumber;
+        _fromBalanceIncrease: BigNumber;
+        _fromIndex: BigNumber;
+      }
+    >;
+
+    MintOnDeposit(
+      _from?: string | null,
+      _value?: null,
+      _fromBalanceIncrease?: null,
+      _fromIndex?: null
+    ): TypedEventFilter<
+      [string, BigNumber, BigNumber, BigNumber],
+      {
+        _from: string;
+        _value: BigNumber;
+        _fromBalanceIncrease: BigNumber;
+        _fromIndex: BigNumber;
+      }
     >;
 
     "Transfer(address,address,uint256)"(
