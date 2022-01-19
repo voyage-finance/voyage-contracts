@@ -149,4 +149,15 @@ contract Main is Ownable, ReentrancyGuard {
         emit ReserveDeactivated(_reserve);
     }
 
+    /**
+    * @dev gets the normalized income of the reserve. a value of 1e27 means there is no income. A value of 2e27 means there
+    * there has been 100% income.
+    * @param _reserve the reserve address
+    * @return the reserve normalized income
+    **/
+    function getReserveNormalizedIncome(address _reserve) external view returns (uint256) {
+        CoreLibrary.ReserveData storage reserve = _reserves[_reserve];
+        return reserve.getNormalizedIncome();
+    }
+
 }

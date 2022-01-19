@@ -25,6 +25,7 @@ interface MainInterface extends ethers.utils.Interface {
     "claimOwnership()": FunctionFragment;
     "deactivateReserve(address)": FunctionFragment;
     "getReserveAvailableLiquidity(address)": FunctionFragment;
+    "getReserveNormalizedIncome(address)": FunctionFragment;
     "getReserveTotalLiquidity(address)": FunctionFragment;
     "initReserve(address,uint8,address,uint8)": FunctionFragment;
     "initReserveWithData(address,string,string,uint8,address,uint8)": FunctionFragment;
@@ -48,6 +49,10 @@ interface MainInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getReserveAvailableLiquidity",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getReserveNormalizedIncome",
     values: [string]
   ): string;
   encodeFunctionData(
@@ -87,6 +92,10 @@ interface MainInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getReserveAvailableLiquidity",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getReserveNormalizedIncome",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -206,6 +215,11 @@ export class Main extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
+    getReserveNormalizedIncome(
+      _reserve: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     getReserveTotalLiquidity(
       _reserve: string,
       overrides?: CallOverrides
@@ -260,6 +274,11 @@ export class Main extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  getReserveNormalizedIncome(
+    _reserve: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   getReserveTotalLiquidity(
     _reserve: string,
     overrides?: CallOverrides
@@ -305,6 +324,11 @@ export class Main extends BaseContract {
     ): Promise<void>;
 
     getReserveAvailableLiquidity(
+      _reserve: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getReserveNormalizedIncome(
       _reserve: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -424,6 +448,11 @@ export class Main extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getReserveNormalizedIncome(
+      _reserve: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getReserveTotalLiquidity(
       _reserve: string,
       overrides?: CallOverrides
@@ -475,6 +504,11 @@ export class Main extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getReserveAvailableLiquidity(
+      _reserve: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getReserveNormalizedIncome(
       _reserve: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
