@@ -15,6 +15,20 @@ contract OToken is ERC20 {
     address public underlyingAssetAddress;
     Main private ownft;
 
+    /**
+    * @dev emitted after the mint action
+    * @param _from the address performing the mint
+    * @param _value the amount to be minted
+    * @param _fromBalanceIncrease the cumulated balance since the last update of the user
+    * @param _fromIndex the last index of the user
+    **/
+    event MintOnDeposit(
+        address indexed _from,
+        uint256 _value,
+        uint256 _fromBalanceIncrease,
+        uint256 _fromIndex
+    );
+
     modifier onlyOwnft {
         require(
             msg.sender ==  address(ownft),
@@ -98,6 +112,7 @@ contract OToken is ERC20 {
         //mint an equivalent amount of tokens to cover the new deposit
         _mint(_account, _amount);
 
+        emit MintOnDeposit(_account, _amount, balanceIncrease, index);
     }
 
     function redeem(uint256 _amount) external {
