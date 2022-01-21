@@ -96,4 +96,39 @@ library CoreLibrary {
 
         return _rate.rayMul(timeDelta).add(WadRayMath.ray());
     }
+
+    /**
+    * @dev Updates the liquidity cumulative index Ci
+    * @param _self the reserve object
+    **/
+    function updateCumulativeIndexes(ReserveData storage _self) internal {
+        uint256 totalBorrows = getTotalBorrows(_self);
+
+        if (totalBorrows > 0) {
+            //only cumulating if there is any income being produced
+            uint256 cumulatedLiquidityInterest = calculateLinearInterest(
+                _self.currentLiquidityRate,
+                _self.lastUpdateTimestamp
+            );
+
+            _self.lastLiquidityCumulativeIndex = cumulatedLiquidityInterest.rayMul(
+                _self.lastLiquidityCumulativeIndex
+            );
+        }
+    }
+
+    /**
+    * @dev returns the total borrows on the reserve
+    * @param _reserve the reserve object
+    * @return the total borrows (stable + variable)
+    **/
+    function getTotalBorrows(CoreLibrary.ReserveData storage _reserve)
+        internal
+        view
+        returns (uint256)
+    {
+        return _reserve.totalBorrows;
+    }
+
+
 }
