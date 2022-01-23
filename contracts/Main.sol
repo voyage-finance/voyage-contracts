@@ -6,6 +6,7 @@ import './libraries/math/WadRayMath.sol';
 import "./libraries/CoreLibrary.sol";
 import "./libraries/EthAddressLib.sol";
 import './credit/CreditAccount.sol';
+import './interfaces/IReserveInterestRateStrategy.sol';
 import './interfaces/ICreditAccount.sol';
 import './tokenization/OToken.sol';
 import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -17,6 +18,7 @@ contract Main is Ownable, ReentrancyGuard {
 
     using CoreLibrary for CoreLibrary.ReserveData;
     using SafeMath for uint256;
+    using SafeERC20 for ERC20;
 
 
        /**
@@ -43,10 +45,37 @@ contract Main is Ownable, ReentrancyGuard {
     **/
     event ReserveDeactivated(address indexed _reserve);
 
+    /**
+    * @dev Emitted when the state of a reserve is updated
+    * @param reserve the address of the reserve
+    * @param liquidityRate the new liquidity rate
+    * @param liquidityIndex the new liquidity index
+    **/
+    event ReserveUpdated(
+        address indexed reserve,
+        uint256 liquidityRate,
+        uint256 liquidityIndex
+    );
+
+    /**
+    * @dev emitted on deposit
+    * @param _reserve the address of the reserve
+    * @param _user the address of the user
+    * @param _amount the amount to be deposited
+    * @param _timestamp the timestamp of the action
+    **/
+    event Deposit(
+        address indexed _reserve,
+        address indexed _user,
+        uint256 _amount,
+        uint256 _timestamp
+    );
+
 
     mapping(address => CoreLibrary.ReserveData) _reserves;
 
     address lendingPoolManager;
+
 
     modifier onlyLendingPoolManager {
          require(
@@ -54,6 +83,60 @@ contract Main is Ownable, ReentrancyGuard {
             "The caller must be a lending pool manager"
         );
         _;
+    }
+
+    /**
+    * @dev functions affected by this modifier can only be invoked if the reserve is active
+    * @param _reserve the address of the reserve
+    **/
+    modifier onlyActiveReserve(address _reserve) {
+        requireReserveActiveInternal(_reserve);
+        _;
+    }
+
+    /**
+    * @dev functions affected by this modifier can only be invoked if the provided _amount input parameter
+    * is not zero.
+    * @param _amount the amount provided
+    **/
+    modifier onlyAmountGreaterThanZero(uint256 _amount) {
+        requireAmountGreaterThanZeroInternal(_amount);
+        _;
+    }
+
+    /**
+    * @dev internal function to save on code size for the onlyActiveReserve modifier
+    **/
+    function requireReserveActiveInternal(address _reserve) internal view {
+        require(getReserveIsActive(_reserve), "Action requires an active reserve");
+    }
+
+    /**
+    * @notice internal function to save on code size for the onlyAmountGreaterThanZero modifier
+    **/
+    function requireAmountGreaterThanZeroInternal(uint256 _amount) internal pure {
+        require(_amount > 0, "Amount must be greater than 0");
+    }
+
+    /**
+    * @dev gets the oToken contract address for the reserve
+    * @param _reserve the reserve address
+    * @return the address of the oToken contract
+    **/
+    function getReserveATokenAddress(address _reserve) public view returns (address) {
+        CoreLibrary.ReserveData storage reserve = _reserves[_reserve];
+        return reserve.oTokenAddress;
+    }
+
+
+    /**
+    * @dev returns true if the reserve is active
+    * @param _reserve the reserve address
+    * @return true if the reserve is active, false otherwise
+    **/
+    function getReserveIsActive(address _reserve) internal view returns (bool) {
+        CoreLibrary.ReserveData storage reserve = _reserves[_reserve];
+        return reserve.isActive;
     }
 
     /**
@@ -158,6 +241,105 @@ contract Main is Ownable, ReentrancyGuard {
     function getReserveNormalizedIncome(address _reserve) external view returns (uint256) {
         CoreLibrary.ReserveData storage reserve = _reserves[_reserve];
         return reserve.getNormalizedIncome();
+    }
+
+    /**
+    * @dev updates the state of the core as a result of a deposit action
+    * @param _reserve the address of the reserve in which the deposit is happening
+    * @param _user the address of the the user depositing
+    * @param _amount the amount being deposited
+    * @param _isFirstDeposit true if the user is depositing for the first time
+    **/
+
+    function updateStateOnDeposit(
+        address _reserve,
+        address _user,
+        uint256 _amount,
+        bool _isFirstDeposit
+    ) internal {
+        _reserves[_reserve].updateCumulativeIndexes();
+        updateReserveInterestRatesAndTimestampInternal(_reserve, _amount, 0);
+    }
+
+    /**
+    * @dev Updates the reserve current stable borrow rate Rf, the current variable borrow rate Rv and the current liquidity rate Rl.
+    * Also updates the lastUpdateTimestamp value. Please refer to the whitepaper for further information.
+    * @param _reserve the address of the reserve to be updated
+    * @param _liquidityAdded the amount of liquidity added to the protocol (deposit or repay) in the previous action
+    * @param _liquidityTaken the amount of liquidity taken from the protocol (redeem or borrow)
+    **/
+
+    function updateReserveInterestRatesAndTimestampInternal(
+        address _reserve,
+        uint256 _liquidityAdded,
+        uint256 _liquidityTaken
+    ) internal {
+        CoreLibrary.ReserveData storage reserve = _reserves[_reserve];
+        (uint256 newLiquidityRate) = IReserveInterestRateStrategy(
+            reserve
+                .interestRateStrategyAddress
+        )
+            .calculateInterestRates(
+            _reserve,
+            getReserveAvailableLiquidity(_reserve).add(_liquidityAdded).sub(_liquidityTaken),
+            reserve.totalBorrows
+        );
+
+        reserve.currentLiquidityRate = newLiquidityRate;
+
+        //solium-disable-next-line
+        reserve.lastUpdateTimestamp = uint40(block.timestamp);
+
+        emit ReserveUpdated(
+            _reserve,
+            newLiquidityRate,
+            reserve.lastLiquidityCumulativeIndex
+        );
+    }
+
+    /**
+    * @dev deposits The underlying asset into the reserve. A corresponding amount of the overlying asset (aTokens)
+    * is minted.
+    * @param _reserve the address of the reserve
+    * @param _amount the amount to be deposited
+    * @param _referralCode integrators are assigned a referral code and can potentially receive rewards.
+    **/
+    function deposit(address _reserve, uint256 _amount, uint16 _referralCode)
+        external
+        payable
+        nonReentrant
+        onlyActiveReserve(_reserve)
+        onlyAmountGreaterThanZero(_amount)
+    {
+        OToken oToken = OToken(getReserveATokenAddress(_reserve));
+
+        bool isFirstDeposit = oToken.balanceOf(msg.sender) == 0;
+
+        updateStateOnDeposit(_reserve, msg.sender, _amount, isFirstDeposit);
+
+        //minting AToken to user 1:1 with the specific exchange rate
+        oToken.mintOnDeposit(msg.sender, _amount);
+
+        //transfer to the core contract
+        if (_reserve != EthAddressLib.ethAddress()) {
+            require(msg.value == 0, "User is sending ETH along with the ERC20 transfer.");
+            ERC20(_reserve).safeTransferFrom(msg.sender, address(this), _amount);
+
+        } else {
+            require(msg.value >= _amount, "The amount and the value sent to deposit do not match");
+
+            // if (msg.value > _amount) {
+            //     //send back excess ETH
+            //     uint256 excessAmount = msg.value.sub(_amount);
+            //     //solium-disable-next-line
+            //     (bool result, ) = msg.sender.call.value(excessAmount).gas(50000)("");
+            //     require(result, "Transfer of ETH failed");
+            // }
+        }
+
+        //solium-disable-next-line
+        emit Deposit(_reserve, msg.sender, _amount, block.timestamp);
+
     }
 
 }

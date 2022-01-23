@@ -11,6 +11,35 @@ import type {
 
 const _abi = [
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_reserve",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "_utilizationRate",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "_totalBorrows",
+        type: "uint256",
+      },
+    ],
+    name: "calculateInterestRates",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "getBaseVariableBorrowRate",
     outputs: [

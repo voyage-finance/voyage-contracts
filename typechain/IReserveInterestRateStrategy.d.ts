@@ -20,14 +20,23 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface IReserveInterestRateStrategyInterface extends ethers.utils.Interface {
   functions: {
+    "calculateInterestRates(address,uint256,uint256)": FunctionFragment;
     "getBaseVariableBorrowRate()": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "calculateInterestRates",
+    values: [string, BigNumberish, BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "getBaseVariableBorrowRate",
     values?: undefined
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "calculateInterestRates",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getBaseVariableBorrowRate",
     data: BytesLike
@@ -80,22 +89,57 @@ export class IReserveInterestRateStrategy extends BaseContract {
   interface: IReserveInterestRateStrategyInterface;
 
   functions: {
+    calculateInterestRates(
+      _reserve: string,
+      _utilizationRate: BigNumberish,
+      _totalBorrows: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     getBaseVariableBorrowRate(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
+
+  calculateInterestRates(
+    _reserve: string,
+    _utilizationRate: BigNumberish,
+    _totalBorrows: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   getBaseVariableBorrowRate(overrides?: CallOverrides): Promise<BigNumber>;
 
   callStatic: {
+    calculateInterestRates(
+      _reserve: string,
+      _utilizationRate: BigNumberish,
+      _totalBorrows: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getBaseVariableBorrowRate(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   filters: {};
 
   estimateGas: {
+    calculateInterestRates(
+      _reserve: string,
+      _utilizationRate: BigNumberish,
+      _totalBorrows: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getBaseVariableBorrowRate(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    calculateInterestRates(
+      _reserve: string,
+      _utilizationRate: BigNumberish,
+      _totalBorrows: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getBaseVariableBorrowRate(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
