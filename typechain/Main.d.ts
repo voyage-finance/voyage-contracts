@@ -25,7 +25,7 @@ interface MainInterface extends ethers.utils.Interface {
     "activateReserve(address)": FunctionFragment;
     "claimOwnership()": FunctionFragment;
     "deactivateReserve(address)": FunctionFragment;
-    "deposit(address,uint256,uint16)": FunctionFragment;
+    "deposit(address,uint256)": FunctionFragment;
     "getReserveATokenAddress(address)": FunctionFragment;
     "getReserveAvailableLiquidity(address)": FunctionFragment;
     "getReserveNormalizedIncome(address)": FunctionFragment;
@@ -35,6 +35,7 @@ interface MainInterface extends ethers.utils.Interface {
     "isOwner()": FunctionFragment;
     "owner()": FunctionFragment;
     "pendingOwner()": FunctionFragment;
+    "redeemUnderlying(address,address,uint256,uint256)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
   };
 
@@ -52,7 +53,7 @@ interface MainInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [string, BigNumberish, BigNumberish]
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getReserveATokenAddress",
@@ -83,6 +84,10 @@ interface MainInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "pendingOwner",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "redeemUnderlying",
+    values: [string, string, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
@@ -133,6 +138,10 @@ interface MainInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "redeemUnderlying",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "transferOwnership",
     data: BytesLike
   ): Result;
@@ -140,6 +149,7 @@ interface MainInterface extends ethers.utils.Interface {
   events: {
     "Deposit(address,address,uint256,uint256)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
+    "RedeemUnderlying(address,address,uint256,uint256)": EventFragment;
     "ReserveActivated(address)": EventFragment;
     "ReserveDeactivated(address)": EventFragment;
     "ReserveInitialized(address,address,address)": EventFragment;
@@ -148,6 +158,7 @@ interface MainInterface extends ethers.utils.Interface {
 
   getEvent(nameOrSignatureOrTopic: "Deposit"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RedeemUnderlying"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ReserveActivated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ReserveDeactivated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ReserveInitialized"): EventFragment;
@@ -165,6 +176,15 @@ export type DepositEvent = TypedEvent<
 
 export type OwnershipTransferredEvent = TypedEvent<
   [string, string] & { previousOwner: string; newOwner: string }
+>;
+
+export type RedeemUnderlyingEvent = TypedEvent<
+  [string, string, BigNumber, BigNumber] & {
+    _reserve: string;
+    _user: string;
+    _amount: BigNumber;
+    _timestamp: BigNumber;
+  }
 >;
 
 export type ReserveActivatedEvent = TypedEvent<[string] & { _reserve: string }>;
@@ -250,7 +270,6 @@ export class Main extends BaseContract {
     deposit(
       _reserve: string,
       _amount: BigNumberish,
-      _referralCode: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -298,6 +317,14 @@ export class Main extends BaseContract {
 
     pendingOwner(overrides?: CallOverrides): Promise<[string]>;
 
+    redeemUnderlying(
+      _reserve: string,
+      _user: string,
+      _amount: BigNumberish,
+      _aTokenBalanceAfterRedeem: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     transferOwnership(
       newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -321,7 +348,6 @@ export class Main extends BaseContract {
   deposit(
     _reserve: string,
     _amount: BigNumberish,
-    _referralCode: BigNumberish,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -369,6 +395,14 @@ export class Main extends BaseContract {
 
   pendingOwner(overrides?: CallOverrides): Promise<string>;
 
+  redeemUnderlying(
+    _reserve: string,
+    _user: string,
+    _amount: BigNumberish,
+    _aTokenBalanceAfterRedeem: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   transferOwnership(
     newOwner: string,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -387,7 +421,6 @@ export class Main extends BaseContract {
     deposit(
       _reserve: string,
       _amount: BigNumberish,
-      _referralCode: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -434,6 +467,14 @@ export class Main extends BaseContract {
     owner(overrides?: CallOverrides): Promise<string>;
 
     pendingOwner(overrides?: CallOverrides): Promise<string>;
+
+    redeemUnderlying(
+      _reserve: string,
+      _user: string,
+      _amount: BigNumberish,
+      _aTokenBalanceAfterRedeem: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     transferOwnership(
       newOwner: string,
@@ -486,6 +527,36 @@ export class Main extends BaseContract {
     ): TypedEventFilter<
       [string, string],
       { previousOwner: string; newOwner: string }
+    >;
+
+    "RedeemUnderlying(address,address,uint256,uint256)"(
+      _reserve?: string | null,
+      _user?: string | null,
+      _amount?: null,
+      _timestamp?: null
+    ): TypedEventFilter<
+      [string, string, BigNumber, BigNumber],
+      {
+        _reserve: string;
+        _user: string;
+        _amount: BigNumber;
+        _timestamp: BigNumber;
+      }
+    >;
+
+    RedeemUnderlying(
+      _reserve?: string | null,
+      _user?: string | null,
+      _amount?: null,
+      _timestamp?: null
+    ): TypedEventFilter<
+      [string, string, BigNumber, BigNumber],
+      {
+        _reserve: string;
+        _user: string;
+        _amount: BigNumber;
+        _timestamp: BigNumber;
+      }
     >;
 
     "ReserveActivated(address)"(
@@ -567,7 +638,6 @@ export class Main extends BaseContract {
     deposit(
       _reserve: string,
       _amount: BigNumberish,
-      _referralCode: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -615,6 +685,14 @@ export class Main extends BaseContract {
 
     pendingOwner(overrides?: CallOverrides): Promise<BigNumber>;
 
+    redeemUnderlying(
+      _reserve: string,
+      _user: string,
+      _amount: BigNumberish,
+      _aTokenBalanceAfterRedeem: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     transferOwnership(
       newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -639,7 +717,6 @@ export class Main extends BaseContract {
     deposit(
       _reserve: string,
       _amount: BigNumberish,
-      _referralCode: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -686,6 +763,14 @@ export class Main extends BaseContract {
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     pendingOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    redeemUnderlying(
+      _reserve: string,
+      _user: string,
+      _amount: BigNumberish,
+      _aTokenBalanceAfterRedeem: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     transferOwnership(
       newOwner: string,

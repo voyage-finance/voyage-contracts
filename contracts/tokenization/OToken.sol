@@ -29,6 +29,20 @@ contract OToken is ERC20 {
         uint256 _fromIndex
     );
 
+     /**
+    * @dev emitted after the redeem action
+    * @param _from the address performing the redeem
+    * @param _value the amount to be redeemed
+    * @param _fromBalanceIncrease the cumulated balance since the last update of the user
+    * @param _fromIndex the last index of the user
+    **/
+    event Redeem(
+        address indexed _from,
+        uint256 _value,
+        uint256 _fromBalanceIncrease,
+        uint256 _fromIndex
+    );
+
     modifier onlyOwnft {
         require(
             msg.sender ==  address(ownft),
@@ -115,7 +129,41 @@ contract OToken is ERC20 {
         emit MintOnDeposit(_account, _amount, balanceIncrease, index);
     }
 
+    /**
+    * @dev redeems oToken for the underlying asset
+    * @param _amount the amount being redeemed
+    **/
     function redeem(uint256 _amount) external {
+        require(_amount > 0, "Amount to redeem needs to be > 0");
+
+        //cumulates the balance of the user
+        (,
+        uint256 currentBalance,
+        uint256 balanceIncrease,
+        uint256 index) = cumulateBalanceInternal(msg.sender);
+
+
+
+        uint256 amountToRedeem = _amount;
+
+        require(amountToRedeem <= currentBalance, "User cannot redeem more than the available balance");
+
+        // todo check that the user is allowed to redeem the amount
+
+        // burns tokens equivalent to the amount requested
+        _burn(msg.sender, amountToRedeem);
+
+        bool userIndexReset = false;
+        //reset the user data if the remaining balance is 0
+        if(currentBalance.sub(amountToRedeem) == 0){
+          userIndexes[msg.sender] = 0;
+          userIndexReset = true;
+        }
+
+        // todo call main contract
+
+        emit Redeem(msg.sender, amountToRedeem, balanceIncrease, userIndexReset ? 0 : index);
+
     }
 
 
