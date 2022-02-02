@@ -7,4 +7,4 @@ https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/tok
 
 ## Architecture
 
-![contract architecture](./doc/arch.jpg)
+![contract architecture](https://github.com/halcyon-project/ownft-contracts/blob/main/doc/arch.ipg)
