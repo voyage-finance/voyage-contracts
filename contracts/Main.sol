@@ -71,6 +71,20 @@ contract Main is Ownable, ReentrancyGuard {
         uint256 _timestamp
     );
 
+    /**
+    * @dev emitted during a redeem action.
+    * @param _reserve the address of the reserve
+    * @param _user the address of the user
+    * @param _amount the amount to be deposited
+    * @param _timestamp the timestamp of the action
+    **/
+    event RedeemUnderlying(
+        address indexed _reserve,
+        address indexed _user,
+        uint256 _amount,
+        uint256 _timestamp
+    );
+
 
     mapping(address => CoreLibrary.ReserveData) _reserves;
 
@@ -101,6 +115,19 @@ contract Main is Ownable, ReentrancyGuard {
     **/
     modifier onlyAmountGreaterThanZero(uint256 _amount) {
         requireAmountGreaterThanZeroInternal(_amount);
+        _;
+    }
+
+    /**
+    * @dev functions affected by this modifier can only be invoked by the
+    * aToken.sol contract
+    * @param _reserve the address of the reserve
+    **/
+    modifier onlyOverlyingOToken(address _reserve) {
+        require(
+            msg.sender == getReserveATokenAddress(_reserve),
+            "The caller of this function can only be the aToken contract of this reserve"
+        );
         _;
     }
 
@@ -262,6 +289,24 @@ contract Main is Ownable, ReentrancyGuard {
     }
 
     /**
+    * @dev updates the state of the core as a result of a redeem action
+    * @param _reserve the address of the reserve in which the redeem is happening
+    * @param _user the address of the the user redeeming
+    * @param _amountRedeemed the amount being redeemed
+    * @param _userRedeemedEverything true if the user is redeeming everything
+    **/
+    function updateStateOnRedeem(
+        address _reserve,
+        address _user,
+        uint256 _amountRedeemed,
+        bool _userRedeemedEverything
+    ) internal {
+        //compound liquidity and variable borrow interests
+        _reserves[_reserve].updateCumulativeIndexes();
+        updateReserveInterestRatesAndTimestampInternal(_reserve, 0, _amountRedeemed);
+    }
+
+    /**
     * @dev Updates the reserve current stable borrow rate Rf, the current variable borrow rate Rv and the current liquidity rate Rl.
     * Also updates the lastUpdateTimestamp value. Please refer to the whitepaper for further information.
     * @param _reserve the address of the reserve to be updated
@@ -298,13 +343,30 @@ contract Main is Ownable, ReentrancyGuard {
     }
 
     /**
+    * @dev transfers to the user a specific amount from the reserve.
+    * @param _reserve the address of the reserve where the transfer is happening
+    * @param _user the address of the user receiving the transfer
+    * @param _amount the amount being transferred
+    **/
+    function transferToUser(address _reserve, address payable _user, uint256 _amount)
+      internal
+    {
+        if (_reserve != EthAddressLib.ethAddress()) {
+            ERC20(_reserve).safeTransfer(_user, _amount);
+        } else {
+            //solium-disable-next-line
+            (bool result, ) = _user.call{value:_amount}("");
+            require(result, "Transfer of ETH failed");
+        }
+    }
+
+    /**
     * @dev deposits The underlying asset into the reserve. A corresponding amount of the overlying asset (aTokens)
     * is minted.
     * @param _reserve the address of the reserve
     * @param _amount the amount to be deposited
-    * @param _referralCode integrators are assigned a referral code and can potentially receive rewards.
     **/
-    function deposit(address _reserve, uint256 _amount, uint16 _referralCode)
+    function deposit(address _reserve, uint256 _amount)
         external
         payable
         nonReentrant
@@ -328,17 +390,51 @@ contract Main is Ownable, ReentrancyGuard {
         } else {
             require(msg.value >= _amount, "The amount and the value sent to deposit do not match");
 
-            // if (msg.value > _amount) {
-            //     //send back excess ETH
-            //     uint256 excessAmount = msg.value.sub(_amount);
-            //     //solium-disable-next-line
-            //     (bool result, ) = msg.sender.call.value(excessAmount).gas(50000)("");
-            //     require(result, "Transfer of ETH failed");
-            // }
+            if (msg.value > _amount) {
+                //send back excess ETH
+                uint256 excessAmount = msg.value.sub(_amount);
+                //solium-disable-next-line
+                (bool result, ) = msg.sender.call{value: excessAmount}("");
+                require(result, "Transfer of ETH failed");
+            }
         }
 
         //solium-disable-next-line
         emit Deposit(_reserve, msg.sender, _amount, block.timestamp);
+
+    }
+
+    /**
+    * @dev Redeems the underlying amount of assets requested by _user.
+    * This function is executed by the overlying aToken contract in response to a redeem action.
+    * @param _reserve the address of the reserve
+    * @param _user the address of the user performing the action
+    * @param _amount the underlying amount to be redeemed
+    **/
+    function redeemUnderlying(
+        address _reserve,
+        address payable _user,
+        uint256 _amount,
+        uint256 _aTokenBalanceAfterRedeem
+    )
+        external
+        nonReentrant
+        onlyOverlyingOToken(_reserve)
+        onlyActiveReserve(_reserve)
+        onlyAmountGreaterThanZero(_amount)
+    {
+        uint256 currentAvailableLiquidity = getReserveAvailableLiquidity(_reserve);
+        require(
+            currentAvailableLiquidity >= _amount,
+            "There is not enough liquidity available to redeem"
+        );
+
+        updateStateOnRedeem(_reserve, _user, _amount, _aTokenBalanceAfterRedeem == 0);
+
+        transferToUser(_reserve, _user, _amount);
+
+        //solium-disable-next-line
+        emit RedeemUnderlying(_reserve, _user, _amount, block.timestamp);
 
     }
 
