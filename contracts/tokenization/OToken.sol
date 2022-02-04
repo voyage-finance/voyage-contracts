@@ -5,7 +5,7 @@ import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
 import '../libraries/math/WadRayMath.sol';
 import "../libraries/CoreLibrary.sol";
-import '../Main.sol';
+import '../LiquidityManager.sol';
 
 contract OToken is ERC20 {
     using WadRayMath for uint256;
@@ -13,7 +13,7 @@ contract OToken is ERC20 {
 
     mapping (address => uint256) private userIndexes;
     address public underlyingAssetAddress;
-    Main private ownft;
+    LiquidityManager private liquidityManager;
 
     /**
     * @dev emitted after the mint action
@@ -43,10 +43,10 @@ contract OToken is ERC20 {
         uint256 _fromIndex
     );
 
-    modifier onlyOwnft {
+    modifier onlyLiquidityManager {
         require(
-            msg.sender ==  address(ownft),
-            'The caller of this function must be Ownft'
+            msg.sender ==  address(liquidityManager),
+            'The caller of this function must be liquidityManager'
         );
         _;
     }
@@ -85,7 +85,7 @@ contract OToken is ERC20 {
     ) internal view returns (uint256) {
           return _balance
             .wadToRay()
-            .rayMul(ownft.getReserveNormalizedIncome(underlyingAssetAddress))
+            .rayMul(liquidityManager.getReserveNormalizedIncome(underlyingAssetAddress))
             .rayDiv(userIndexes[_user])
             .rayToWad();
     }
@@ -107,7 +107,7 @@ contract OToken is ERC20 {
         //mints an amount of tokens equivalent to the amount accumulated
         _mint(_user, balanceIncrease);
         //updates the user index
-        uint256 index = userIndexes[_user] = ownft.getReserveNormalizedIncome(underlyingAssetAddress);
+        uint256 index = userIndexes[_user] = liquidityManager.getReserveNormalizedIncome(underlyingAssetAddress);
         return (
             previousPrincipalBalance,
             previousPrincipalBalance.add(balanceIncrease),
@@ -116,7 +116,7 @@ contract OToken is ERC20 {
         );
     }
 
-    function mintOnDeposit(address _account, uint256 _amount) external onlyOwnft {
+    function mintOnDeposit(address _account, uint256 _amount) external onlyLiquidityManager {
         //cumulates the balance of the user
         (,
         ,

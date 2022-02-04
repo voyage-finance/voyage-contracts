@@ -3,7 +3,7 @@ pragma solidity  ^0.8.9;
 
 import "./interfaces/IReserveInterestRateStrategy.sol";
 import "./libraries/math/WadRayMath.sol";
-import "./Main.sol";
+import "./LiquidityManager.sol";
 import "./interfaces/ILendingRateOracle.sol";
 import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
 

@@ -14,7 +14,7 @@ import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
 
-contract Main is Ownable, ReentrancyGuard {
+contract LiquidityManager is Ownable, ReentrancyGuard {
 
     using CoreLibrary for CoreLibrary.ReserveData;
     using SafeMath for uint256;

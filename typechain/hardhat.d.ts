@@ -45,13 +45,9 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ReentrancyGuard__factory>;
     getContractFactory(
-      name: "Main",
+      name: "LiquidityManager",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.Main__factory>;
-    getContractFactory(
-      name: "Ownft",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.Ownft__factory>;
+    ): Promise<Contracts.LiquidityManager__factory>;
     getContractFactory(
       name: "OToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -110,15 +106,10 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.ReentrancyGuard>;
     getContractAt(
-      name: "Main",
+      name: "LiquidityManager",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.Main>;
-    getContractAt(
-      name: "Ownft",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.Ownft>;
+    ): Promise<Contracts.LiquidityManager>;
     getContractAt(
       name: "OToken",
       address: string,
