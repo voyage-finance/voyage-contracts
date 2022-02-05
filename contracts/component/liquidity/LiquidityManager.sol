@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity  ^0.8.9;
 
-import './libraries/ownership/Ownable.sol';
-import './libraries/math/WadRayMath.sol';
-import "./libraries/CoreLibrary.sol";
-import "./libraries/EthAddressLib.sol";
-import './credit/CreditAccount.sol';
-import './interfaces/IReserveInterestRateStrategy.sol';
-import './interfaces/ICreditAccount.sol';
-import './tokenization/OToken.sol';
+import '../../libraries/ownership/Ownable.sol';
+import '../../libraries/math/WadRayMath.sol';
+import "../../libraries/CoreLibrary.sol";
+import "../../libraries/EthAddressLib.sol";
+import '../../credit/CreditAccount.sol';
+import '../../interfaces/IReserveInterestRateStrategy.sol';
+import '../../interfaces/ICreditAccount.sol';
+import '../../tokenization/OToken.sol';
 import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";

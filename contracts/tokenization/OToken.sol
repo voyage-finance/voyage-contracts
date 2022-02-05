@@ -5,7 +5,7 @@ import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
 import '../libraries/math/WadRayMath.sol';
 import "../libraries/CoreLibrary.sol";
-import '../LiquidityManager.sol';
+import '../component/liquidity/LiquidityManager.sol';
 
 contract OToken is ERC20 {
     using WadRayMath for uint256;

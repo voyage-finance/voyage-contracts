@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity  ^0.8.9;
 
-import "./interfaces/IReserveInterestRateStrategy.sol";
-import "./libraries/math/WadRayMath.sol";
+import "../../interfaces/IReserveInterestRateStrategy.sol";
+import "../../libraries/math/WadRayMath.sol";
 import "./LiquidityManager.sol";
-import "./interfaces/ILendingRateOracle.sol";
+import "../../interfaces/ILendingRateOracle.sol";
 import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
 
 /**

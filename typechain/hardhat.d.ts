@@ -13,6 +13,14 @@ import * as Contracts from ".";
 declare module "hardhat/types/runtime" {
   interface HardhatEthersHelpers extends HardhatEthersHelpersBase {
     getContractFactory(
+      name: "DefaultReserveInterestRateStrategy",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.DefaultReserveInterestRateStrategy__factory>;
+    getContractFactory(
+      name: "LiquidityManager",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.LiquidityManager__factory>;
+    getContractFactory(
       name: "Deposit",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Deposit__factory>;
@@ -65,6 +73,16 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC20__factory>;
 
+    getContractAt(
+      name: "DefaultReserveInterestRateStrategy",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.DefaultReserveInterestRateStrategy>;
+    getContractAt(
+      name: "LiquidityManager",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.LiquidityManager>;
     getContractAt(
       name: "Deposit",
       address: string,
