@@ -11,6 +11,7 @@ export type { IReserveInterestRateStrategy } from "./IReserveInterestRateStrateg
 export type { Ownable } from "./Ownable";
 export type { ReentrancyGuard } from "./ReentrancyGuard";
 export type { OToken } from "./OToken";
+export type { VToken } from "./VToken";
 export type { ERC20 } from "./ERC20";
 export type { IERC20Metadata } from "./IERC20Metadata";
 
@@ -24,5 +25,6 @@ export { IReserveInterestRateStrategy__factory } from "./factories/IReserveInter
 export { Ownable__factory } from "./factories/Ownable__factory";
 export { ReentrancyGuard__factory } from "./factories/ReentrancyGuard__factory";
 export { OToken__factory } from "./factories/OToken__factory";
+export { VToken__factory } from "./factories/VToken__factory";
 export { ERC20__factory } from "./factories/ERC20__factory";
 export { IERC20Metadata__factory } from "./factories/IERC20Metadata__factory";

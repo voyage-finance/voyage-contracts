@@ -27,20 +27,22 @@ library CoreLibrary {
     struct Reserve {
 	    ReserveConfigurationMap config;
 
-	    uint128 currentSeniorIncomeAllocation;
-	    uint128 currentJuniorIncomeAllocation;
+        // for calculating overall interested accumulated
+        // then split it into two indexs base on two allocations
+	    uint256 currentOverallLiquidityRate;
 
-	    uint128 currentOverallLiquidityRate;
-	    uint128 currentSeniorLiquidityRate;
-	    uint128 currentJuniorLiquidityRate;
+        uint256 currentSeniorIncomeAllocation;
+	    uint256 currentJuniorIncomeAllocation;
 
-	    uint128 currentOverallLiquidityIndex;
-	    uint128 currentSeniorLiquidityIndex;
-	    uint128 currentJuniorLiquidityIndex;
+	    uint256 currentSeniorLiquidityIndex;
+	    uint256 currentJuniorLiquidityIndex;
 
-	    uint128 currentBorrowRate;
-	    address interestRateStrategy;
+	    uint256 currentBorrowRate;
+        //the decimals of the reserve asset
+        uint256 decimals;
+	    address interestRateStrategyAddress;
 	    address vTokenAddress;
+        uint40 lastUpdateTimestamp;
     }
 
     // use a mapping mapping(address => Deposit[]) to track amount that can be withdrawn
