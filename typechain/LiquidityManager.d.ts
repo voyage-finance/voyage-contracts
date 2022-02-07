@@ -25,17 +25,17 @@ interface LiquidityManagerInterface extends ethers.utils.Interface {
     "activateReserve(address)": FunctionFragment;
     "claimOwnership()": FunctionFragment;
     "deactivateReserve(address)": FunctionFragment;
-    "deposit(address,uint256)": FunctionFragment;
-    "getReserveATokenAddress(address)": FunctionFragment;
+    "deposit(address,uint8,uint256)": FunctionFragment;
     "getReserveAvailableLiquidity(address)": FunctionFragment;
-    "getReserveNormalizedIncome(address)": FunctionFragment;
+    "getReserveNormalizedIncome(address,uint8)": FunctionFragment;
     "getReserveTotalLiquidity(address)": FunctionFragment;
+    "getReserveVTokenAddress(address)": FunctionFragment;
     "initReserve(address,uint8,address,uint8)": FunctionFragment;
     "initReserveWithData(address,string,string,uint8,address,uint8)": FunctionFragment;
     "isOwner()": FunctionFragment;
     "owner()": FunctionFragment;
     "pendingOwner()": FunctionFragment;
-    "redeemUnderlying(address,address,uint256,uint256)": FunctionFragment;
+    "redeemUnderlying(address,uint8,address,uint256,uint256)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
   };
 
@@ -53,11 +53,7 @@ interface LiquidityManagerInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getReserveATokenAddress",
-    values: [string]
+    values: [string, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getReserveAvailableLiquidity",
@@ -65,10 +61,14 @@ interface LiquidityManagerInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getReserveNormalizedIncome",
-    values: [string]
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getReserveTotalLiquidity",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getReserveVTokenAddress",
     values: [string]
   ): string;
   encodeFunctionData(
@@ -87,7 +87,7 @@ interface LiquidityManagerInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "redeemUnderlying",
-    values: [string, string, BigNumberish, BigNumberish]
+    values: [string, BigNumberish, string, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
@@ -108,10 +108,6 @@ interface LiquidityManagerInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "getReserveATokenAddress",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "getReserveAvailableLiquidity",
     data: BytesLike
   ): Result;
@@ -121,6 +117,10 @@ interface LiquidityManagerInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getReserveTotalLiquidity",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getReserveVTokenAddress",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -153,7 +153,7 @@ interface LiquidityManagerInterface extends ethers.utils.Interface {
     "ReserveActivated(address)": EventFragment;
     "ReserveDeactivated(address)": EventFragment;
     "ReserveInitialized(address,address,address)": EventFragment;
-    "ReserveUpdated(address,uint256,uint256)": EventFragment;
+    "ReserveUpdated(address,uint256,uint256,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Deposit"): EventFragment;
@@ -196,16 +196,17 @@ export type ReserveDeactivatedEvent = TypedEvent<
 export type ReserveInitializedEvent = TypedEvent<
   [string, string, string] & {
     _reserve: string;
-    _oToken: string;
+    _vToken: string;
     _interestRateStrategyAddress: string;
   }
 >;
 
 export type ReserveUpdatedEvent = TypedEvent<
-  [string, BigNumber, BigNumber] & {
+  [string, BigNumber, BigNumber, BigNumber] & {
     reserve: string;
     liquidityRate: BigNumber;
-    liquidityIndex: BigNumber;
+    currentJuniorLiquidityIndex: BigNumber;
+    currentSeniorLiquidityIndex: BigNumber;
   }
 >;
 
@@ -269,14 +270,10 @@ export class LiquidityManager extends BaseContract {
 
     deposit(
       _reserve: string,
+      _tranche: BigNumberish,
       _amount: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
-
-    getReserveATokenAddress(
-      _reserve: string,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
 
     getReserveAvailableLiquidity(
       _reserve: string,
@@ -285,6 +282,7 @@ export class LiquidityManager extends BaseContract {
 
     getReserveNormalizedIncome(
       _reserve: string,
+      _tranche: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
@@ -292,6 +290,11 @@ export class LiquidityManager extends BaseContract {
       _reserve: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
+
+    getReserveVTokenAddress(
+      _reserve: string,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
     initReserve(
       _reserve: string,
@@ -303,8 +306,8 @@ export class LiquidityManager extends BaseContract {
 
     initReserveWithData(
       _reserve: string,
-      _oTokenName: string,
-      _oTokenSymbol: string,
+      _vTokenName: string,
+      _vTokenSymbol: string,
       _underlyingAssetDecimals: BigNumberish,
       _interestRateStrategyAddress: string,
       tranche: BigNumberish,
@@ -319,6 +322,7 @@ export class LiquidityManager extends BaseContract {
 
     redeemUnderlying(
       _reserve: string,
+      _tranche: BigNumberish,
       _user: string,
       _amount: BigNumberish,
       _aTokenBalanceAfterRedeem: BigNumberish,
@@ -347,14 +351,10 @@ export class LiquidityManager extends BaseContract {
 
   deposit(
     _reserve: string,
+    _tranche: BigNumberish,
     _amount: BigNumberish,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
-
-  getReserveATokenAddress(
-    _reserve: string,
-    overrides?: CallOverrides
-  ): Promise<string>;
 
   getReserveAvailableLiquidity(
     _reserve: string,
@@ -363,6 +363,7 @@ export class LiquidityManager extends BaseContract {
 
   getReserveNormalizedIncome(
     _reserve: string,
+    _tranche: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -370,6 +371,11 @@ export class LiquidityManager extends BaseContract {
     _reserve: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
+
+  getReserveVTokenAddress(
+    _reserve: string,
+    overrides?: CallOverrides
+  ): Promise<string>;
 
   initReserve(
     _reserve: string,
@@ -381,8 +387,8 @@ export class LiquidityManager extends BaseContract {
 
   initReserveWithData(
     _reserve: string,
-    _oTokenName: string,
-    _oTokenSymbol: string,
+    _vTokenName: string,
+    _vTokenSymbol: string,
     _underlyingAssetDecimals: BigNumberish,
     _interestRateStrategyAddress: string,
     tranche: BigNumberish,
@@ -397,6 +403,7 @@ export class LiquidityManager extends BaseContract {
 
   redeemUnderlying(
     _reserve: string,
+    _tranche: BigNumberish,
     _user: string,
     _amount: BigNumberish,
     _aTokenBalanceAfterRedeem: BigNumberish,
@@ -420,14 +427,10 @@ export class LiquidityManager extends BaseContract {
 
     deposit(
       _reserve: string,
+      _tranche: BigNumberish,
       _amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    getReserveATokenAddress(
-      _reserve: string,
-      overrides?: CallOverrides
-    ): Promise<string>;
 
     getReserveAvailableLiquidity(
       _reserve: string,
@@ -436,6 +439,7 @@ export class LiquidityManager extends BaseContract {
 
     getReserveNormalizedIncome(
       _reserve: string,
+      _tranche: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -443,6 +447,11 @@ export class LiquidityManager extends BaseContract {
       _reserve: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    getReserveVTokenAddress(
+      _reserve: string,
+      overrides?: CallOverrides
+    ): Promise<string>;
 
     initReserve(
       _reserve: string,
@@ -454,8 +463,8 @@ export class LiquidityManager extends BaseContract {
 
     initReserveWithData(
       _reserve: string,
-      _oTokenName: string,
-      _oTokenSymbol: string,
+      _vTokenName: string,
+      _vTokenSymbol: string,
       _underlyingAssetDecimals: BigNumberish,
       _interestRateStrategyAddress: string,
       tranche: BigNumberish,
@@ -470,6 +479,7 @@ export class LiquidityManager extends BaseContract {
 
     redeemUnderlying(
       _reserve: string,
+      _tranche: BigNumberish,
       _user: string,
       _amount: BigNumberish,
       _aTokenBalanceAfterRedeem: BigNumberish,
@@ -577,46 +587,58 @@ export class LiquidityManager extends BaseContract {
 
     "ReserveInitialized(address,address,address)"(
       _reserve?: string | null,
-      _oToken?: string | null,
+      _vToken?: string | null,
       _interestRateStrategyAddress?: null
     ): TypedEventFilter<
       [string, string, string],
       {
         _reserve: string;
-        _oToken: string;
+        _vToken: string;
         _interestRateStrategyAddress: string;
       }
     >;
 
     ReserveInitialized(
       _reserve?: string | null,
-      _oToken?: string | null,
+      _vToken?: string | null,
       _interestRateStrategyAddress?: null
     ): TypedEventFilter<
       [string, string, string],
       {
         _reserve: string;
-        _oToken: string;
+        _vToken: string;
         _interestRateStrategyAddress: string;
       }
     >;
 
-    "ReserveUpdated(address,uint256,uint256)"(
+    "ReserveUpdated(address,uint256,uint256,uint256)"(
       reserve?: string | null,
       liquidityRate?: null,
-      liquidityIndex?: null
+      currentJuniorLiquidityIndex?: null,
+      currentSeniorLiquidityIndex?: null
     ): TypedEventFilter<
-      [string, BigNumber, BigNumber],
-      { reserve: string; liquidityRate: BigNumber; liquidityIndex: BigNumber }
+      [string, BigNumber, BigNumber, BigNumber],
+      {
+        reserve: string;
+        liquidityRate: BigNumber;
+        currentJuniorLiquidityIndex: BigNumber;
+        currentSeniorLiquidityIndex: BigNumber;
+      }
     >;
 
     ReserveUpdated(
       reserve?: string | null,
       liquidityRate?: null,
-      liquidityIndex?: null
+      currentJuniorLiquidityIndex?: null,
+      currentSeniorLiquidityIndex?: null
     ): TypedEventFilter<
-      [string, BigNumber, BigNumber],
-      { reserve: string; liquidityRate: BigNumber; liquidityIndex: BigNumber }
+      [string, BigNumber, BigNumber, BigNumber],
+      {
+        reserve: string;
+        liquidityRate: BigNumber;
+        currentJuniorLiquidityIndex: BigNumber;
+        currentSeniorLiquidityIndex: BigNumber;
+      }
     >;
   };
 
@@ -637,13 +659,9 @@ export class LiquidityManager extends BaseContract {
 
     deposit(
       _reserve: string,
+      _tranche: BigNumberish,
       _amount: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    getReserveATokenAddress(
-      _reserve: string,
-      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getReserveAvailableLiquidity(
@@ -653,10 +671,16 @@ export class LiquidityManager extends BaseContract {
 
     getReserveNormalizedIncome(
       _reserve: string,
+      _tranche: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getReserveTotalLiquidity(
+      _reserve: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getReserveVTokenAddress(
       _reserve: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -671,8 +695,8 @@ export class LiquidityManager extends BaseContract {
 
     initReserveWithData(
       _reserve: string,
-      _oTokenName: string,
-      _oTokenSymbol: string,
+      _vTokenName: string,
+      _vTokenSymbol: string,
       _underlyingAssetDecimals: BigNumberish,
       _interestRateStrategyAddress: string,
       tranche: BigNumberish,
@@ -687,6 +711,7 @@ export class LiquidityManager extends BaseContract {
 
     redeemUnderlying(
       _reserve: string,
+      _tranche: BigNumberish,
       _user: string,
       _amount: BigNumberish,
       _aTokenBalanceAfterRedeem: BigNumberish,
@@ -716,13 +741,9 @@ export class LiquidityManager extends BaseContract {
 
     deposit(
       _reserve: string,
+      _tranche: BigNumberish,
       _amount: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    getReserveATokenAddress(
-      _reserve: string,
-      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getReserveAvailableLiquidity(
@@ -732,10 +753,16 @@ export class LiquidityManager extends BaseContract {
 
     getReserveNormalizedIncome(
       _reserve: string,
+      _tranche: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getReserveTotalLiquidity(
+      _reserve: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getReserveVTokenAddress(
       _reserve: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -750,8 +777,8 @@ export class LiquidityManager extends BaseContract {
 
     initReserveWithData(
       _reserve: string,
-      _oTokenName: string,
-      _oTokenSymbol: string,
+      _vTokenName: string,
+      _vTokenSymbol: string,
       _underlyingAssetDecimals: BigNumberish,
       _interestRateStrategyAddress: string,
       tranche: BigNumberish,
@@ -766,6 +793,7 @@ export class LiquidityManager extends BaseContract {
 
     redeemUnderlying(
       _reserve: string,
+      _tranche: BigNumberish,
       _user: string,
       _amount: BigNumberish,
       _aTokenBalanceAfterRedeem: BigNumberish,

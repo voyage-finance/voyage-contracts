@@ -1,36 +1,34 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity  ^0.8.9;
+pragma solidity ^0.8.9;
 
-import "../../interfaces/IReserveInterestRateStrategy.sol";
-import "../../libraries/math/WadRayMath.sol";
-import "./LiquidityManager.sol";
-import "../../interfaces/ILendingRateOracle.sol";
-import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
+import '../../interfaces/IReserveInterestRateStrategy.sol';
+import '../../libraries/math/WadRayMath.sol';
+import './LiquidityManager.sol';
+import '../../interfaces/ILendingRateOracle.sol';
+import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 
 /**
-* @title DefaultReserveInterestRateStrategy contract
-* @notice implements the calculation of the interest rates depending on the reserve parameters.
-* @dev if there is need to update the calculation of the interest rates for a specific reserve,
-* a new version of this contract will be deployed.
-* @author Aave
-**/
+ * @title DefaultReserveInterestRateStrategy contract
+ * @notice implements the calculation of the interest rates depending on the reserve parameters.
+ * @dev if there is need to update the calculation of the interest rates for a specific reserve,
+ * a new version of this contract will be deployed.
+ * @author Aave
+ **/
 contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
     using WadRayMath for uint256;
     using SafeMath for uint256;
 
-
-
-   /**
-    * @dev this constant represents the utilization rate at which the pool aims to obtain most competitive borrow rates
-    * expressed in ray
-    **/
+    /**
+     * @dev this constant represents the utilization rate at which the pool aims to obtain most competitive borrow rates
+     * expressed in ray
+     **/
     uint256 public constant OPTIMAL_UTILIZATION_RATE = 0.8 * 1e27;
 
-   /**
-    * @dev this constant represents the excess utilization rate above the optimal. It's always equal to
-    * 1-optimal utilization rate. Added as a constant here for gas optimizations
-    * expressed in ray
-    **/
+    /**
+     * @dev this constant represents the excess utilization rate above the optimal. It's always equal to
+     * 1-optimal utilization rate. Added as a constant here for gas optimizations
+     * expressed in ray
+     **/
 
     uint256 public constant EXCESS_UTILIZATION_RATE = 0.2 * 1e27;
 
@@ -91,13 +89,13 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
     }
 
     /**
-    * @dev calculates the overall borrow rate as the weighted average between the total variable borrows and total stable borrows.
-    * @param _totalBorrowsStable the total borrowed from the reserve a stable rate
-    * @param _totalBorrowsVariable the total borrowed from the reserve at a variable rate
-    * @param _currentVariableBorrowRate the current variable borrow rate
-    * @param _currentAverageStableBorrowRate the weighted average of all the stable rate borrows
-    * @return the weighted averaged borrow rate
-    **/
+     * @dev calculates the overall borrow rate as the weighted average between the total variable borrows and total stable borrows.
+     * @param _totalBorrowsStable the total borrowed from the reserve a stable rate
+     * @param _totalBorrowsVariable the total borrowed from the reserve at a variable rate
+     * @param _currentVariableBorrowRate the current variable borrow rate
+     * @param _currentAverageStableBorrowRate the weighted average of all the stable rate borrows
+     * @return the weighted averaged borrow rate
+     **/
     function getOverallBorrowRateInternal(
         uint256 _totalBorrowsStable,
         uint256 _totalBorrowsVariable,
@@ -116,18 +114,18 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
             _currentAverageStableBorrowRate
         );
 
-        uint256 overallBorrowRate = weightedVariableRate.add(weightedStableRate).rayDiv(
-            totalBorrows.wadToRay()
-        );
+        uint256 overallBorrowRate = weightedVariableRate
+            .add(weightedStableRate)
+            .rayDiv(totalBorrows.wadToRay());
 
         return overallBorrowRate;
     }
 
     /**
-    * @dev calculates the liquidity, rates depending on the current utilization rate
-    *      and the base parameters
-    *
-    */
+     * @dev calculates the liquidity, rates depending on the current utilization rate
+     *      and the base parameters
+     *
+     */
     function calculateInterestRates(
         address _reserve,
         uint256 _utilizationRate,

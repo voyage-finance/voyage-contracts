@@ -1,6 +1,6 @@
 pragma solidity ^0.8.9;
 
-import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
+import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 
 /******************
 @title WadRayMath library
@@ -22,6 +22,7 @@ library WadRayMath {
     function ray() internal pure returns (uint256) {
         return RAY;
     }
+
     function wad() internal pure returns (uint256) {
         return WAD;
     }
@@ -68,7 +69,6 @@ library WadRayMath {
     // @return base^exp, in ray
     //solium-disable-next-line
     function rayPow(uint256 x, uint256 n) internal pure returns (uint256 z) {
-
         z = n % 2 != 0 ? x : RAY;
 
         for (n /= 2; n != 0; n /= 2) {
@@ -79,5 +79,4 @@ library WadRayMath {
             }
         }
     }
-
 }
