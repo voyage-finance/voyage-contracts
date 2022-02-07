@@ -25,10 +25,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Deposit__factory>;
     getContractFactory(
-      name: "DefaultReserveInterestRateStrategy",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.DefaultReserveInterestRateStrategy__factory>;
-    getContractFactory(
       name: "ICreditAccount",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ICreditAccount__factory>;
@@ -52,10 +48,6 @@ declare module "hardhat/types/runtime" {
       name: "ReentrancyGuard",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ReentrancyGuard__factory>;
-    getContractFactory(
-      name: "LiquidityManager",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.LiquidityManager__factory>;
     getContractFactory(
       name: "OToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -89,11 +81,6 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.Deposit>;
     getContractAt(
-      name: "DefaultReserveInterestRateStrategy",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.DefaultReserveInterestRateStrategy>;
-    getContractAt(
       name: "ICreditAccount",
       address: string,
       signer?: ethers.Signer
@@ -123,11 +110,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.ReentrancyGuard>;
-    getContractAt(
-      name: "LiquidityManager",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.LiquidityManager>;
     getContractAt(
       name: "OToken",
       address: string,

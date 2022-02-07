@@ -12,6 +12,46 @@ library CoreLibrary {
 
     enum Tranche { JUNIOR, SENIOR }
 
+    struct ReserveConfigurationMap {
+        //bit 0-15: Liq. bonus
+        //bit 16-23: Decimals
+        //bit 24: Reserve is active
+        //bit 25: reserve is frozen
+        //bit 26: borrowing is enabled
+        //bit 27-30: reserved
+        //bit 31-46: reserve factor
+	    //bit 47-62: lock up period in seconds
+        uint256 data;
+    }
+
+    struct Reserve {
+	    ReserveConfigurationMap config;
+
+	    uint128 currentSeniorIncomeAllocation;
+	    uint128 currentJuniorIncomeAllocation;
+
+	    uint128 currentOverallLiquidityRate;
+	    uint128 currentSeniorLiquidityRate;
+	    uint128 currentJuniorLiquidityRate;
+
+	    uint128 currentOverallLiquidityIndex;
+	    uint128 currentSeniorLiquidityIndex;
+	    uint128 currentJuniorLiquidityIndex;
+
+	    uint128 currentBorrowRate;
+	    address interestRateStrategy;
+	    address vTokenAddress;
+    }
+
+    // use a mapping mapping(address => Deposit[]) to track amount that can be withdrawn
+    // not sure if this should in the vToken contract
+    struct Deposit {
+	    Tranche tranche;
+	    uint256 startDate;
+	    uint256 lockFor;
+	    uint256 amount;
+    }
+
     struct ReserveData {
         //the liquidity index. Expressed in ray
         uint256 lastLiquidityCumulativeIndex;
@@ -34,6 +74,7 @@ library CoreLibrary {
         bool isActive;
         Tranche tranche;
     }
+
 
     function init(
         ReserveData storage _self,
