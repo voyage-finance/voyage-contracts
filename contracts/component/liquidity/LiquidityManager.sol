@@ -8,7 +8,8 @@ import '../../libraries/EthAddressLib.sol';
 import '../../credit/CreditAccount.sol';
 import '../../interfaces/IReserveInterestRateStrategy.sol';
 import '../../interfaces/ICreditAccount.sol';
-import '../../tokenization/VToken.sol';
+import '../../tokenization/JDToken.sol';
+import '../../tokenization/SDToken.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
@@ -22,12 +23,14 @@ contract LiquidityManager is Ownable, ReentrancyGuard {
     /**
      * @dev emitted when a reserve is initialized.
      * @param _reserve the address of the reserve
-     * @param _vToken the address of the overlying aToken contract
+     * @param _jdToken the address of the overlying jdToken contract
+     * @param _jdToken the address of the overlying sdToken contract
      * @param _interestRateStrategyAddress the address of the interest rate strategy for the reserve
      **/
     event ReserveInitialized(
         address indexed _reserve,
-        address indexed _vToken,
+        address indexed _jdToken,
+        address indexed _sdToken,
         address _interestRateStrategyAddress
     );
 
@@ -121,10 +124,11 @@ contract LiquidityManager is Ownable, ReentrancyGuard {
      * aToken.sol contract
      * @param _reserve the address of the reserve
      **/
-    modifier onlyOverlyingVToken(address _reserve) {
+    modifier onlyOverlyingToken(address _reserve) {
         require(
-            msg.sender == getReserveVTokenAddress(_reserve),
-            'The caller of this function can only be the aToken contract of this reserve'
+            msg.sender == getReserveJDTokenAddress(_reserve) ||
+                msg.sender == getReserveSDTokenAddress(_reserve),
+            'The caller of this function can only be the jsToken or sdToken contract of this reserve'
         );
         _;
     }
@@ -150,17 +154,31 @@ contract LiquidityManager is Ownable, ReentrancyGuard {
     }
 
     /**
-     * @dev gets the vToken contract address for the reserve
+     * @dev gets the jdToken contract address for the reserve
      * @param _reserve the reserve address
-     * @return the address of the vToken contract
+     * @return the address of the jdToken contract
      **/
-    function getReserveVTokenAddress(address _reserve)
+    function getReserveJDTokenAddress(address _reserve)
         public
         view
         returns (address)
     {
         CoreLibrary.ReserveData storage reserve = _reserves[_reserve];
-        return reserve.vTokenAddress;
+        return reserve.jdTokenAddress;
+    }
+
+    /**
+     * @dev gets the sdToken contract address for the reserve
+     * @param _reserve the reserve address
+     * @return the address of the sdToken contract
+     **/
+    function getReserveSDTokenAddress(address _reserve)
+        public
+        view
+        returns (address)
+    {
+        CoreLibrary.ReserveData storage reserve = _reserves[_reserve];
+        return reserve.sdTokenAddress;
     }
 
     /**
@@ -210,28 +228,38 @@ contract LiquidityManager is Ownable, ReentrancyGuard {
 
     function initReserveWithData(
         address _reserve,
-        string memory _vTokenName,
-        string memory _vTokenSymbol,
+        string memory _jdTokenName,
+        string memory _jdTokenSymbol,
+        string memory _sdTokenName,
+        string memory _sdTokenSymbol,
         uint8 _underlyingAssetDecimals,
-        address _interestRateStrategyAddress,
-        CoreLibrary.Tranche tranche
+        address _interestRateStrategyAddress
     ) public onlyLendingPoolManager {
-        VToken vTokenInstance = new VToken(
+        JDToken jdTokenInstance = new JDToken(
             _reserve,
             _underlyingAssetDecimals,
-            _vTokenName,
-            _vTokenSymbol
+            _jdTokenName,
+            _jdTokenSymbol
+        );
+
+        SDToken sdTokenInstance = new SDToken(
+            _reserve,
+            _underlyingAssetDecimals,
+            _sdTokenName,
+            _sdTokenSymbol
         );
 
         _reserves[_reserve].init(
-            address(vTokenInstance),
+            address(jdTokenInstance),
+            address(sdTokenInstance),
             _underlyingAssetDecimals,
             _interestRateStrategyAddress
         );
 
         emit ReserveInitialized(
             _reserve,
-            address(vTokenInstance),
+            address(jdTokenInstance),
+            address(sdTokenInstance),
             _interestRateStrategyAddress
         );
     }
@@ -239,23 +267,35 @@ contract LiquidityManager is Ownable, ReentrancyGuard {
     function initReserve(
         address _reserve,
         uint8 _underlyingAssetDecimals,
-        address _interestRateStrategyAddress,
-        CoreLibrary.Tranche tranche
+        address _interestRateStrategyAddress
     ) external onlyLendingPoolManager {
         ERC20 asset = ERC20(_reserve);
-        string memory vTokenName = string(
-            abi.encodePacked('Ownft Interest bearing ', asset.name())
+        string memory _jdTokenName = string(
+            abi.encodePacked(
+                'Voyaga Junor Deposit Interest bearing ',
+                asset.name()
+            )
         );
-        string memory vTokenSymbol = string(
-            abi.encodePacked('a', asset.symbol())
+        string memory _jdTokenSymbol = string(
+            abi.encodePacked('vj', asset.symbol())
+        );
+        string memory _sdTokenName = string(
+            abi.encodePacked(
+                'Voyaga Senior Deposit Interest bearing ',
+                asset.name()
+            )
+        );
+        string memory _sdTokenSymbol = string(
+            abi.encodePacked('vs', asset.symbol())
         );
         initReserveWithData(
             _reserve,
-            vTokenName,
-            vTokenSymbol,
+            _jdTokenName,
+            _jdTokenSymbol,
+            _sdTokenName,
+            _sdTokenSymbol,
             _underlyingAssetDecimals,
-            _interestRateStrategyAddress,
-            tranche
+            _interestRateStrategyAddress
         );
     }
 
@@ -312,15 +352,13 @@ contract LiquidityManager is Ownable, ReentrancyGuard {
      * @param _reserve the address of the reserve in which the deposit is happening
      * @param _user the address of the the user depositing
      * @param _amount the amount being deposited
-     * @param _isFirstDeposit true if the user is depositing for the first time
      **/
 
     function updateStateOnDeposit(
         address _reserve,
         CoreLibrary.Tranche _tranche,
         address _user,
-        uint256 _amount,
-        bool _isFirstDeposit
+        uint256 _amount
     ) internal {
         _reserves[_reserve].updateCumulativeIndexes(_tranche);
         updateReserveInterestRatesAndTimestampInternal(_reserve, _amount, 0);
@@ -426,20 +464,17 @@ contract LiquidityManager is Ownable, ReentrancyGuard {
         onlyActiveReserve(_reserve)
         onlyAmountGreaterThanZero(_amount)
     {
-        VToken vToken = VToken(getReserveVTokenAddress(_reserve));
+        updateStateOnDeposit(_reserve, _tranche, msg.sender, _amount);
 
-        bool isFirstDeposit = vToken.balanceOf(msg.sender) == 0;
-
-        updateStateOnDeposit(
-            _reserve,
-            _tranche,
-            msg.sender,
-            _amount,
-            isFirstDeposit
-        );
-
-        //minting AToken to user 1:1 with the specific exchange rate
-        vToken.mintOnDeposit(msg.sender, _tranche, _amount);
+        if (_tranche == CoreLibrary.Tranche.JUNIOR) {
+            JDToken jdToken = JDToken(getReserveJDTokenAddress(_reserve));
+            //minting AToken to user 1:1 with the specific exchange rate
+            jdToken.mintOnDeposit(msg.sender, _amount);
+        } else {
+            SDToken sdToken = SDToken(getReserveSDTokenAddress(_reserve));
+            //minting AToken to user 1:1 with the specific exchange rate
+            sdToken.mintOnDeposit(msg.sender, _amount);
+        }
 
         //transfer to the core contract
         if (_reserve != EthAddressLib.ethAddress()) {
@@ -488,7 +523,7 @@ contract LiquidityManager is Ownable, ReentrancyGuard {
     )
         external
         nonReentrant
-        onlyOverlyingVToken(_reserve)
+        onlyOverlyingToken(_reserve)
         onlyActiveReserve(_reserve)
         onlyAmountGreaterThanZero(_amount)
     {

@@ -7,11 +7,10 @@ import '../libraries/math/WadRayMath.sol';
 import '../libraries/CoreLibrary.sol';
 import '../component/liquidity/LiquidityManager.sol';
 
-contract VToken is ERC20 {
+contract SDToken is ERC20 {
     using WadRayMath for uint256;
     using SafeMath for uint256;
 
-    mapping(address => uint256) private userJuniorIndexes;
     mapping(address => uint256) private userSeniorIndexes;
     address public underlyingAssetAddress;
     LiquidityManager private liquidityManager;
@@ -69,20 +68,11 @@ contract VToken is ERC20 {
     function balanceOf(address _user) public view override returns (uint256) {
         // current principal balance of the user
         uint256 currentPrincipalBalance = super.balanceOf(_user);
-        uint256 currentJuniorCumulatedBalance = calculateCumulatedBalanceInternal(
-                _user,
-                CoreLibrary.Tranche.JUNIOR,
-                currentPrincipalBalance
-            );
         uint256 currentSeniorCumulatedBalance = calculateCumulatedBalanceInternal(
                 _user,
-                CoreLibrary.Tranche.SENIOR,
                 currentPrincipalBalance
             );
-        return
-            currentPrincipalBalance.add(currentJuniorCumulatedBalance).add(
-                currentSeniorCumulatedBalance
-            );
+        return currentPrincipalBalance.add(currentSeniorCumulatedBalance);
     }
 
     /**
@@ -91,32 +81,18 @@ contract VToken is ERC20 {
      * @return the previous principal balance, the new principal balance, the balance increase
      * and the new user index
      **/
-    function calculateCumulatedBalanceInternal(
-        address _user,
-        CoreLibrary.Tranche tranche,
-        uint256 _balance
-    ) internal view returns (uint256) {
-        if (tranche == CoreLibrary.Tranche.JUNIOR) {
-            return
-                _balance
-                    .wadToRay()
-                    .rayMul(
-                        liquidityManager.getReserveNormalizedIncome(
-                            underlyingAssetAddress,
-                            tranche
-                        )
-                    )
-                    .rayDiv(userJuniorIndexes[_user])
-                    .rayToWad();
-        }
-
+    function calculateCumulatedBalanceInternal(address _user, uint256 _balance)
+        internal
+        view
+        returns (uint256)
+    {
         return
             _balance
                 .wadToRay()
                 .rayMul(
                     liquidityManager.getReserveNormalizedIncome(
                         underlyingAssetAddress,
-                        tranche
+                        CoreLibrary.Tranche.SENIOR
                     )
                 )
                 .rayDiv(userSeniorIndexes[_user])
@@ -126,14 +102,10 @@ contract VToken is ERC20 {
     /**
      * @dev accumulates the accrued interest of the user to the principal balance
      * @param _user the address of the user for which the interest is being accumulated
-     * @param _tranche the tranche of the deposit
      * @return the previous principal balance, the new principal balance, the balance increase
      * and the new user index
      **/
-    function cumulateBalanceInternal(
-        address _user,
-        CoreLibrary.Tranche _tranche
-    )
+    function cumulateBalanceInternal(address _user)
         internal
         returns (
             uint256,
@@ -151,14 +123,11 @@ contract VToken is ERC20 {
         //mints an amount of tokens equivalent to the amount accumulated
         _mint(_user, balanceIncrease);
         //updates the user index for current _tranche
-        uint256 index;
-        if (_tranche == CoreLibrary.Tranche.JUNIOR) {
-            index = userJuniorIndexes[_user] = liquidityManager
-                .getReserveNormalizedIncome(underlyingAssetAddress, _tranche);
-        } else {
-            index = userSeniorIndexes[_user] = liquidityManager
-                .getReserveNormalizedIncome(underlyingAssetAddress, _tranche);
-        }
+        uint256 index = userSeniorIndexes[_user] = liquidityManager
+            .getReserveNormalizedIncome(
+                underlyingAssetAddress,
+                CoreLibrary.Tranche.SENIOR
+            );
 
         return (
             previousPrincipalBalance,
@@ -168,20 +137,24 @@ contract VToken is ERC20 {
         );
     }
 
-    function mintOnDeposit(
-        address _account,
-        CoreLibrary.Tranche _tranche,
-        uint256 _amount
-    ) external onlyLiquidityManager {
+    function mintOnDeposit(address _account, uint256 _amount)
+        external
+        onlyLiquidityManager
+    {
         //cumulates the balance of the user
         (, , uint256 balanceIncrease, uint256 index) = cumulateBalanceInternal(
-            _account,
-            _tranche
+            _account
         );
 
         //mint an equivalent amount of tokens to cover the new deposit
         _mint(_account, _amount);
 
-        emit MintOnDeposit(_account, _amount, balanceIncrease, index, _tranche);
+        emit MintOnDeposit(
+            _account,
+            _amount,
+            balanceIncrease,
+            index,
+            CoreLibrary.Tranche.SENIOR
+        );
     }
 }

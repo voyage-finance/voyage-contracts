@@ -49,13 +49,13 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ReentrancyGuard__factory>;
     getContractFactory(
-      name: "OToken",
+      name: "JDToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.OToken__factory>;
+    ): Promise<Contracts.JDToken__factory>;
     getContractFactory(
-      name: "VToken",
+      name: "SDToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.VToken__factory>;
+    ): Promise<Contracts.SDToken__factory>;
     getContractFactory(
       name: "ERC20",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -115,15 +115,15 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.ReentrancyGuard>;
     getContractAt(
-      name: "OToken",
+      name: "JDToken",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.OToken>;
+    ): Promise<Contracts.JDToken>;
     getContractAt(
-      name: "VToken",
+      name: "SDToken",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.VToken>;
+    ): Promise<Contracts.SDToken>;
     getContractAt(
       name: "ERC20",
       address: string,

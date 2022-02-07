@@ -42,7 +42,8 @@ library CoreLibrary {
         //the decimals of the reserve asset
         uint256 decimals;
         address interestRateStrategyAddress;
-        address vTokenAddress;
+        address jdTokenAddress;
+        address sdTokenAddress;
         uint40 lastUpdateTimestamp;
     }
 
@@ -55,37 +56,15 @@ library CoreLibrary {
         uint256 amount;
     }
 
-    // struct ReserveData {
-    //     //the liquidity index. Expressed in ray
-    //     uint256 lastLiquidityCumulativeIndex;
-    //     //the current supply rate. Expressed in ray
-    //     uint256 currentLiquidityRate;
-    //     //the total borrows of the reserve at a stable rate. Expressed in the currency decimals
-    //     uint256 totalBorrows;
-    //     //the decimals of the reserve asset
-    //     uint256 decimals;
-    //     /**
-    //     * @dev address of the aToken representing the asset
-    //     **/
-    //     address oTokenAddress;
-    //     /**
-    //     * @dev address of the interest rate strategy contract
-    //     **/
-    //     address interestRateStrategyAddress;
-    //     uint40 lastUpdateTimestamp;
-    //     // isActive = true means the reserve has been activated and properly configured
-    //     bool isActive;
-    //     Tranche tranche;
-    // }
-
     function init(
         ReserveData storage _self,
-        address _vTokenAddress,
+        address _jdTokenAddress,
+        address _sdTokenAddress,
         uint256 _decimals,
         address _interestRateStrategyAddress
     ) external {
         require(
-            _self.vTokenAddress == address(0),
+            _self.jdTokenAddress == address(0),
             'Reserve has already been initialized'
         );
         if (_self.currentSeniorLiquidityIndex == 0) {
@@ -96,7 +75,8 @@ library CoreLibrary {
             _self.currentJuniorLiquidityIndex = WadRayMath.ray();
         }
 
-        _self.vTokenAddress = _vTokenAddress;
+        _self.jdTokenAddress = _jdTokenAddress;
+        _self.sdTokenAddress = _sdTokenAddress;
         _self.decimals = _decimals;
 
         _self.interestRateStrategyAddress = _interestRateStrategyAddress;

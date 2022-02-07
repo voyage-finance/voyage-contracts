@@ -19,7 +19,7 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
-interface OTokenInterface extends ethers.utils.Interface {
+interface JDTokenInterface extends ethers.utils.Interface {
   functions: {
     "allowance(address,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
@@ -29,7 +29,6 @@ interface OTokenInterface extends ethers.utils.Interface {
     "increaseAllowance(address,uint256)": FunctionFragment;
     "mintOnDeposit(address,uint256)": FunctionFragment;
     "name()": FunctionFragment;
-    "redeem(uint256)": FunctionFragment;
     "symbol()": FunctionFragment;
     "totalSupply()": FunctionFragment;
     "transfer(address,uint256)": FunctionFragment;
@@ -60,10 +59,6 @@ interface OTokenInterface extends ethers.utils.Interface {
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "redeem",
-    values: [BigNumberish]
-  ): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "totalSupply",
@@ -99,7 +94,6 @@ interface OTokenInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "redeem", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "totalSupply",
@@ -117,7 +111,7 @@ interface OTokenInterface extends ethers.utils.Interface {
 
   events: {
     "Approval(address,address,uint256)": EventFragment;
-    "MintOnDeposit(address,uint256,uint256,uint256)": EventFragment;
+    "MintOnDeposit(address,uint256,uint256,uint256,uint8)": EventFragment;
     "Redeem(address,uint256,uint256,uint256)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
   };
@@ -137,11 +131,12 @@ export type ApprovalEvent = TypedEvent<
 >;
 
 export type MintOnDepositEvent = TypedEvent<
-  [string, BigNumber, BigNumber, BigNumber] & {
+  [string, BigNumber, BigNumber, BigNumber, number] & {
     _from: string;
     _value: BigNumber;
     _fromBalanceIncrease: BigNumber;
     _fromIndex: BigNumber;
+    tranche: number;
   }
 >;
 
@@ -158,7 +153,7 @@ export type TransferEvent = TypedEvent<
   [string, string, BigNumber] & { from: string; to: string; value: BigNumber }
 >;
 
-export class OToken extends BaseContract {
+export class JDToken extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -199,7 +194,7 @@ export class OToken extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: OTokenInterface;
+  interface: JDTokenInterface;
 
   functions: {
     allowance(
@@ -237,11 +232,6 @@ export class OToken extends BaseContract {
     ): Promise<ContractTransaction>;
 
     name(overrides?: CallOverrides): Promise<[string]>;
-
-    redeem(
-      _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
 
     symbol(overrides?: CallOverrides): Promise<[string]>;
 
@@ -299,11 +289,6 @@ export class OToken extends BaseContract {
 
   name(overrides?: CallOverrides): Promise<string>;
 
-  redeem(
-    _amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   symbol(overrides?: CallOverrides): Promise<string>;
 
   totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
@@ -360,8 +345,6 @@ export class OToken extends BaseContract {
 
     name(overrides?: CallOverrides): Promise<string>;
 
-    redeem(_amount: BigNumberish, overrides?: CallOverrides): Promise<void>;
-
     symbol(overrides?: CallOverrides): Promise<string>;
 
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
@@ -401,18 +384,20 @@ export class OToken extends BaseContract {
       { owner: string; spender: string; value: BigNumber }
     >;
 
-    "MintOnDeposit(address,uint256,uint256,uint256)"(
+    "MintOnDeposit(address,uint256,uint256,uint256,uint8)"(
       _from?: string | null,
       _value?: null,
       _fromBalanceIncrease?: null,
-      _fromIndex?: null
+      _fromIndex?: null,
+      tranche?: null
     ): TypedEventFilter<
-      [string, BigNumber, BigNumber, BigNumber],
+      [string, BigNumber, BigNumber, BigNumber, number],
       {
         _from: string;
         _value: BigNumber;
         _fromBalanceIncrease: BigNumber;
         _fromIndex: BigNumber;
+        tranche: number;
       }
     >;
 
@@ -420,14 +405,16 @@ export class OToken extends BaseContract {
       _from?: string | null,
       _value?: null,
       _fromBalanceIncrease?: null,
-      _fromIndex?: null
+      _fromIndex?: null,
+      tranche?: null
     ): TypedEventFilter<
-      [string, BigNumber, BigNumber, BigNumber],
+      [string, BigNumber, BigNumber, BigNumber, number],
       {
         _from: string;
         _value: BigNumber;
         _fromBalanceIncrease: BigNumber;
         _fromIndex: BigNumber;
+        tranche: number;
       }
     >;
 
@@ -517,11 +504,6 @@ export class OToken extends BaseContract {
 
     name(overrides?: CallOverrides): Promise<BigNumber>;
 
-    redeem(
-      _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     symbol(overrides?: CallOverrides): Promise<BigNumber>;
 
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
@@ -581,11 +563,6 @@ export class OToken extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    redeem(
-      _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
 
     symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

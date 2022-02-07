@@ -10,8 +10,8 @@ export type { ILendingRateOracle } from "./ILendingRateOracle";
 export type { IReserveInterestRateStrategy } from "./IReserveInterestRateStrategy";
 export type { Ownable } from "./Ownable";
 export type { ReentrancyGuard } from "./ReentrancyGuard";
-export type { OToken } from "./OToken";
-export type { VToken } from "./VToken";
+export type { JDToken } from "./JDToken";
+export type { SDToken } from "./SDToken";
 export type { ERC20 } from "./ERC20";
 export type { IERC20Metadata } from "./IERC20Metadata";
 
@@ -24,7 +24,7 @@ export { ILendingRateOracle__factory } from "./factories/ILendingRateOracle__fac
 export { IReserveInterestRateStrategy__factory } from "./factories/IReserveInterestRateStrategy__factory";
 export { Ownable__factory } from "./factories/Ownable__factory";
 export { ReentrancyGuard__factory } from "./factories/ReentrancyGuard__factory";
-export { OToken__factory } from "./factories/OToken__factory";
-export { VToken__factory } from "./factories/VToken__factory";
+export { JDToken__factory } from "./factories/JDToken__factory";
+export { SDToken__factory } from "./factories/SDToken__factory";
 export { ERC20__factory } from "./factories/ERC20__factory";
 export { IERC20Metadata__factory } from "./factories/IERC20Metadata__factory";

@@ -19,7 +19,7 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
-interface VTokenInterface extends ethers.utils.Interface {
+interface SDTokenInterface extends ethers.utils.Interface {
   functions: {
     "allowance(address,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
@@ -27,7 +27,7 @@ interface VTokenInterface extends ethers.utils.Interface {
     "decimals()": FunctionFragment;
     "decreaseAllowance(address,uint256)": FunctionFragment;
     "increaseAllowance(address,uint256)": FunctionFragment;
-    "mintOnDeposit(address,uint8,uint256)": FunctionFragment;
+    "mintOnDeposit(address,uint256)": FunctionFragment;
     "name()": FunctionFragment;
     "symbol()": FunctionFragment;
     "totalSupply()": FunctionFragment;
@@ -56,7 +56,7 @@ interface VTokenInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "mintOnDeposit",
-    values: [string, BigNumberish, BigNumberish]
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
@@ -153,7 +153,7 @@ export type TransferEvent = TypedEvent<
   [string, string, BigNumber] & { from: string; to: string; value: BigNumber }
 >;
 
-export class VToken extends BaseContract {
+export class SDToken extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -194,7 +194,7 @@ export class VToken extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: VTokenInterface;
+  interface: SDTokenInterface;
 
   functions: {
     allowance(
@@ -227,7 +227,6 @@ export class VToken extends BaseContract {
 
     mintOnDeposit(
       _account: string,
-      _tranche: BigNumberish,
       _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -284,7 +283,6 @@ export class VToken extends BaseContract {
 
   mintOnDeposit(
     _account: string,
-    _tranche: BigNumberish,
     _amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -341,7 +339,6 @@ export class VToken extends BaseContract {
 
     mintOnDeposit(
       _account: string,
-      _tranche: BigNumberish,
       _amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -501,7 +498,6 @@ export class VToken extends BaseContract {
 
     mintOnDeposit(
       _account: string,
-      _tranche: BigNumberish,
       _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -562,7 +558,6 @@ export class VToken extends BaseContract {
 
     mintOnDeposit(
       _account: string,
-      _tranche: BigNumberish,
       _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
