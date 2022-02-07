@@ -272,7 +272,7 @@ contract LiquidityManager is Ownable, ReentrancyGuard {
         ERC20 asset = ERC20(_reserve);
         string memory _jdTokenName = string(
             abi.encodePacked(
-                'Voyaga Junor Deposit Interest bearing ',
+                'Voyage Junor Deposit Interest bearing ',
                 asset.name()
             )
         );
@@ -281,7 +281,7 @@ contract LiquidityManager is Ownable, ReentrancyGuard {
         );
         string memory _sdTokenName = string(
             abi.encodePacked(
-                'Voyaga Senior Deposit Interest bearing ',
+                'Voyage Senior Deposit Interest bearing ',
                 asset.name()
             )
         );
