@@ -447,7 +447,7 @@ contract LiquidityManager is Ownable, ReentrancyGuard {
     }
 
     /**
-     * @dev deposits The underlying asset into the reserve. A corresponding amount of the overlying asset (aTokens)
+     * @dev deposits The underlying asset into the reserve. A corresponding amount of the overlying asset
      * is minted.
      * @param _reserve the address of the reserve
      * @param _tranche the tranche of thereserve

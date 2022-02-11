@@ -41,6 +41,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IReserveInterestRateStrategy__factory>;
     getContractFactory(
+      name: "IStableDebtToken",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IStableDebtToken__factory>;
+    getContractFactory(
       name: "Ownable",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Ownable__factory>;
@@ -104,6 +108,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IReserveInterestRateStrategy>;
+    getContractAt(
+      name: "IStableDebtToken",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IStableDebtToken>;
     getContractAt(
       name: "Ownable",
       address: string,
