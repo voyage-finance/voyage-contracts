@@ -53,6 +53,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ReentrancyGuard__factory>;
     getContractFactory(
+      name: "IncentiveERC20",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IncentiveERC20__factory>;
+    getContractFactory(
       name: "JDToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.JDToken__factory>;
@@ -123,6 +127,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.ReentrancyGuard>;
+    getContractAt(
+      name: "IncentiveERC20",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IncentiveERC20>;
     getContractAt(
       name: "JDToken",
       address: string,

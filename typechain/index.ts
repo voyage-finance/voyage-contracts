@@ -11,6 +11,7 @@ export type { IReserveInterestRateStrategy } from "./IReserveInterestRateStrateg
 export type { IStableDebtToken } from "./IStableDebtToken";
 export type { Ownable } from "./Ownable";
 export type { ReentrancyGuard } from "./ReentrancyGuard";
+export type { IncentiveERC20 } from "./IncentiveERC20";
 export type { JDToken } from "./JDToken";
 export type { SDToken } from "./SDToken";
 export type { ERC20 } from "./ERC20";
@@ -26,6 +27,7 @@ export { IReserveInterestRateStrategy__factory } from "./factories/IReserveInter
 export { IStableDebtToken__factory } from "./factories/IStableDebtToken__factory";
 export { Ownable__factory } from "./factories/Ownable__factory";
 export { ReentrancyGuard__factory } from "./factories/ReentrancyGuard__factory";
+export { IncentiveERC20__factory } from "./factories/IncentiveERC20__factory";
 export { JDToken__factory } from "./factories/JDToken__factory";
 export { SDToken__factory } from "./factories/SDToken__factory";
 export { ERC20__factory } from "./factories/ERC20__factory";
