@@ -25,6 +25,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Deposit__factory>;
     getContractFactory(
+      name: "IAaveIncentivesController",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IAaveIncentivesController__factory>;
+    getContractFactory(
       name: "ICreditAccount",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ICreditAccount__factory>;
@@ -41,6 +45,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IReserveInterestRateStrategy__factory>;
     getContractFactory(
+      name: "IVoyageIncentivesController",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IVoyageIncentivesController__factory>;
+    getContractFactory(
       name: "IStableDebtToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IStableDebtToken__factory>;
@@ -52,6 +60,10 @@ declare module "hardhat/types/runtime" {
       name: "ReentrancyGuard",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ReentrancyGuard__factory>;
+    getContractFactory(
+      name: "IERC20Detailed",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IERC20Detailed__factory>;
     getContractFactory(
       name: "IncentiveERC20",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -93,6 +105,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.Deposit>;
     getContractAt(
+      name: "IAaveIncentivesController",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IAaveIncentivesController>;
+    getContractAt(
       name: "ICreditAccount",
       address: string,
       signer?: ethers.Signer
@@ -113,6 +130,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IReserveInterestRateStrategy>;
     getContractAt(
+      name: "IVoyageIncentivesController",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IVoyageIncentivesController>;
+    getContractAt(
       name: "IStableDebtToken",
       address: string,
       signer?: ethers.Signer
@@ -127,6 +149,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.ReentrancyGuard>;
+    getContractAt(
+      name: "IERC20Detailed",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IERC20Detailed>;
     getContractAt(
       name: "IncentiveERC20",
       address: string,

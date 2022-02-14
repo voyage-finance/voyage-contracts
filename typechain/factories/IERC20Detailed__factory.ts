@@ -5,9 +5,9 @@
 import { Contract, Signer, utils } from "ethers";
 import { Provider } from "@ethersproject/providers";
 import type {
-  IncentiveERC20,
-  IncentiveERC20Interface,
-} from "../IncentiveERC20";
+  IERC20Detailed,
+  IERC20DetailedInterface,
+} from "../IERC20Detailed";
 
 const _abi = [
   {
@@ -141,54 +141,6 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "address",
-        name: "spender",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "subtractedValue",
-        type: "uint256",
-      },
-    ],
-    name: "decreaseAllowance",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "spender",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "addedValue",
-        type: "uint256",
-      },
-    ],
-    name: "increaseAllowance",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [],
     name: "name",
     outputs: [
@@ -282,15 +234,15 @@ const _abi = [
   },
 ];
 
-export class IncentiveERC20__factory {
+export class IERC20Detailed__factory {
   static readonly abi = _abi;
-  static createInterface(): IncentiveERC20Interface {
-    return new utils.Interface(_abi) as IncentiveERC20Interface;
+  static createInterface(): IERC20DetailedInterface {
+    return new utils.Interface(_abi) as IERC20DetailedInterface;
   }
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): IncentiveERC20 {
-    return new Contract(address, _abi, signerOrProvider) as IncentiveERC20;
+  ): IERC20Detailed {
+    return new Contract(address, _abi, signerOrProvider) as IERC20Detailed;
   }
 }
