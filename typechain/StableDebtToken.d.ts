@@ -27,6 +27,9 @@ interface StableDebtTokenInterface extends ethers.utils.Interface {
     "balanceOf(address)": FunctionFragment;
     "decimals()": FunctionFragment;
     "decreaseAllowance(address,uint256)": FunctionFragment;
+    "getAverageStableRate()": FunctionFragment;
+    "getUserLastUpdated(address)": FunctionFragment;
+    "getUserStableRate(address)": FunctionFragment;
     "increaseAllowance(address,uint256)": FunctionFragment;
     "initialize(address,address,uint8,bytes)": FunctionFragment;
     "name()": FunctionFragment;
@@ -53,6 +56,18 @@ interface StableDebtTokenInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "decreaseAllowance",
     values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getAverageStableRate",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getUserLastUpdated",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getUserStableRate",
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "increaseAllowance",
@@ -87,6 +102,18 @@ interface StableDebtTokenInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "decreaseAllowance",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getAverageStableRate",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getUserLastUpdated",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getUserStableRate",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -208,6 +235,18 @@ export class StableDebtToken extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    getAverageStableRate(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    getUserLastUpdated(
+      user: string,
+      overrides?: CallOverrides
+    ): Promise<[number]>;
+
+    getUserStableRate(
+      user: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     increaseAllowance(
       spender: string,
       addedValue: BigNumberish,
@@ -215,7 +254,7 @@ export class StableDebtToken extends BaseContract {
     ): Promise<ContractTransaction>;
 
     initialize(
-      pool: string,
+      lm: string,
       underlyingAsset: string,
       debtTokenDecimals: BigNumberish,
       params: BytesLike,
@@ -266,6 +305,15 @@ export class StableDebtToken extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  getAverageStableRate(overrides?: CallOverrides): Promise<BigNumber>;
+
+  getUserLastUpdated(user: string, overrides?: CallOverrides): Promise<number>;
+
+  getUserStableRate(
+    user: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   increaseAllowance(
     spender: string,
     addedValue: BigNumberish,
@@ -273,7 +321,7 @@ export class StableDebtToken extends BaseContract {
   ): Promise<ContractTransaction>;
 
   initialize(
-    pool: string,
+    lm: string,
     underlyingAsset: string,
     debtTokenDecimals: BigNumberish,
     params: BytesLike,
@@ -324,6 +372,18 @@ export class StableDebtToken extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    getAverageStableRate(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getUserLastUpdated(
+      user: string,
+      overrides?: CallOverrides
+    ): Promise<number>;
+
+    getUserStableRate(
+      user: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     increaseAllowance(
       spender: string,
       addedValue: BigNumberish,
@@ -331,7 +391,7 @@ export class StableDebtToken extends BaseContract {
     ): Promise<boolean>;
 
     initialize(
-      pool: string,
+      lm: string,
       underlyingAsset: string,
       debtTokenDecimals: BigNumberish,
       params: BytesLike,
@@ -459,6 +519,18 @@ export class StableDebtToken extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    getAverageStableRate(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getUserLastUpdated(
+      user: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getUserStableRate(
+      user: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     increaseAllowance(
       spender: string,
       addedValue: BigNumberish,
@@ -466,7 +538,7 @@ export class StableDebtToken extends BaseContract {
     ): Promise<BigNumber>;
 
     initialize(
-      pool: string,
+      lm: string,
       underlyingAsset: string,
       debtTokenDecimals: BigNumberish,
       params: BytesLike,
@@ -523,6 +595,20 @@ export class StableDebtToken extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    getAverageStableRate(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getUserLastUpdated(
+      user: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getUserStableRate(
+      user: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     increaseAllowance(
       spender: string,
       addedValue: BigNumberish,
@@ -530,7 +616,7 @@ export class StableDebtToken extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     initialize(
-      pool: string,
+      lm: string,
       underlyingAsset: string,
       debtTokenDecimals: BigNumberish,
       params: BytesLike,

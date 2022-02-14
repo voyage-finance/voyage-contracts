@@ -13,7 +13,7 @@ contract StableDebtToken is ERC20 {
     mapping(address => uint40) internal _timestamps;
     mapping(address => uint256) internal _usersStableRate;
     uint40 internal _totalSupplyTimestamp;
-    LiquidityManager private liquidityManager;
+    LiquidityManager private _liquidityManager;
     address internal _underlyingAsset;
 
     uint8 private _decimals;
@@ -42,27 +42,70 @@ contract StableDebtToken is ERC20 {
 
     /**
      * @dev Initializes the debt token.
-     * @param pool The address of the lending pool where this aToken will be used
+     * @param lm The address of the liquidity manager where this vToken(JD&SD) will be used
      * @param underlyingAsset The address of the underlying asset of this aToken (E.g. WETH for aWETH)
      * @param debtTokenDecimals The decimals of the debtToken, same as the underlying asset's
      */
     function initialize(
-        LiquidityManager pool,
+        LiquidityManager lm,
         address underlyingAsset,
         uint8 debtTokenDecimals,
         bytes calldata params
     ) public {
         _decimals = debtTokenDecimals;
-        liquidityManager = pool;
+        _liquidityManager = lm;
         _underlyingAsset = underlyingAsset;
 
         emit Initialized(
             underlyingAsset,
-            address(pool),
+            address(lm),
             debtTokenDecimals,
             super.name(),
             super.symbol(),
             params
         );
+    }
+
+    /**
+     * @dev Gets the revision of the stable debt token implementation
+     * @return The debt token implementation revision
+     **/
+    function getRevision() internal pure virtual returns (uint256) {
+        return DEBT_TOKEN_REVISION;
+    }
+
+    /**
+     * @dev Returns the average stable rate across all the stable rate debt
+     * @return the average stable rate
+     **/
+    function getAverageStableRate() external view virtual returns (uint256) {
+        return _avgStableRate;
+    }
+
+    /**
+     * @dev Returns the timestamp of the last user action
+     * @return The last update timestamp
+     **/
+    function getUserLastUpdated(address user)
+        external
+        view
+        virtual
+        returns (uint40)
+    {
+        return _timestamps[user];
+    }
+
+    /**
+     * @dev Returns the stable rate of the user
+     * @param user The address of the user
+     * @return The stable rate of user
+     **/
+    function getUserStableRate(address user)
+        external
+        view
+        virtual
+        returns (uint256)
+    {
+        return _usersStableRate[user];
     }
 }
