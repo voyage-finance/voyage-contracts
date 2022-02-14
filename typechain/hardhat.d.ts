@@ -29,10 +29,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ICreditAccount__factory>;
     getContractFactory(
-      name: "ICreditDelegationToken",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.ICreditDelegationToken__factory>;
-    getContractFactory(
       name: "IERC20",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC20__factory>;
@@ -44,10 +40,6 @@ declare module "hardhat/types/runtime" {
       name: "IReserveInterestRateStrategy",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IReserveInterestRateStrategy__factory>;
-    getContractFactory(
-      name: "IVoyageIncentivesController",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IVoyageIncentivesController__factory>;
     getContractFactory(
       name: "IStableDebtToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -61,18 +53,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ReentrancyGuard__factory>;
     getContractFactory(
-      name: "DebtTokenBase",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.DebtTokenBase__factory>;
-    getContractFactory(
-      name: "IERC20Detailed",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IERC20Detailed__factory>;
-    getContractFactory(
-      name: "IncentivizedERC20",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IncentivizedERC20__factory>;
-    getContractFactory(
       name: "JDToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.JDToken__factory>;
@@ -80,6 +60,10 @@ declare module "hardhat/types/runtime" {
       name: "SDToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.SDToken__factory>;
+    getContractFactory(
+      name: "StableDebtToken",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.StableDebtToken__factory>;
     getContractFactory(
       name: "ERC20",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -114,11 +98,6 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.ICreditAccount>;
     getContractAt(
-      name: "ICreditDelegationToken",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.ICreditDelegationToken>;
-    getContractAt(
       name: "IERC20",
       address: string,
       signer?: ethers.Signer
@@ -133,11 +112,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IReserveInterestRateStrategy>;
-    getContractAt(
-      name: "IVoyageIncentivesController",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IVoyageIncentivesController>;
     getContractAt(
       name: "IStableDebtToken",
       address: string,
@@ -154,21 +128,6 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.ReentrancyGuard>;
     getContractAt(
-      name: "DebtTokenBase",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.DebtTokenBase>;
-    getContractAt(
-      name: "IERC20Detailed",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IERC20Detailed>;
-    getContractAt(
-      name: "IncentivizedERC20",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IncentivizedERC20>;
-    getContractAt(
       name: "JDToken",
       address: string,
       signer?: ethers.Signer
@@ -178,6 +137,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.SDToken>;
+    getContractAt(
+      name: "StableDebtToken",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.StableDebtToken>;
     getContractAt(
       name: "ERC20",
       address: string,
