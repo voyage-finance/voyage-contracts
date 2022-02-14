@@ -19,20 +19,14 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
-interface StableDebtTokenInterface extends ethers.utils.Interface {
+interface BaseERC20Interface extends ethers.utils.Interface {
   functions: {
-    "DEBT_TOKEN_REVISION()": FunctionFragment;
     "allowance(address,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
     "decimals()": FunctionFragment;
     "decreaseAllowance(address,uint256)": FunctionFragment;
-    "getAverageStableRate()": FunctionFragment;
-    "getUserLastUpdated(address)": FunctionFragment;
-    "getUserStableRate(address)": FunctionFragment;
     "increaseAllowance(address,uint256)": FunctionFragment;
-    "initialize(address,address,uint8,bytes)": FunctionFragment;
-    "mint(address,address,uint256,uint256)": FunctionFragment;
     "name()": FunctionFragment;
     "symbol()": FunctionFragment;
     "totalSupply()": FunctionFragment;
@@ -40,10 +34,6 @@ interface StableDebtTokenInterface extends ethers.utils.Interface {
     "transferFrom(address,address,uint256)": FunctionFragment;
   };
 
-  encodeFunctionData(
-    functionFragment: "DEBT_TOKEN_REVISION",
-    values?: undefined
-  ): string;
   encodeFunctionData(
     functionFragment: "allowance",
     values: [string, string]
@@ -59,28 +49,8 @@ interface StableDebtTokenInterface extends ethers.utils.Interface {
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "getAverageStableRate",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getUserLastUpdated",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getUserStableRate",
-    values: [string]
-  ): string;
-  encodeFunctionData(
     functionFragment: "increaseAllowance",
     values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "initialize",
-    values: [string, string, BigNumberish, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "mint",
-    values: [string, string, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
@@ -97,10 +67,6 @@ interface StableDebtTokenInterface extends ethers.utils.Interface {
     values: [string, string, BigNumberish]
   ): string;
 
-  decodeFunctionResult(
-    functionFragment: "DEBT_TOKEN_REVISION",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
@@ -110,23 +76,9 @@ interface StableDebtTokenInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getAverageStableRate",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getUserLastUpdated",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getUserStableRate",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "increaseAllowance",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
   decodeFunctionResult(
@@ -141,12 +93,10 @@ interface StableDebtTokenInterface extends ethers.utils.Interface {
 
   events: {
     "Approval(address,address,uint256)": EventFragment;
-    "Initialized(address,address,uint8,string,string,bytes)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Initialized"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
 }
 
@@ -158,22 +108,11 @@ export type ApprovalEvent = TypedEvent<
   }
 >;
 
-export type InitializedEvent = TypedEvent<
-  [string, string, number, string, string, string] & {
-    underlyingAsset: string;
-    pool: string;
-    aTokenDecimals: number;
-    aTokenName: string;
-    aTokenSymbol: string;
-    params: string;
-  }
->;
-
 export type TransferEvent = TypedEvent<
   [string, string, BigNumber] & { from: string; to: string; value: BigNumber }
 >;
 
-export class StableDebtToken extends BaseContract {
+export class BaseERC20 extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -214,11 +153,9 @@ export class StableDebtToken extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: StableDebtTokenInterface;
+  interface: BaseERC20Interface;
 
   functions: {
-    DEBT_TOKEN_REVISION(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     allowance(
       owner: string,
       spender: string,
@@ -241,37 +178,9 @@ export class StableDebtToken extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    getAverageStableRate(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    getUserLastUpdated(
-      user: string,
-      overrides?: CallOverrides
-    ): Promise<[number]>;
-
-    getUserStableRate(
-      user: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     increaseAllowance(
       spender: string,
       addedValue: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    initialize(
-      lm: string,
-      underlyingAsset: string,
-      debtTokenDecimals: BigNumberish,
-      params: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    mint(
-      user: string,
-      onBehalfOf: string,
-      amount: BigNumberish,
-      rate: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -295,8 +204,6 @@ export class StableDebtToken extends BaseContract {
     ): Promise<ContractTransaction>;
   };
 
-  DEBT_TOKEN_REVISION(overrides?: CallOverrides): Promise<BigNumber>;
-
   allowance(
     owner: string,
     spender: string,
@@ -319,34 +226,9 @@ export class StableDebtToken extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  getAverageStableRate(overrides?: CallOverrides): Promise<BigNumber>;
-
-  getUserLastUpdated(user: string, overrides?: CallOverrides): Promise<number>;
-
-  getUserStableRate(
-    user: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   increaseAllowance(
     spender: string,
     addedValue: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  initialize(
-    lm: string,
-    underlyingAsset: string,
-    debtTokenDecimals: BigNumberish,
-    params: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  mint(
-    user: string,
-    onBehalfOf: string,
-    amount: BigNumberish,
-    rate: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -370,8 +252,6 @@ export class StableDebtToken extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    DEBT_TOKEN_REVISION(overrides?: CallOverrides): Promise<BigNumber>;
-
     allowance(
       owner: string,
       spender: string,
@@ -394,37 +274,9 @@ export class StableDebtToken extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    getAverageStableRate(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getUserLastUpdated(
-      user: string,
-      overrides?: CallOverrides
-    ): Promise<number>;
-
-    getUserStableRate(
-      user: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     increaseAllowance(
       spender: string,
       addedValue: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    initialize(
-      lm: string,
-      underlyingAsset: string,
-      debtTokenDecimals: BigNumberish,
-      params: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    mint(
-      user: string,
-      onBehalfOf: string,
-      amount: BigNumberish,
-      rate: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -467,44 +319,6 @@ export class StableDebtToken extends BaseContract {
       { owner: string; spender: string; value: BigNumber }
     >;
 
-    "Initialized(address,address,uint8,string,string,bytes)"(
-      underlyingAsset?: string | null,
-      pool?: string | null,
-      aTokenDecimals?: null,
-      aTokenName?: null,
-      aTokenSymbol?: null,
-      params?: null
-    ): TypedEventFilter<
-      [string, string, number, string, string, string],
-      {
-        underlyingAsset: string;
-        pool: string;
-        aTokenDecimals: number;
-        aTokenName: string;
-        aTokenSymbol: string;
-        params: string;
-      }
-    >;
-
-    Initialized(
-      underlyingAsset?: string | null,
-      pool?: string | null,
-      aTokenDecimals?: null,
-      aTokenName?: null,
-      aTokenSymbol?: null,
-      params?: null
-    ): TypedEventFilter<
-      [string, string, number, string, string, string],
-      {
-        underlyingAsset: string;
-        pool: string;
-        aTokenDecimals: number;
-        aTokenName: string;
-        aTokenSymbol: string;
-        params: string;
-      }
-    >;
-
     "Transfer(address,address,uint256)"(
       from?: string | null,
       to?: string | null,
@@ -525,8 +339,6 @@ export class StableDebtToken extends BaseContract {
   };
 
   estimateGas: {
-    DEBT_TOKEN_REVISION(overrides?: CallOverrides): Promise<BigNumber>;
-
     allowance(
       owner: string,
       spender: string,
@@ -549,37 +361,9 @@ export class StableDebtToken extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    getAverageStableRate(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getUserLastUpdated(
-      user: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getUserStableRate(
-      user: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     increaseAllowance(
       spender: string,
       addedValue: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    initialize(
-      lm: string,
-      underlyingAsset: string,
-      debtTokenDecimals: BigNumberish,
-      params: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    mint(
-      user: string,
-      onBehalfOf: string,
-      amount: BigNumberish,
-      rate: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -604,10 +388,6 @@ export class StableDebtToken extends BaseContract {
   };
 
   populateTransaction: {
-    DEBT_TOKEN_REVISION(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     allowance(
       owner: string,
       spender: string,
@@ -633,39 +413,9 @@ export class StableDebtToken extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    getAverageStableRate(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getUserLastUpdated(
-      user: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getUserStableRate(
-      user: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     increaseAllowance(
       spender: string,
       addedValue: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    initialize(
-      lm: string,
-      underlyingAsset: string,
-      debtTokenDecimals: BigNumberish,
-      params: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    mint(
-      user: string,
-      onBehalfOf: string,
-      amount: BigNumberish,
-      rate: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

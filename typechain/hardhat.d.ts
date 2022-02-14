@@ -41,6 +41,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IReserveInterestRateStrategy__factory>;
     getContractFactory(
+      name: "Errors",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Errors__factory>;
+    getContractFactory(
       name: "IStableDebtToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IStableDebtToken__factory>;
@@ -52,6 +56,10 @@ declare module "hardhat/types/runtime" {
       name: "ReentrancyGuard",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ReentrancyGuard__factory>;
+    getContractFactory(
+      name: "BaseERC20",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.BaseERC20__factory>;
     getContractFactory(
       name: "JDToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -113,6 +121,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IReserveInterestRateStrategy>;
     getContractAt(
+      name: "Errors",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Errors>;
+    getContractAt(
       name: "IStableDebtToken",
       address: string,
       signer?: ethers.Signer
@@ -127,6 +140,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.ReentrancyGuard>;
+    getContractAt(
+      name: "BaseERC20",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.BaseERC20>;
     getContractAt(
       name: "JDToken",
       address: string,
