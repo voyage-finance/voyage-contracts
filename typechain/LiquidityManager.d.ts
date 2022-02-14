@@ -25,7 +25,7 @@ interface LiquidityManagerInterface extends ethers.utils.Interface {
     "activateReserve(address)": FunctionFragment;
     "claimOwnership()": FunctionFragment;
     "deactivateReserve(address)": FunctionFragment;
-    "deposit(address,uint8,uint256)": FunctionFragment;
+    "depositLiquidity(address,uint8,uint256)": FunctionFragment;
     "getReserveAvailableLiquidity(address)": FunctionFragment;
     "getReserveJDTokenAddress(address)": FunctionFragment;
     "getReserveNormalizedIncome(address,uint8)": FunctionFragment;
@@ -53,7 +53,7 @@ interface LiquidityManagerInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
-    functionFragment: "deposit",
+    functionFragment: "depositLiquidity",
     values: [string, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
@@ -111,7 +111,10 @@ interface LiquidityManagerInterface extends ethers.utils.Interface {
     functionFragment: "deactivateReserve",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "depositLiquidity",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getReserveAvailableLiquidity",
     data: BytesLike
@@ -278,7 +281,7 @@ export class LiquidityManager extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    deposit(
+    depositLiquidity(
       _reserve: string,
       _tranche: BigNumberish,
       _amount: BigNumberish,
@@ -364,7 +367,7 @@ export class LiquidityManager extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  deposit(
+  depositLiquidity(
     _reserve: string,
     _tranche: BigNumberish,
     _amount: BigNumberish,
@@ -445,7 +448,7 @@ export class LiquidityManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    deposit(
+    depositLiquidity(
       _reserve: string,
       _tranche: BigNumberish,
       _amount: BigNumberish,
@@ -686,7 +689,7 @@ export class LiquidityManager extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    deposit(
+    depositLiquidity(
       _reserve: string,
       _tranche: BigNumberish,
       _amount: BigNumberish,
@@ -773,7 +776,7 @@ export class LiquidityManager extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    deposit(
+    depositLiquidity(
       _reserve: string,
       _tranche: BigNumberish,
       _amount: BigNumberish,

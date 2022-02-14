@@ -447,13 +447,13 @@ contract LiquidityManager is Ownable, ReentrancyGuard {
     }
 
     /**
-     * @dev deposits The underlying asset into the reserve. A corresponding amount of the overlying asset
+     * @dev depositLiquidity The underlying asset into the reserve. A corresponding amount of the overlying asset
      * is minted.
      * @param _reserve the address of the reserve
      * @param _tranche the tranche of thereserve
      * @param _amount the amount to be deposited
      **/
-    function deposit(
+    function depositLiquidity(
         address _reserve,
         CoreLibrary.Tranche _tranche,
         uint256 _amount
@@ -468,11 +468,9 @@ contract LiquidityManager is Ownable, ReentrancyGuard {
 
         if (_tranche == CoreLibrary.Tranche.JUNIOR) {
             JDToken jdToken = JDToken(getReserveJDTokenAddress(_reserve));
-            //minting AToken to user 1:1 with the specific exchange rate
             jdToken.mintOnDeposit(msg.sender, _amount);
         } else {
             SDToken sdToken = SDToken(getReserveSDTokenAddress(_reserve));
-            //minting AToken to user 1:1 with the specific exchange rate
             sdToken.mintOnDeposit(msg.sender, _amount);
         }
 

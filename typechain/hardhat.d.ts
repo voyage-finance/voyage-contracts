@@ -25,13 +25,13 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Deposit__factory>;
     getContractFactory(
-      name: "IAaveIncentivesController",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IAaveIncentivesController__factory>;
-    getContractFactory(
       name: "ICreditAccount",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ICreditAccount__factory>;
+    getContractFactory(
+      name: "ICreditDelegationToken",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ICreditDelegationToken__factory>;
     getContractFactory(
       name: "IERC20",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -61,13 +61,17 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ReentrancyGuard__factory>;
     getContractFactory(
+      name: "DebtTokenBase",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.DebtTokenBase__factory>;
+    getContractFactory(
       name: "IERC20Detailed",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC20Detailed__factory>;
     getContractFactory(
-      name: "IncentiveERC20",
+      name: "IncentivizedERC20",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IncentiveERC20__factory>;
+    ): Promise<Contracts.IncentivizedERC20__factory>;
     getContractFactory(
       name: "JDToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -105,15 +109,15 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.Deposit>;
     getContractAt(
-      name: "IAaveIncentivesController",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IAaveIncentivesController>;
-    getContractAt(
       name: "ICreditAccount",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.ICreditAccount>;
+    getContractAt(
+      name: "ICreditDelegationToken",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ICreditDelegationToken>;
     getContractAt(
       name: "IERC20",
       address: string,
@@ -150,15 +154,20 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.ReentrancyGuard>;
     getContractAt(
+      name: "DebtTokenBase",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.DebtTokenBase>;
+    getContractAt(
       name: "IERC20Detailed",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IERC20Detailed>;
     getContractAt(
-      name: "IncentiveERC20",
+      name: "IncentivizedERC20",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.IncentiveERC20>;
+    ): Promise<Contracts.IncentivizedERC20>;
     getContractAt(
       name: "JDToken",
       address: string,
