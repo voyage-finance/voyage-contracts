@@ -404,6 +404,14 @@ contract StableDebtToken is BaseERC20 {
         } else {
             uint256 amountToBurn = amount.sub(balanceIncrease);
             _burn(user, amountToBurn, previousSupply);
+            emit Burn(
+                user,
+                amountToBurn,
+                currentBalance,
+                balanceIncrease,
+                newAvgStableRate,
+                nextSupply
+            );
         }
 
         emit Transfer(user, address(0), amount);
