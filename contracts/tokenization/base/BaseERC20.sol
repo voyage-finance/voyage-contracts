@@ -6,6 +6,7 @@ pragma solidity ^0.8.0;
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 import 'openzeppelin-solidity/contracts/utils/Context.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/extensions/IERC20Metadata.sol';
+import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 
 /**
  * @dev Implementation of the {IERC20} interface.
@@ -33,6 +34,7 @@ import 'openzeppelin-solidity/contracts/token/ERC20/extensions/IERC20Metadata.so
  * allowances. See {IERC20-approve}.
  */
 contract BaseERC20 is Context, IERC20, IERC20Metadata {
+    using SafeMath for uint256;
     mapping(address => uint256) private _balances;
 
     mapping(address => mapping(address => uint256)) private _allowances;
@@ -283,53 +285,37 @@ contract BaseERC20 is Context, IERC20, IERC20Metadata {
         _afterTokenTransfer(sender, recipient, amount);
     }
 
-    /** @dev Creates `amount` tokens and assigns them to `account`, increasing
-     * the total supply.
-     *
-     * Emits a {Transfer} event with `from` set to the zero address.
-     *
-     * Requirements:
-     *
-     * - `account` cannot be the zero address.
-     */
-    function _mint(address account, uint256 amount) internal virtual {
-        require(account != address(0), 'ERC20: mint to the zero address');
-
-        _beforeTokenTransfer(address(0), account, amount);
-
-        _totalSupply += amount;
-        _balances[account] += amount;
-        emit Transfer(address(0), account, amount);
-
-        _afterTokenTransfer(address(0), account, amount);
+    /**
+     * @dev Mints stable debt tokens to an user
+     * @param account The account receiving the debt tokens
+     * @param amount The amount being minted
+     * @param oldTotalSupply the total supply before the minting event
+     **/
+    function _mint(
+        address account,
+        uint256 amount,
+        uint256 oldTotalSupply
+    ) internal {
+        uint256 oldAccountBalance = _balances[account];
+        _balances[account] = oldAccountBalance.add(amount);
     }
 
     /**
-     * @dev Destroys `amount` tokens from `account`, reducing the
-     * total supply.
-     *
-     * Emits a {Transfer} event with `to` set to the zero address.
-     *
-     * Requirements:
-     *
-     * - `account` cannot be the zero address.
-     * - `account` must have at least `amount` tokens.
-     */
-    function _burn(address account, uint256 amount) internal virtual {
-        require(account != address(0), 'ERC20: burn from the zero address');
-
-        _beforeTokenTransfer(account, address(0), amount);
-
-        uint256 accountBalance = _balances[account];
-        require(accountBalance >= amount, 'ERC20: burn amount exceeds balance');
-        unchecked {
-            _balances[account] = accountBalance - amount;
-        }
-        _totalSupply -= amount;
-
-        emit Transfer(account, address(0), amount);
-
-        _afterTokenTransfer(account, address(0), amount);
+     * @dev Burns stable debt tokens of an user
+     * @param account The user getting his debt burned
+     * @param amount The amount being burned
+     * @param oldTotalSupply The total supply before the burning event
+     **/
+    function _burn(
+        address account,
+        uint256 amount,
+        uint256 oldTotalSupply
+    ) internal {
+        uint256 oldAccountBalance = _balances[account];
+        _balances[account] = oldAccountBalance.sub(
+            amount,
+            'SDT_BURN_EXCEEDS_BALANCE'
+        );
     }
 
     /**

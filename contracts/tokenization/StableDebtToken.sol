@@ -63,6 +63,24 @@ contract StableDebtToken is BaseERC20 {
         uint256 newTotalSupply
     );
 
+    /**
+     * @dev Emitted when new stable debt is burned
+     * @param user The address of the user
+     * @param amount The amount being burned
+     * @param currentBalance The current balance of the user
+     * @param balanceIncrease The the increase in balance since the last action of the user
+     * @param avgStableRate The new average stable rate after the burning
+     * @param newTotalSupply The new total supply of the stable debt token after the action
+     **/
+    event Burn(
+        address indexed user,
+        uint256 amount,
+        uint256 currentBalance,
+        uint256 balanceIncrease,
+        uint256 avgStableRate,
+        uint256 newTotalSupply
+    );
+
     modifier onlyLiquidityManager() {
         require(
             msg.sender == address(_liquidityManager),
@@ -245,7 +263,7 @@ contract StableDebtToken is BaseERC20 {
 
     /**
      * @dev Mints debt token to the `onBehalfOf` address.
-     * -  Only callable by the LendingPool
+     * -  Only callable by the LiquidityManager
      * - The resulting rate is the weighted average between the rate of the new debt
      * and the rate of the previous debt
      * @param user The address receiving the borrowed underlying, being the delegatee in case
@@ -301,7 +319,7 @@ contract StableDebtToken is BaseERC20 {
             .add(rate.rayMul(vars.amountInRay))
             .rayDiv(vars.nextSupply.wadToRay());
 
-        _mint(onBehalfOf, amount.add(balanceIncrease));
+        _mint(onBehalfOf, amount.add(balanceIncrease), vars.previousSupply);
 
         emit Mint(
             user,
@@ -315,6 +333,80 @@ contract StableDebtToken is BaseERC20 {
         );
 
         return currentBalance == 0;
+    }
+
+    /**
+     * @dev Burns debt of `user`
+     * @param user The address of the user getting his debt burned
+     * @param amount The amount of debt tokens getting burned
+     **/
+    function burn(address user, uint256 amount) external onlyLiquidityManager {
+        (
+            ,
+            uint256 currentBalance,
+            uint256 balanceIncrease
+        ) = _calculateBalanceIncrease(user);
+
+        uint256 previousSupply = totalSupply();
+        uint256 newAvgStableRate = 0;
+        uint256 nextSupply = 0;
+        uint256 userStableRate = _usersStableRate[user];
+
+        // Since the total supply and each single user debt accrue separately,
+        // there might be accumulation errors so that the last borrower repaying
+        // mght actually try to repay more than the available debt supply.
+        // In this case we simply set the total supply and the avg stable rate to 0
+        if (previousSupply <= amount) {
+            _avgStableRate = 0;
+            _totalSupply = 0;
+        } else {
+            nextSupply = _totalSupply = previousSupply.sub(amount);
+            uint256 firstTerm = _avgStableRate.rayMul(
+                previousSupply.wadToRay()
+            );
+            uint256 secondTerm = userStableRate.rayMul(amount.wadToRay());
+
+            // For the same reason described above, when the last user is repaying it might
+            // happen that user rate * user balance > avg rate * total supply. In that case,
+            // we simply set the avg rate to 0
+            if (secondTerm >= firstTerm) {
+                newAvgStableRate = _avgStableRate = _totalSupply = 0;
+            } else {
+                newAvgStableRate = _avgStableRate = firstTerm
+                    .sub(secondTerm)
+                    .rayDiv(nextSupply.wadToRay());
+            }
+        }
+
+        if (amount == currentBalance) {
+            _usersStableRate[user] = 0;
+            _timestamps[user] = 0;
+        } else {
+            //solium-disable-next-line
+            _timestamps[user] = uint40(block.timestamp);
+        }
+        //solium-disable-next-line
+        _totalSupplyTimestamp = uint40(block.timestamp);
+
+        if (balanceIncrease > amount) {
+            uint256 amountToMint = balanceIncrease.sub(amount);
+            _mint(user, amountToMint, previousSupply);
+            emit Mint(
+                user,
+                user,
+                amountToMint,
+                currentBalance,
+                balanceIncrease,
+                userStableRate,
+                newAvgStableRate,
+                nextSupply
+            );
+        } else {
+            uint256 amountToBurn = amount.sub(balanceIncrease);
+            _burn(user, amountToBurn, previousSupply);
+        }
+
+        emit Transfer(user, address(0), amount);
     }
 
     /**
