@@ -41,6 +41,28 @@ contract StableDebtToken is BaseERC20 {
         bytes params
     );
 
+    /**
+     * @dev Emitted when new stable debt is minted
+     * @param user The address of the user who triggered the minting
+     * @param onBehalfOf The recipient of stable debt tokens
+     * @param amount The amount minted
+     * @param currentBalance The current balance of the user
+     * @param balanceIncrease The increase in balance since the last action of the user
+     * @param newRate The rate of the debt after the minting
+     * @param avgStableRate The new average stable rate after the minting
+     * @param newTotalSupply The new total supply of the stable debt token after the action
+     **/
+    event Mint(
+        address indexed user,
+        address indexed onBehalfOf,
+        uint256 amount,
+        uint256 currentBalance,
+        uint256 balanceIncrease,
+        uint256 newRate,
+        uint256 avgStableRate,
+        uint256 newTotalSupply
+    );
+
     modifier onlyLiquidityManager() {
         require(
             msg.sender == address(_liquidityManager),
@@ -280,6 +302,18 @@ contract StableDebtToken is BaseERC20 {
             .rayDiv(vars.nextSupply.wadToRay());
 
         _mint(onBehalfOf, amount.add(balanceIncrease));
+
+        emit Mint(
+            user,
+            onBehalfOf,
+            amount,
+            currentBalance,
+            balanceIncrease,
+            vars.newStableRate,
+            vars.currentAvgStableRate,
+            vars.nextSupply
+        );
+
         return currentBalance == 0;
     }
 

@@ -142,11 +142,13 @@ interface StableDebtTokenInterface extends ethers.utils.Interface {
   events: {
     "Approval(address,address,uint256)": EventFragment;
     "Initialized(address,address,uint8,string,string,bytes)": EventFragment;
+    "Mint(address,address,uint256,uint256,uint256,uint256,uint256,uint256)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Initialized"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Mint"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
 }
 
@@ -166,6 +168,28 @@ export type InitializedEvent = TypedEvent<
     aTokenName: string;
     aTokenSymbol: string;
     params: string;
+  }
+>;
+
+export type MintEvent = TypedEvent<
+  [
+    string,
+    string,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber
+  ] & {
+    user: string;
+    onBehalfOf: string;
+    amount: BigNumber;
+    currentBalance: BigNumber;
+    balanceIncrease: BigNumber;
+    newRate: BigNumber;
+    avgStableRate: BigNumber;
+    newTotalSupply: BigNumber;
   }
 >;
 
@@ -502,6 +526,70 @@ export class StableDebtToken extends BaseContract {
         aTokenName: string;
         aTokenSymbol: string;
         params: string;
+      }
+    >;
+
+    "Mint(address,address,uint256,uint256,uint256,uint256,uint256,uint256)"(
+      user?: string | null,
+      onBehalfOf?: string | null,
+      amount?: null,
+      currentBalance?: null,
+      balanceIncrease?: null,
+      newRate?: null,
+      avgStableRate?: null,
+      newTotalSupply?: null
+    ): TypedEventFilter<
+      [
+        string,
+        string,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber
+      ],
+      {
+        user: string;
+        onBehalfOf: string;
+        amount: BigNumber;
+        currentBalance: BigNumber;
+        balanceIncrease: BigNumber;
+        newRate: BigNumber;
+        avgStableRate: BigNumber;
+        newTotalSupply: BigNumber;
+      }
+    >;
+
+    Mint(
+      user?: string | null,
+      onBehalfOf?: string | null,
+      amount?: null,
+      currentBalance?: null,
+      balanceIncrease?: null,
+      newRate?: null,
+      avgStableRate?: null,
+      newTotalSupply?: null
+    ): TypedEventFilter<
+      [
+        string,
+        string,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber
+      ],
+      {
+        user: string;
+        onBehalfOf: string;
+        amount: BigNumber;
+        currentBalance: BigNumber;
+        balanceIncrease: BigNumber;
+        newRate: BigNumber;
+        avgStableRate: BigNumber;
+        newTotalSupply: BigNumber;
       }
     >;
 
