@@ -1,0 +1,27 @@
+@startuml
+actor User
+participant UI
+participant Voyage as Voy
+participant Torus as Tor
+participant Node as Avax
+
+title Guild Manager Sign Up/In Journey
+
+User --> UI : sign up 
+UI --> Tor : connect()
+Tor --> UI : userInfo
+UI --> Voy : createVault(userInfo, signedTx)
+alt has vault
+	Voy --> UI : vaultInfo
+else no vault
+	Voy --> Avax : web3.sendTransaction(signedTx)
+	Avax --> Voy : txHash
+	loop while not confirmed
+		Voy --> Avax : poll(txHash)
+		Avax --> Voy : txStatus
+		Voy --> UI : vaultInfo
+	end
+end
+UI --> User : success
+
+@enduml
