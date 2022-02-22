@@ -1,8 +1,8 @@
 @startuml
 actor User
 participant UI
-participant Voyage as Voy
 participant Torus as Tor
+participant Voyage as Voy
 participant Node as Avax
 
 title Guild Manager Sign Up/In Journey
