@@ -23,6 +23,9 @@ interface VaultManagerInterface extends ethers.utils.Interface {
   functions: {
     "allVaults(uint256)": FunctionFragment;
     "createAccount(address)": FunctionFragment;
+    "getAllCreditAccount()": FunctionFragment;
+    "getCreditAccount(address)": FunctionFragment;
+    "getVault(address)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -33,12 +36,30 @@ interface VaultManagerInterface extends ethers.utils.Interface {
     functionFragment: "createAccount",
     values: [string]
   ): string;
+  encodeFunctionData(
+    functionFragment: "getAllCreditAccount",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getCreditAccount",
+    values: [string]
+  ): string;
+  encodeFunctionData(functionFragment: "getVault", values: [string]): string;
 
   decodeFunctionResult(functionFragment: "allVaults", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "createAccount",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "getAllCreditAccount",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getCreditAccount",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "getVault", data: BytesLike): Result;
 
   events: {
     "VaultCreated(address,address,uint256)": EventFragment;
@@ -105,6 +126,15 @@ export class VaultManager extends BaseContract {
       _player: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    getAllCreditAccount(overrides?: CallOverrides): Promise<[string[]]>;
+
+    getCreditAccount(
+      _user: string,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    getVault(arg0: string, overrides?: CallOverrides): Promise<[string]>;
   };
 
   allVaults(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
@@ -114,10 +144,22 @@ export class VaultManager extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  getAllCreditAccount(overrides?: CallOverrides): Promise<string[]>;
+
+  getCreditAccount(_user: string, overrides?: CallOverrides): Promise<string>;
+
+  getVault(arg0: string, overrides?: CallOverrides): Promise<string>;
+
   callStatic: {
     allVaults(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
     createAccount(_player: string, overrides?: CallOverrides): Promise<string>;
+
+    getAllCreditAccount(overrides?: CallOverrides): Promise<string[]>;
+
+    getCreditAccount(_user: string, overrides?: CallOverrides): Promise<string>;
+
+    getVault(arg0: string, overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
@@ -150,6 +192,15 @@ export class VaultManager extends BaseContract {
       _player: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    getAllCreditAccount(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getCreditAccount(
+      _user: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getVault(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -161,6 +212,20 @@ export class VaultManager extends BaseContract {
     createAccount(
       _player: string,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getAllCreditAccount(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getCreditAccount(
+      _user: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getVault(
+      arg0: string,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
 }

@@ -7,6 +7,9 @@ import '../../interfaces/IVaultManager.sol';
 contract VaultManager {
     address[] public allVaults;
 
+    // player address => vault address
+    mapping(address => address) public getVault;
+
     event VaultCreated(address indexed player, address vault, uint256);
 
     function createAccount(address _player) external returns (address vault) {
@@ -17,6 +20,15 @@ contract VaultManager {
         }
         IVaultManager(vault).initialize(_player);
         allVaults.push(vault);
+        getVault[_player] = vault;
         emit VaultCreated(_player, vault, allVaults.length);
+    }
+
+    function getCreditAccount(address _user) external view returns (address) {
+        return getVault[_user];
+    }
+
+    function getAllCreditAccount() external view returns (address[] memory) {
+        return allVaults;
     }
 }
