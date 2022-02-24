@@ -7,7 +7,7 @@ participant Node as Avax
 
 title Guild Manager Sign Up/In Journey
 
-User --> UI : sign up 
+User --> UI : sign up
 UI --> Tor : connect()
 Tor --> UI : userInfo
 UI --> Voy : createVault(userInfo, signedTx)

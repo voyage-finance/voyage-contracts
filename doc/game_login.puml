@@ -14,7 +14,7 @@ VoyageSDK -> VoyageCRX : connect()
 alt not signed in
 	VoyageCRX --> User : Game wants to get your info. Agree?
 	note left: in extension
-	User --> VoyageCRX : agree, sign in 
+	User --> VoyageCRX : agree, sign in
 	VoyageCRX -> Torus : connect()
 	Torus --> VoyageCRX : userInfo
 end

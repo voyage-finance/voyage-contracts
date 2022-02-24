@@ -21,6 +21,14 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.LiquidityManager__factory>;
     getContractFactory(
+      name: "Vault",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Vault__factory>;
+    getContractFactory(
+      name: "VaultManager",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.VaultManager__factory>;
+    getContractFactory(
       name: "Deposit",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Deposit__factory>;
@@ -40,6 +48,10 @@ declare module "hardhat/types/runtime" {
       name: "IReserveInterestRateStrategy",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IReserveInterestRateStrategy__factory>;
+    getContractFactory(
+      name: "IVaultManager",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IVaultManager__factory>;
     getContractFactory(
       name: "Errors",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -96,6 +108,16 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.LiquidityManager>;
     getContractAt(
+      name: "Vault",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Vault>;
+    getContractAt(
+      name: "VaultManager",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.VaultManager>;
+    getContractAt(
       name: "Deposit",
       address: string,
       signer?: ethers.Signer
@@ -120,6 +142,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IReserveInterestRateStrategy>;
+    getContractAt(
+      name: "IVaultManager",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IVaultManager>;
     getContractAt(
       name: "Errors",
       address: string,
