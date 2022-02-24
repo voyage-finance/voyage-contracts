@@ -546,4 +546,30 @@ contract LiquidityManager is Ownable, ReentrancyGuard {
         //solium-disable-next-line
         emit RedeemUnderlying(_reserve, _user, _amount, block.timestamp);
     }
+
+    /**
+     * @dev Get security requirement for _reserve
+     * @param _reserve the address of the reserve
+     **/
+    function getSecurityRequirement(address _reserve)
+        external
+        view
+        returns (uint256)
+    {
+        CoreLibrary.ReserveData storage reserve = _reserves[_reserve];
+        return reserve.securityRequirement;
+    }
+
+    /**
+     * @dev Set security requirement for _reserve
+     * @param _reserve the address of the reserve
+     * @param _value valut of the security requirement
+     **/
+    function setSecurityRequirement(address _reserve, uint256 _value)
+        public
+        onlyLendingPoolManager
+    {
+        CoreLibrary.ReserveData storage reserve = _reserves[_reserve];
+        reserve.securityRequirement = _value;
+    }
 }

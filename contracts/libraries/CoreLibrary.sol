@@ -39,6 +39,8 @@ library CoreLibrary {
         uint256 currentSeniorLiquidityIndex;
         uint256 totalBorrows;
         uint256 currentBorrowRate;
+        // Expressed in ray
+        uint256 securityRequirement;
         //the decimals of the reserve asset
         uint256 decimals;
         address interestRateStrategyAddress;

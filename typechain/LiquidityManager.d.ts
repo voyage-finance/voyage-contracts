@@ -31,12 +31,14 @@ interface LiquidityManagerInterface extends ethers.utils.Interface {
     "getReserveNormalizedIncome(address,uint8)": FunctionFragment;
     "getReserveSDTokenAddress(address)": FunctionFragment;
     "getReserveTotalLiquidity(address)": FunctionFragment;
+    "getSecurityRequirement(address)": FunctionFragment;
     "initReserve(address,uint8,address)": FunctionFragment;
     "initReserveWithData(address,string,string,string,string,uint8,address)": FunctionFragment;
     "isOwner()": FunctionFragment;
     "owner()": FunctionFragment;
     "pendingOwner()": FunctionFragment;
     "redeemUnderlying(address,uint8,address,uint256,uint256)": FunctionFragment;
+    "setSecurityRequirement(address,uint256)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
   };
 
@@ -77,6 +79,10 @@ interface LiquidityManagerInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
+    functionFragment: "getSecurityRequirement",
+    values: [string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "initReserve",
     values: [string, BigNumberish, string]
   ): string;
@@ -93,6 +99,10 @@ interface LiquidityManagerInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "redeemUnderlying",
     values: [string, BigNumberish, string, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setSecurityRequirement",
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
@@ -136,6 +146,10 @@ interface LiquidityManagerInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "getSecurityRequirement",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "initReserve",
     data: BytesLike
   ): Result;
@@ -151,6 +165,10 @@ interface LiquidityManagerInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "redeemUnderlying",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setSecurityRequirement",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -314,6 +332,11 @@ export class LiquidityManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
+    getSecurityRequirement(
+      _reserve: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     initReserve(
       _reserve: string,
       _underlyingAssetDecimals: BigNumberish,
@@ -344,6 +367,12 @@ export class LiquidityManager extends BaseContract {
       _user: string,
       _amount: BigNumberish,
       _aTokenBalanceAfterRedeem: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setSecurityRequirement(
+      _reserve: string,
+      _value: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -400,6 +429,11 @@ export class LiquidityManager extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  getSecurityRequirement(
+    _reserve: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   initReserve(
     _reserve: string,
     _underlyingAssetDecimals: BigNumberish,
@@ -430,6 +464,12 @@ export class LiquidityManager extends BaseContract {
     _user: string,
     _amount: BigNumberish,
     _aTokenBalanceAfterRedeem: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setSecurityRequirement(
+    _reserve: string,
+    _value: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -481,6 +521,11 @@ export class LiquidityManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getSecurityRequirement(
+      _reserve: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     initReserve(
       _reserve: string,
       _underlyingAssetDecimals: BigNumberish,
@@ -511,6 +556,12 @@ export class LiquidityManager extends BaseContract {
       _user: string,
       _amount: BigNumberish,
       _aTokenBalanceAfterRedeem: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setSecurityRequirement(
+      _reserve: string,
+      _value: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -722,6 +773,11 @@ export class LiquidityManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getSecurityRequirement(
+      _reserve: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     initReserve(
       _reserve: string,
       _underlyingAssetDecimals: BigNumberish,
@@ -752,6 +808,12 @@ export class LiquidityManager extends BaseContract {
       _user: string,
       _amount: BigNumberish,
       _aTokenBalanceAfterRedeem: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setSecurityRequirement(
+      _reserve: string,
+      _value: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -809,6 +871,11 @@ export class LiquidityManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    getSecurityRequirement(
+      _reserve: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     initReserve(
       _reserve: string,
       _underlyingAssetDecimals: BigNumberish,
@@ -839,6 +906,12 @@ export class LiquidityManager extends BaseContract {
       _user: string,
       _amount: BigNumberish,
       _aTokenBalanceAfterRedeem: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setSecurityRequirement(
+      _reserve: string,
+      _value: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
