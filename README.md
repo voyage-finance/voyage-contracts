@@ -15,6 +15,8 @@ https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/tok
 
 ### LiquidityManager
 
+#### Functions
+
 | Name                     | Description                                                                                                                                            | Modifier             | Parameters                                                                                                                                                                                                                                 |
 |--------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `initReserveWithData`    | init a reserve                                                                                                                                         | `onlyVoyager`        | `address _reserve, string memory _jdTokenName, string memory _jdTokenSymbol, string memory _sdTokenName, string memory _sdTokenSymbol, uint8 _underlyingAssetDecimals, address _interestRateStrategyAddress, uint256 _securityRequirement` |
@@ -28,6 +30,16 @@ https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/tok
 ### LoanManager
 
 ### VaultManager
+
+#### Mutable Fields
+
+| Name        | Type        | Description                      |                                    
+|-------------|-------------|----------------------------------|
+| `allVaults` | `address[]` | Address array contains all vault |
+| `voyager`   | `address`   | voyager contract address         |
+
+
+#### Functions
 
 | Name                  | Description                                    | Modifier      | Parameters        |
 |-----------------------|------------------------------------------------|---------------|-------------------|
