@@ -236,7 +236,6 @@ contract LiquidityManager is Ownable, ReentrancyGuard {
      * @param _underlyingAssetDecimals the decimal of underlying asset
      * @param _interestRateStrategyAddress interest rate strategy contract address
      * @param _securityRequirement security requirement express in Ray
-     * @return the total liquidity
      **/
     function initReserveWithData(
         address _reserve,

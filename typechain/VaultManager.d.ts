@@ -26,6 +26,7 @@ interface VaultManagerInterface extends ethers.utils.Interface {
     "getAllCreditAccount()": FunctionFragment;
     "getCreditAccount(address)": FunctionFragment;
     "getVault(address)": FunctionFragment;
+    "voyager()": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -45,6 +46,7 @@ interface VaultManagerInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(functionFragment: "getVault", values: [string]): string;
+  encodeFunctionData(functionFragment: "voyager", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "allVaults", data: BytesLike): Result;
   decodeFunctionResult(
@@ -60,6 +62,7 @@ interface VaultManagerInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getVault", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "voyager", data: BytesLike): Result;
 
   events: {
     "VaultCreated(address,address,uint256)": EventFragment;
@@ -135,6 +138,8 @@ export class VaultManager extends BaseContract {
     ): Promise<[string]>;
 
     getVault(arg0: string, overrides?: CallOverrides): Promise<[string]>;
+
+    voyager(overrides?: CallOverrides): Promise<[string]>;
   };
 
   allVaults(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
@@ -150,6 +155,8 @@ export class VaultManager extends BaseContract {
 
   getVault(arg0: string, overrides?: CallOverrides): Promise<string>;
 
+  voyager(overrides?: CallOverrides): Promise<string>;
+
   callStatic: {
     allVaults(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
@@ -160,6 +167,8 @@ export class VaultManager extends BaseContract {
     getCreditAccount(_user: string, overrides?: CallOverrides): Promise<string>;
 
     getVault(arg0: string, overrides?: CallOverrides): Promise<string>;
+
+    voyager(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
@@ -201,6 +210,8 @@ export class VaultManager extends BaseContract {
     ): Promise<BigNumber>;
 
     getVault(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    voyager(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -227,5 +238,7 @@ export class VaultManager extends BaseContract {
       arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    voyager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }
