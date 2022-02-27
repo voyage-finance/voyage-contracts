@@ -9,8 +9,6 @@ contract AddressResolver is IAddressResolver, Ownable {
 
     event AddressImported(bytes32 name, address destination);
 
-    /* ========== RESTRICTED FUNCTIONS ========== */
-
     function importAddresses(
         bytes32[] calldata names,
         address[] calldata destinations

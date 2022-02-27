@@ -14,6 +14,12 @@ https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/tok
 
 ### AddressResolver
 
+| Name                   | Description                                                                  | Modifier    | Parameters                                                  |
+|------------------------|------------------------------------------------------------------------------|-------------|-------------------------------------------------------------|
+| `importAddresses`      | import addresses of contracts                                                | `onlyOwner` | `bytes32[] calldata names, address[] calldata destinations` |
+| `getAddress`           | get address of a specific named contract                                     | `public`    | `bytes32 name`                                              |
+| `requireAndGetAddress` | get address of a specific named contract, throw error if the address is zero | `public`    | `bytes32 name, string calldata reason`                      |
+
 ### LiquidityManager
 
 #### Functions
