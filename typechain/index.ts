@@ -7,6 +7,7 @@ export type { LiquidityManager } from "./LiquidityManager";
 export type { Vault } from "./Vault";
 export type { VaultManager } from "./VaultManager";
 export type { Deposit } from "./Deposit";
+export type { IAddressResolver } from "./IAddressResolver";
 export type { ICreditAccount } from "./ICreditAccount";
 export type { IERC20 } from "./IERC20";
 export type { ILendingRateOracle } from "./ILendingRateOracle";
@@ -29,6 +30,7 @@ export { LiquidityManager__factory } from "./factories/LiquidityManager__factory
 export { Vault__factory } from "./factories/Vault__factory";
 export { VaultManager__factory } from "./factories/VaultManager__factory";
 export { Deposit__factory } from "./factories/Deposit__factory";
+export { IAddressResolver__factory } from "./factories/IAddressResolver__factory";
 export { ICreditAccount__factory } from "./factories/ICreditAccount__factory";
 export { IERC20__factory } from "./factories/IERC20__factory";
 export { ILendingRateOracle__factory } from "./factories/ILendingRateOracle__factory";

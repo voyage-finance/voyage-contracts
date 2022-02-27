@@ -37,6 +37,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Deposit__factory>;
     getContractFactory(
+      name: "IAddressResolver",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IAddressResolver__factory>;
+    getContractFactory(
       name: "ICreditAccount",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ICreditAccount__factory>;
@@ -131,6 +135,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.Deposit>;
+    getContractAt(
+      name: "IAddressResolver",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IAddressResolver>;
     getContractAt(
       name: "ICreditAccount",
       address: string,

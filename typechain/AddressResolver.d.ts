@@ -21,109 +21,88 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface AddressResolverInterface extends ethers.utils.Interface {
   functions: {
-    "getLiquidityManager()": FunctionFragment;
-    "getLoanManager()": FunctionFragment;
-    "getVaultManager()": FunctionFragment;
-    "getVoyagerAddress()": FunctionFragment;
-    "setLiquidityManager(address)": FunctionFragment;
-    "setLoanManager(address)": FunctionFragment;
-    "setVaultManager(address)": FunctionFragment;
-    "setVoyagerAddress(address)": FunctionFragment;
+    "claimOwnership()": FunctionFragment;
+    "getAddress(bytes32)": FunctionFragment;
+    "importAddresses(bytes32[],address[])": FunctionFragment;
+    "isOwner()": FunctionFragment;
+    "owner()": FunctionFragment;
+    "pendingOwner()": FunctionFragment;
+    "repository(bytes32)": FunctionFragment;
+    "requireAndGetAddress(bytes32,string)": FunctionFragment;
+    "transferOwnership(address)": FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "getLiquidityManager",
+    functionFragment: "claimOwnership",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getLoanManager",
+    functionFragment: "getAddress",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "importAddresses",
+    values: [BytesLike[], string[]]
+  ): string;
+  encodeFunctionData(functionFragment: "isOwner", values?: undefined): string;
+  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "pendingOwner",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getVaultManager",
-    values?: undefined
+    functionFragment: "repository",
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "getVoyagerAddress",
-    values?: undefined
+    functionFragment: "requireAndGetAddress",
+    values: [BytesLike, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "setLiquidityManager",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setLoanManager",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setVaultManager",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setVoyagerAddress",
+    functionFragment: "transferOwnership",
     values: [string]
   ): string;
 
   decodeFunctionResult(
-    functionFragment: "getLiquidityManager",
+    functionFragment: "claimOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "getAddress", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "importAddresses",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "isOwner", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "pendingOwner",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "repository", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "requireAndGetAddress",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getLoanManager",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getVaultManager",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getVoyagerAddress",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setLiquidityManager",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setLoanManager",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setVaultManager",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setVoyagerAddress",
+    functionFragment: "transferOwnership",
     data: BytesLike
   ): Result;
 
   events: {
-    "LiquidityManagerUpdated(address)": EventFragment;
-    "LoanManagerUpdated(address)": EventFragment;
-    "VaultManagerUpdated(address)": EventFragment;
-    "VoyagerAddressUpdated(address)": EventFragment;
+    "AddressImported(bytes32,address)": EventFragment;
+    "OwnershipTransferred(address,address)": EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "LiquidityManagerUpdated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "LoanManagerUpdated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "VaultManagerUpdated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "VoyagerAddressUpdated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "AddressImported"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
 }
 
-export type LiquidityManagerUpdatedEvent = TypedEvent<
-  [string] & { _liquidityManager: string }
+export type AddressImportedEvent = TypedEvent<
+  [string, string] & { name: string; destination: string }
 >;
 
-export type LoanManagerUpdatedEvent = TypedEvent<
-  [string] & { _loanManager: string }
->;
-
-export type VaultManagerUpdatedEvent = TypedEvent<
-  [string] & { _vaultManager: string }
->;
-
-export type VoyagerAddressUpdatedEvent = TypedEvent<
-  [string] & { _voyager: string }
+export type OwnershipTransferredEvent = TypedEvent<
+  [string, string] & { previousOwner: string; newOwner: string }
 >;
 
 export class AddressResolver extends BaseContract {
@@ -170,185 +149,202 @@ export class AddressResolver extends BaseContract {
   interface: AddressResolverInterface;
 
   functions: {
-    getLiquidityManager(overrides?: CallOverrides): Promise<[string]>;
-
-    getLoanManager(overrides?: CallOverrides): Promise<[string]>;
-
-    getVaultManager(overrides?: CallOverrides): Promise<[string]>;
-
-    getVoyagerAddress(overrides?: CallOverrides): Promise<[string]>;
-
-    setLiquidityManager(
-      _liquidityManager: string,
+    claimOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setLoanManager(
-      _loanManager: string,
+    getAddress(name: BytesLike, overrides?: CallOverrides): Promise<[string]>;
+
+    importAddresses(
+      names: BytesLike[],
+      destinations: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setVaultManager(
-      _vaultManager: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    isOwner(overrides?: CallOverrides): Promise<[boolean]>;
 
-    setVoyagerAddress(
-      _voyager: string,
+    owner(overrides?: CallOverrides): Promise<[string]>;
+
+    pendingOwner(overrides?: CallOverrides): Promise<[string]>;
+
+    repository(arg0: BytesLike, overrides?: CallOverrides): Promise<[string]>;
+
+    requireAndGetAddress(
+      name: BytesLike,
+      reason: string,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    transferOwnership(
+      newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
-  getLiquidityManager(overrides?: CallOverrides): Promise<string>;
-
-  getLoanManager(overrides?: CallOverrides): Promise<string>;
-
-  getVaultManager(overrides?: CallOverrides): Promise<string>;
-
-  getVoyagerAddress(overrides?: CallOverrides): Promise<string>;
-
-  setLiquidityManager(
-    _liquidityManager: string,
+  claimOwnership(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setLoanManager(
-    _loanManager: string,
+  getAddress(name: BytesLike, overrides?: CallOverrides): Promise<string>;
+
+  importAddresses(
+    names: BytesLike[],
+    destinations: string[],
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setVaultManager(
-    _vaultManager: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  isOwner(overrides?: CallOverrides): Promise<boolean>;
 
-  setVoyagerAddress(
-    _voyager: string,
+  owner(overrides?: CallOverrides): Promise<string>;
+
+  pendingOwner(overrides?: CallOverrides): Promise<string>;
+
+  repository(arg0: BytesLike, overrides?: CallOverrides): Promise<string>;
+
+  requireAndGetAddress(
+    name: BytesLike,
+    reason: string,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  transferOwnership(
+    newOwner: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    getLiquidityManager(overrides?: CallOverrides): Promise<string>;
+    claimOwnership(overrides?: CallOverrides): Promise<void>;
 
-    getLoanManager(overrides?: CallOverrides): Promise<string>;
+    getAddress(name: BytesLike, overrides?: CallOverrides): Promise<string>;
 
-    getVaultManager(overrides?: CallOverrides): Promise<string>;
-
-    getVoyagerAddress(overrides?: CallOverrides): Promise<string>;
-
-    setLiquidityManager(
-      _liquidityManager: string,
+    importAddresses(
+      names: BytesLike[],
+      destinations: string[],
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setLoanManager(
-      _loanManager: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    isOwner(overrides?: CallOverrides): Promise<boolean>;
 
-    setVaultManager(
-      _vaultManager: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    owner(overrides?: CallOverrides): Promise<string>;
 
-    setVoyagerAddress(
-      _voyager: string,
+    pendingOwner(overrides?: CallOverrides): Promise<string>;
+
+    repository(arg0: BytesLike, overrides?: CallOverrides): Promise<string>;
+
+    requireAndGetAddress(
+      name: BytesLike,
+      reason: string,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    transferOwnership(
+      newOwner: string,
       overrides?: CallOverrides
     ): Promise<void>;
   };
 
   filters: {
-    "LiquidityManagerUpdated(address)"(
-      _liquidityManager?: string | null
-    ): TypedEventFilter<[string], { _liquidityManager: string }>;
+    "AddressImported(bytes32,address)"(
+      name?: null,
+      destination?: null
+    ): TypedEventFilter<
+      [string, string],
+      { name: string; destination: string }
+    >;
 
-    LiquidityManagerUpdated(
-      _liquidityManager?: string | null
-    ): TypedEventFilter<[string], { _liquidityManager: string }>;
+    AddressImported(
+      name?: null,
+      destination?: null
+    ): TypedEventFilter<
+      [string, string],
+      { name: string; destination: string }
+    >;
 
-    "LoanManagerUpdated(address)"(
-      _loanManager?: string | null
-    ): TypedEventFilter<[string], { _loanManager: string }>;
+    "OwnershipTransferred(address,address)"(
+      previousOwner?: string | null,
+      newOwner?: string | null
+    ): TypedEventFilter<
+      [string, string],
+      { previousOwner: string; newOwner: string }
+    >;
 
-    LoanManagerUpdated(
-      _loanManager?: string | null
-    ): TypedEventFilter<[string], { _loanManager: string }>;
-
-    "VaultManagerUpdated(address)"(
-      _vaultManager?: string | null
-    ): TypedEventFilter<[string], { _vaultManager: string }>;
-
-    VaultManagerUpdated(
-      _vaultManager?: string | null
-    ): TypedEventFilter<[string], { _vaultManager: string }>;
-
-    "VoyagerAddressUpdated(address)"(
-      _voyager?: string | null
-    ): TypedEventFilter<[string], { _voyager: string }>;
-
-    VoyagerAddressUpdated(
-      _voyager?: string | null
-    ): TypedEventFilter<[string], { _voyager: string }>;
+    OwnershipTransferred(
+      previousOwner?: string | null,
+      newOwner?: string | null
+    ): TypedEventFilter<
+      [string, string],
+      { previousOwner: string; newOwner: string }
+    >;
   };
 
   estimateGas: {
-    getLiquidityManager(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getLoanManager(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getVaultManager(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getVoyagerAddress(overrides?: CallOverrides): Promise<BigNumber>;
-
-    setLiquidityManager(
-      _liquidityManager: string,
+    claimOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setLoanManager(
-      _loanManager: string,
+    getAddress(name: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
+
+    importAddresses(
+      names: BytesLike[],
+      destinations: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setVaultManager(
-      _vaultManager: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+    isOwner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    pendingOwner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    repository(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
+
+    requireAndGetAddress(
+      name: BytesLike,
+      reason: string,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    setVoyagerAddress(
-      _voyager: string,
+    transferOwnership(
+      newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    getLiquidityManager(
+    claimOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getAddress(
+      name: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getLoanManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getVaultManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getVoyagerAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    setLiquidityManager(
-      _liquidityManager: string,
+    importAddresses(
+      names: BytesLike[],
+      destinations: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    setLoanManager(
-      _loanManager: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+    isOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    pendingOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    repository(
+      arg0: BytesLike,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    setVaultManager(
-      _vaultManager: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+    requireAndGetAddress(
+      name: BytesLike,
+      reason: string,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    setVoyagerAddress(
-      _voyager: string,
+    transferOwnership(
+      newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };

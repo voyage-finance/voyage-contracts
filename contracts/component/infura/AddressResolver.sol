@@ -1,73 +1,44 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-contract AddressResolver {
-    address voyager;
-    address liquidityManager;
-    address vaultManager;
-    address loanManager;
+import '../../interfaces/IAddressResolver.sol';
+import '../../libraries/ownership/Ownable.sol';
 
-    modifier onlyVoyager() {
-        require(voyager == msg.sender, 'The caller must be a voyager');
-        _;
+contract AddressResolver is IAddressResolver, Ownable {
+    mapping(bytes32 => address) public repository;
+
+    event AddressImported(bytes32 name, address destination);
+
+    /* ========== RESTRICTED FUNCTIONS ========== */
+
+    function importAddresses(
+        bytes32[] calldata names,
+        address[] calldata destinations
+    ) external onlyOwner {
+        require(
+            names.length == destinations.length,
+            'Input lengths must match'
+        );
+
+        for (uint256 i = 0; i < names.length; i++) {
+            bytes32 name = names[i];
+            address destination = destinations[i];
+            repository[name] = destination;
+            emit AddressImported(name, destination);
+        }
     }
 
-    event VoyagerAddressUpdated(address indexed _voyager);
-
-    event LiquidityManagerUpdated(address indexed _liquidityManager);
-
-    event VaultManagerUpdated(address indexed _vaultManager);
-
-    event LoanManagerUpdated(address indexed _loanManager);
-
-    constructor(
-        address _voyager,
-        address _liquidityManager,
-        address _vaultManager,
-        address _loadManager
-    ) public {
-        voyager = _voyager;
-        liquidityManager = _liquidityManager;
-        vaultManager = _vaultManager;
-        loanManager = _loadManager;
+    function getAddress(bytes32 name) external view returns (address) {
+        return repository[name];
     }
 
-    function getVoyagerAddress() public view returns (address) {
-        return voyager;
-    }
-
-    function setVoyagerAddress(address _voyager) external onlyVoyager {
-        voyager = _voyager;
-        emit VoyagerAddressUpdated(_voyager);
-    }
-
-    function getLiquidityManager() public view returns (address) {
-        return liquidityManager;
-    }
-
-    function setLiquidityManager(address _liquidityManager)
+    function requireAndGetAddress(bytes32 name, string calldata reason)
         external
-        onlyVoyager
+        view
+        returns (address)
     {
-        liquidityManager = _liquidityManager;
-        emit LiquidityManagerUpdated(_liquidityManager);
-    }
-
-    function getVaultManager() public view returns (address) {
-        return vaultManager;
-    }
-
-    function setVaultManager(address _vaultManager) external onlyVoyager {
-        vaultManager = _vaultManager;
-        emit VaultManagerUpdated(_vaultManager);
-    }
-
-    function getLoanManager() public view returns (address) {
-        return loanManager;
-    }
-
-    function setLoanManager(address _loanManager) external onlyVoyager {
-        loanManager = _loanManager;
-        emit LoanManagerUpdated(_loanManager);
+        address _foundAddress = repository[name];
+        require(_foundAddress != address(0), reason);
+        return _foundAddress;
     }
 }
