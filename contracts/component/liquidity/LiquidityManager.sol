@@ -226,6 +226,18 @@ contract LiquidityManager is Ownable, ReentrancyGuard {
         return getReserveAvailableLiquidity(_reserve).add(reserve.totalBorrows);
     }
 
+    /**
+     * @dev Init a reserve with necessary data
+     * @param _reserve the reserve address
+     * @param _jdTokenName the name of junior deposit token
+     * @param _jdTokenSymbol the symbol of junior deposit token
+     * @param _sdTokenName the name of senior deposit token
+     * @param _sdTokenSymbol  the symbol of senior deposit token
+     * @param _underlyingAssetDecimals the decimal of underlying asset
+     * @param _interestRateStrategyAddress interest rate strategy contract address
+     * @param _securityRequirement security requirement express in Ray
+     * @return the total liquidity
+     **/
     function initReserveWithData(
         address _reserve,
         string memory _jdTokenName,
@@ -233,7 +245,8 @@ contract LiquidityManager is Ownable, ReentrancyGuard {
         string memory _sdTokenName,
         string memory _sdTokenSymbol,
         uint8 _underlyingAssetDecimals,
-        address _interestRateStrategyAddress
+        address _interestRateStrategyAddress,
+        uint256 _securityRequirement
     ) public onlyLendingPoolManager {
         JDToken jdTokenInstance = new JDToken(
             _reserve,
@@ -253,7 +266,8 @@ contract LiquidityManager is Ownable, ReentrancyGuard {
             address(jdTokenInstance),
             address(sdTokenInstance),
             _underlyingAssetDecimals,
-            _interestRateStrategyAddress
+            _interestRateStrategyAddress,
+            _securityRequirement
         );
 
         emit ReserveInitialized(
@@ -267,7 +281,8 @@ contract LiquidityManager is Ownable, ReentrancyGuard {
     function initReserve(
         address _reserve,
         uint8 _underlyingAssetDecimals,
-        address _interestRateStrategyAddress
+        address _interestRateStrategyAddress,
+        uint256 _securityRequirement
     ) external onlyLendingPoolManager {
         ERC20 asset = ERC20(_reserve);
         string memory _jdTokenName = string(
@@ -288,6 +303,7 @@ contract LiquidityManager is Ownable, ReentrancyGuard {
         string memory _sdTokenSymbol = string(
             abi.encodePacked('vs', asset.symbol())
         );
+
         initReserveWithData(
             _reserve,
             _jdTokenName,
@@ -295,7 +311,8 @@ contract LiquidityManager is Ownable, ReentrancyGuard {
             _sdTokenName,
             _sdTokenSymbol,
             _underlyingAssetDecimals,
-            _interestRateStrategyAddress
+            _interestRateStrategyAddress,
+            _securityRequirement
         );
     }
 

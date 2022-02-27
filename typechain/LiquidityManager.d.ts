@@ -32,8 +32,8 @@ interface LiquidityManagerInterface extends ethers.utils.Interface {
     "getReserveSDTokenAddress(address)": FunctionFragment;
     "getReserveTotalLiquidity(address)": FunctionFragment;
     "getSecurityRequirement(address)": FunctionFragment;
-    "initReserve(address,uint8,address)": FunctionFragment;
-    "initReserveWithData(address,string,string,string,string,uint8,address)": FunctionFragment;
+    "initReserve(address,uint8,address,uint256)": FunctionFragment;
+    "initReserveWithData(address,string,string,string,string,uint8,address,uint256)": FunctionFragment;
     "isOwner()": FunctionFragment;
     "owner()": FunctionFragment;
     "pendingOwner()": FunctionFragment;
@@ -84,11 +84,20 @@ interface LiquidityManagerInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "initReserve",
-    values: [string, BigNumberish, string]
+    values: [string, BigNumberish, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "initReserveWithData",
-    values: [string, string, string, string, string, BigNumberish, string]
+    values: [
+      string,
+      string,
+      string,
+      string,
+      string,
+      BigNumberish,
+      string,
+      BigNumberish
+    ]
   ): string;
   encodeFunctionData(functionFragment: "isOwner", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
@@ -341,6 +350,7 @@ export class LiquidityManager extends BaseContract {
       _reserve: string,
       _underlyingAssetDecimals: BigNumberish,
       _interestRateStrategyAddress: string,
+      _securityRequirement: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -352,6 +362,7 @@ export class LiquidityManager extends BaseContract {
       _sdTokenSymbol: string,
       _underlyingAssetDecimals: BigNumberish,
       _interestRateStrategyAddress: string,
+      _securityRequirement: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -438,6 +449,7 @@ export class LiquidityManager extends BaseContract {
     _reserve: string,
     _underlyingAssetDecimals: BigNumberish,
     _interestRateStrategyAddress: string,
+    _securityRequirement: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -449,6 +461,7 @@ export class LiquidityManager extends BaseContract {
     _sdTokenSymbol: string,
     _underlyingAssetDecimals: BigNumberish,
     _interestRateStrategyAddress: string,
+    _securityRequirement: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -530,6 +543,7 @@ export class LiquidityManager extends BaseContract {
       _reserve: string,
       _underlyingAssetDecimals: BigNumberish,
       _interestRateStrategyAddress: string,
+      _securityRequirement: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -541,6 +555,7 @@ export class LiquidityManager extends BaseContract {
       _sdTokenSymbol: string,
       _underlyingAssetDecimals: BigNumberish,
       _interestRateStrategyAddress: string,
+      _securityRequirement: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -782,6 +797,7 @@ export class LiquidityManager extends BaseContract {
       _reserve: string,
       _underlyingAssetDecimals: BigNumberish,
       _interestRateStrategyAddress: string,
+      _securityRequirement: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -793,6 +809,7 @@ export class LiquidityManager extends BaseContract {
       _sdTokenSymbol: string,
       _underlyingAssetDecimals: BigNumberish,
       _interestRateStrategyAddress: string,
+      _securityRequirement: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -880,6 +897,7 @@ export class LiquidityManager extends BaseContract {
       _reserve: string,
       _underlyingAssetDecimals: BigNumberish,
       _interestRateStrategyAddress: string,
+      _securityRequirement: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -891,6 +909,7 @@ export class LiquidityManager extends BaseContract {
       _sdTokenSymbol: string,
       _underlyingAssetDecimals: BigNumberish,
       _interestRateStrategyAddress: string,
+      _securityRequirement: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

@@ -63,7 +63,8 @@ library CoreLibrary {
         address _jdTokenAddress,
         address _sdTokenAddress,
         uint256 _decimals,
-        address _interestRateStrategyAddress
+        address _interestRateStrategyAddress,
+        uint256 _securityRequirement
     ) external {
         require(
             _self.jdTokenAddress == address(0),
@@ -81,6 +82,7 @@ library CoreLibrary {
         _self.sdTokenAddress = _sdTokenAddress;
         _self.decimals = _decimals;
 
+        _self.securityRequirement = _securityRequirement;
         _self.interestRateStrategyAddress = _interestRateStrategyAddress;
     }
 

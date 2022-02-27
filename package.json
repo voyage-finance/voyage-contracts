@@ -5,7 +5,8 @@
     "main": "index.js",
     "scripts": {
         "compile": "npx hardhat compile",
-        "test": "npx hardhat test"
+        "test": "npx hardhat test",
+        "format": "npx hardhat format"
     },
     "author": "",
     "license": "MIT",
