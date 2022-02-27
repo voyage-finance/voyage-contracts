@@ -81,13 +81,17 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.BaseERC20__factory>;
     getContractFactory(
-      name: "JDToken",
+      name: "JuniorDepositToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.JDToken__factory>;
+    ): Promise<Contracts.JuniorDepositToken__factory>;
     getContractFactory(
       name: "SDToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.SDToken__factory>;
+    getContractFactory(
+      name: "SeniorDepositToken",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.SeniorDepositToken__factory>;
     getContractFactory(
       name: "StableDebtToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -191,15 +195,20 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.BaseERC20>;
     getContractAt(
-      name: "JDToken",
+      name: "JuniorDepositToken",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.JDToken>;
+    ): Promise<Contracts.JuniorDepositToken>;
     getContractAt(
       name: "SDToken",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.SDToken>;
+    getContractAt(
+      name: "SeniorDepositToken",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.SeniorDepositToken>;
     getContractAt(
       name: "StableDebtToken",
       address: string,

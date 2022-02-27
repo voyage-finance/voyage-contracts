@@ -7,11 +7,11 @@ import '../libraries/math/WadRayMath.sol';
 import '../libraries/CoreLibrary.sol';
 import '../component/liquidity/LiquidityManager.sol';
 
-contract JDToken is ERC20 {
+contract SeniorDepositToken is ERC20 {
     using WadRayMath for uint256;
     using SafeMath for uint256;
 
-    mapping(address => uint256) private userJuniorIndexes;
+    mapping(address => uint256) private userSeniorIndexes;
     address public underlyingAssetAddress;
     LiquidityManager private liquidityManager;
 
@@ -68,11 +68,11 @@ contract JDToken is ERC20 {
     function balanceOf(address _user) public view override returns (uint256) {
         // current principal balance of the user
         uint256 currentPrincipalBalance = super.balanceOf(_user);
-        uint256 currentJuniorCumulatedBalance = calculateCumulatedBalanceInternal(
+        uint256 currentSeniorCumulatedBalance = calculateCumulatedBalanceInternal(
                 _user,
                 currentPrincipalBalance
             );
-        return currentPrincipalBalance.add(currentJuniorCumulatedBalance);
+        return currentPrincipalBalance.add(currentSeniorCumulatedBalance);
     }
 
     /**
@@ -92,10 +92,10 @@ contract JDToken is ERC20 {
                 .rayMul(
                     liquidityManager.getReserveNormalizedIncome(
                         underlyingAssetAddress,
-                        CoreLibrary.Tranche.JUNIOR
+                        CoreLibrary.Tranche.SENIOR
                     )
                 )
-                .rayDiv(userJuniorIndexes[_user])
+                .rayDiv(userSeniorIndexes[_user])
                 .rayToWad();
     }
 
@@ -123,10 +123,10 @@ contract JDToken is ERC20 {
         //mints an amount of tokens equivalent to the amount accumulated
         _mint(_user, balanceIncrease);
         //updates the user index for current _tranche
-        uint256 index = userJuniorIndexes[_user] = liquidityManager
+        uint256 index = userSeniorIndexes[_user] = liquidityManager
             .getReserveNormalizedIncome(
                 underlyingAssetAddress,
-                CoreLibrary.Tranche.JUNIOR
+                CoreLibrary.Tranche.SENIOR
             );
 
         return (
@@ -154,7 +154,7 @@ contract JDToken is ERC20 {
             _amount,
             balanceIncrease,
             index,
-            CoreLibrary.Tranche.JUNIOR
+            CoreLibrary.Tranche.SENIOR
         );
     }
 }

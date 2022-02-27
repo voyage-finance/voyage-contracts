@@ -8,8 +8,8 @@ import '../../libraries/EthAddressLib.sol';
 import '../../credit/CreditAccount.sol';
 import '../../interfaces/IReserveInterestRateStrategy.sol';
 import '../../interfaces/ICreditAccount.sol';
-import '../../tokenization/JDToken.sol';
-import '../../tokenization/SDToken.sol';
+import '../../tokenization/JuniorDepositToken.sol';
+import '../../tokenization/SeniorDepositToken.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
@@ -247,14 +247,14 @@ contract LiquidityManager is Ownable, ReentrancyGuard {
         address _interestRateStrategyAddress,
         uint256 _securityRequirement
     ) public onlyLendingPoolManager {
-        JDToken jdTokenInstance = new JDToken(
+        JuniorDepositToken jdTokenInstance = new JuniorDepositToken(
             _reserve,
             _underlyingAssetDecimals,
             _jdTokenName,
             _jdTokenSymbol
         );
 
-        SDToken sdTokenInstance = new SDToken(
+        SeniorDepositToken sdTokenInstance = new SeniorDepositToken(
             _reserve,
             _underlyingAssetDecimals,
             _sdTokenName,
@@ -483,10 +483,14 @@ contract LiquidityManager is Ownable, ReentrancyGuard {
         updateStateOnDeposit(_reserve, _tranche, msg.sender, _amount);
 
         if (_tranche == CoreLibrary.Tranche.JUNIOR) {
-            JDToken jdToken = JDToken(getReserveJDTokenAddress(_reserve));
+            JuniorDepositToken jdToken = JuniorDepositToken(
+                getReserveJDTokenAddress(_reserve)
+            );
             jdToken.mintOnDeposit(msg.sender, _amount);
         } else {
-            SDToken sdToken = SDToken(getReserveSDTokenAddress(_reserve));
+            SeniorDepositToken sdToken = SeniorDepositToken(
+                getReserveSDTokenAddress(_reserve)
+            );
             sdToken.mintOnDeposit(msg.sender, _amount);
         }
 
