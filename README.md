@@ -7,7 +7,7 @@ https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/tok
 
 ## Architecture
 
-![contract architecture](https://github.com/halcyon-project/ownft-contracts/blob/main/doc/voyaga_arch.png)
+![contract architecture](https://github.com/halcyon-project/voyage-contracts/blob/main/doc/voyage_arch.png)
 
 ## Specification
 
