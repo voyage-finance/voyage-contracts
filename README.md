@@ -1,9 +1,8 @@
-# ownft-contracts
+# Voyage
 
 ## Openzeppelin ERC721
 
 https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/token/ERC721
-
 
 ## Architecture
 
@@ -12,6 +11,8 @@ https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/tok
 ## Specification
 
 ### Voyager
+
+### AddressResolver
 
 ### LiquidityManager
 
