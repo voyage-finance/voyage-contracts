@@ -32,6 +32,5 @@ https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/tok
 | Name                  | Description                                    | Modifier      | Parameters        |
 |-----------------------|------------------------------------------------|---------------|-------------------|
 | `createAccount`       | Create a credit account                        | `onlyVoyager` | `address _player` |
-| `createAccount`       | Create a credit account                        | `onlyVoyager` | `address _player` |
 | `getCreditAccount`    | Get credit account address for a specific user | `public`      | `address _user`   |
-| `getAllCreditAccount` | Get all credit account addresses               | `public`      | ``                |
+| `getAllCreditAccount` | Get all credit account addresses               | `public`      |                   |
