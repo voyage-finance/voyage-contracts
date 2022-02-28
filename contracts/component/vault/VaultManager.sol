@@ -27,7 +27,7 @@ contract VaultManager {
      * @dev Create a credit account
      * @param _player the address of the player
      **/
-    function createAccount(address _player)
+    function createAccount(address _addressResolver, address _player)
         external
         onlyVoyager
         returns (address vault)

@@ -22,7 +22,7 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 interface VaultManagerInterface extends ethers.utils.Interface {
   functions: {
     "allVaults(uint256)": FunctionFragment;
-    "createAccount(address)": FunctionFragment;
+    "createAccount(address,address)": FunctionFragment;
     "getAllCreditAccount()": FunctionFragment;
     "getCreditAccount(address)": FunctionFragment;
     "getVault(address)": FunctionFragment;
@@ -35,7 +35,7 @@ interface VaultManagerInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "createAccount",
-    values: [string]
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "getAllCreditAccount",
@@ -126,6 +126,7 @@ export class VaultManager extends BaseContract {
     allVaults(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
     createAccount(
+      _addressResolver: string,
       _player: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -145,6 +146,7 @@ export class VaultManager extends BaseContract {
   allVaults(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   createAccount(
+    _addressResolver: string,
     _player: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -160,7 +162,11 @@ export class VaultManager extends BaseContract {
   callStatic: {
     allVaults(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
-    createAccount(_player: string, overrides?: CallOverrides): Promise<string>;
+    createAccount(
+      _addressResolver: string,
+      _player: string,
+      overrides?: CallOverrides
+    ): Promise<string>;
 
     getAllCreditAccount(overrides?: CallOverrides): Promise<string[]>;
 
@@ -198,6 +204,7 @@ export class VaultManager extends BaseContract {
     ): Promise<BigNumber>;
 
     createAccount(
+      _addressResolver: string,
       _player: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -221,6 +228,7 @@ export class VaultManager extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     createAccount(
+      _addressResolver: string,
       _player: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
