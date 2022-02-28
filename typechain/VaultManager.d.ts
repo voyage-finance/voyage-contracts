@@ -21,47 +21,20 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface VaultManagerInterface extends ethers.utils.Interface {
   functions: {
-    "allVaults(uint256)": FunctionFragment;
     "createAccount(address,address)": FunctionFragment;
-    "getAllCreditAccount()": FunctionFragment;
-    "getCreditAccount(address)": FunctionFragment;
-    "getVault(address)": FunctionFragment;
     "voyager()": FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "allVaults",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "createAccount",
     values: [string, string]
   ): string;
-  encodeFunctionData(
-    functionFragment: "getAllCreditAccount",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getCreditAccount",
-    values: [string]
-  ): string;
-  encodeFunctionData(functionFragment: "getVault", values: [string]): string;
   encodeFunctionData(functionFragment: "voyager", values?: undefined): string;
 
-  decodeFunctionResult(functionFragment: "allVaults", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "createAccount",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "getAllCreditAccount",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getCreditAccount",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getVault", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "voyager", data: BytesLike): Result;
 
   events: {
@@ -123,27 +96,14 @@ export class VaultManager extends BaseContract {
   interface: VaultManagerInterface;
 
   functions: {
-    allVaults(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
-
     createAccount(
       _addressResolver: string,
       _player: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    getAllCreditAccount(overrides?: CallOverrides): Promise<[string[]]>;
-
-    getCreditAccount(
-      _user: string,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    getVault(arg0: string, overrides?: CallOverrides): Promise<[string]>;
-
     voyager(overrides?: CallOverrides): Promise<[string]>;
   };
-
-  allVaults(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   createAccount(
     _addressResolver: string,
@@ -151,28 +111,14 @@ export class VaultManager extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  getAllCreditAccount(overrides?: CallOverrides): Promise<string[]>;
-
-  getCreditAccount(_user: string, overrides?: CallOverrides): Promise<string>;
-
-  getVault(arg0: string, overrides?: CallOverrides): Promise<string>;
-
   voyager(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
-    allVaults(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
-
     createAccount(
       _addressResolver: string,
       _player: string,
       overrides?: CallOverrides
     ): Promise<string>;
-
-    getAllCreditAccount(overrides?: CallOverrides): Promise<string[]>;
-
-    getCreditAccount(_user: string, overrides?: CallOverrides): Promise<string>;
-
-    getVault(arg0: string, overrides?: CallOverrides): Promise<string>;
 
     voyager(overrides?: CallOverrides): Promise<string>;
   };
@@ -198,53 +144,20 @@ export class VaultManager extends BaseContract {
   };
 
   estimateGas: {
-    allVaults(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     createAccount(
       _addressResolver: string,
       _player: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
-
-    getAllCreditAccount(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getCreditAccount(
-      _user: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getVault(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     voyager(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    allVaults(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     createAccount(
       _addressResolver: string,
       _player: string,
       overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    getAllCreditAccount(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getCreditAccount(
-      _user: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getVault(
-      arg0: string,
-      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     voyager(overrides?: CallOverrides): Promise<PopulatedTransaction>;

@@ -33,6 +33,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.VaultManager__factory>;
     getContractFactory(
+      name: "VaultStorage",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.VaultStorage__factory>;
+    getContractFactory(
       name: "Voyager",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Voyager__factory>;
@@ -84,6 +88,10 @@ declare module "hardhat/types/runtime" {
       name: "ReserveManager",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ReserveManager__factory>;
+    getContractFactory(
+      name: "State",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.State__factory>;
     getContractFactory(
       name: "ReentrancyGuard",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -142,6 +150,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.VaultManager>;
+    getContractAt(
+      name: "VaultStorage",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.VaultStorage>;
     getContractAt(
       name: "Voyager",
       address: string,
@@ -207,6 +220,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.ReserveManager>;
+    getContractAt(
+      name: "State",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.State>;
     getContractAt(
       name: "ReentrancyGuard",
       address: string,

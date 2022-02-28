@@ -51,6 +51,8 @@ https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/tok
 | `allVaults` | `address[]` | Address array contains all vault |
 | `voyager`   | `address`   | voyager contract address         |
 
+### VaultStorage
+
 
 #### Functions
 

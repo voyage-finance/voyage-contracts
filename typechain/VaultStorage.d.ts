@@ -19,22 +19,28 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
-interface VoyagerInterface extends ethers.utils.Interface {
+interface VaultStorageInterface extends ethers.utils.Interface {
   functions: {
-    "addressResolver()": FunctionFragment;
+    "allVaults(uint256)": FunctionFragment;
+    "associatedContract()": FunctionFragment;
     "claimOwnership()": FunctionFragment;
-    "getAddressResolverAddress()": FunctionFragment;
-    "getVaultStorageName()": FunctionFragment;
+    "getAllCreditAccount()": FunctionFragment;
+    "getCreditAccount(address)": FunctionFragment;
+    "getVault(address)": FunctionFragment;
     "isOwner()": FunctionFragment;
     "owner()": FunctionFragment;
     "pendingOwner()": FunctionFragment;
-    "setAddressResolverAddress(address)": FunctionFragment;
+    "pushNewVault(address,address)": FunctionFragment;
+    "setAssociatedContract(address)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
-    "vaultStorageName()": FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "addressResolver",
+    functionFragment: "allVaults",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "associatedContract",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -42,13 +48,14 @@ interface VoyagerInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getAddressResolverAddress",
+    functionFragment: "getAllCreditAccount",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getVaultStorageName",
-    values?: undefined
+    functionFragment: "getCreditAccount",
+    values: [string]
   ): string;
+  encodeFunctionData(functionFragment: "getVault", values: [string]): string;
   encodeFunctionData(functionFragment: "isOwner", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
@@ -56,20 +63,21 @@ interface VoyagerInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "setAddressResolverAddress",
+    functionFragment: "pushNewVault",
+    values: [string, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setAssociatedContract",
     values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
     values: [string]
   ): string;
-  encodeFunctionData(
-    functionFragment: "vaultStorageName",
-    values?: undefined
-  ): string;
 
+  decodeFunctionResult(functionFragment: "allVaults", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "addressResolver",
+    functionFragment: "associatedContract",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -77,13 +85,14 @@ interface VoyagerInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getAddressResolverAddress",
+    functionFragment: "getAllCreditAccount",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getVaultStorageName",
+    functionFragment: "getCreditAccount",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getVault", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "isOwner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
@@ -91,30 +100,36 @@ interface VoyagerInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "setAddressResolverAddress",
+    functionFragment: "pushNewVault",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setAssociatedContract",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "transferOwnership",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "vaultStorageName",
-    data: BytesLike
-  ): Result;
 
   events: {
+    "AssociatedContractUpdated(address)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "AssociatedContractUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
 }
+
+export type AssociatedContractUpdatedEvent = TypedEvent<
+  [string] & { associatedContract: string }
+>;
 
 export type OwnershipTransferredEvent = TypedEvent<
   [string, string] & { previousOwner: string; newOwner: string }
 >;
 
-export class Voyager extends BaseContract {
+export class VaultStorage extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -155,18 +170,25 @@ export class Voyager extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: VoyagerInterface;
+  interface: VaultStorageInterface;
 
   functions: {
-    addressResolver(overrides?: CallOverrides): Promise<[string]>;
+    allVaults(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
+
+    associatedContract(overrides?: CallOverrides): Promise<[string]>;
 
     claimOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    getAddressResolverAddress(overrides?: CallOverrides): Promise<[string]>;
+    getAllCreditAccount(overrides?: CallOverrides): Promise<[string[]]>;
 
-    getVaultStorageName(overrides?: CallOverrides): Promise<[string]>;
+    getCreditAccount(
+      _user: string,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    getVault(arg0: string, overrides?: CallOverrides): Promise<[string]>;
 
     isOwner(overrides?: CallOverrides): Promise<[boolean]>;
 
@@ -174,8 +196,14 @@ export class Voyager extends BaseContract {
 
     pendingOwner(overrides?: CallOverrides): Promise<[string]>;
 
-    setAddressResolverAddress(
-      _addressResolver: string,
+    pushNewVault(
+      _player: string,
+      vault: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setAssociatedContract(
+      _associatedContract: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -183,19 +211,21 @@ export class Voyager extends BaseContract {
       newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
-
-    vaultStorageName(overrides?: CallOverrides): Promise<[string]>;
   };
 
-  addressResolver(overrides?: CallOverrides): Promise<string>;
+  allVaults(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
+  associatedContract(overrides?: CallOverrides): Promise<string>;
 
   claimOwnership(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  getAddressResolverAddress(overrides?: CallOverrides): Promise<string>;
+  getAllCreditAccount(overrides?: CallOverrides): Promise<string[]>;
 
-  getVaultStorageName(overrides?: CallOverrides): Promise<string>;
+  getCreditAccount(_user: string, overrides?: CallOverrides): Promise<string>;
+
+  getVault(arg0: string, overrides?: CallOverrides): Promise<string>;
 
   isOwner(overrides?: CallOverrides): Promise<boolean>;
 
@@ -203,8 +233,14 @@ export class Voyager extends BaseContract {
 
   pendingOwner(overrides?: CallOverrides): Promise<string>;
 
-  setAddressResolverAddress(
-    _addressResolver: string,
+  pushNewVault(
+    _player: string,
+    vault: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setAssociatedContract(
+    _associatedContract: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -213,16 +249,18 @@ export class Voyager extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  vaultStorageName(overrides?: CallOverrides): Promise<string>;
-
   callStatic: {
-    addressResolver(overrides?: CallOverrides): Promise<string>;
+    allVaults(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
+    associatedContract(overrides?: CallOverrides): Promise<string>;
 
     claimOwnership(overrides?: CallOverrides): Promise<void>;
 
-    getAddressResolverAddress(overrides?: CallOverrides): Promise<string>;
+    getAllCreditAccount(overrides?: CallOverrides): Promise<string[]>;
 
-    getVaultStorageName(overrides?: CallOverrides): Promise<string>;
+    getCreditAccount(_user: string, overrides?: CallOverrides): Promise<string>;
+
+    getVault(arg0: string, overrides?: CallOverrides): Promise<string>;
 
     isOwner(overrides?: CallOverrides): Promise<boolean>;
 
@@ -230,8 +268,14 @@ export class Voyager extends BaseContract {
 
     pendingOwner(overrides?: CallOverrides): Promise<string>;
 
-    setAddressResolverAddress(
-      _addressResolver: string,
+    pushNewVault(
+      _player: string,
+      vault: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    setAssociatedContract(
+      _associatedContract: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -239,11 +283,17 @@ export class Voyager extends BaseContract {
       newOwner: string,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    vaultStorageName(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
+    "AssociatedContractUpdated(address)"(
+      associatedContract?: null
+    ): TypedEventFilter<[string], { associatedContract: string }>;
+
+    AssociatedContractUpdated(
+      associatedContract?: null
+    ): TypedEventFilter<[string], { associatedContract: string }>;
+
     "OwnershipTransferred(address,address)"(
       previousOwner?: string | null,
       newOwner?: string | null
@@ -262,15 +312,25 @@ export class Voyager extends BaseContract {
   };
 
   estimateGas: {
-    addressResolver(overrides?: CallOverrides): Promise<BigNumber>;
+    allVaults(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    associatedContract(overrides?: CallOverrides): Promise<BigNumber>;
 
     claimOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    getAddressResolverAddress(overrides?: CallOverrides): Promise<BigNumber>;
+    getAllCreditAccount(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getVaultStorageName(overrides?: CallOverrides): Promise<BigNumber>;
+    getCreditAccount(
+      _user: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getVault(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     isOwner(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -278,8 +338,14 @@ export class Voyager extends BaseContract {
 
     pendingOwner(overrides?: CallOverrides): Promise<BigNumber>;
 
-    setAddressResolverAddress(
-      _addressResolver: string,
+    pushNewVault(
+      _player: string,
+      vault: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setAssociatedContract(
+      _associatedContract: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -287,22 +353,33 @@ export class Voyager extends BaseContract {
       newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
-
-    vaultStorageName(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    addressResolver(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    allVaults(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    associatedContract(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     claimOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    getAddressResolverAddress(
+    getAllCreditAccount(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getVaultStorageName(
+    getCreditAccount(
+      _user: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getVault(
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -312,8 +389,14 @@ export class Voyager extends BaseContract {
 
     pendingOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    setAddressResolverAddress(
-      _addressResolver: string,
+    pushNewVault(
+      _player: string,
+      vault: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setAssociatedContract(
+      _associatedContract: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -321,7 +404,5 @@ export class Voyager extends BaseContract {
       newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
-
-    vaultStorageName(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

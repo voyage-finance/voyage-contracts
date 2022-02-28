@@ -3,13 +3,11 @@ pragma solidity ^0.8.9;
 
 import './Vault.sol';
 import '../../interfaces/IVaultManager.sol';
+import '../Voyager.sol';
+import '../infura/AddressResolver.sol';
+import './VaultStorage.sol';
 
 contract VaultManager {
-    address[] public allVaults;
-
-    // player address => vault address
-    mapping(address => address) public getVault;
-
     address public voyager;
 
     event VaultCreated(address indexed player, address vault, uint256);
@@ -21,6 +19,12 @@ contract VaultManager {
 
     constructor(address _voyager) public {
         voyager = _voyager;
+    }
+
+    function getVaultStorageAddress() private returns (address) {
+        Voyager v = Voyager(voyager);
+        address resolver = v.getAddressResolverAddress();
+        return AddressResolver(resolver).getAddress(v.getVaultStorageName());
     }
 
     /**
@@ -38,23 +42,10 @@ contract VaultManager {
             vault := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
         IVaultManager(vault).initialize(_player);
-        allVaults.push(vault);
-        getVault[_player] = vault;
-        emit VaultCreated(_player, vault, allVaults.length);
-    }
-
-    /**
-     * @dev Get credit account address for a specific user
-     * @param _user the address of the player
-     **/
-    function getCreditAccount(address _user) external view returns (address) {
-        return getVault[_user];
-    }
-
-    /**
-     * @dev Get all credit account addresses
-     **/
-    function getAllCreditAccount() external view returns (address[] memory) {
-        return allVaults;
+        uint256 len = VaultStorage(getVaultStorageAddress()).pushNewVault(
+            _player,
+            vault
+        );
+        emit VaultCreated(_player, vault, len);
     }
 }
