@@ -57,6 +57,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IReserveInterestRateStrategy__factory>;
     getContractFactory(
+      name: "IReserveManager",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IReserveManager__factory>;
+    getContractFactory(
       name: "IVaultManager",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IVaultManager__factory>;
@@ -73,6 +77,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Ownable__factory>;
     getContractFactory(
+      name: "ReserveManager",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ReserveManager__factory>;
+    getContractFactory(
       name: "ReentrancyGuard",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ReentrancyGuard__factory>;
@@ -84,10 +92,6 @@ declare module "hardhat/types/runtime" {
       name: "JuniorDepositToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.JuniorDepositToken__factory>;
-    getContractFactory(
-      name: "SDToken",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.SDToken__factory>;
     getContractFactory(
       name: "SeniorDepositToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -165,6 +169,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IReserveInterestRateStrategy>;
     getContractAt(
+      name: "IReserveManager",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IReserveManager>;
+    getContractAt(
       name: "IVaultManager",
       address: string,
       signer?: ethers.Signer
@@ -185,6 +194,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.Ownable>;
     getContractAt(
+      name: "ReserveManager",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ReserveManager>;
+    getContractAt(
       name: "ReentrancyGuard",
       address: string,
       signer?: ethers.Signer
@@ -199,11 +213,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.JuniorDepositToken>;
-    getContractAt(
-      name: "SDToken",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.SDToken>;
     getContractAt(
       name: "SeniorDepositToken",
       address: string,
