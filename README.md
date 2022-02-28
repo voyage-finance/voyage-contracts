@@ -12,6 +12,11 @@ https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/tok
 
 ### Voyager
 
+| Name                        | Description                             | Parameters                 | Modifier    |                                
+|-----------------------------|-----------------------------------------|----------------------------|-------------|
+| `setAddressResolverAddress` | Update addressResolver contract address | `address _addressResolver` | `onlyOwner` |  |
+| `getAddressResolverAddress` | Get addressResolver contract address    |                            | `public`    |
+
 ### AddressResolver
 
 | Name                   | Description                                                                  | Modifier    | Parameters                                                  |

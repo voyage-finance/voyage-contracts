@@ -6,6 +6,7 @@ export type { DefaultReserveInterestRateStrategy } from "./DefaultReserveInteres
 export type { LiquidityManager } from "./LiquidityManager";
 export type { Vault } from "./Vault";
 export type { VaultManager } from "./VaultManager";
+export type { Voyager } from "./Voyager";
 export type { Deposit } from "./Deposit";
 export type { IAddressResolver } from "./IAddressResolver";
 export type { ICreditAccount } from "./ICreditAccount";
@@ -31,6 +32,7 @@ export { DefaultReserveInterestRateStrategy__factory } from "./factories/Default
 export { LiquidityManager__factory } from "./factories/LiquidityManager__factory";
 export { Vault__factory } from "./factories/Vault__factory";
 export { VaultManager__factory } from "./factories/VaultManager__factory";
+export { Voyager__factory } from "./factories/Voyager__factory";
 export { Deposit__factory } from "./factories/Deposit__factory";
 export { IAddressResolver__factory } from "./factories/IAddressResolver__factory";
 export { ICreditAccount__factory } from "./factories/ICreditAccount__factory";
