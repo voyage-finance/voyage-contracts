@@ -4,7 +4,11 @@ pragma solidity ^0.8.9;
 import '../libraries/ownership/Ownable.sol';
 
 contract Voyager is Ownable {
+    bytes32 public constant liquidityManagerName = 'liquidityManager';
+    bytes32 public constant loanManagerName = 'loanManager';
+    bytes32 public constant vaultManagerName = 'vaultManager';
     bytes32 public constant vaultStorageName = 'vaultStorage';
+
     address public addressResolver;
 
     /**
@@ -26,7 +30,19 @@ contract Voyager is Ownable {
         return addressResolver;
     }
 
+    function getVaultManagerName() external view returns (bytes32) {
+        return vaultManagerName;
+    }
+
     function getVaultStorageName() external view returns (bytes32) {
         return vaultStorageName;
+    }
+
+    function getLiquidityManagerName() external view returns (bytes32) {
+        return liquidityManagerName;
+    }
+
+    function getLoanManagerName() external view returns (bytes32) {
+        return loanManagerName;
     }
 }

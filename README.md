@@ -12,6 +12,15 @@ https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/tok
 
 ### Voyager
 
+Constants:
+
+```solidity
+    bytes32 public constant liquidityManagerName = 'liquidityManager';
+    bytes32 public constant loanManagerName = 'loanManager';
+    bytes32 public constant vaultManagerName = 'vaultManager';
+    bytes32 public constant vaultStorageName = 'vaultStorage';
+```
+
 | Name                        | Description                             | Parameters                 | Modifier    |                                
 |-----------------------------|-----------------------------------------|----------------------------|-------------|
 | `setAddressResolverAddress` | Update addressResolver contract address | `address _addressResolver` | `onlyOwner` |  |
