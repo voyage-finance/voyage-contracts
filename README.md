@@ -1,9 +1,5 @@
 # Voyage
 
-## Openzeppelin ERC721
-
-https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/token/ERC721
-
 ## Architecture
 
 ![contract architecture](https://github.com/halcyon-project/voyage-contracts/blob/main/doc/voyage_arch.png)
@@ -70,3 +66,14 @@ Constants:
 | `createAccount`       | Create a credit account                        | `onlyVoyager` | `address _player` |
 | `getCreditAccount`    | Get credit account address for a specific user | `public`      | `address _user`   |
 | `getAllCreditAccount` | Get all credit account addresses               | `public`      |                   |
+
+## Reference
+
+### Openzeppelin ERC721
+
+https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/token/ERC721
+
+### ACL
+
+https://docs.openzeppelin.com/contracts/4.x/access-control
+https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.5.0/contracts/access/AccessControl.sol
