@@ -6,19 +6,17 @@ import '../../interfaces/IVaultManager.sol';
 import '../Voyager.sol';
 import '../infura/AddressResolver.sol';
 import './VaultStorage.sol';
+import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
 
-contract VaultManager {
+contract VaultManager is AccessControl {
+    bytes32 public constant VOYAGER = keccak256('VOYAGER');
     address public voyager;
 
     event VaultCreated(address indexed player, address vault, uint256);
 
-    modifier onlyVoyager() {
-        require(voyager == msg.sender, 'The caller must be a voyager');
-        _;
-    }
-
     constructor(address _voyager) public {
         voyager = _voyager;
+        _setupRole(VOYAGER, _voyager);
     }
 
     function getVaultStorageAddress() private returns (address) {
@@ -33,7 +31,7 @@ contract VaultManager {
      **/
     function createAccount(address _addressResolver, address _player)
         external
-        onlyVoyager
+        onlyRole(VOYAGER)
         returns (address vault)
     {
         bytes memory bytecode = type(Vault).creationCode;

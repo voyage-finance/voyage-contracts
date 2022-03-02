@@ -9,10 +9,6 @@ contract VaultStorage is State {
     // player address => vault address
     mapping(address => address) public getVault;
 
-    // token => account => limit
-    mapping(address => mapping(address => uint256)) sponsorShip;
-    mapping(address => mapping(address => uint256)) sponsorRecord;
-
     constructor(address _vaultManager) State(_vaultManager) {}
 
     function pushNewVault(address _player, address vault)
