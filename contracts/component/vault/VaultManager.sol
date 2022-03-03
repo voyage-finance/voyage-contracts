@@ -7,8 +7,13 @@ import '../Voyager.sol';
 import '../infura/AddressResolver.sol';
 import './VaultStorage.sol';
 import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
+import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
 
-contract VaultManager is AccessControl {
+contract VaultManager is AccessControl, ReentrancyGuard {
+    using SafeERC20 for ERC20;
+
     bytes32 public constant VOYAGER = keccak256('VOYAGER');
     address public voyager;
 
@@ -29,7 +34,7 @@ contract VaultManager is AccessControl {
      * @dev Create a credit account
      * @param _player the address of the player
      **/
-    function createAccount(address _addressResolver, address _player)
+    function createVault(address _player)
         external
         onlyRole(VOYAGER)
         returns (address vault)
@@ -45,5 +50,13 @@ contract VaultManager is AccessControl {
             vault
         );
         emit VaultCreated(_player, vault, len);
+    }
+
+    function depositSecurity(address _reserve, uint256 _amount)
+        external
+        payable
+        nonReentrant
+    {
+        ERC20(_reserve).safeTransferFrom(msg.sender, address(this), _amount);
     }
 }

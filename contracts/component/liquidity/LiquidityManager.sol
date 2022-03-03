@@ -187,7 +187,7 @@ contract LiquidityManager is Ownable, ReentrancyGuard, ReserveManager {
      * @dev depositLiquidity The underlying asset into the reserve. A corresponding amount of the overlying asset
      * is minted.
      * @param _reserve the address of the reserve
-     * @param _tranche the tranche of thereserve
+     * @param _tranche the tranche of the reserve
      * @param _amount the amount to be deposited
      **/
     function depositLiquidity(

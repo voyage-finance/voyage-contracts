@@ -15,6 +15,7 @@ export type { ILendingRateOracle } from "./ILendingRateOracle";
 export type { IReserveInterestRateStrategy } from "./IReserveInterestRateStrategy";
 export type { IReserveManager } from "./IReserveManager";
 export type { IVaultManager } from "./IVaultManager";
+export type { Escrow } from "./Escrow";
 export type { Errors } from "./Errors";
 export type { IStableDebtToken } from "./IStableDebtToken";
 export type { Ownable } from "./Ownable";
@@ -46,6 +47,7 @@ export { ILendingRateOracle__factory } from "./factories/ILendingRateOracle__fac
 export { IReserveInterestRateStrategy__factory } from "./factories/IReserveInterestRateStrategy__factory";
 export { IReserveManager__factory } from "./factories/IReserveManager__factory";
 export { IVaultManager__factory } from "./factories/IVaultManager__factory";
+export { Escrow__factory } from "./factories/Escrow__factory";
 export { Errors__factory } from "./factories/Errors__factory";
 export { IStableDebtToken__factory } from "./factories/IStableDebtToken__factory";
 export { Ownable__factory } from "./factories/Ownable__factory";

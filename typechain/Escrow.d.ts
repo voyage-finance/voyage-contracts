@@ -12,6 +12,7 @@ import {
   BaseContract,
   ContractTransaction,
   Overrides,
+  PayableOverrides,
   CallOverrides,
 } from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
@@ -19,13 +20,18 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
-interface OwnableInterface extends ethers.utils.Interface {
+interface EscrowInterface extends ethers.utils.Interface {
   functions: {
+    "deposit(address,address,uint256)": FunctionFragment;
     "owner()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "deposit",
+    values: [string, string, BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
@@ -36,6 +42,7 @@ interface OwnableInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
 
+  decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
@@ -47,17 +54,37 @@ interface OwnableInterface extends ethers.utils.Interface {
   ): Result;
 
   events: {
+    "Deposited(address,address,uint256)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
+    "Withdrawn(address,address,uint256)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "Deposited"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Withdrawn"): EventFragment;
 }
+
+export type DepositedEvent = TypedEvent<
+  [string, string, BigNumber] & {
+    payee: string;
+    token: string;
+    amount: BigNumber;
+  }
+>;
 
 export type OwnershipTransferredEvent = TypedEvent<
   [string, string] & { previousOwner: string; newOwner: string }
 >;
 
-export class Ownable extends BaseContract {
+export type WithdrawnEvent = TypedEvent<
+  [string, string, BigNumber] & {
+    payee: string;
+    token: string;
+    amount: BigNumber;
+  }
+>;
+
+export class Escrow extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -98,9 +125,16 @@ export class Ownable extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: OwnableInterface;
+  interface: EscrowInterface;
 
   functions: {
+    deposit(
+      _reserve: string,
+      _user: string,
+      _amount: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     renounceOwnership(
@@ -112,6 +146,13 @@ export class Ownable extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
+
+  deposit(
+    _reserve: string,
+    _user: string,
+    _amount: BigNumberish,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   owner(overrides?: CallOverrides): Promise<string>;
 
@@ -125,6 +166,13 @@ export class Ownable extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    deposit(
+      _reserve: string,
+      _user: string,
+      _amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     owner(overrides?: CallOverrides): Promise<string>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
@@ -136,6 +184,24 @@ export class Ownable extends BaseContract {
   };
 
   filters: {
+    "Deposited(address,address,uint256)"(
+      payee?: string | null,
+      token?: null,
+      amount?: null
+    ): TypedEventFilter<
+      [string, string, BigNumber],
+      { payee: string; token: string; amount: BigNumber }
+    >;
+
+    Deposited(
+      payee?: string | null,
+      token?: null,
+      amount?: null
+    ): TypedEventFilter<
+      [string, string, BigNumber],
+      { payee: string; token: string; amount: BigNumber }
+    >;
+
     "OwnershipTransferred(address,address)"(
       previousOwner?: string | null,
       newOwner?: string | null
@@ -151,9 +217,34 @@ export class Ownable extends BaseContract {
       [string, string],
       { previousOwner: string; newOwner: string }
     >;
+
+    "Withdrawn(address,address,uint256)"(
+      payee?: string | null,
+      token?: null,
+      amount?: null
+    ): TypedEventFilter<
+      [string, string, BigNumber],
+      { payee: string; token: string; amount: BigNumber }
+    >;
+
+    Withdrawn(
+      payee?: string | null,
+      token?: null,
+      amount?: null
+    ): TypedEventFilter<
+      [string, string, BigNumber],
+      { payee: string; token: string; amount: BigNumber }
+    >;
   };
 
   estimateGas: {
+    deposit(
+      _reserve: string,
+      _user: string,
+      _amount: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceOwnership(
@@ -167,6 +258,13 @@ export class Ownable extends BaseContract {
   };
 
   populateTransaction: {
+    deposit(
+      _reserve: string,
+      _user: string,
+      _amount: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     renounceOwnership(

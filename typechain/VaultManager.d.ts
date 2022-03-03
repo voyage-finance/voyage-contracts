@@ -12,6 +12,7 @@ import {
   BaseContract,
   ContractTransaction,
   Overrides,
+  PayableOverrides,
   CallOverrides,
 } from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
@@ -23,7 +24,8 @@ interface VaultManagerInterface extends ethers.utils.Interface {
   functions: {
     "DEFAULT_ADMIN_ROLE()": FunctionFragment;
     "VOYAGER()": FunctionFragment;
-    "createAccount(address,address)": FunctionFragment;
+    "createVault(address)": FunctionFragment;
+    "depositSecurity(address,uint256)": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
     "grantRole(bytes32,address)": FunctionFragment;
     "hasRole(bytes32,address)": FunctionFragment;
@@ -38,9 +40,10 @@ interface VaultManagerInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "VOYAGER", values?: undefined): string;
+  encodeFunctionData(functionFragment: "createVault", values: [string]): string;
   encodeFunctionData(
-    functionFragment: "createAccount",
-    values: [string, string]
+    functionFragment: "depositSecurity",
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getRoleAdmin",
@@ -74,7 +77,11 @@ interface VaultManagerInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "VOYAGER", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "createAccount",
+    functionFragment: "createVault",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "depositSecurity",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -179,10 +186,15 @@ export class VaultManager extends BaseContract {
 
     VOYAGER(overrides?: CallOverrides): Promise<[string]>;
 
-    createAccount(
-      _addressResolver: string,
+    createVault(
       _player: string,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    depositSecurity(
+      _reserve: string,
+      _amount: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<[string]>;
@@ -223,10 +235,15 @@ export class VaultManager extends BaseContract {
 
   VOYAGER(overrides?: CallOverrides): Promise<string>;
 
-  createAccount(
-    _addressResolver: string,
+  createVault(
     _player: string,
     overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  depositSecurity(
+    _reserve: string,
+    _amount: BigNumberish,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
@@ -267,11 +284,13 @@ export class VaultManager extends BaseContract {
 
     VOYAGER(overrides?: CallOverrides): Promise<string>;
 
-    createAccount(
-      _addressResolver: string,
-      _player: string,
+    createVault(_player: string, overrides?: CallOverrides): Promise<string>;
+
+    depositSecurity(
+      _reserve: string,
+      _amount: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<string>;
+    ): Promise<void>;
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
@@ -386,10 +405,15 @@ export class VaultManager extends BaseContract {
 
     VOYAGER(overrides?: CallOverrides): Promise<BigNumber>;
 
-    createAccount(
-      _addressResolver: string,
+    createVault(
       _player: string,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    depositSecurity(
+      _reserve: string,
+      _amount: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     getRoleAdmin(
@@ -436,10 +460,15 @@ export class VaultManager extends BaseContract {
 
     VOYAGER(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    createAccount(
-      _addressResolver: string,
+    createVault(
       _player: string,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    depositSecurity(
+      _reserve: string,
+      _amount: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     getRoleAdmin(
