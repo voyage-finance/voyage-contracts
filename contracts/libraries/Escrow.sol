@@ -25,6 +25,7 @@ contract Escrow is Ownable, ReentrancyGuard {
     // reserve address => payee => deposit record
     mapping(address => mapping(address => Deposit[])) private _depositRecords;
 
+    uint40 private _lookupTimeInSeconds;
 
     /**
      * @dev Stores the sent amount as credit to be withdrawn.
@@ -36,7 +37,7 @@ contract Escrow is Ownable, ReentrancyGuard {
         address _reserve,
         address _user,
         uint256 _amount
-    ) external payable nonReentrant onlyOwner {
+    ) public payable nonReentrant onlyOwner {
         if (_reserve != EthAddressLib.ethAddress()) {
             require(
                 msg.value == 0,
@@ -52,5 +53,43 @@ contract Escrow is Ownable, ReentrancyGuard {
         _deposits[_reserve][_user] += _amount;
         Deposit memory deposit = Deposit(_amount, uint40(block.timestamp));
         _depositRecords[_reserve][_user].push(deposit);
+        emit Deposited(_user, _reserve, _amount);
+    }
+
+    function withdraw(address _reserve, address payable _user) public onlyOwner {
+        Deposit[] storage deposits = _depositRecords[_reserve][_user];
+        uint256 amount = 0;
+        for (uint256 i = 0; i < deposits.length; i++) {
+            if (
+                uint40(block.timestamp) - deposits[i].depositTime >
+                _lookupTimeInSeconds
+            ) {
+                amount += deposits[i].amount;
+                delete deposits[i];
+            }
+        }
+
+        transferToUser(_reserve, _user, amount);
+    }
+
+
+    /**
+     * @dev transfers to the user a specific amount from the reserve.
+     * @param _reserve the address of the reserve where the transfer is happening
+     * @param _user the address of the user receiving the transfer
+     * @param _amount the amount being transferred
+     **/
+    function transferToUser(
+        address _reserve,
+        address payable _user,
+        uint256 _amount
+    ) internal {
+        if (_reserve != EthAddressLib.ethAddress()) {
+            ERC20(_reserve).safeTransfer(_user, _amount);
+        } else {
+            //solium-disable-next-line
+            (bool result, ) = _user.call{value: _amount}('');
+            require(result, 'Transfer of ETH failed');
+        }
     }
 }
