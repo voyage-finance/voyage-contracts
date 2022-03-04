@@ -22,20 +22,27 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface SecurityDepositEscrowInterface extends ethers.utils.Interface {
   functions: {
+    "claimOwnership()": FunctionFragment;
     "deposit(address,address,uint256)": FunctionFragment;
+    "isOwner()": FunctionFragment;
     "owner()": FunctionFragment;
-    "renounceOwnership()": FunctionFragment;
+    "pendingOwner()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "withdraw(address,address,uint256)": FunctionFragment;
   };
 
   encodeFunctionData(
+    functionFragment: "claimOwnership",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "deposit",
     values: [string, string, BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: "isOwner", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "renounceOwnership",
+    functionFragment: "pendingOwner",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -47,10 +54,15 @@ interface SecurityDepositEscrowInterface extends ethers.utils.Interface {
     values: [string, string, BigNumberish]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "claimOwnership",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "isOwner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "renounceOwnership",
+    functionFragment: "pendingOwner",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -134,6 +146,10 @@ export class SecurityDepositEscrow extends BaseContract {
   interface: SecurityDepositEscrowInterface;
 
   functions: {
+    claimOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     deposit(
       _reserve: string,
       _user: string,
@@ -141,11 +157,11 @@ export class SecurityDepositEscrow extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    isOwner(overrides?: CallOverrides): Promise<[boolean]>;
+
     owner(overrides?: CallOverrides): Promise<[string]>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    pendingOwner(overrides?: CallOverrides): Promise<[string]>;
 
     transferOwnership(
       newOwner: string,
@@ -160,6 +176,10 @@ export class SecurityDepositEscrow extends BaseContract {
     ): Promise<ContractTransaction>;
   };
 
+  claimOwnership(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   deposit(
     _reserve: string,
     _user: string,
@@ -167,11 +187,11 @@ export class SecurityDepositEscrow extends BaseContract {
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  isOwner(overrides?: CallOverrides): Promise<boolean>;
+
   owner(overrides?: CallOverrides): Promise<string>;
 
-  renounceOwnership(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  pendingOwner(overrides?: CallOverrides): Promise<string>;
 
   transferOwnership(
     newOwner: string,
@@ -186,6 +206,8 @@ export class SecurityDepositEscrow extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    claimOwnership(overrides?: CallOverrides): Promise<void>;
+
     deposit(
       _reserve: string,
       _user: string,
@@ -193,9 +215,11 @@ export class SecurityDepositEscrow extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    isOwner(overrides?: CallOverrides): Promise<boolean>;
+
     owner(overrides?: CallOverrides): Promise<string>;
 
-    renounceOwnership(overrides?: CallOverrides): Promise<void>;
+    pendingOwner(overrides?: CallOverrides): Promise<string>;
 
     transferOwnership(
       newOwner: string,
@@ -265,6 +289,10 @@ export class SecurityDepositEscrow extends BaseContract {
   };
 
   estimateGas: {
+    claimOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     deposit(
       _reserve: string,
       _user: string,
@@ -272,11 +300,11 @@ export class SecurityDepositEscrow extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    isOwner(overrides?: CallOverrides): Promise<BigNumber>;
+
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    pendingOwner(overrides?: CallOverrides): Promise<BigNumber>;
 
     transferOwnership(
       newOwner: string,
@@ -292,6 +320,10 @@ export class SecurityDepositEscrow extends BaseContract {
   };
 
   populateTransaction: {
+    claimOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     deposit(
       _reserve: string,
       _user: string,
@@ -299,11 +331,11 @@ export class SecurityDepositEscrow extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    isOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+    pendingOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transferOwnership(
       newOwner: string,

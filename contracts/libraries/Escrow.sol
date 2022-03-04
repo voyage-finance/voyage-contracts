@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import 'openzeppelin-solidity/contracts/access/Ownable.sol';
+import './ownership/Ownable.sol';
 import 'openzeppelin-solidity/contracts/utils/Address.sol';
 import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
@@ -26,8 +26,6 @@ contract Escrow is Ownable, ReentrancyGuard {
     mapping(address => mapping(address => Deposit[])) private _depositRecords;
 
     uint40 private _lockupTimeInSeconds;
-
-    constructor() Ownable() {}
 
     /**
      * @dev Stores the sent amount as credit to be withdrawn.
