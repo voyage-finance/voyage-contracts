@@ -77,6 +77,8 @@ contract Escrow is Ownable, ReentrancyGuard {
             }
         }
 
+        _deposits[_reserve][_user] -= amount;
+
         transferToUser(_reserve, _user, amount);
         emit Withdrawn(_user, _reserve, amount);
     }
