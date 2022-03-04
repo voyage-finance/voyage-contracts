@@ -26,7 +26,7 @@ interface EscrowInterface extends ethers.utils.Interface {
     "owner()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
-    "withdraw(address,address)": FunctionFragment;
+    "withdraw(address,address,uint256)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -44,7 +44,7 @@ interface EscrowInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [string, string]
+    values: [string, string, BigNumberish]
   ): string;
 
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
@@ -155,6 +155,7 @@ export class Escrow extends BaseContract {
     withdraw(
       _reserve: string,
       _user: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
@@ -180,6 +181,7 @@ export class Escrow extends BaseContract {
   withdraw(
     _reserve: string,
     _user: string,
+    _amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -203,6 +205,7 @@ export class Escrow extends BaseContract {
     withdraw(
       _reserve: string,
       _user: string,
+      _amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -283,6 +286,7 @@ export class Escrow extends BaseContract {
     withdraw(
       _reserve: string,
       _user: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
@@ -309,6 +313,7 @@ export class Escrow extends BaseContract {
     withdraw(
       _reserve: string,
       _user: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };

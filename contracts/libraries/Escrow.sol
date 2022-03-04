@@ -61,26 +61,40 @@ contract Escrow is Ownable, ReentrancyGuard {
      * @param _reserve the asset address
      * @param _user user address who deposit to this escrow
      */
-    function withdraw(address _reserve, address payable _user)
-        public
-        onlyOwner
-    {
+    function withdraw(
+        address _reserve,
+        address payable _user,
+        uint256 _amount
+    ) public onlyOwner {
         Deposit[] storage deposits = _depositRecords[_reserve][_user];
-        uint256 amount = 0;
+        uint256 eligibleAmount = 0;
+        uint40 lastUpdateTime;
         for (uint256 i = 0; i < deposits.length; i++) {
             if (
                 uint40(block.timestamp) - deposits[i].depositTime >
                 _lockupTimeInSeconds
             ) {
-                amount += deposits[i].amount;
+                eligibleAmount += deposits[i].amount;
+                lastUpdateTime = deposits[i].depositTime;
                 delete deposits[i];
             }
         }
 
-        _deposits[_reserve][_user] -= amount;
+        require(
+            eligibleAmount >= _amount,
+            'Do not have enough amount to withdraw'
+        );
 
-        transferToUser(_reserve, _user, amount);
-        emit Withdrawn(_user, _reserve, amount);
+        // if there is any amount left from eligible amount, push it back
+        if (eligibleAmount > _amount) {
+            uint256 leftAmount = eligibleAmount - _amount;
+            Deposit memory leftDeposit = Deposit(leftAmount, lastUpdateTime);
+            _depositRecords[_reserve][_user].push(leftDeposit);
+        }
+
+        _deposits[_reserve][_user] -= _amount;
+        transferToUser(_reserve, _user, _amount);
+        emit Withdrawn(_user, _reserve, _amount);
     }
 
     /**
