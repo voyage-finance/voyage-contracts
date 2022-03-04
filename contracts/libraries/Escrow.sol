@@ -25,7 +25,7 @@ contract Escrow is Ownable, ReentrancyGuard {
     // reserve address => payee => deposit record
     mapping(address => mapping(address => Deposit[])) private _depositRecords;
 
-    uint40 private _lookupTimeInSeconds;
+    uint40 private _lockupTimeInSeconds;
 
     /**
      * @dev Stores the sent amount as credit to be withdrawn.
@@ -56,13 +56,21 @@ contract Escrow is Ownable, ReentrancyGuard {
         emit Deposited(_user, _reserve, _amount);
     }
 
-    function withdraw(address _reserve, address payable _user) public onlyOwner {
+    /**
+     * @dev Withdraw accumulated balance for a payee, only beyond _lockupTimeInSeconds
+     * @param _reserve the asset address
+     * @param _user user address who deposit to this escrow
+     */
+    function withdraw(address _reserve, address payable _user)
+        public
+        onlyOwner
+    {
         Deposit[] storage deposits = _depositRecords[_reserve][_user];
         uint256 amount = 0;
         for (uint256 i = 0; i < deposits.length; i++) {
             if (
                 uint40(block.timestamp) - deposits[i].depositTime >
-                _lookupTimeInSeconds
+                _lockupTimeInSeconds
             ) {
                 amount += deposits[i].amount;
                 delete deposits[i];
@@ -70,8 +78,8 @@ contract Escrow is Ownable, ReentrancyGuard {
         }
 
         transferToUser(_reserve, _user, amount);
+        emit Withdrawn(_user, _reserve, amount);
     }
-
 
     /**
      * @dev transfers to the user a specific amount from the reserve.
