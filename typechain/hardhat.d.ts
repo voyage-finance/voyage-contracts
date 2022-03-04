@@ -25,6 +25,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.LiquidityManager__factory>;
     getContractFactory(
+      name: "SecurityDepositEscrow",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.SecurityDepositEscrow__factory>;
+    getContractFactory(
       name: "Vault",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Vault__factory>;
@@ -160,6 +164,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.LiquidityManager>;
+    getContractAt(
+      name: "SecurityDepositEscrow",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.SecurityDepositEscrow>;
     getContractAt(
       name: "Vault",
       address: string,

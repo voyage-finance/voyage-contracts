@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 import './Vault.sol';
 import '../../interfaces/IVaultManager.sol';
 import '../Voyager.sol';
+import './SecurityDepositEscrow.sol';
 import '../infura/AddressResolver.sol';
 import './VaultStorage.sol';
 import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
@@ -16,6 +17,7 @@ contract VaultManager is AccessControl, ReentrancyGuard {
 
     bytes32 public constant VOYAGER = keccak256('VOYAGER');
     address public voyager;
+    address public securityDepositEscrow;
 
     event VaultCreated(address indexed player, address vault, uint256);
 

@@ -27,6 +27,8 @@ contract Escrow is Ownable, ReentrancyGuard {
 
     uint40 private _lockupTimeInSeconds;
 
+    constructor() Ownable() {}
+
     /**
      * @dev Stores the sent amount as credit to be withdrawn.
      * @param _reserve the asset address
