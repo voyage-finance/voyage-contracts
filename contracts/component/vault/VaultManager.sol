@@ -24,6 +24,20 @@ contract VaultManager is AccessControl, ReentrancyGuard {
     constructor(address _voyager) public {
         voyager = _voyager;
         _setupRole(VOYAGER, _voyager);
+        // deploy securityDepositEscrow
+        // salt just an arbitrary value
+        bytes32 salt = keccak256(abi.encodePacked(_voyager));
+        bytes memory bytecode = type(SecurityDepositEscrow).creationCode;
+        address deployedEscrow;
+        assembly {
+            deployedEscrow := create2(
+                0,
+                add(bytecode, 32),
+                mload(bytecode),
+                salt
+            )
+        }
+        securityDepositEscrow = deployedEscrow;
     }
 
     function getVaultStorageAddress() private returns (address) {
