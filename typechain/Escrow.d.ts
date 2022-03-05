@@ -24,7 +24,8 @@ interface EscrowInterface extends ethers.utils.Interface {
   functions: {
     "claimOwnership()": FunctionFragment;
     "deposit(address,address,uint256)": FunctionFragment;
-    "getDeposit(address,address)": FunctionFragment;
+    "getDepositAmount(address,address)": FunctionFragment;
+    "getDepositRecords(address,address)": FunctionFragment;
     "isOwner()": FunctionFragment;
     "owner()": FunctionFragment;
     "pendingOwner()": FunctionFragment;
@@ -41,7 +42,11 @@ interface EscrowInterface extends ethers.utils.Interface {
     values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "getDeposit",
+    functionFragment: "getDepositAmount",
+    values: [string, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getDepositRecords",
     values: [string, string]
   ): string;
   encodeFunctionData(functionFragment: "isOwner", values?: undefined): string;
@@ -64,7 +69,14 @@ interface EscrowInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "getDeposit", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getDepositAmount",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getDepositRecords",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "isOwner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
@@ -163,11 +175,19 @@ export class Escrow extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    getDeposit(
+    getDepositAmount(
       _reserve: string,
       _user: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
+
+    getDepositRecords(
+      _reserve: string,
+      _user: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [([BigNumber, number] & { amount: BigNumber; depositTime: number })[]]
+    >;
 
     isOwner(overrides?: CallOverrides): Promise<[boolean]>;
 
@@ -199,11 +219,19 @@ export class Escrow extends BaseContract {
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  getDeposit(
+  getDepositAmount(
     _reserve: string,
     _user: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
+
+  getDepositRecords(
+    _reserve: string,
+    _user: string,
+    overrides?: CallOverrides
+  ): Promise<
+    ([BigNumber, number] & { amount: BigNumber; depositTime: number })[]
+  >;
 
   isOwner(overrides?: CallOverrides): Promise<boolean>;
 
@@ -233,11 +261,19 @@ export class Escrow extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    getDeposit(
+    getDepositAmount(
       _reserve: string,
       _user: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    getDepositRecords(
+      _reserve: string,
+      _user: string,
+      overrides?: CallOverrides
+    ): Promise<
+      ([BigNumber, number] & { amount: BigNumber; depositTime: number })[]
+    >;
 
     isOwner(overrides?: CallOverrides): Promise<boolean>;
 
@@ -324,7 +360,13 @@ export class Escrow extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    getDeposit(
+    getDepositAmount(
+      _reserve: string,
+      _user: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getDepositRecords(
       _reserve: string,
       _user: string,
       overrides?: CallOverrides
@@ -361,7 +403,13 @@ export class Escrow extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    getDeposit(
+    getDepositAmount(
+      _reserve: string,
+      _user: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getDepositRecords(
       _reserve: string,
       _user: string,
       overrides?: CallOverrides
