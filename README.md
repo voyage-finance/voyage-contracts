@@ -19,8 +19,17 @@ Constants:
 
 | Name                        | Description                             | Parameters                 | Modifier    |                                
 |-----------------------------|-----------------------------------------|----------------------------|-------------|
-| `setAddressResolverAddress` | Update addressResolver contract address | `address _addressResolver` | `onlyOwner` |  |
+| `setAddressResolverAddress` | Update addressResolver contract address | `address _addressResolver` | `onlyOwner` |
 | `getAddressResolverAddress` | Get addressResolver contract address    |                            | `public`    |
+
+
+### Escrow
+
+
+| Name        | Description                                                                 | Parameters                                          | Modifier    |                                
+|-------------|-----------------------------------------------------------------------------|-----------------------------------------------------|-------------|
+| `deposit`   | Stores the sent amount as credit to be withdrawn                            | `address _reserve, address _user, uint256 _amount`  | `onlyOwner` |
+| `withdraw ` | Withdraw accumulated balance for a payee, only beyond _lockupTimeInSeconds  | `address _reserve, address _user, uint256 _amount`  | `onlyOwner` |
 
 ### AddressResolver
 
