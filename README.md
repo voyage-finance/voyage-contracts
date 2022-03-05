@@ -87,3 +87,7 @@ https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/tok
 https://docs.openzeppelin.com/contracts/4.x/access-control
 
 https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.5.0/contracts/access/AccessControl.sol
+
+### Synthetix Staking
+
+https://github.com/Synthetixio/synthetix/blob/e53c9c05e1fdf8e530143e9dd843846638538bde/contracts/StakingRewards.sol
