@@ -97,6 +97,10 @@ contract Escrow is Ownable, ReentrancyGuard {
         emit Withdrawn(_user, _reserve, _amount);
     }
 
+    function getDeposit() {
+
+    }
+
     /**
      * @dev transfers to the user a specific amount from the reserve.
      * @param _reserve the address of the reserve where the transfer is happening
