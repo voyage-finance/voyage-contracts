@@ -73,6 +73,10 @@ contract VaultManager is AccessControl, ReentrancyGuard {
         payable
         nonReentrant
     {
-        ERC20(_reserve).safeTransferFrom(msg.sender, address(this), _amount);
+        SecurityDepositEscrow(securityDepositEscrow).deposit(
+            _reserve,
+            msg.sender,
+            _amount
+        );
     }
 }
