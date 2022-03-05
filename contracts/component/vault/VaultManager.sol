@@ -68,6 +68,11 @@ contract VaultManager is AccessControl, ReentrancyGuard {
         emit VaultCreated(_player, vault, len);
     }
 
+    /**
+     * @dev Transfer some deposit security
+     * @param _reserve reserve address
+     * @param _amount deposit amount
+     **/
     function depositSecurity(address _reserve, uint256 _amount)
         external
         payable
@@ -78,5 +83,13 @@ contract VaultManager is AccessControl, ReentrancyGuard {
             msg.sender,
             _amount
         );
+    }
+
+    /**
+     * @dev Get SecurityDepositEscrow contract address
+     * @return address
+     **/
+    function getSecurityDepositEscrowAddress() external view returns (address) {
+        return securityDepositEscrow;
     }
 }
