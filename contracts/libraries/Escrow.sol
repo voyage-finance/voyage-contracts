@@ -97,8 +97,18 @@ contract Escrow is Ownable, ReentrancyGuard {
         emit Withdrawn(_user, _reserve, _amount);
     }
 
-    function getDeposit() {
-
+    /**
+     * @dev get accumulated amount of security deposit.
+     * @param _reserve the address of the reserve where the transfer is happening
+     * @param _user the address of the user receiving the transfer
+     * @return accumulated deposit amount
+     **/
+    function getDeposit(address _reserve, address _user)
+        public
+        view
+        returns (uint256)
+    {
+        return _deposits[_reserve][_user];
     }
 
     /**

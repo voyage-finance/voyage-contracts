@@ -24,6 +24,7 @@ interface SecurityDepositEscrowInterface extends ethers.utils.Interface {
   functions: {
     "claimOwnership()": FunctionFragment;
     "deposit(address,address,uint256)": FunctionFragment;
+    "getDeposit(address,address)": FunctionFragment;
     "isOwner()": FunctionFragment;
     "owner()": FunctionFragment;
     "pendingOwner()": FunctionFragment;
@@ -38,6 +39,10 @@ interface SecurityDepositEscrowInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "deposit",
     values: [string, string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getDeposit",
+    values: [string, string]
   ): string;
   encodeFunctionData(functionFragment: "isOwner", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
@@ -59,6 +64,7 @@ interface SecurityDepositEscrowInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getDeposit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "isOwner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
@@ -157,6 +163,12 @@ export class SecurityDepositEscrow extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    getDeposit(
+      _reserve: string,
+      _user: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     isOwner(overrides?: CallOverrides): Promise<[boolean]>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
@@ -187,6 +199,12 @@ export class SecurityDepositEscrow extends BaseContract {
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  getDeposit(
+    _reserve: string,
+    _user: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   isOwner(overrides?: CallOverrides): Promise<boolean>;
 
   owner(overrides?: CallOverrides): Promise<string>;
@@ -214,6 +232,12 @@ export class SecurityDepositEscrow extends BaseContract {
       _amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    getDeposit(
+      _reserve: string,
+      _user: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     isOwner(overrides?: CallOverrides): Promise<boolean>;
 
@@ -300,6 +324,12 @@ export class SecurityDepositEscrow extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    getDeposit(
+      _reserve: string,
+      _user: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     isOwner(overrides?: CallOverrides): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
@@ -329,6 +359,12 @@ export class SecurityDepositEscrow extends BaseContract {
       _user: string,
       _amount: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getDeposit(
+      _reserve: string,
+      _user: string,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     isOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
