@@ -11,6 +11,7 @@ import {
   PopulatedTransaction,
   BaseContract,
   ContractTransaction,
+  Overrides,
   CallOverrides,
 } from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
@@ -20,21 +21,56 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface StakingRewardsInterface extends ethers.utils.Interface {
   functions: {
+    "balanceOf(address)": FunctionFragment;
+    "claimOwnership()": FunctionFragment;
+    "earned(address)": FunctionFragment;
+    "getRewardForDuration()": FunctionFragment;
+    "isOwner()": FunctionFragment;
+    "lastTimeRewardApplicable()": FunctionFragment;
     "lastUpdateTime()": FunctionFragment;
+    "owner()": FunctionFragment;
+    "pendingOwner()": FunctionFragment;
     "periodFinish()": FunctionFragment;
+    "rewardPerToken()": FunctionFragment;
     "rewardPerTokenStored()": FunctionFragment;
     "rewardRate()": FunctionFragment;
     "rewards(address)": FunctionFragment;
     "rewardsDuration()": FunctionFragment;
     "stakingToken()": FunctionFragment;
+    "totalSupply()": FunctionFragment;
+    "transferOwnership(address)": FunctionFragment;
   };
 
+  encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "claimOwnership",
+    values?: undefined
+  ): string;
+  encodeFunctionData(functionFragment: "earned", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "getRewardForDuration",
+    values?: undefined
+  ): string;
+  encodeFunctionData(functionFragment: "isOwner", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "lastTimeRewardApplicable",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "lastUpdateTime",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "pendingOwner",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "periodFinish",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "rewardPerToken",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -54,13 +90,45 @@ interface StakingRewardsInterface extends ethers.utils.Interface {
     functionFragment: "stakingToken",
     values?: undefined
   ): string;
+  encodeFunctionData(
+    functionFragment: "totalSupply",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "transferOwnership",
+    values: [string]
+  ): string;
 
+  decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "claimOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "earned", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getRewardForDuration",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "isOwner", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "lastTimeRewardApplicable",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "lastUpdateTime",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "pendingOwner",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "periodFinish",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "rewardPerToken",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -77,9 +145,59 @@ interface StakingRewardsInterface extends ethers.utils.Interface {
     functionFragment: "stakingToken",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "totalSupply",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "transferOwnership",
+    data: BytesLike
+  ): Result;
 
-  events: {};
+  events: {
+    "OwnershipTransferred(address,address)": EventFragment;
+    "Recovered(address,uint256)": EventFragment;
+    "RewardAdded(uint256)": EventFragment;
+    "RewardPaid(address,uint256)": EventFragment;
+    "RewardsDurationUpdated(uint256)": EventFragment;
+    "Staked(address,uint256)": EventFragment;
+    "Withdrawn(address,uint256)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Recovered"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RewardAdded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RewardPaid"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RewardsDurationUpdated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Staked"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Withdrawn"): EventFragment;
 }
+
+export type OwnershipTransferredEvent = TypedEvent<
+  [string, string] & { previousOwner: string; newOwner: string }
+>;
+
+export type RecoveredEvent = TypedEvent<
+  [string, BigNumber] & { token: string; amount: BigNumber }
+>;
+
+export type RewardAddedEvent = TypedEvent<[BigNumber] & { reward: BigNumber }>;
+
+export type RewardPaidEvent = TypedEvent<
+  [string, BigNumber] & { user: string; reward: BigNumber }
+>;
+
+export type RewardsDurationUpdatedEvent = TypedEvent<
+  [BigNumber] & { newDuration: BigNumber }
+>;
+
+export type StakedEvent = TypedEvent<
+  [string, BigNumber] & { user: string; amount: BigNumber }
+>;
+
+export type WithdrawnEvent = TypedEvent<
+  [string, BigNumber] & { user: string; amount: BigNumber }
+>;
 
 export class StakingRewards extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -125,9 +243,29 @@ export class StakingRewards extends BaseContract {
   interface: StakingRewardsInterface;
 
   functions: {
+    balanceOf(account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    claimOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    earned(account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    getRewardForDuration(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    isOwner(overrides?: CallOverrides): Promise<[boolean]>;
+
+    lastTimeRewardApplicable(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     lastUpdateTime(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    owner(overrides?: CallOverrides): Promise<[string]>;
+
+    pendingOwner(overrides?: CallOverrides): Promise<[string]>;
+
     periodFinish(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    rewardPerToken(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     rewardPerTokenStored(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -138,11 +276,38 @@ export class StakingRewards extends BaseContract {
     rewardsDuration(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     stakingToken(overrides?: CallOverrides): Promise<[string]>;
+
+    totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
   };
+
+  balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+  claimOwnership(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  earned(account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+  getRewardForDuration(overrides?: CallOverrides): Promise<BigNumber>;
+
+  isOwner(overrides?: CallOverrides): Promise<boolean>;
+
+  lastTimeRewardApplicable(overrides?: CallOverrides): Promise<BigNumber>;
 
   lastUpdateTime(overrides?: CallOverrides): Promise<BigNumber>;
 
+  owner(overrides?: CallOverrides): Promise<string>;
+
+  pendingOwner(overrides?: CallOverrides): Promise<string>;
+
   periodFinish(overrides?: CallOverrides): Promise<BigNumber>;
+
+  rewardPerToken(overrides?: CallOverrides): Promise<BigNumber>;
 
   rewardPerTokenStored(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -154,10 +319,35 @@ export class StakingRewards extends BaseContract {
 
   stakingToken(overrides?: CallOverrides): Promise<string>;
 
+  totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+  transferOwnership(
+    newOwner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   callStatic: {
+    balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    claimOwnership(overrides?: CallOverrides): Promise<void>;
+
+    earned(account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    getRewardForDuration(overrides?: CallOverrides): Promise<BigNumber>;
+
+    isOwner(overrides?: CallOverrides): Promise<boolean>;
+
+    lastTimeRewardApplicable(overrides?: CallOverrides): Promise<BigNumber>;
+
     lastUpdateTime(overrides?: CallOverrides): Promise<BigNumber>;
 
+    owner(overrides?: CallOverrides): Promise<string>;
+
+    pendingOwner(overrides?: CallOverrides): Promise<string>;
+
     periodFinish(overrides?: CallOverrides): Promise<BigNumber>;
+
+    rewardPerToken(overrides?: CallOverrides): Promise<BigNumber>;
 
     rewardPerTokenStored(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -168,14 +358,137 @@ export class StakingRewards extends BaseContract {
     rewardsDuration(overrides?: CallOverrides): Promise<BigNumber>;
 
     stakingToken(overrides?: CallOverrides): Promise<string>;
+
+    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
   };
 
-  filters: {};
+  filters: {
+    "OwnershipTransferred(address,address)"(
+      previousOwner?: string | null,
+      newOwner?: string | null
+    ): TypedEventFilter<
+      [string, string],
+      { previousOwner: string; newOwner: string }
+    >;
+
+    OwnershipTransferred(
+      previousOwner?: string | null,
+      newOwner?: string | null
+    ): TypedEventFilter<
+      [string, string],
+      { previousOwner: string; newOwner: string }
+    >;
+
+    "Recovered(address,uint256)"(
+      token?: null,
+      amount?: null
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { token: string; amount: BigNumber }
+    >;
+
+    Recovered(
+      token?: null,
+      amount?: null
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { token: string; amount: BigNumber }
+    >;
+
+    "RewardAdded(uint256)"(
+      reward?: null
+    ): TypedEventFilter<[BigNumber], { reward: BigNumber }>;
+
+    RewardAdded(
+      reward?: null
+    ): TypedEventFilter<[BigNumber], { reward: BigNumber }>;
+
+    "RewardPaid(address,uint256)"(
+      user?: string | null,
+      reward?: null
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { user: string; reward: BigNumber }
+    >;
+
+    RewardPaid(
+      user?: string | null,
+      reward?: null
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { user: string; reward: BigNumber }
+    >;
+
+    "RewardsDurationUpdated(uint256)"(
+      newDuration?: null
+    ): TypedEventFilter<[BigNumber], { newDuration: BigNumber }>;
+
+    RewardsDurationUpdated(
+      newDuration?: null
+    ): TypedEventFilter<[BigNumber], { newDuration: BigNumber }>;
+
+    "Staked(address,uint256)"(
+      user?: string | null,
+      amount?: null
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { user: string; amount: BigNumber }
+    >;
+
+    Staked(
+      user?: string | null,
+      amount?: null
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { user: string; amount: BigNumber }
+    >;
+
+    "Withdrawn(address,uint256)"(
+      user?: string | null,
+      amount?: null
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { user: string; amount: BigNumber }
+    >;
+
+    Withdrawn(
+      user?: string | null,
+      amount?: null
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { user: string; amount: BigNumber }
+    >;
+  };
 
   estimateGas: {
+    balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    claimOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    earned(account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    getRewardForDuration(overrides?: CallOverrides): Promise<BigNumber>;
+
+    isOwner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    lastTimeRewardApplicable(overrides?: CallOverrides): Promise<BigNumber>;
+
     lastUpdateTime(overrides?: CallOverrides): Promise<BigNumber>;
 
+    owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    pendingOwner(overrides?: CallOverrides): Promise<BigNumber>;
+
     periodFinish(overrides?: CallOverrides): Promise<BigNumber>;
+
+    rewardPerToken(overrides?: CallOverrides): Promise<BigNumber>;
 
     rewardPerTokenStored(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -186,12 +499,49 @@ export class StakingRewards extends BaseContract {
     rewardsDuration(overrides?: CallOverrides): Promise<BigNumber>;
 
     stakingToken(overrides?: CallOverrides): Promise<BigNumber>;
+
+    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    balanceOf(
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    claimOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    earned(
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getRewardForDuration(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    isOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    lastTimeRewardApplicable(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     lastUpdateTime(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    pendingOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     periodFinish(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    rewardPerToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     rewardPerTokenStored(
       overrides?: CallOverrides
@@ -207,5 +557,12 @@ export class StakingRewards extends BaseContract {
     rewardsDuration(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     stakingToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
   };
 }
