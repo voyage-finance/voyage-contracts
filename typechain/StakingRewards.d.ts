@@ -38,6 +38,7 @@ interface StakingRewardsInterface extends ethers.utils.Interface {
     "rewards(address)": FunctionFragment;
     "rewardsDuration()": FunctionFragment;
     "rewardsToken()": FunctionFragment;
+    "setRewardsDuration(uint256)": FunctionFragment;
     "stakingToken()": FunctionFragment;
     "totalSupply()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
@@ -95,6 +96,10 @@ interface StakingRewardsInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "rewardsToken",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setRewardsDuration",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "stakingToken",
@@ -157,6 +162,10 @@ interface StakingRewardsInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "rewardsToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setRewardsDuration",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -300,6 +309,11 @@ export class StakingRewards extends BaseContract {
 
     rewardsToken(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    setRewardsDuration(
+      _rewardsDuration: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     stakingToken(overrides?: CallOverrides): Promise<[string]>;
 
     totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -349,6 +363,11 @@ export class StakingRewards extends BaseContract {
 
   rewardsToken(overrides?: CallOverrides): Promise<BigNumber>;
 
+  setRewardsDuration(
+    _rewardsDuration: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   stakingToken(overrides?: CallOverrides): Promise<string>;
 
   totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
@@ -395,6 +414,11 @@ export class StakingRewards extends BaseContract {
     rewardsDuration(overrides?: CallOverrides): Promise<BigNumber>;
 
     rewardsToken(overrides?: CallOverrides): Promise<BigNumber>;
+
+    setRewardsDuration(
+      _rewardsDuration: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     stakingToken(overrides?: CallOverrides): Promise<string>;
 
@@ -544,6 +568,11 @@ export class StakingRewards extends BaseContract {
 
     rewardsToken(overrides?: CallOverrides): Promise<BigNumber>;
 
+    setRewardsDuration(
+      _rewardsDuration: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     stakingToken(overrides?: CallOverrides): Promise<BigNumber>;
 
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
@@ -608,6 +637,11 @@ export class StakingRewards extends BaseContract {
     rewardsDuration(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     rewardsToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    setRewardsDuration(
+      _rewardsDuration: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     stakingToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
