@@ -11,6 +11,7 @@ contract StakingRewards is Ownable {
     using SafeERC20 for IERC20;
 
     IERC20 public stakingToken;
+    uint256 public rewardsToken;
     uint256 public periodFinish = 0;
     uint256 public rewardRate = 0;
     uint256 public rewardsDuration = 7 days;
@@ -83,5 +84,25 @@ contract StakingRewards is Ownable {
 
     function getRewardForDuration() external view returns (uint256) {
         return rewardRate.mul(rewardsDuration);
+    }
+
+    // todo modifier
+    function notifyRewardAmount(uint256 reward)
+        external
+        updateReward(address(0))
+    {
+        if (block.timestamp >= periodFinish) {
+            rewardRate = reward.div(rewardsDuration);
+        } else {
+            uint256 remaining = periodFinish.sub(block.timestamp);
+            uint256 leftover = remaining.mul(rewardRate);
+            rewardRate = reward.add(leftover).div(rewardsDuration);
+        }
+
+        // todo mint rewards
+
+        lastUpdateTime = block.timestamp;
+        periodFinish = block.timestamp.add(rewardsDuration);
+        emit RewardAdded(reward);
     }
 }
