@@ -67,6 +67,18 @@ Constants:
 
 ### VaultStorage
 
+#### Functions
+
+| Name                  | Description                                    | Modifier      | Parameters        |
+|-----------------------|------------------------------------------------|---------------|-------------------|
+| `createAccount`       | Create a credit account                        | `onlyVoyager` | `address _player` |
+| `getCreditAccount`    | Get credit account address for a specific user | `public`      | `address _user`   |
+| `getAllCreditAccount` | Get all credit account addresses               | `public`      |                   |
+
+
+### StakingRewards
+
+While sponsors do the security deposit, they will get back `SecurityDepsitToken` in return, which can be staked and earn rewards.
 
 #### Functions
 
