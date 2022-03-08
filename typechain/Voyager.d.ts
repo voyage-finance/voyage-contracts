@@ -23,9 +23,11 @@ interface VoyagerInterface extends ethers.utils.Interface {
   functions: {
     "addressResolver()": FunctionFragment;
     "claimOwnership()": FunctionFragment;
+    "createVault()": FunctionFragment;
     "getAddressResolverAddress()": FunctionFragment;
     "getLiquidityManagerName()": FunctionFragment;
     "getLoanManagerName()": FunctionFragment;
+    "getVaultManagerAddress()": FunctionFragment;
     "getVaultManagerName()": FunctionFragment;
     "getVaultStorageName()": FunctionFragment;
     "isOwner()": FunctionFragment;
@@ -48,6 +50,10 @@ interface VoyagerInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "createVault",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "getAddressResolverAddress",
     values?: undefined
   ): string;
@@ -57,6 +63,10 @@ interface VoyagerInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getLoanManagerName",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getVaultManagerAddress",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -107,6 +117,10 @@ interface VoyagerInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "createVault",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getAddressResolverAddress",
     data: BytesLike
   ): Result;
@@ -116,6 +130,10 @@ interface VoyagerInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getLoanManagerName",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getVaultManagerAddress",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -218,11 +236,19 @@ export class Voyager extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    createVault(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     getAddressResolverAddress(overrides?: CallOverrides): Promise<[string]>;
 
     getLiquidityManagerName(overrides?: CallOverrides): Promise<[string]>;
 
     getLoanManagerName(overrides?: CallOverrides): Promise<[string]>;
+
+    getVaultManagerAddress(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     getVaultManagerName(overrides?: CallOverrides): Promise<[string]>;
 
@@ -259,11 +285,19 @@ export class Voyager extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  createVault(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   getAddressResolverAddress(overrides?: CallOverrides): Promise<string>;
 
   getLiquidityManagerName(overrides?: CallOverrides): Promise<string>;
 
   getLoanManagerName(overrides?: CallOverrides): Promise<string>;
+
+  getVaultManagerAddress(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   getVaultManagerName(overrides?: CallOverrides): Promise<string>;
 
@@ -298,11 +332,15 @@ export class Voyager extends BaseContract {
 
     claimOwnership(overrides?: CallOverrides): Promise<void>;
 
+    createVault(overrides?: CallOverrides): Promise<string>;
+
     getAddressResolverAddress(overrides?: CallOverrides): Promise<string>;
 
     getLiquidityManagerName(overrides?: CallOverrides): Promise<string>;
 
     getLoanManagerName(overrides?: CallOverrides): Promise<string>;
+
+    getVaultManagerAddress(overrides?: CallOverrides): Promise<string>;
 
     getVaultManagerName(overrides?: CallOverrides): Promise<string>;
 
@@ -358,11 +396,19 @@ export class Voyager extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    createVault(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     getAddressResolverAddress(overrides?: CallOverrides): Promise<BigNumber>;
 
     getLiquidityManagerName(overrides?: CallOverrides): Promise<BigNumber>;
 
     getLoanManagerName(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getVaultManagerAddress(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     getVaultManagerName(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -400,6 +446,10 @@ export class Voyager extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    createVault(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     getAddressResolverAddress(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -410,6 +460,10 @@ export class Voyager extends BaseContract {
 
     getLoanManagerName(
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getVaultManagerAddress(
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     getVaultManagerName(
