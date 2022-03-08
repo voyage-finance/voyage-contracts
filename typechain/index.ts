@@ -4,6 +4,7 @@
 export type { AddressResolver } from "./AddressResolver";
 export type { DefaultReserveInterestRateStrategy } from "./DefaultReserveInterestRateStrategy";
 export type { LiquidityManager } from "./LiquidityManager";
+export type { RewardsDistributionRecipient } from "./RewardsDistributionRecipient";
 export type { StakingRewards } from "./StakingRewards";
 export type { SecurityDepositEscrow } from "./SecurityDepositEscrow";
 export type { Vault } from "./Vault";
@@ -39,6 +40,7 @@ export type { IERC165 } from "./IERC165";
 export { AddressResolver__factory } from "./factories/AddressResolver__factory";
 export { DefaultReserveInterestRateStrategy__factory } from "./factories/DefaultReserveInterestRateStrategy__factory";
 export { LiquidityManager__factory } from "./factories/LiquidityManager__factory";
+export { RewardsDistributionRecipient__factory } from "./factories/RewardsDistributionRecipient__factory";
 export { StakingRewards__factory } from "./factories/StakingRewards__factory";
 export { SecurityDepositEscrow__factory } from "./factories/SecurityDepositEscrow__factory";
 export { Vault__factory } from "./factories/Vault__factory";

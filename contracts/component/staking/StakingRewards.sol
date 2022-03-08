@@ -6,8 +6,13 @@ import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
 import '../../libraries/ownership/Ownable.sol';
 import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
+import './RewardsDistributionRecipient.sol';
 
-contract StakingRewards is Ownable, ReentrancyGuard {
+contract StakingRewards is
+    Ownable,
+    ReentrancyGuard,
+    RewardsDistributionRecipient
+{
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -98,9 +103,10 @@ contract StakingRewards is Ownable, ReentrancyGuard {
         }
     }
 
-    // todo modifier
     function notifyRewardAmount(uint256 reward)
         external
+        override
+        onlyRewardsDistribution
         updateReward(address(0))
     {
         if (block.timestamp >= periodFinish) {
