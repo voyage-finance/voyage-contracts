@@ -5,13 +5,15 @@ import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
 import '../../libraries/ownership/Ownable.sol';
+import '../../libraries/helpers/Pausable.sol';
 import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
 import './RewardsDistributionRecipient.sol';
 
 contract StakingRewards is
     Ownable,
     ReentrancyGuard,
-    RewardsDistributionRecipient
+    RewardsDistributionRecipient,
+    Pausable
 {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -80,6 +82,31 @@ contract StakingRewards is
                     .mul(1e18)
                     .div(_totalSupply)
             );
+    }
+
+    function stake(uint256 amount)
+        external
+        nonReentrant
+        notPaused
+        updateReward(msg.sender)
+    {
+        require(amount > 0, 'Cannot stake 0');
+        _totalSupply = _totalSupply.add(amount);
+        _balances[msg.sender] = _balances[msg.sender].add(amount);
+        stakingToken.safeTransferFrom(msg.sender, address(this), amount);
+        emit Staked(msg.sender, amount);
+    }
+
+    function withdraw(uint256 amount)
+        public
+        nonReentrant
+        updateReward(msg.sender)
+    {
+        require(amount > 0, 'Cannot withdraw 0');
+        _totalSupply = _totalSupply.sub(amount);
+        _balances[msg.sender] = _balances[msg.sender].sub(amount);
+        stakingToken.safeTransfer(msg.sender, amount);
+        emit Withdrawn(msg.sender, amount);
     }
 
     function earned(address account) public view returns (uint256) {

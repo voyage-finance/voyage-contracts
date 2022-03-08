@@ -29,10 +29,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.RewardsDistributionRecipient__factory>;
     getContractFactory(
-      name: "RewardsDistributionRecipient",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.RewardsDistributionRecipient__factory>;
-    getContractFactory(
       name: "StakingRewards",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.StakingRewards__factory>;
@@ -92,6 +88,10 @@ declare module "hardhat/types/runtime" {
       name: "Errors",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Errors__factory>;
+    getContractFactory(
+      name: "Pausable",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Pausable__factory>;
     getContractFactory(
       name: "IStableDebtToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -186,11 +186,6 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.RewardsDistributionRecipient>;
     getContractAt(
-      name: "RewardsDistributionRecipient",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.RewardsDistributionRecipient>;
-    getContractAt(
       name: "StakingRewards",
       address: string,
       signer?: ethers.Signer
@@ -265,6 +260,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.Errors>;
+    getContractAt(
+      name: "Pausable",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Pausable>;
     getContractAt(
       name: "IStableDebtToken",
       address: string,

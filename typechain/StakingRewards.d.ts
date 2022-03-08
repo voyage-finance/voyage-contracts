@@ -27,10 +27,12 @@ interface StakingRewardsInterface extends ethers.utils.Interface {
     "getReward()": FunctionFragment;
     "getRewardForDuration()": FunctionFragment;
     "isOwner()": FunctionFragment;
+    "lastPauseTime()": FunctionFragment;
     "lastTimeRewardApplicable()": FunctionFragment;
     "lastUpdateTime()": FunctionFragment;
     "notifyRewardAmount(uint256)": FunctionFragment;
     "owner()": FunctionFragment;
+    "paused()": FunctionFragment;
     "pendingOwner()": FunctionFragment;
     "periodFinish()": FunctionFragment;
     "rewardPerToken()": FunctionFragment;
@@ -40,11 +42,14 @@ interface StakingRewardsInterface extends ethers.utils.Interface {
     "rewardsDistribution()": FunctionFragment;
     "rewardsDuration()": FunctionFragment;
     "rewardsToken()": FunctionFragment;
+    "setPaused(bool)": FunctionFragment;
     "setRewardsDistribution(address)": FunctionFragment;
     "setRewardsDuration(uint256)": FunctionFragment;
+    "stake(uint256)": FunctionFragment;
     "stakingToken()": FunctionFragment;
     "totalSupply()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
+    "withdraw(uint256)": FunctionFragment;
   };
 
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
@@ -60,6 +65,10 @@ interface StakingRewardsInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "isOwner", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "lastPauseTime",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "lastTimeRewardApplicable",
     values?: undefined
   ): string;
@@ -72,6 +81,7 @@ interface StakingRewardsInterface extends ethers.utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "pendingOwner",
     values?: undefined
@@ -105,6 +115,7 @@ interface StakingRewardsInterface extends ethers.utils.Interface {
     functionFragment: "rewardsToken",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "setPaused", values: [boolean]): string;
   encodeFunctionData(
     functionFragment: "setRewardsDistribution",
     values: [string]
@@ -113,6 +124,7 @@ interface StakingRewardsInterface extends ethers.utils.Interface {
     functionFragment: "setRewardsDuration",
     values: [BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: "stake", values: [BigNumberish]): string;
   encodeFunctionData(
     functionFragment: "stakingToken",
     values?: undefined
@@ -124,6 +136,10 @@ interface StakingRewardsInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "transferOwnership",
     values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "withdraw",
+    values: [BigNumberish]
   ): string;
 
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
@@ -139,6 +155,10 @@ interface StakingRewardsInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "isOwner", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "lastPauseTime",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "lastTimeRewardApplicable",
     data: BytesLike
   ): Result;
@@ -151,6 +171,7 @@ interface StakingRewardsInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "pendingOwner",
     data: BytesLike
@@ -181,6 +202,7 @@ interface StakingRewardsInterface extends ethers.utils.Interface {
     functionFragment: "rewardsToken",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "setPaused", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setRewardsDistribution",
     data: BytesLike
@@ -189,6 +211,7 @@ interface StakingRewardsInterface extends ethers.utils.Interface {
     functionFragment: "setRewardsDuration",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "stake", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "stakingToken",
     data: BytesLike
@@ -201,9 +224,11 @@ interface StakingRewardsInterface extends ethers.utils.Interface {
     functionFragment: "transferOwnership",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
 
   events: {
     "OwnershipTransferred(address,address)": EventFragment;
+    "PauseChanged(bool)": EventFragment;
     "Recovered(address,uint256)": EventFragment;
     "RewardAdded(uint256)": EventFragment;
     "RewardPaid(address,uint256)": EventFragment;
@@ -213,6 +238,7 @@ interface StakingRewardsInterface extends ethers.utils.Interface {
   };
 
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "PauseChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Recovered"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RewardAdded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RewardPaid"): EventFragment;
@@ -224,6 +250,8 @@ interface StakingRewardsInterface extends ethers.utils.Interface {
 export type OwnershipTransferredEvent = TypedEvent<
   [string, string] & { previousOwner: string; newOwner: string }
 >;
+
+export type PauseChangedEvent = TypedEvent<[boolean] & { isPaused: boolean }>;
 
 export type RecoveredEvent = TypedEvent<
   [string, BigNumber] & { token: string; amount: BigNumber }
@@ -307,6 +335,8 @@ export class StakingRewards extends BaseContract {
 
     isOwner(overrides?: CallOverrides): Promise<[boolean]>;
 
+    lastPauseTime(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     lastTimeRewardApplicable(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     lastUpdateTime(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -317,6 +347,8 @@ export class StakingRewards extends BaseContract {
     ): Promise<ContractTransaction>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
+
+    paused(overrides?: CallOverrides): Promise<[boolean]>;
 
     pendingOwner(overrides?: CallOverrides): Promise<[string]>;
 
@@ -336,6 +368,11 @@ export class StakingRewards extends BaseContract {
 
     rewardsToken(overrides?: CallOverrides): Promise<[string]>;
 
+    setPaused(
+      _paused: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     setRewardsDistribution(
       _rewardsDistribution: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -346,12 +383,22 @@ export class StakingRewards extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    stake(
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     stakingToken(overrides?: CallOverrides): Promise<[string]>;
 
     totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     transferOwnership(
       newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    withdraw(
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
@@ -372,6 +419,8 @@ export class StakingRewards extends BaseContract {
 
   isOwner(overrides?: CallOverrides): Promise<boolean>;
 
+  lastPauseTime(overrides?: CallOverrides): Promise<BigNumber>;
+
   lastTimeRewardApplicable(overrides?: CallOverrides): Promise<BigNumber>;
 
   lastUpdateTime(overrides?: CallOverrides): Promise<BigNumber>;
@@ -382,6 +431,8 @@ export class StakingRewards extends BaseContract {
   ): Promise<ContractTransaction>;
 
   owner(overrides?: CallOverrides): Promise<string>;
+
+  paused(overrides?: CallOverrides): Promise<boolean>;
 
   pendingOwner(overrides?: CallOverrides): Promise<string>;
 
@@ -401,6 +452,11 @@ export class StakingRewards extends BaseContract {
 
   rewardsToken(overrides?: CallOverrides): Promise<string>;
 
+  setPaused(
+    _paused: boolean,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   setRewardsDistribution(
     _rewardsDistribution: string,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -411,12 +467,22 @@ export class StakingRewards extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  stake(
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   stakingToken(overrides?: CallOverrides): Promise<string>;
 
   totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
   transferOwnership(
     newOwner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  withdraw(
+    amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -433,6 +499,8 @@ export class StakingRewards extends BaseContract {
 
     isOwner(overrides?: CallOverrides): Promise<boolean>;
 
+    lastPauseTime(overrides?: CallOverrides): Promise<BigNumber>;
+
     lastTimeRewardApplicable(overrides?: CallOverrides): Promise<BigNumber>;
 
     lastUpdateTime(overrides?: CallOverrides): Promise<BigNumber>;
@@ -443,6 +511,8 @@ export class StakingRewards extends BaseContract {
     ): Promise<void>;
 
     owner(overrides?: CallOverrides): Promise<string>;
+
+    paused(overrides?: CallOverrides): Promise<boolean>;
 
     pendingOwner(overrides?: CallOverrides): Promise<string>;
 
@@ -462,6 +532,8 @@ export class StakingRewards extends BaseContract {
 
     rewardsToken(overrides?: CallOverrides): Promise<string>;
 
+    setPaused(_paused: boolean, overrides?: CallOverrides): Promise<void>;
+
     setRewardsDistribution(
       _rewardsDistribution: string,
       overrides?: CallOverrides
@@ -472,6 +544,8 @@ export class StakingRewards extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    stake(amount: BigNumberish, overrides?: CallOverrides): Promise<void>;
+
     stakingToken(overrides?: CallOverrides): Promise<string>;
 
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
@@ -480,6 +554,8 @@ export class StakingRewards extends BaseContract {
       newOwner: string,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    withdraw(amount: BigNumberish, overrides?: CallOverrides): Promise<void>;
   };
 
   filters: {
@@ -498,6 +574,14 @@ export class StakingRewards extends BaseContract {
       [string, string],
       { previousOwner: string; newOwner: string }
     >;
+
+    "PauseChanged(bool)"(
+      isPaused?: null
+    ): TypedEventFilter<[boolean], { isPaused: boolean }>;
+
+    PauseChanged(
+      isPaused?: null
+    ): TypedEventFilter<[boolean], { isPaused: boolean }>;
 
     "Recovered(address,uint256)"(
       token?: null,
@@ -597,6 +681,8 @@ export class StakingRewards extends BaseContract {
 
     isOwner(overrides?: CallOverrides): Promise<BigNumber>;
 
+    lastPauseTime(overrides?: CallOverrides): Promise<BigNumber>;
+
     lastTimeRewardApplicable(overrides?: CallOverrides): Promise<BigNumber>;
 
     lastUpdateTime(overrides?: CallOverrides): Promise<BigNumber>;
@@ -607,6 +693,8 @@ export class StakingRewards extends BaseContract {
     ): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    paused(overrides?: CallOverrides): Promise<BigNumber>;
 
     pendingOwner(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -626,6 +714,11 @@ export class StakingRewards extends BaseContract {
 
     rewardsToken(overrides?: CallOverrides): Promise<BigNumber>;
 
+    setPaused(
+      _paused: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     setRewardsDistribution(
       _rewardsDistribution: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -636,12 +729,22 @@ export class StakingRewards extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    stake(
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     stakingToken(overrides?: CallOverrides): Promise<BigNumber>;
 
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
     transferOwnership(
       newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    withdraw(
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
@@ -671,6 +774,8 @@ export class StakingRewards extends BaseContract {
 
     isOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    lastPauseTime(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     lastTimeRewardApplicable(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -683,6 +788,8 @@ export class StakingRewards extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     pendingOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -709,6 +816,11 @@ export class StakingRewards extends BaseContract {
 
     rewardsToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    setPaused(
+      _paused: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     setRewardsDistribution(
       _rewardsDistribution: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -719,12 +831,22 @@ export class StakingRewards extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    stake(
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     stakingToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transferOwnership(
       newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdraw(
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
