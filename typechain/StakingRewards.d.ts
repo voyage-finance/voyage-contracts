@@ -24,6 +24,7 @@ interface StakingRewardsInterface extends ethers.utils.Interface {
     "balanceOf(address)": FunctionFragment;
     "claimOwnership()": FunctionFragment;
     "earned(address)": FunctionFragment;
+    "getReward()": FunctionFragment;
     "getRewardForDuration()": FunctionFragment;
     "isOwner()": FunctionFragment;
     "lastTimeRewardApplicable()": FunctionFragment;
@@ -50,6 +51,7 @@ interface StakingRewardsInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "earned", values: [string]): string;
+  encodeFunctionData(functionFragment: "getReward", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getRewardForDuration",
     values?: undefined
@@ -120,6 +122,7 @@ interface StakingRewardsInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "earned", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getReward", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getRewardForDuration",
     data: BytesLike
@@ -278,6 +281,10 @@ export class StakingRewards extends BaseContract {
 
     earned(account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    getReward(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     getRewardForDuration(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     isOwner(overrides?: CallOverrides): Promise<[boolean]>;
@@ -307,7 +314,7 @@ export class StakingRewards extends BaseContract {
 
     rewardsDuration(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    rewardsToken(overrides?: CallOverrides): Promise<[BigNumber]>;
+    rewardsToken(overrides?: CallOverrides): Promise<[string]>;
 
     setRewardsDuration(
       _rewardsDuration: BigNumberish,
@@ -331,6 +338,10 @@ export class StakingRewards extends BaseContract {
   ): Promise<ContractTransaction>;
 
   earned(account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+  getReward(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   getRewardForDuration(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -361,7 +372,7 @@ export class StakingRewards extends BaseContract {
 
   rewardsDuration(overrides?: CallOverrides): Promise<BigNumber>;
 
-  rewardsToken(overrides?: CallOverrides): Promise<BigNumber>;
+  rewardsToken(overrides?: CallOverrides): Promise<string>;
 
   setRewardsDuration(
     _rewardsDuration: BigNumberish,
@@ -383,6 +394,8 @@ export class StakingRewards extends BaseContract {
     claimOwnership(overrides?: CallOverrides): Promise<void>;
 
     earned(account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    getReward(overrides?: CallOverrides): Promise<void>;
 
     getRewardForDuration(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -413,7 +426,7 @@ export class StakingRewards extends BaseContract {
 
     rewardsDuration(overrides?: CallOverrides): Promise<BigNumber>;
 
-    rewardsToken(overrides?: CallOverrides): Promise<BigNumber>;
+    rewardsToken(overrides?: CallOverrides): Promise<string>;
 
     setRewardsDuration(
       _rewardsDuration: BigNumberish,
@@ -537,6 +550,10 @@ export class StakingRewards extends BaseContract {
 
     earned(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
+    getReward(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     getRewardForDuration(overrides?: CallOverrides): Promise<BigNumber>;
 
     isOwner(overrides?: CallOverrides): Promise<BigNumber>;
@@ -596,6 +613,10 @@ export class StakingRewards extends BaseContract {
     earned(
       account: string,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getReward(
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     getRewardForDuration(

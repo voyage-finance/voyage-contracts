@@ -5,13 +5,14 @@ import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
 import '../../libraries/ownership/Ownable.sol';
+import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
 
-contract StakingRewards is Ownable {
+contract StakingRewards is Ownable, ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
     IERC20 public stakingToken;
-    uint256 public rewardsToken;
+    IERC20 public rewardsToken;
     uint256 public periodFinish = 0;
     uint256 public rewardRate = 0;
     uint256 public rewardsDuration = 7 days;
@@ -41,11 +42,13 @@ contract StakingRewards is Ownable {
         _;
     }
 
-    constructor(address _rewardsDistribution, address _stakingToken)
-        public
-        Ownable()
-    {
+    constructor(
+        address _rewardsDistribution,
+        address _stakingToken,
+        address _rewardsToken
+    ) public Ownable() {
         stakingToken = IERC20(_stakingToken);
+        rewardsToken = IERC20(_rewardsToken);
     }
 
     function totalSupply() external view returns (uint256) {
@@ -86,6 +89,15 @@ contract StakingRewards is Ownable {
         return rewardRate.mul(rewardsDuration);
     }
 
+    function getReward() public nonReentrant updateReward(msg.sender) {
+        uint256 reward = rewards[msg.sender];
+        if (reward > 0) {
+            rewards[msg.sender] = 0;
+            rewardsToken.safeTransfer(msg.sender, reward);
+            emit RewardPaid(msg.sender, reward);
+        }
+    }
+
     // todo modifier
     function notifyRewardAmount(uint256 reward)
         external
@@ -99,7 +111,15 @@ contract StakingRewards is Ownable {
             rewardRate = reward.add(leftover).div(rewardsDuration);
         }
 
-        // todo mint rewards
+        // Ensure the provided reward amount is not more than the balance in the contract.
+        // This keeps the reward rate in the right range, preventing overflows due to
+        // very high values of rewardRate in the earned and rewardsPerToken functions;
+        // Reward + leftover must be less than 2^256 / 10^18 to avoid overflow.
+        uint256 balance = rewardsToken.balanceOf(address(this));
+        require(
+            rewardRate <= balance.div(rewardsDuration),
+            'Provided reward too high'
+        );
 
         lastUpdateTime = block.timestamp;
         periodFinish = block.timestamp.add(rewardsDuration);
