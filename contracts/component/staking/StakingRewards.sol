@@ -4,13 +4,11 @@ pragma solidity ^0.8.9;
 import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
-import '../../libraries/ownership/Ownable.sol';
 import '../../libraries/helpers/Pausable.sol';
 import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
 import './RewardsDistributionRecipient.sol';
 
 contract StakingRewards is
-    Ownable,
     ReentrancyGuard,
     RewardsDistributionRecipient,
     Pausable
