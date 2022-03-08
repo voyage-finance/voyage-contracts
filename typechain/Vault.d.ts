@@ -29,6 +29,7 @@ interface VaultInterface extends ethers.utils.Interface {
     "factory()": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
     "getSecurityDepositEscrowAddress()": FunctionFragment;
+    "getVersion()": FunctionFragment;
     "grantRole(bytes32,address)": FunctionFragment;
     "hasRole(bytes32,address)": FunctionFragment;
     "initialize(address,address)": FunctionFragment;
@@ -59,6 +60,10 @@ interface VaultInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getSecurityDepositEscrowAddress",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getVersion",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -116,6 +121,7 @@ interface VaultInterface extends ethers.utils.Interface {
     functionFragment: "getSecurityDepositEscrowAddress",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getVersion", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
@@ -225,6 +231,8 @@ export class Vault extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
+    getVersion(overrides?: CallOverrides): Promise<[string]>;
+
     grantRole(
       role: BytesLike,
       account: string,
@@ -283,6 +291,8 @@ export class Vault extends BaseContract {
 
   getSecurityDepositEscrowAddress(overrides?: CallOverrides): Promise<string>;
 
+  getVersion(overrides?: CallOverrides): Promise<string>;
+
   grantRole(
     role: BytesLike,
     account: string,
@@ -340,6 +350,8 @@ export class Vault extends BaseContract {
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
     getSecurityDepositEscrowAddress(overrides?: CallOverrides): Promise<string>;
+
+    getVersion(overrides?: CallOverrides): Promise<string>;
 
     grantRole(
       role: BytesLike,
@@ -461,6 +473,8 @@ export class Vault extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getVersion(overrides?: CallOverrides): Promise<BigNumber>;
+
     grantRole(
       role: BytesLike,
       account: string,
@@ -526,6 +540,8 @@ export class Vault extends BaseContract {
     getSecurityDepositEscrowAddress(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    getVersion(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     grantRole(
       role: BytesLike,

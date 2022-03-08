@@ -62,4 +62,9 @@ contract Vault is AccessControl, ReentrancyGuard {
     function getSecurityDepositEscrowAddress() external view returns (address) {
         return securityDepositEscrow;
     }
+
+    function getVersion() external view returns (string memory) {
+        string memory version = '0.0.1';
+        return version;
+    }
 }
