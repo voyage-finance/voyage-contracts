@@ -12,6 +12,7 @@ import {
   BaseContract,
   ContractTransaction,
   Overrides,
+  PayableOverrides,
   CallOverrides,
 } from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
@@ -24,14 +25,17 @@ interface VaultInterface extends ethers.utils.Interface {
     "BORROWER()": FunctionFragment;
     "DEFAULT_ADMIN_ROLE()": FunctionFragment;
     "addressResolver()": FunctionFragment;
+    "depositSecurity(address,uint256)": FunctionFragment;
     "factory()": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
+    "getSecurityDepositEscrowAddress()": FunctionFragment;
     "grantRole(bytes32,address)": FunctionFragment;
     "hasRole(bytes32,address)": FunctionFragment;
     "initialize(address,address)": FunctionFragment;
     "players(uint256)": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
     "revokeRole(bytes32,address)": FunctionFragment;
+    "securityDepositEscrow()": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
   };
 
@@ -44,10 +48,18 @@ interface VaultInterface extends ethers.utils.Interface {
     functionFragment: "addressResolver",
     values?: undefined
   ): string;
+  encodeFunctionData(
+    functionFragment: "depositSecurity",
+    values: [string, BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "factory", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getRoleAdmin",
     values: [BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getSecurityDepositEscrowAddress",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "grantRole",
@@ -74,6 +86,10 @@ interface VaultInterface extends ethers.utils.Interface {
     values: [BytesLike, string]
   ): string;
   encodeFunctionData(
+    functionFragment: "securityDepositEscrow",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "supportsInterface",
     values: [BytesLike]
   ): string;
@@ -87,9 +103,17 @@ interface VaultInterface extends ethers.utils.Interface {
     functionFragment: "addressResolver",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "depositSecurity",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "factory", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getRoleAdmin",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getSecurityDepositEscrowAddress",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
@@ -101,6 +125,10 @@ interface VaultInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "securityDepositEscrow",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "supportsInterface",
     data: BytesLike
@@ -183,9 +211,19 @@ export class Vault extends BaseContract {
 
     addressResolver(overrides?: CallOverrides): Promise<[string]>;
 
+    depositSecurity(
+      _reserve: string,
+      _amount: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     factory(overrides?: CallOverrides): Promise<[string]>;
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<[string]>;
+
+    getSecurityDepositEscrowAddress(
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
     grantRole(
       role: BytesLike,
@@ -219,6 +257,8 @@ export class Vault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    securityDepositEscrow(overrides?: CallOverrides): Promise<[string]>;
+
     supportsInterface(
       interfaceId: BytesLike,
       overrides?: CallOverrides
@@ -231,9 +271,17 @@ export class Vault extends BaseContract {
 
   addressResolver(overrides?: CallOverrides): Promise<string>;
 
+  depositSecurity(
+    _reserve: string,
+    _amount: BigNumberish,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   factory(overrides?: CallOverrides): Promise<string>;
 
   getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
+
+  getSecurityDepositEscrowAddress(overrides?: CallOverrides): Promise<string>;
 
   grantRole(
     role: BytesLike,
@@ -267,6 +315,8 @@ export class Vault extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  securityDepositEscrow(overrides?: CallOverrides): Promise<string>;
+
   supportsInterface(
     interfaceId: BytesLike,
     overrides?: CallOverrides
@@ -279,9 +329,17 @@ export class Vault extends BaseContract {
 
     addressResolver(overrides?: CallOverrides): Promise<string>;
 
+    depositSecurity(
+      _reserve: string,
+      _amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     factory(overrides?: CallOverrides): Promise<string>;
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
+
+    getSecurityDepositEscrowAddress(overrides?: CallOverrides): Promise<string>;
 
     grantRole(
       role: BytesLike,
@@ -314,6 +372,8 @@ export class Vault extends BaseContract {
       account: string,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    securityDepositEscrow(overrides?: CallOverrides): Promise<string>;
 
     supportsInterface(
       interfaceId: BytesLike,
@@ -384,10 +444,20 @@ export class Vault extends BaseContract {
 
     addressResolver(overrides?: CallOverrides): Promise<BigNumber>;
 
+    depositSecurity(
+      _reserve: string,
+      _amount: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     factory(overrides?: CallOverrides): Promise<BigNumber>;
 
     getRoleAdmin(
       role: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getSecurityDepositEscrowAddress(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -423,6 +493,8 @@ export class Vault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    securityDepositEscrow(overrides?: CallOverrides): Promise<BigNumber>;
+
     supportsInterface(
       interfaceId: BytesLike,
       overrides?: CallOverrides
@@ -438,10 +510,20 @@ export class Vault extends BaseContract {
 
     addressResolver(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    depositSecurity(
+      _reserve: string,
+      _amount: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     factory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getRoleAdmin(
       role: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getSecurityDepositEscrowAddress(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -478,6 +560,10 @@ export class Vault extends BaseContract {
       role: BytesLike,
       account: string,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    securityDepositEscrow(
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     supportsInterface(
