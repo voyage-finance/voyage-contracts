@@ -21,14 +21,21 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface OwnableInterface extends ethers.utils.Interface {
   functions: {
+    "claimOwnership()": FunctionFragment;
+    "isOwner()": FunctionFragment;
     "owner()": FunctionFragment;
-    "renounceOwnership()": FunctionFragment;
+    "pendingOwner()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "claimOwnership",
+    values?: undefined
+  ): string;
+  encodeFunctionData(functionFragment: "isOwner", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "renounceOwnership",
+    functionFragment: "pendingOwner",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -36,9 +43,14 @@ interface OwnableInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "claimOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "isOwner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "renounceOwnership",
+    functionFragment: "pendingOwner",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -101,11 +113,15 @@ export class Ownable extends BaseContract {
   interface: OwnableInterface;
 
   functions: {
-    owner(overrides?: CallOverrides): Promise<[string]>;
-
-    renounceOwnership(
+    claimOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    isOwner(overrides?: CallOverrides): Promise<[boolean]>;
+
+    owner(overrides?: CallOverrides): Promise<[string]>;
+
+    pendingOwner(overrides?: CallOverrides): Promise<[string]>;
 
     transferOwnership(
       newOwner: string,
@@ -113,11 +129,15 @@ export class Ownable extends BaseContract {
     ): Promise<ContractTransaction>;
   };
 
-  owner(overrides?: CallOverrides): Promise<string>;
-
-  renounceOwnership(
+  claimOwnership(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  isOwner(overrides?: CallOverrides): Promise<boolean>;
+
+  owner(overrides?: CallOverrides): Promise<string>;
+
+  pendingOwner(overrides?: CallOverrides): Promise<string>;
 
   transferOwnership(
     newOwner: string,
@@ -125,9 +145,13 @@ export class Ownable extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    claimOwnership(overrides?: CallOverrides): Promise<void>;
+
+    isOwner(overrides?: CallOverrides): Promise<boolean>;
+
     owner(overrides?: CallOverrides): Promise<string>;
 
-    renounceOwnership(overrides?: CallOverrides): Promise<void>;
+    pendingOwner(overrides?: CallOverrides): Promise<string>;
 
     transferOwnership(
       newOwner: string,
@@ -154,11 +178,15 @@ export class Ownable extends BaseContract {
   };
 
   estimateGas: {
-    owner(overrides?: CallOverrides): Promise<BigNumber>;
-
-    renounceOwnership(
+    claimOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    isOwner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    pendingOwner(overrides?: CallOverrides): Promise<BigNumber>;
 
     transferOwnership(
       newOwner: string,
@@ -167,11 +195,15 @@ export class Ownable extends BaseContract {
   };
 
   populateTransaction: {
-    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    renounceOwnership(
+    claimOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    isOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    pendingOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transferOwnership(
       newOwner: string,
