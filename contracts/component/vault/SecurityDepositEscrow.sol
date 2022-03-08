@@ -3,6 +3,4 @@ pragma solidity ^0.8.9;
 
 import '../../libraries/Escrow.sol';
 
-contract SecurityDepositEscrow is Escrow {
-    constructor() Escrow() {}
-}
+contract SecurityDepositEscrow is Escrow {}
