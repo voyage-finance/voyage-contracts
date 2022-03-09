@@ -2,7 +2,7 @@
 pragma solidity ^0.8.9;
 
 import '../libraries/ownership/Ownable.sol';
-import '../component/infura/AddressResolver.sol';
+import '../component/infra/AddressResolver.sol';
 import '../component/vault/VaultManager.sol';
 import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
 

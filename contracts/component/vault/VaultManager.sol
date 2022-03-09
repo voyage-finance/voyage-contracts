@@ -4,7 +4,7 @@ pragma solidity ^0.8.9;
 import './Vault.sol';
 import '../../interfaces/IVaultManager.sol';
 import '../Voyager.sol';
-import '../infura/AddressResolver.sol';
+import '../infra/AddressResolver.sol';
 import './VaultStorage.sol';
 import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';

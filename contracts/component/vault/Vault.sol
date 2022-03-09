@@ -4,7 +4,7 @@ pragma solidity ^0.8.9;
 import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
 import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
 import './SecurityDepositEscrow.sol';
-import '../infura/AddressResolver.sol';
+import '../infra/AddressResolver.sol';
 import '../Voyager.sol';
 
 contract Vault is AccessControl, ReentrancyGuard {
