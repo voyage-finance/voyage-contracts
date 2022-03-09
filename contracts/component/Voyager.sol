@@ -52,6 +52,11 @@ contract Voyager is Ownable {
         return AddressResolver(addressResolver).getAddress(vaultManagerName);
     }
 
+    /**
+     * @dev Create an empty Vault for msg.sender, in addition to this, a vault also deploy
+     * a SecurityDepositEscrow contract which the fund will be held in
+     × @return address of Vault
+     **/
     function createVault() external returns (address) {
         return VaultManager(getVaultManagerAddress()).createVault(msg.sender);
     }

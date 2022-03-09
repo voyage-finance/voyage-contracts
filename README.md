@@ -21,6 +21,7 @@ Constants:
 |-----------------------------|-----------------------------------------|----------------------------|-------------|
 | `setAddressResolverAddress` | Update addressResolver contract address | `address _addressResolver` | `onlyOwner` |
 | `getAddressResolverAddress` | Get addressResolver contract address    |                            | `public`    |
+| `createVault`               | Create an empty Vault for user          |                            | `public`    |
 
 
 ### Escrow
