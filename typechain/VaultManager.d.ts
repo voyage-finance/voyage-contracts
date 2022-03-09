@@ -186,10 +186,7 @@ export class VaultManager extends BaseContract {
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<[string]>;
 
-    getVault(
-      _user: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    getVault(_user: string, overrides?: CallOverrides): Promise<[string]>;
 
     grantRole(
       role: BytesLike,
@@ -234,10 +231,7 @@ export class VaultManager extends BaseContract {
 
   getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
-  getVault(
-    _user: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  getVault(_user: string, overrides?: CallOverrides): Promise<string>;
 
   grantRole(
     role: BytesLike,
@@ -402,10 +396,7 @@ export class VaultManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getVault(
-      _user: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    getVault(_user: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     grantRole(
       role: BytesLike,
@@ -458,7 +449,7 @@ export class VaultManager extends BaseContract {
 
     getVault(
       _user: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     grantRole(

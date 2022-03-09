@@ -48,7 +48,7 @@ contract Voyager is Ownable {
         return loanManagerName;
     }
 
-    function getVaultManagerAddress() public returns (address) {
+    function getVaultManagerAddress() public view returns (address) {
         return AddressResolver(addressResolver).getAddress(vaultManagerName);
     }
 
@@ -62,10 +62,10 @@ contract Voyager is Ownable {
     }
 
     /**
-     * @dev Get existing Vault contract address for msg.sender
+     * @dev Get existing Vault contract address for msg.sender, 0x0000000000000000000000000000000000000000 for new user
      * @return Vault address
      **/
-    function getVault() external returns (address) {
+    function getVault() external view returns (address) {
         return VaultManager(getVaultManagerAddress()).getVault(msg.sender);
     }
 }

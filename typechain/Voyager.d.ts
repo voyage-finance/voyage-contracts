@@ -249,13 +249,9 @@ export class Voyager extends BaseContract {
 
     getLoanManagerName(overrides?: CallOverrides): Promise<[string]>;
 
-    getVault(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    getVault(overrides?: CallOverrides): Promise<[string]>;
 
-    getVaultManagerAddress(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    getVaultManagerAddress(overrides?: CallOverrides): Promise<[string]>;
 
     getVaultManagerName(overrides?: CallOverrides): Promise<[string]>;
 
@@ -302,13 +298,9 @@ export class Voyager extends BaseContract {
 
   getLoanManagerName(overrides?: CallOverrides): Promise<string>;
 
-  getVault(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  getVault(overrides?: CallOverrides): Promise<string>;
 
-  getVaultManagerAddress(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  getVaultManagerAddress(overrides?: CallOverrides): Promise<string>;
 
   getVaultManagerName(overrides?: CallOverrides): Promise<string>;
 
@@ -419,13 +411,9 @@ export class Voyager extends BaseContract {
 
     getLoanManagerName(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getVault(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    getVault(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getVaultManagerAddress(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    getVaultManagerAddress(overrides?: CallOverrides): Promise<BigNumber>;
 
     getVaultManagerName(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -479,12 +467,10 @@ export class Voyager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getVault(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+    getVault(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getVaultManagerAddress(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getVaultManagerName(

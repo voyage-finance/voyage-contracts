@@ -24,7 +24,7 @@ contract VaultManager is AccessControl, ReentrancyGuard {
         _setupRole(VOYAGER, _voyager);
     }
 
-    function getVaultStorageAddress() private returns (address) {
+    function getVaultStorageAddress() private view returns (address) {
         Voyager v = Voyager(voyager);
         address resolver = v.getAddressResolverAddress();
         return AddressResolver(resolver).getAddress(v.getVaultStorageName());
@@ -62,6 +62,7 @@ contract VaultManager is AccessControl, ReentrancyGuard {
      **/
     function getVault(address _user)
         external
+        view
         onlyRole(VOYAGER)
         returns (address)
     {
