@@ -25,6 +25,7 @@ interface VaultManagerInterface extends ethers.utils.Interface {
     "VOYAGER()": FunctionFragment;
     "createVault(address)": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
+    "getVault(address)": FunctionFragment;
     "grantRole(bytes32,address)": FunctionFragment;
     "hasRole(bytes32,address)": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
@@ -43,6 +44,7 @@ interface VaultManagerInterface extends ethers.utils.Interface {
     functionFragment: "getRoleAdmin",
     values: [BytesLike]
   ): string;
+  encodeFunctionData(functionFragment: "getVault", values: [string]): string;
   encodeFunctionData(
     functionFragment: "grantRole",
     values: [BytesLike, string]
@@ -78,6 +80,7 @@ interface VaultManagerInterface extends ethers.utils.Interface {
     functionFragment: "getRoleAdmin",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getVault", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
   decodeFunctionResult(
@@ -177,11 +180,16 @@ export class VaultManager extends BaseContract {
     VOYAGER(overrides?: CallOverrides): Promise<[string]>;
 
     createVault(
-      _player: string,
+      _user: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<[string]>;
+
+    getVault(
+      _user: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     grantRole(
       role: BytesLike,
@@ -220,11 +228,16 @@ export class VaultManager extends BaseContract {
   VOYAGER(overrides?: CallOverrides): Promise<string>;
 
   createVault(
-    _player: string,
+    _user: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
+
+  getVault(
+    _user: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   grantRole(
     role: BytesLike,
@@ -262,9 +275,11 @@ export class VaultManager extends BaseContract {
 
     VOYAGER(overrides?: CallOverrides): Promise<string>;
 
-    createVault(_player: string, overrides?: CallOverrides): Promise<string>;
+    createVault(_user: string, overrides?: CallOverrides): Promise<string>;
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
+
+    getVault(_user: string, overrides?: CallOverrides): Promise<string>;
 
     grantRole(
       role: BytesLike,
@@ -378,13 +393,18 @@ export class VaultManager extends BaseContract {
     VOYAGER(overrides?: CallOverrides): Promise<BigNumber>;
 
     createVault(
-      _player: string,
+      _user: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     getRoleAdmin(
       role: BytesLike,
       overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getVault(
+      _user: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     grantRole(
@@ -427,13 +447,18 @@ export class VaultManager extends BaseContract {
     VOYAGER(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     createVault(
-      _player: string,
+      _user: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     getRoleAdmin(
       role: BytesLike,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getVault(
+      _user: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     grantRole(

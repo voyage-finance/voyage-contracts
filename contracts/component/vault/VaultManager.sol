@@ -31,27 +31,40 @@ contract VaultManager is AccessControl, ReentrancyGuard {
     }
 
     /**
-     * @dev Create a credit account
-     * @param _player the address of the player
+     * @dev Create a Vault for user
+     * @param _user the address of the player
      **/
-    function createVault(address _player)
+    function createVault(address _user)
         external
         onlyRole(VOYAGER)
         returns (address vault)
     {
         bytes memory bytecode = type(Vault).creationCode;
-        bytes32 salt = keccak256(abi.encodePacked(_player));
+        bytes32 salt = keccak256(abi.encodePacked(_user));
         assembly {
             vault := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
         Vault(vault).initialize(
             Voyager(voyager).getAddressResolverAddress(),
-            _player
+            _user
         );
         uint256 len = VaultStorage(getVaultStorageAddress()).pushNewVault(
-            _player,
+            _user,
             vault
         );
-        emit VaultCreated(_player, vault, len);
+        emit VaultCreated(_user, vault, len);
+    }
+
+    /**
+     * @dev Get existing Vault contract address for user
+     * @param _user the address of the player
+     * @return Vault address
+     **/
+    function getVault(address _user)
+        external
+        onlyRole(VOYAGER)
+        returns (address)
+    {
+        return VaultStorage(getVaultStorageAddress()).getVaultAddress(_user);
     }
 }

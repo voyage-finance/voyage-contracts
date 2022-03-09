@@ -60,4 +60,12 @@ contract Voyager is Ownable {
     function createVault() external returns (address) {
         return VaultManager(getVaultManagerAddress()).createVault(msg.sender);
     }
+
+    /**
+     * @dev Get existing Vault contract address for msg.sender
+     * @return Vault address
+     **/
+    function getVault() external returns (address) {
+        return VaultManager(getVaultManagerAddress()).getVault(msg.sender);
+    }
 }
