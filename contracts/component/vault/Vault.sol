@@ -48,6 +48,7 @@ contract Vault is AccessControl, ReentrancyGuard {
         payable
         nonReentrant
     {
+        // todo check if the _reserve is allowed to be deposited
         SecurityDepositEscrow(securityDepositEscrow).deposit(
             _reserve,
             msg.sender,

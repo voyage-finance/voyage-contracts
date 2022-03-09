@@ -52,6 +52,8 @@ contract Voyager is Ownable {
         return AddressResolver(addressResolver).getAddress(vaultManagerName);
     }
 
+    /************************************** Vault Interfaces **************************************/
+
     /**
      * @dev Create an empty Vault for msg.sender, in addition to this, a vault also deploy
      * a SecurityDepositEscrow contract which the fund will be held in
