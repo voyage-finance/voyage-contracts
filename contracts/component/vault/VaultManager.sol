@@ -85,4 +85,12 @@ contract VaultManager is AccessControl, ReentrancyGuard {
     {
         delete maxSecurityDeposit[_reserve];
     }
+
+    function getMaxSecurityDeposit(address _reserve)
+        external
+        view
+        returns (uint256)
+    {
+        return maxSecurityDeposit[_reserve];
+    }
 }
