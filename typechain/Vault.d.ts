@@ -27,6 +27,7 @@ interface VaultInterface extends ethers.utils.Interface {
     "addressResolver()": FunctionFragment;
     "depositSecurity(address,uint256)": FunctionFragment;
     "factory()": FunctionFragment;
+    "getCurrentSecurityDeposit(address,address)": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
     "getSecurityDepositEscrowAddress()": FunctionFragment;
     "getVersion()": FunctionFragment;
@@ -54,6 +55,10 @@ interface VaultInterface extends ethers.utils.Interface {
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "factory", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "getCurrentSecurityDeposit",
+    values: [string, string]
+  ): string;
   encodeFunctionData(
     functionFragment: "getRoleAdmin",
     values: [BytesLike]
@@ -113,6 +118,10 @@ interface VaultInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "factory", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getCurrentSecurityDeposit",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getRoleAdmin",
     data: BytesLike
@@ -225,6 +234,12 @@ export class Vault extends BaseContract {
 
     factory(overrides?: CallOverrides): Promise<[string]>;
 
+    getCurrentSecurityDeposit(
+      _reserve: string,
+      _user: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<[string]>;
 
     getSecurityDepositEscrowAddress(
@@ -287,6 +302,12 @@ export class Vault extends BaseContract {
 
   factory(overrides?: CallOverrides): Promise<string>;
 
+  getCurrentSecurityDeposit(
+    _reserve: string,
+    _user: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
   getSecurityDepositEscrowAddress(overrides?: CallOverrides): Promise<string>;
@@ -346,6 +367,12 @@ export class Vault extends BaseContract {
     ): Promise<void>;
 
     factory(overrides?: CallOverrides): Promise<string>;
+
+    getCurrentSecurityDeposit(
+      _reserve: string,
+      _user: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
@@ -464,6 +491,12 @@ export class Vault extends BaseContract {
 
     factory(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getCurrentSecurityDeposit(
+      _reserve: string,
+      _user: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getRoleAdmin(
       role: BytesLike,
       overrides?: CallOverrides
@@ -531,6 +564,12 @@ export class Vault extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     factory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getCurrentSecurityDeposit(
+      _reserve: string,
+      _user: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     getRoleAdmin(
       role: BytesLike,

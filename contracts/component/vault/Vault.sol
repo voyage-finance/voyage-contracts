@@ -56,6 +56,19 @@ contract Vault is AccessControl, ReentrancyGuard {
         );
     }
 
+    // todo refactor vault contract to remove _user parameter
+    function getCurrentSecurityDeposit(address _reserve, address _user)
+        external
+        view
+        returns (uint256)
+    {
+        return
+            SecurityDepositEscrow(securityDepositEscrow).getDepositAmount(
+                _reserve,
+                _user
+            );
+    }
+
     /**
      * @dev Get SecurityDepositEscrow contract address
      * @return address
