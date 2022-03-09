@@ -38,19 +38,21 @@ describe("SecurityDepositEscrow contract", function () {
         // import vaultManager to AddressResolver
         const names = [ethers.utils.formatBytes32String("vaultManager"),ethers.utils.formatBytes32String("vaultStorage")];
         const destinations = [vaultManager.address, vaultStorage.address];
-        const importTxn = await addressResolver.importAddresses(names, destinations);
+        await addressResolver.importAddresses(names, destinations);
 
         // create vault
         await voyager.createVault();
 
-        const allVaults = await vaultStorage.getAllCreditAccount();
         const vaultAddress = await vaultStorage.getCreditAccount(owner.address);
-
-        console.log(vaultAddress);
         const Vault = await ethers.getContractFactory("Vault");
         const vault = Vault.attach(vaultAddress);
+        expect(await vault.getVersion()).to.equal("Vault 0.0.1");
 
-        expect(await vault.getVersion()).to.equal("0.0.1");
+        const SecurityDepositEscrow = await ethers.getContractFactory("SecurityDepositEscrow");
+        const securityDepositEscrowAddress = await vault.getSecurityDepositEscrowAddress();
+        const securityDepositEscrow = SecurityDepositEscrow.attach(securityDepositEscrowAddress);
+        expect(await securityDepositEscrow.getVersion()).to.equal("SecurityDepositEscrow 0.0.1");
+
     })
 });
 

@@ -64,7 +64,7 @@ contract Vault is AccessControl, ReentrancyGuard {
     }
 
     function getVersion() external view returns (string memory) {
-        string memory version = '0.0.1';
+        string memory version = 'Vault 0.0.1';
         return version;
     }
 }
