@@ -16,6 +16,7 @@ contract VaultManager is AccessControl, ReentrancyGuard {
 
     bytes32 public constant VOYAGER = keccak256('VOYAGER');
     address public voyager;
+    mapping(address => uint256) public maxSecurityDeposit;
 
     event VaultCreated(address indexed player, address vault, uint256);
 
@@ -67,5 +68,21 @@ contract VaultManager is AccessControl, ReentrancyGuard {
         returns (address)
     {
         return VaultStorage(getVaultStorageAddress()).getVaultAddress(_user);
+    }
+
+    /************************ HouseKeeping Function ******************************/
+
+    function setMaxSecurityDeposit(address _reserve, uint256 _amount)
+        external
+        onlyRole(VOYAGER)
+    {
+        maxSecurityDeposit[_reserve] = _amount;
+    }
+
+    function removeMaxSecurityDeposit(address _reserve, uint256 _amount)
+        external
+        onlyRole(VOYAGER)
+    {
+        delete maxSecurityDeposit[_reserve];
     }
 }

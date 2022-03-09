@@ -28,8 +28,11 @@ interface VaultManagerInterface extends ethers.utils.Interface {
     "getVault(address)": FunctionFragment;
     "grantRole(bytes32,address)": FunctionFragment;
     "hasRole(bytes32,address)": FunctionFragment;
+    "maxSecurityDeposit(address)": FunctionFragment;
+    "removeMaxSecurityDeposit(address,uint256)": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
     "revokeRole(bytes32,address)": FunctionFragment;
+    "setMaxSecurityDeposit(address,uint256)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
     "voyager()": FunctionFragment;
   };
@@ -54,12 +57,24 @@ interface VaultManagerInterface extends ethers.utils.Interface {
     values: [BytesLike, string]
   ): string;
   encodeFunctionData(
+    functionFragment: "maxSecurityDeposit",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "removeMaxSecurityDeposit",
+    values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "renounceRole",
     values: [BytesLike, string]
   ): string;
   encodeFunctionData(
     functionFragment: "revokeRole",
     values: [BytesLike, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setMaxSecurityDeposit",
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "supportsInterface",
@@ -84,10 +99,22 @@ interface VaultManagerInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "maxSecurityDeposit",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "removeMaxSecurityDeposit",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "renounceRole",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "setMaxSecurityDeposit",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "supportsInterface",
     data: BytesLike
@@ -200,6 +227,17 @@ export class VaultManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
+    maxSecurityDeposit(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    removeMaxSecurityDeposit(
+      _reserve: string,
+      _amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     renounceRole(
       role: BytesLike,
       account: string,
@@ -209,6 +247,12 @@ export class VaultManager extends BaseContract {
     revokeRole(
       role: BytesLike,
       account: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setMaxSecurityDeposit(
+      _reserve: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -245,6 +289,17 @@ export class VaultManager extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
+  maxSecurityDeposit(
+    arg0: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  removeMaxSecurityDeposit(
+    _reserve: string,
+    _amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   renounceRole(
     role: BytesLike,
     account: string,
@@ -254,6 +309,12 @@ export class VaultManager extends BaseContract {
   revokeRole(
     role: BytesLike,
     account: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setMaxSecurityDeposit(
+    _reserve: string,
+    _amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -287,6 +348,17 @@ export class VaultManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    maxSecurityDeposit(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    removeMaxSecurityDeposit(
+      _reserve: string,
+      _amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     renounceRole(
       role: BytesLike,
       account: string,
@@ -296,6 +368,12 @@ export class VaultManager extends BaseContract {
     revokeRole(
       role: BytesLike,
       account: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setMaxSecurityDeposit(
+      _reserve: string,
+      _amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -410,6 +488,17 @@ export class VaultManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    maxSecurityDeposit(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    removeMaxSecurityDeposit(
+      _reserve: string,
+      _amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     renounceRole(
       role: BytesLike,
       account: string,
@@ -419,6 +508,12 @@ export class VaultManager extends BaseContract {
     revokeRole(
       role: BytesLike,
       account: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setMaxSecurityDeposit(
+      _reserve: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -464,6 +559,17 @@ export class VaultManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    maxSecurityDeposit(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    removeMaxSecurityDeposit(
+      _reserve: string,
+      _amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     renounceRole(
       role: BytesLike,
       account: string,
@@ -473,6 +579,12 @@ export class VaultManager extends BaseContract {
     revokeRole(
       role: BytesLike,
       account: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setMaxSecurityDeposit(
+      _reserve: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
