@@ -3,14 +3,16 @@ const { expect } = require("chai");
 
 let voyager;
 let vaultStorage;
+let owner;
 
 describe("SecurityDepositEscrow contract", function () {
 
     beforeEach(async function () {
+         [owner] = await ethers.getSigners();
 
         // deploy Voyager contract
         const Voyager = await ethers.getContractFactory("Voyager");
-        voyager = await Voyager.deploy();
+        voyager = await Voyager.deploy(owner.address);
 
         // deploy AddressResolver contract
         const AddressResolver = await ethers.getContractFactory("AddressResolver");
@@ -39,7 +41,6 @@ describe("SecurityDepositEscrow contract", function () {
 
     it("Create Vault should return a valid vault contract", async function () {
 
-        const [owner] = await ethers.getSigners();
         // create vault
         await voyager.createVault();
 
