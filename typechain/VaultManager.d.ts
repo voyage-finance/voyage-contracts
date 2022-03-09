@@ -30,7 +30,7 @@ interface VaultManagerInterface extends ethers.utils.Interface {
     "grantRole(bytes32,address)": FunctionFragment;
     "hasRole(bytes32,address)": FunctionFragment;
     "maxSecurityDeposit(address)": FunctionFragment;
-    "removeMaxSecurityDeposit(address,uint256)": FunctionFragment;
+    "removeMaxSecurityDeposit(address)": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
     "revokeRole(bytes32,address)": FunctionFragment;
     "setMaxSecurityDeposit(address,uint256)": FunctionFragment;
@@ -67,7 +67,7 @@ interface VaultManagerInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "removeMaxSecurityDeposit",
-    values: [string, BigNumberish]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "renounceRole",
@@ -248,7 +248,6 @@ export class VaultManager extends BaseContract {
 
     removeMaxSecurityDeposit(
       _reserve: string,
-      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -315,7 +314,6 @@ export class VaultManager extends BaseContract {
 
   removeMaxSecurityDeposit(
     _reserve: string,
-    _amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -379,7 +377,6 @@ export class VaultManager extends BaseContract {
 
     removeMaxSecurityDeposit(
       _reserve: string,
-      _amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -524,7 +521,6 @@ export class VaultManager extends BaseContract {
 
     removeMaxSecurityDeposit(
       _reserve: string,
-      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -600,7 +596,6 @@ export class VaultManager extends BaseContract {
 
     removeMaxSecurityDeposit(
       _reserve: string,
-      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

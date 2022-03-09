@@ -4,14 +4,20 @@ pragma solidity ^0.8.9;
 import '../libraries/ownership/Ownable.sol';
 import '../component/infura/AddressResolver.sol';
 import '../component/vault/VaultManager.sol';
+import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
 
-contract Voyager is Ownable {
+contract Voyager is AccessControl {
     bytes32 public constant liquidityManagerName = 'liquidityManager';
     bytes32 public constant loanManagerName = 'loanManager';
     bytes32 public constant vaultManagerName = 'vaultManager';
     bytes32 public constant vaultStorageName = 'vaultStorage';
+    bytes32 public constant OPERATOR = keccak256('OPERATOR');
 
     address public addressResolver;
+
+    constructor(address _operator) public {
+        _setupRole(OPERATOR, _operator);
+    }
 
     /**
      * @dev Update addressResolver contract address
@@ -19,7 +25,7 @@ contract Voyager is Ownable {
      **/
     function setAddressResolverAddress(address _addressResolver)
         external
-        onlyOwner
+        onlyRole(OPERATOR)
     {
         addressResolver = _addressResolver;
     }
@@ -69,5 +75,35 @@ contract Voyager is Ownable {
      **/
     function getVault() external view returns (address) {
         return VaultManager(getVaultManagerAddress()).getVault(msg.sender);
+    }
+
+    /**
+     * @dev Set max security deposit for _reserve
+     * @param _reserve reserve address
+     * @param _amount max amount sponsor can deposit
+     */
+    function setMaxSecurityDeposit(address _reserve, uint256 _amount)
+        external
+        onlyRole(OPERATOR)
+    {
+        return
+            VaultManager(getVaultManagerAddress()).setMaxSecurityDeposit(
+                _reserve,
+                _amount
+            );
+    }
+
+    /**
+     * @dev Remove max security deposit for _reserve
+     * @param _reserve reserve address
+     */
+    function removeMaxSecurityDeposit(address _reserve)
+        external
+        onlyRole(OPERATOR)
+    {
+        return
+            VaultManager(getVaultManagerAddress()).removeMaxSecurityDeposit(
+                _reserve
+            );
     }
 }

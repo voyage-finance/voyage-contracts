@@ -79,7 +79,7 @@ contract VaultManager is AccessControl, ReentrancyGuard {
         maxSecurityDeposit[_reserve] = _amount;
     }
 
-    function removeMaxSecurityDeposit(address _reserve, uint256 _amount)
+    function removeMaxSecurityDeposit(address _reserve)
         external
         onlyRole(VOYAGER)
     {

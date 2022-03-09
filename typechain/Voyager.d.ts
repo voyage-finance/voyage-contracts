@@ -21,33 +21,39 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface VoyagerInterface extends ethers.utils.Interface {
   functions: {
+    "DEFAULT_ADMIN_ROLE()": FunctionFragment;
+    "OPERATOR()": FunctionFragment;
     "addressResolver()": FunctionFragment;
-    "claimOwnership()": FunctionFragment;
     "createVault()": FunctionFragment;
     "getAddressResolverAddress()": FunctionFragment;
     "getLiquidityManagerName()": FunctionFragment;
     "getLoanManagerName()": FunctionFragment;
+    "getRoleAdmin(bytes32)": FunctionFragment;
     "getVault()": FunctionFragment;
     "getVaultManagerAddress()": FunctionFragment;
     "getVaultManagerName()": FunctionFragment;
     "getVaultStorageName()": FunctionFragment;
-    "isOwner()": FunctionFragment;
+    "grantRole(bytes32,address)": FunctionFragment;
+    "hasRole(bytes32,address)": FunctionFragment;
     "liquidityManagerName()": FunctionFragment;
     "loanManagerName()": FunctionFragment;
-    "owner()": FunctionFragment;
-    "pendingOwner()": FunctionFragment;
+    "removeMaxSecurityDeposit(address)": FunctionFragment;
+    "renounceRole(bytes32,address)": FunctionFragment;
+    "revokeRole(bytes32,address)": FunctionFragment;
     "setAddressResolverAddress(address)": FunctionFragment;
-    "transferOwnership(address)": FunctionFragment;
+    "setMaxSecurityDeposit(address,uint256)": FunctionFragment;
+    "supportsInterface(bytes4)": FunctionFragment;
     "vaultManagerName()": FunctionFragment;
     "vaultStorageName()": FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "addressResolver",
+    functionFragment: "DEFAULT_ADMIN_ROLE",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "OPERATOR", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "claimOwnership",
+    functionFragment: "addressResolver",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -65,6 +71,10 @@ interface VoyagerInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "getLoanManagerName",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getRoleAdmin",
+    values: [BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "getVault", values?: undefined): string;
   encodeFunctionData(
@@ -79,7 +89,14 @@ interface VoyagerInterface extends ethers.utils.Interface {
     functionFragment: "getVaultStorageName",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "isOwner", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "grantRole",
+    values: [BytesLike, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "hasRole",
+    values: [BytesLike, string]
+  ): string;
   encodeFunctionData(
     functionFragment: "liquidityManagerName",
     values?: undefined
@@ -88,18 +105,29 @@ interface VoyagerInterface extends ethers.utils.Interface {
     functionFragment: "loanManagerName",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "pendingOwner",
-    values?: undefined
+    functionFragment: "removeMaxSecurityDeposit",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "renounceRole",
+    values: [BytesLike, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "revokeRole",
+    values: [BytesLike, string]
   ): string;
   encodeFunctionData(
     functionFragment: "setAddressResolverAddress",
     values: [string]
   ): string;
   encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [string]
+    functionFragment: "setMaxSecurityDeposit",
+    values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "supportsInterface",
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "vaultManagerName",
@@ -111,11 +139,12 @@ interface VoyagerInterface extends ethers.utils.Interface {
   ): string;
 
   decodeFunctionResult(
-    functionFragment: "addressResolver",
+    functionFragment: "DEFAULT_ADMIN_ROLE",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "OPERATOR", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "claimOwnership",
+    functionFragment: "addressResolver",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -132,6 +161,10 @@ interface VoyagerInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getLoanManagerName",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getRoleAdmin",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getVault", data: BytesLike): Result;
@@ -147,7 +180,8 @@ interface VoyagerInterface extends ethers.utils.Interface {
     functionFragment: "getVaultStorageName",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "isOwner", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "liquidityManagerName",
     data: BytesLike
@@ -156,17 +190,25 @@ interface VoyagerInterface extends ethers.utils.Interface {
     functionFragment: "loanManagerName",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "pendingOwner",
+    functionFragment: "removeMaxSecurityDeposit",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "renounceRole",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setAddressResolverAddress",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "transferOwnership",
+    functionFragment: "setMaxSecurityDeposit",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "supportsInterface",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -179,14 +221,30 @@ interface VoyagerInterface extends ethers.utils.Interface {
   ): Result;
 
   events: {
-    "OwnershipTransferred(address,address)": EventFragment;
+    "RoleAdminChanged(bytes32,bytes32,bytes32)": EventFragment;
+    "RoleGranted(bytes32,address,address)": EventFragment;
+    "RoleRevoked(bytes32,address,address)": EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RoleAdminChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RoleGranted"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RoleRevoked"): EventFragment;
 }
 
-export type OwnershipTransferredEvent = TypedEvent<
-  [string, string] & { previousOwner: string; newOwner: string }
+export type RoleAdminChangedEvent = TypedEvent<
+  [string, string, string] & {
+    role: string;
+    previousAdminRole: string;
+    newAdminRole: string;
+  }
+>;
+
+export type RoleGrantedEvent = TypedEvent<
+  [string, string, string] & { role: string; account: string; sender: string }
+>;
+
+export type RoleRevokedEvent = TypedEvent<
+  [string, string, string] & { role: string; account: string; sender: string }
 >;
 
 export class Voyager extends BaseContract {
@@ -233,11 +291,11 @@ export class Voyager extends BaseContract {
   interface: VoyagerInterface;
 
   functions: {
-    addressResolver(overrides?: CallOverrides): Promise<[string]>;
+    DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
-    claimOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    OPERATOR(overrides?: CallOverrides): Promise<[string]>;
+
+    addressResolver(overrides?: CallOverrides): Promise<[string]>;
 
     createVault(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -249,6 +307,8 @@ export class Voyager extends BaseContract {
 
     getLoanManagerName(overrides?: CallOverrides): Promise<[string]>;
 
+    getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<[string]>;
+
     getVault(overrides?: CallOverrides): Promise<[string]>;
 
     getVaultManagerAddress(overrides?: CallOverrides): Promise<[string]>;
@@ -257,36 +317,65 @@ export class Voyager extends BaseContract {
 
     getVaultStorageName(overrides?: CallOverrides): Promise<[string]>;
 
-    isOwner(overrides?: CallOverrides): Promise<[boolean]>;
+    grantRole(
+      role: BytesLike,
+      account: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    hasRole(
+      role: BytesLike,
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
     liquidityManagerName(overrides?: CallOverrides): Promise<[string]>;
 
     loanManagerName(overrides?: CallOverrides): Promise<[string]>;
 
-    owner(overrides?: CallOverrides): Promise<[string]>;
+    removeMaxSecurityDeposit(
+      _reserve: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
-    pendingOwner(overrides?: CallOverrides): Promise<[string]>;
+    renounceRole(
+      role: BytesLike,
+      account: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    revokeRole(
+      role: BytesLike,
+      account: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     setAddressResolverAddress(
       _addressResolver: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    transferOwnership(
-      newOwner: string,
+    setMaxSecurityDeposit(
+      _reserve: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    supportsInterface(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
     vaultManagerName(overrides?: CallOverrides): Promise<[string]>;
 
     vaultStorageName(overrides?: CallOverrides): Promise<[string]>;
   };
 
-  addressResolver(overrides?: CallOverrides): Promise<string>;
+  DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
 
-  claimOwnership(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  OPERATOR(overrides?: CallOverrides): Promise<string>;
+
+  addressResolver(overrides?: CallOverrides): Promise<string>;
 
   createVault(
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -298,6 +387,8 @@ export class Voyager extends BaseContract {
 
   getLoanManagerName(overrides?: CallOverrides): Promise<string>;
 
+  getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
+
   getVault(overrides?: CallOverrides): Promise<string>;
 
   getVaultManagerAddress(overrides?: CallOverrides): Promise<string>;
@@ -306,34 +397,65 @@ export class Voyager extends BaseContract {
 
   getVaultStorageName(overrides?: CallOverrides): Promise<string>;
 
-  isOwner(overrides?: CallOverrides): Promise<boolean>;
+  grantRole(
+    role: BytesLike,
+    account: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  hasRole(
+    role: BytesLike,
+    account: string,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
   liquidityManagerName(overrides?: CallOverrides): Promise<string>;
 
   loanManagerName(overrides?: CallOverrides): Promise<string>;
 
-  owner(overrides?: CallOverrides): Promise<string>;
+  removeMaxSecurityDeposit(
+    _reserve: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
-  pendingOwner(overrides?: CallOverrides): Promise<string>;
+  renounceRole(
+    role: BytesLike,
+    account: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  revokeRole(
+    role: BytesLike,
+    account: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   setAddressResolverAddress(
     _addressResolver: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  transferOwnership(
-    newOwner: string,
+  setMaxSecurityDeposit(
+    _reserve: string,
+    _amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  supportsInterface(
+    interfaceId: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
   vaultManagerName(overrides?: CallOverrides): Promise<string>;
 
   vaultStorageName(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
-    addressResolver(overrides?: CallOverrides): Promise<string>;
+    DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
 
-    claimOwnership(overrides?: CallOverrides): Promise<void>;
+    OPERATOR(overrides?: CallOverrides): Promise<string>;
+
+    addressResolver(overrides?: CallOverrides): Promise<string>;
 
     createVault(overrides?: CallOverrides): Promise<string>;
 
@@ -343,6 +465,8 @@ export class Voyager extends BaseContract {
 
     getLoanManagerName(overrides?: CallOverrides): Promise<string>;
 
+    getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
+
     getVault(overrides?: CallOverrides): Promise<string>;
 
     getVaultManagerAddress(overrides?: CallOverrides): Promise<string>;
@@ -351,25 +475,54 @@ export class Voyager extends BaseContract {
 
     getVaultStorageName(overrides?: CallOverrides): Promise<string>;
 
-    isOwner(overrides?: CallOverrides): Promise<boolean>;
+    grantRole(
+      role: BytesLike,
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    hasRole(
+      role: BytesLike,
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     liquidityManagerName(overrides?: CallOverrides): Promise<string>;
 
     loanManagerName(overrides?: CallOverrides): Promise<string>;
 
-    owner(overrides?: CallOverrides): Promise<string>;
+    removeMaxSecurityDeposit(
+      _reserve: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
-    pendingOwner(overrides?: CallOverrides): Promise<string>;
+    renounceRole(
+      role: BytesLike,
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    revokeRole(
+      role: BytesLike,
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     setAddressResolverAddress(
       _addressResolver: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    transferOwnership(
-      newOwner: string,
+    setMaxSecurityDeposit(
+      _reserve: string,
+      _amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    supportsInterface(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     vaultManagerName(overrides?: CallOverrides): Promise<string>;
 
@@ -377,29 +530,67 @@ export class Voyager extends BaseContract {
   };
 
   filters: {
-    "OwnershipTransferred(address,address)"(
-      previousOwner?: string | null,
-      newOwner?: string | null
+    "RoleAdminChanged(bytes32,bytes32,bytes32)"(
+      role?: BytesLike | null,
+      previousAdminRole?: BytesLike | null,
+      newAdminRole?: BytesLike | null
     ): TypedEventFilter<
-      [string, string],
-      { previousOwner: string; newOwner: string }
+      [string, string, string],
+      { role: string; previousAdminRole: string; newAdminRole: string }
     >;
 
-    OwnershipTransferred(
-      previousOwner?: string | null,
-      newOwner?: string | null
+    RoleAdminChanged(
+      role?: BytesLike | null,
+      previousAdminRole?: BytesLike | null,
+      newAdminRole?: BytesLike | null
     ): TypedEventFilter<
-      [string, string],
-      { previousOwner: string; newOwner: string }
+      [string, string, string],
+      { role: string; previousAdminRole: string; newAdminRole: string }
+    >;
+
+    "RoleGranted(bytes32,address,address)"(
+      role?: BytesLike | null,
+      account?: string | null,
+      sender?: string | null
+    ): TypedEventFilter<
+      [string, string, string],
+      { role: string; account: string; sender: string }
+    >;
+
+    RoleGranted(
+      role?: BytesLike | null,
+      account?: string | null,
+      sender?: string | null
+    ): TypedEventFilter<
+      [string, string, string],
+      { role: string; account: string; sender: string }
+    >;
+
+    "RoleRevoked(bytes32,address,address)"(
+      role?: BytesLike | null,
+      account?: string | null,
+      sender?: string | null
+    ): TypedEventFilter<
+      [string, string, string],
+      { role: string; account: string; sender: string }
+    >;
+
+    RoleRevoked(
+      role?: BytesLike | null,
+      account?: string | null,
+      sender?: string | null
+    ): TypedEventFilter<
+      [string, string, string],
+      { role: string; account: string; sender: string }
     >;
   };
 
   estimateGas: {
-    addressResolver(overrides?: CallOverrides): Promise<BigNumber>;
+    DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
 
-    claimOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    OPERATOR(overrides?: CallOverrides): Promise<BigNumber>;
+
+    addressResolver(overrides?: CallOverrides): Promise<BigNumber>;
 
     createVault(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -411,6 +602,11 @@ export class Voyager extends BaseContract {
 
     getLoanManagerName(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getRoleAdmin(
+      role: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getVault(overrides?: CallOverrides): Promise<BigNumber>;
 
     getVaultManagerAddress(overrides?: CallOverrides): Promise<BigNumber>;
@@ -419,24 +615,53 @@ export class Voyager extends BaseContract {
 
     getVaultStorageName(overrides?: CallOverrides): Promise<BigNumber>;
 
-    isOwner(overrides?: CallOverrides): Promise<BigNumber>;
+    grantRole(
+      role: BytesLike,
+      account: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    hasRole(
+      role: BytesLike,
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     liquidityManagerName(overrides?: CallOverrides): Promise<BigNumber>;
 
     loanManagerName(overrides?: CallOverrides): Promise<BigNumber>;
 
-    owner(overrides?: CallOverrides): Promise<BigNumber>;
+    removeMaxSecurityDeposit(
+      _reserve: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
-    pendingOwner(overrides?: CallOverrides): Promise<BigNumber>;
+    renounceRole(
+      role: BytesLike,
+      account: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    revokeRole(
+      role: BytesLike,
+      account: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     setAddressResolverAddress(
       _addressResolver: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    transferOwnership(
-      newOwner: string,
+    setMaxSecurityDeposit(
+      _reserve: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    supportsInterface(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     vaultManagerName(overrides?: CallOverrides): Promise<BigNumber>;
@@ -445,11 +670,13 @@ export class Voyager extends BaseContract {
   };
 
   populateTransaction: {
-    addressResolver(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    claimOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
+    DEFAULT_ADMIN_ROLE(
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    OPERATOR(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    addressResolver(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     createVault(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -467,6 +694,11 @@ export class Voyager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    getRoleAdmin(
+      role: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getVault(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getVaultManagerAddress(
@@ -481,7 +713,17 @@ export class Voyager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    isOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    grantRole(
+      role: BytesLike,
+      account: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    hasRole(
+      role: BytesLike,
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     liquidityManagerName(
       overrides?: CallOverrides
@@ -489,18 +731,37 @@ export class Voyager extends BaseContract {
 
     loanManagerName(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    removeMaxSecurityDeposit(
+      _reserve: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
-    pendingOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    renounceRole(
+      role: BytesLike,
+      account: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    revokeRole(
+      role: BytesLike,
+      account: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     setAddressResolverAddress(
       _addressResolver: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    transferOwnership(
-      newOwner: string,
+    setMaxSecurityDeposit(
+      _reserve: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    supportsInterface(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     vaultManagerName(overrides?: CallOverrides): Promise<PopulatedTransaction>;
