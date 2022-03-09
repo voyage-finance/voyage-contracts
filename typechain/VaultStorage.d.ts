@@ -24,9 +24,9 @@ interface VaultStorageInterface extends ethers.utils.Interface {
     "allVaults(uint256)": FunctionFragment;
     "associatedContract()": FunctionFragment;
     "claimOwnership()": FunctionFragment;
-    "getAllCreditAccount()": FunctionFragment;
-    "getCreditAccount(address)": FunctionFragment;
+    "getAllVaults()": FunctionFragment;
     "getVault(address)": FunctionFragment;
+    "getVaultAddress(address)": FunctionFragment;
     "isOwner()": FunctionFragment;
     "owner()": FunctionFragment;
     "pendingOwner()": FunctionFragment;
@@ -48,14 +48,14 @@ interface VaultStorageInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getAllCreditAccount",
+    functionFragment: "getAllVaults",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "getVault", values: [string]): string;
   encodeFunctionData(
-    functionFragment: "getCreditAccount",
+    functionFragment: "getVaultAddress",
     values: [string]
   ): string;
-  encodeFunctionData(functionFragment: "getVault", values: [string]): string;
   encodeFunctionData(functionFragment: "isOwner", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
@@ -85,14 +85,14 @@ interface VaultStorageInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getAllCreditAccount",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getCreditAccount",
+    functionFragment: "getAllVaults",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getVault", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getVaultAddress",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "isOwner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
@@ -181,14 +181,14 @@ export class VaultStorage extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    getAllCreditAccount(overrides?: CallOverrides): Promise<[string[]]>;
+    getAllVaults(overrides?: CallOverrides): Promise<[string[]]>;
 
-    getCreditAccount(
+    getVault(arg0: string, overrides?: CallOverrides): Promise<[string]>;
+
+    getVaultAddress(
       _user: string,
       overrides?: CallOverrides
     ): Promise<[string]>;
-
-    getVault(arg0: string, overrides?: CallOverrides): Promise<[string]>;
 
     isOwner(overrides?: CallOverrides): Promise<[boolean]>;
 
@@ -221,11 +221,11 @@ export class VaultStorage extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  getAllCreditAccount(overrides?: CallOverrides): Promise<string[]>;
-
-  getCreditAccount(_user: string, overrides?: CallOverrides): Promise<string>;
+  getAllVaults(overrides?: CallOverrides): Promise<string[]>;
 
   getVault(arg0: string, overrides?: CallOverrides): Promise<string>;
+
+  getVaultAddress(_user: string, overrides?: CallOverrides): Promise<string>;
 
   isOwner(overrides?: CallOverrides): Promise<boolean>;
 
@@ -256,11 +256,11 @@ export class VaultStorage extends BaseContract {
 
     claimOwnership(overrides?: CallOverrides): Promise<void>;
 
-    getAllCreditAccount(overrides?: CallOverrides): Promise<string[]>;
-
-    getCreditAccount(_user: string, overrides?: CallOverrides): Promise<string>;
+    getAllVaults(overrides?: CallOverrides): Promise<string[]>;
 
     getVault(arg0: string, overrides?: CallOverrides): Promise<string>;
+
+    getVaultAddress(_user: string, overrides?: CallOverrides): Promise<string>;
 
     isOwner(overrides?: CallOverrides): Promise<boolean>;
 
@@ -323,14 +323,14 @@ export class VaultStorage extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    getAllCreditAccount(overrides?: CallOverrides): Promise<BigNumber>;
+    getAllVaults(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getCreditAccount(
+    getVault(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    getVaultAddress(
       _user: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    getVault(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     isOwner(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -369,17 +369,15 @@ export class VaultStorage extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    getAllCreditAccount(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getCreditAccount(
-      _user: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getAllVaults(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getVault(
       arg0: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getVaultAddress(
+      _user: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

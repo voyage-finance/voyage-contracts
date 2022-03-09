@@ -70,11 +70,11 @@ Constants:
 
 #### Functions
 
-| Name                  | Description                                    | Modifier      | Parameters        |
-|-----------------------|------------------------------------------------|---------------|-------------------|
-| `createAccount`       | Create a credit account                        | `onlyVoyager` | `address _player` |
-| `getCreditAccount`    | Get credit account address for a specific user | `public`      | `address _user`   |
-| `getAllCreditAccount` | Get all credit account addresses               | `public`      |                   |
+| Name              | Description                                    | Modifier      | Parameters        |
+|-------------------|------------------------------------------------|---------------|-------------------|
+| `createAccount`   | Create a credit account                        | `onlyVoyager` | `address _player` |
+| `getVaultAddress` | Get credit account address for a specific user | `public`      | `address _user`   |
+| `getAllVaults`    | Get all credit account addresses               | `public`      |                   |
 
 
 ### StakingRewards
@@ -85,9 +85,6 @@ While sponsors do the security deposit, they will get back `SecurityDepsitToken`
 
 | Name                  | Description                                    | Modifier      | Parameters        |
 |-----------------------|------------------------------------------------|---------------|-------------------|
-| `createAccount`       | Create a credit account                        | `onlyVoyager` | `address _player` |
-| `getCreditAccount`    | Get credit account address for a specific user | `public`      | `address _user`   |
-| `getAllCreditAccount` | Get all credit account addresses               | `public`      |                   |
 
 ## Reference
 

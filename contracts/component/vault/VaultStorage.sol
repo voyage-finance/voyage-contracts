@@ -22,17 +22,17 @@ contract VaultStorage is State {
     }
 
     /**
-     * @dev Get credit account address for a specific user
+     * @dev Get Vault address for a specific user
      * @param _user the address of the player
      **/
-    function getCreditAccount(address _user) external view returns (address) {
+    function getVaultAddress(address _user) external view returns (address) {
         return getVault[_user];
     }
 
     /**
      * @dev Get all credit account addresses
      **/
-    function getAllCreditAccount() external view returns (address[] memory) {
+    function getAllVaults() external view returns (address[] memory) {
         return allVaults;
     }
 }
