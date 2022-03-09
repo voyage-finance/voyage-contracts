@@ -4,12 +4,14 @@ pragma solidity ^0.8.9;
 import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
 import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
 import './SecurityDepositEscrow.sol';
+import '../infura/AddressResolver.sol';
+import '../Voyager.sol';
 
 contract Vault is AccessControl, ReentrancyGuard {
     bytes32 public constant BORROWER = keccak256('BORROWER');
 
     address public factory;
-    address public addressResolver;
+    address public voyager;
     address[] public players;
     address public securityDepositEscrow;
 
@@ -32,10 +34,19 @@ contract Vault is AccessControl, ReentrancyGuard {
     }
 
     // called once by the factory at time of deployment
-    function initialize(address _addressResolver, address borrower) external {
+    function initialize(address _voyager, address borrower) external {
         require(msg.sender == factory, 'Voyager Vault: FORBIDDEN'); // sufficient check
-        addressResolver = _addressResolver;
+        voyager = _voyager;
         _setupRole(BORROWER, borrower);
+    }
+
+    function getVaultManagerAddress() private returns (address) {
+        Voyager voyager = Voyager(voyager);
+        address addressResolver = voyager.getAddressResolverAddress();
+        return
+            AddressResolver(addressResolver).getAddress(
+                voyager.getVaultManagerName()
+            );
     }
 
     /**

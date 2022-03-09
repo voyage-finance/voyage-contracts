@@ -24,7 +24,6 @@ interface VaultInterface extends ethers.utils.Interface {
   functions: {
     "BORROWER()": FunctionFragment;
     "DEFAULT_ADMIN_ROLE()": FunctionFragment;
-    "addressResolver()": FunctionFragment;
     "depositSecurity(address,uint256)": FunctionFragment;
     "factory()": FunctionFragment;
     "getCurrentSecurityDeposit(address,address)": FunctionFragment;
@@ -39,15 +38,12 @@ interface VaultInterface extends ethers.utils.Interface {
     "revokeRole(bytes32,address)": FunctionFragment;
     "securityDepositEscrow()": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
+    "voyager()": FunctionFragment;
   };
 
   encodeFunctionData(functionFragment: "BORROWER", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "DEFAULT_ADMIN_ROLE",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "addressResolver",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -103,14 +99,11 @@ interface VaultInterface extends ethers.utils.Interface {
     functionFragment: "supportsInterface",
     values: [BytesLike]
   ): string;
+  encodeFunctionData(functionFragment: "voyager", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "BORROWER", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "DEFAULT_ADMIN_ROLE",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "addressResolver",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -148,6 +141,7 @@ interface VaultInterface extends ethers.utils.Interface {
     functionFragment: "supportsInterface",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "voyager", data: BytesLike): Result;
 
   events: {
     "RoleAdminChanged(bytes32,bytes32,bytes32)": EventFragment;
@@ -224,8 +218,6 @@ export class Vault extends BaseContract {
 
     DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
-    addressResolver(overrides?: CallOverrides): Promise<[string]>;
-
     depositSecurity(
       _reserve: string,
       _amount: BigNumberish,
@@ -261,7 +253,7 @@ export class Vault extends BaseContract {
     ): Promise<[boolean]>;
 
     initialize(
-      _addressResolver: string,
+      _voyager: string,
       borrower: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -286,13 +278,13 @@ export class Vault extends BaseContract {
       interfaceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
+
+    voyager(overrides?: CallOverrides): Promise<[string]>;
   };
 
   BORROWER(overrides?: CallOverrides): Promise<string>;
 
   DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
-
-  addressResolver(overrides?: CallOverrides): Promise<string>;
 
   depositSecurity(
     _reserve: string,
@@ -327,7 +319,7 @@ export class Vault extends BaseContract {
   ): Promise<boolean>;
 
   initialize(
-    _addressResolver: string,
+    _voyager: string,
     borrower: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -353,12 +345,12 @@ export class Vault extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
+  voyager(overrides?: CallOverrides): Promise<string>;
+
   callStatic: {
     BORROWER(overrides?: CallOverrides): Promise<string>;
 
     DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
-
-    addressResolver(overrides?: CallOverrides): Promise<string>;
 
     depositSecurity(
       _reserve: string,
@@ -393,7 +385,7 @@ export class Vault extends BaseContract {
     ): Promise<boolean>;
 
     initialize(
-      _addressResolver: string,
+      _voyager: string,
       borrower: string,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -418,6 +410,8 @@ export class Vault extends BaseContract {
       interfaceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    voyager(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
@@ -481,8 +475,6 @@ export class Vault extends BaseContract {
 
     DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
 
-    addressResolver(overrides?: CallOverrides): Promise<BigNumber>;
-
     depositSecurity(
       _reserve: string,
       _amount: BigNumberish,
@@ -521,7 +513,7 @@ export class Vault extends BaseContract {
     ): Promise<BigNumber>;
 
     initialize(
-      _addressResolver: string,
+      _voyager: string,
       borrower: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -546,6 +538,8 @@ export class Vault extends BaseContract {
       interfaceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    voyager(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -554,8 +548,6 @@ export class Vault extends BaseContract {
     DEFAULT_ADMIN_ROLE(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    addressResolver(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     depositSecurity(
       _reserve: string,
@@ -595,7 +587,7 @@ export class Vault extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     initialize(
-      _addressResolver: string,
+      _voyager: string,
       borrower: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -625,5 +617,7 @@ export class Vault extends BaseContract {
       interfaceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    voyager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

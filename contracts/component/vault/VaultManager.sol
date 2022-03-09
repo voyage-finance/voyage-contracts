@@ -45,10 +45,7 @@ contract VaultManager is AccessControl, ReentrancyGuard {
         assembly {
             vault := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
-        Vault(vault).initialize(
-            Voyager(voyager).getAddressResolverAddress(),
-            _user
-        );
+        Vault(vault).initialize(voyager, _user);
         uint256 len = VaultStorage(getVaultStorageAddress()).pushNewVault(
             _user,
             vault
