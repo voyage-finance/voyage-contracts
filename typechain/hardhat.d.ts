@@ -45,6 +45,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.VaultManager__factory>;
     getContractFactory(
+      name: "VaultManagerProxy",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.VaultManagerProxy__factory>;
+    getContractFactory(
       name: "VaultStorage",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.VaultStorage__factory>;
@@ -213,6 +217,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.VaultManager>;
+    getContractAt(
+      name: "VaultManagerProxy",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.VaultManagerProxy>;
     getContractAt(
       name: "VaultStorage",
       address: string,

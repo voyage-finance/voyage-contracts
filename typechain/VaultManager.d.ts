@@ -23,18 +23,26 @@ interface VaultManagerInterface extends ethers.utils.Interface {
   functions: {
     "DEFAULT_ADMIN_ROLE()": FunctionFragment;
     "VOYAGER()": FunctionFragment;
+    "_emit(bytes,uint256,bytes32,bytes32,bytes32,bytes32)": FunctionFragment;
+    "claimOwnership()": FunctionFragment;
     "createVault(address)": FunctionFragment;
     "getMaxSecurityDeposit(address)": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
     "getVault(address)": FunctionFragment;
     "grantRole(bytes32,address)": FunctionFragment;
     "hasRole(bytes32,address)": FunctionFragment;
+    "isOwner()": FunctionFragment;
     "maxSecurityDeposit(address)": FunctionFragment;
+    "owner()": FunctionFragment;
+    "pendingOwner()": FunctionFragment;
     "removeMaxSecurityDeposit(address)": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
     "revokeRole(bytes32,address)": FunctionFragment;
     "setMaxSecurityDeposit(address,uint256)": FunctionFragment;
+    "setTarget(address)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
+    "target()": FunctionFragment;
+    "transferOwnership(address)": FunctionFragment;
     "voyager()": FunctionFragment;
   };
 
@@ -43,6 +51,21 @@ interface VaultManagerInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "VOYAGER", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "_emit",
+    values: [
+      BytesLike,
+      BigNumberish,
+      BytesLike,
+      BytesLike,
+      BytesLike,
+      BytesLike
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "claimOwnership",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "createVault", values: [string]): string;
   encodeFunctionData(
     functionFragment: "getMaxSecurityDeposit",
@@ -61,9 +84,15 @@ interface VaultManagerInterface extends ethers.utils.Interface {
     functionFragment: "hasRole",
     values: [BytesLike, string]
   ): string;
+  encodeFunctionData(functionFragment: "isOwner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "maxSecurityDeposit",
     values: [string]
+  ): string;
+  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "pendingOwner",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "removeMaxSecurityDeposit",
@@ -81,9 +110,15 @@ interface VaultManagerInterface extends ethers.utils.Interface {
     functionFragment: "setMaxSecurityDeposit",
     values: [string, BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: "setTarget", values: [string]): string;
   encodeFunctionData(
     functionFragment: "supportsInterface",
     values: [BytesLike]
+  ): string;
+  encodeFunctionData(functionFragment: "target", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "transferOwnership",
+    values: [string]
   ): string;
   encodeFunctionData(functionFragment: "voyager", values?: undefined): string;
 
@@ -92,6 +127,11 @@ interface VaultManagerInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "VOYAGER", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "_emit", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "claimOwnership",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "createVault",
     data: BytesLike
@@ -107,8 +147,14 @@ interface VaultManagerInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "getVault", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "isOwner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "maxSecurityDeposit",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "pendingOwner",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -124,24 +170,38 @@ interface VaultManagerInterface extends ethers.utils.Interface {
     functionFragment: "setMaxSecurityDeposit",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "setTarget", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "supportsInterface",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "target", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "transferOwnership",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "voyager", data: BytesLike): Result;
 
   events: {
+    "OwnershipTransferred(address,address)": EventFragment;
     "RoleAdminChanged(bytes32,bytes32,bytes32)": EventFragment;
     "RoleGranted(bytes32,address,address)": EventFragment;
     "RoleRevoked(bytes32,address,address)": EventFragment;
+    "TargetUpdated(address)": EventFragment;
     "VaultCreated(address,address,uint256)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RoleAdminChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RoleGranted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RoleRevoked"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TargetUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "VaultCreated"): EventFragment;
 }
+
+export type OwnershipTransferredEvent = TypedEvent<
+  [string, string] & { previousOwner: string; newOwner: string }
+>;
 
 export type RoleAdminChangedEvent = TypedEvent<
   [string, string, string] & {
@@ -158,6 +218,8 @@ export type RoleGrantedEvent = TypedEvent<
 export type RoleRevokedEvent = TypedEvent<
   [string, string, string] & { role: string; account: string; sender: string }
 >;
+
+export type TargetUpdatedEvent = TypedEvent<[string] & { newTarget: string }>;
 
 export type VaultCreatedEvent = TypedEvent<
   [string, string, BigNumber] & {
@@ -215,6 +277,20 @@ export class VaultManager extends BaseContract {
 
     VOYAGER(overrides?: CallOverrides): Promise<[string]>;
 
+    _emit(
+      callData: BytesLike,
+      numTopics: BigNumberish,
+      topic1: BytesLike,
+      topic2: BytesLike,
+      topic3: BytesLike,
+      topic4: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    claimOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     createVault(
       _user: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -241,10 +317,16 @@ export class VaultManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
+    isOwner(overrides?: CallOverrides): Promise<[boolean]>;
+
     maxSecurityDeposit(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
+
+    owner(overrides?: CallOverrides): Promise<[string]>;
+
+    pendingOwner(overrides?: CallOverrides): Promise<[string]>;
 
     removeMaxSecurityDeposit(
       _reserve: string,
@@ -269,10 +351,22 @@ export class VaultManager extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    setTarget(
+      _target: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     supportsInterface(
       interfaceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
+
+    target(overrides?: CallOverrides): Promise<[string]>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     voyager(overrides?: CallOverrides): Promise<[string]>;
   };
@@ -280,6 +374,20 @@ export class VaultManager extends BaseContract {
   DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
 
   VOYAGER(overrides?: CallOverrides): Promise<string>;
+
+  _emit(
+    callData: BytesLike,
+    numTopics: BigNumberish,
+    topic1: BytesLike,
+    topic2: BytesLike,
+    topic3: BytesLike,
+    topic4: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  claimOwnership(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   createVault(
     _user: string,
@@ -307,10 +415,16 @@ export class VaultManager extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
+  isOwner(overrides?: CallOverrides): Promise<boolean>;
+
   maxSecurityDeposit(
     arg0: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
+
+  owner(overrides?: CallOverrides): Promise<string>;
+
+  pendingOwner(overrides?: CallOverrides): Promise<string>;
 
   removeMaxSecurityDeposit(
     _reserve: string,
@@ -335,10 +449,22 @@ export class VaultManager extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  setTarget(
+    _target: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   supportsInterface(
     interfaceId: BytesLike,
     overrides?: CallOverrides
   ): Promise<boolean>;
+
+  target(overrides?: CallOverrides): Promise<string>;
+
+  transferOwnership(
+    newOwner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   voyager(overrides?: CallOverrides): Promise<string>;
 
@@ -346,6 +472,18 @@ export class VaultManager extends BaseContract {
     DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
 
     VOYAGER(overrides?: CallOverrides): Promise<string>;
+
+    _emit(
+      callData: BytesLike,
+      numTopics: BigNumberish,
+      topic1: BytesLike,
+      topic2: BytesLike,
+      topic3: BytesLike,
+      topic4: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    claimOwnership(overrides?: CallOverrides): Promise<void>;
 
     createVault(_user: string, overrides?: CallOverrides): Promise<string>;
 
@@ -370,10 +508,16 @@ export class VaultManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    isOwner(overrides?: CallOverrides): Promise<boolean>;
+
     maxSecurityDeposit(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<string>;
+
+    pendingOwner(overrides?: CallOverrides): Promise<string>;
 
     removeMaxSecurityDeposit(
       _reserve: string,
@@ -398,15 +542,40 @@ export class VaultManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    setTarget(_target: string, overrides?: CallOverrides): Promise<void>;
+
     supportsInterface(
       interfaceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    target(overrides?: CallOverrides): Promise<string>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     voyager(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
+    "OwnershipTransferred(address,address)"(
+      previousOwner?: string | null,
+      newOwner?: string | null
+    ): TypedEventFilter<
+      [string, string],
+      { previousOwner: string; newOwner: string }
+    >;
+
+    OwnershipTransferred(
+      previousOwner?: string | null,
+      newOwner?: string | null
+    ): TypedEventFilter<
+      [string, string],
+      { previousOwner: string; newOwner: string }
+    >;
+
     "RoleAdminChanged(bytes32,bytes32,bytes32)"(
       role?: BytesLike | null,
       previousAdminRole?: BytesLike | null,
@@ -461,6 +630,14 @@ export class VaultManager extends BaseContract {
       { role: string; account: string; sender: string }
     >;
 
+    "TargetUpdated(address)"(
+      newTarget?: null
+    ): TypedEventFilter<[string], { newTarget: string }>;
+
+    TargetUpdated(
+      newTarget?: null
+    ): TypedEventFilter<[string], { newTarget: string }>;
+
     "VaultCreated(address,address,uint256)"(
       player?: string | null,
       vault?: null,
@@ -484,6 +661,20 @@ export class VaultManager extends BaseContract {
     DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
 
     VOYAGER(overrides?: CallOverrides): Promise<BigNumber>;
+
+    _emit(
+      callData: BytesLike,
+      numTopics: BigNumberish,
+      topic1: BytesLike,
+      topic2: BytesLike,
+      topic3: BytesLike,
+      topic4: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    claimOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     createVault(
       _user: string,
@@ -514,10 +705,16 @@ export class VaultManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    isOwner(overrides?: CallOverrides): Promise<BigNumber>;
+
     maxSecurityDeposit(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    pendingOwner(overrides?: CallOverrides): Promise<BigNumber>;
 
     removeMaxSecurityDeposit(
       _reserve: string,
@@ -542,9 +739,21 @@ export class VaultManager extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    setTarget(
+      _target: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     supportsInterface(
       interfaceId: BytesLike,
       overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    target(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     voyager(overrides?: CallOverrides): Promise<BigNumber>;
@@ -556,6 +765,20 @@ export class VaultManager extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     VOYAGER(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    _emit(
+      callData: BytesLike,
+      numTopics: BigNumberish,
+      topic1: BytesLike,
+      topic2: BytesLike,
+      topic3: BytesLike,
+      topic4: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    claimOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     createVault(
       _user: string,
@@ -589,10 +812,16 @@ export class VaultManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    isOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     maxSecurityDeposit(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    pendingOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     removeMaxSecurityDeposit(
       _reserve: string,
@@ -617,9 +846,21 @@ export class VaultManager extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    setTarget(
+      _target: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     supportsInterface(
       interfaceId: BytesLike,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    target(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     voyager(overrides?: CallOverrides): Promise<PopulatedTransaction>;

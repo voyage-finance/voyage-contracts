@@ -10,8 +10,9 @@ import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
+import '../../libraries/proxy/Proxy.sol';
 
-contract VaultManager is AccessControl, ReentrancyGuard {
+contract VaultManager is AccessControl, ReentrancyGuard, Proxy {
     using SafeERC20 for ERC20;
 
     bytes32 public constant VOYAGER = keccak256('VOYAGER');

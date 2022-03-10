@@ -29,21 +29,18 @@ interface VoyagerInterface extends ethers.utils.Interface {
     "getLiquidityManagerName()": FunctionFragment;
     "getLoanManagerName()": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
-    "getVault()": FunctionFragment;
-    "getVaultManagerAddress()": FunctionFragment;
-    "getVaultManagerName()": FunctionFragment;
+    "getVaultManagerProxyAddress()": FunctionFragment;
+    "getVaultManagerProxyName()": FunctionFragment;
     "getVaultStorageName()": FunctionFragment;
     "grantRole(bytes32,address)": FunctionFragment;
     "hasRole(bytes32,address)": FunctionFragment;
     "liquidityManagerName()": FunctionFragment;
     "loanManagerName()": FunctionFragment;
-    "removeMaxSecurityDeposit(address)": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
     "revokeRole(bytes32,address)": FunctionFragment;
     "setAddressResolverAddress(address)": FunctionFragment;
-    "setMaxSecurityDeposit(address,uint256)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
-    "vaultManagerName()": FunctionFragment;
+    "vaultManagerProxyName()": FunctionFragment;
     "vaultStorageName()": FunctionFragment;
   };
 
@@ -76,13 +73,12 @@ interface VoyagerInterface extends ethers.utils.Interface {
     functionFragment: "getRoleAdmin",
     values: [BytesLike]
   ): string;
-  encodeFunctionData(functionFragment: "getVault", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "getVaultManagerAddress",
+    functionFragment: "getVaultManagerProxyAddress",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getVaultManagerName",
+    functionFragment: "getVaultManagerProxyName",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -106,10 +102,6 @@ interface VoyagerInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "removeMaxSecurityDeposit",
-    values: [string]
-  ): string;
-  encodeFunctionData(
     functionFragment: "renounceRole",
     values: [BytesLike, string]
   ): string;
@@ -122,15 +114,11 @@ interface VoyagerInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
-    functionFragment: "setMaxSecurityDeposit",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "supportsInterface",
     values: [BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "vaultManagerName",
+    functionFragment: "vaultManagerProxyName",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -167,13 +155,12 @@ interface VoyagerInterface extends ethers.utils.Interface {
     functionFragment: "getRoleAdmin",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "getVault", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "getVaultManagerAddress",
+    functionFragment: "getVaultManagerProxyAddress",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getVaultManagerName",
+    functionFragment: "getVaultManagerProxyName",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -191,10 +178,6 @@ interface VoyagerInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "removeMaxSecurityDeposit",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "renounceRole",
     data: BytesLike
   ): Result;
@@ -204,15 +187,11 @@ interface VoyagerInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "setMaxSecurityDeposit",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "supportsInterface",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "vaultManagerName",
+    functionFragment: "vaultManagerProxyName",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -309,11 +288,9 @@ export class Voyager extends BaseContract {
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<[string]>;
 
-    getVault(overrides?: CallOverrides): Promise<[string]>;
+    getVaultManagerProxyAddress(overrides?: CallOverrides): Promise<[string]>;
 
-    getVaultManagerAddress(overrides?: CallOverrides): Promise<[string]>;
-
-    getVaultManagerName(overrides?: CallOverrides): Promise<[string]>;
+    getVaultManagerProxyName(overrides?: CallOverrides): Promise<[string]>;
 
     getVaultStorageName(overrides?: CallOverrides): Promise<[string]>;
 
@@ -333,11 +310,6 @@ export class Voyager extends BaseContract {
 
     loanManagerName(overrides?: CallOverrides): Promise<[string]>;
 
-    removeMaxSecurityDeposit(
-      _reserve: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     renounceRole(
       role: BytesLike,
       account: string,
@@ -355,18 +327,12 @@ export class Voyager extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setMaxSecurityDeposit(
-      _reserve: string,
-      _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     supportsInterface(
       interfaceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    vaultManagerName(overrides?: CallOverrides): Promise<[string]>;
+    vaultManagerProxyName(overrides?: CallOverrides): Promise<[string]>;
 
     vaultStorageName(overrides?: CallOverrides): Promise<[string]>;
   };
@@ -389,11 +355,9 @@ export class Voyager extends BaseContract {
 
   getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
-  getVault(overrides?: CallOverrides): Promise<string>;
+  getVaultManagerProxyAddress(overrides?: CallOverrides): Promise<string>;
 
-  getVaultManagerAddress(overrides?: CallOverrides): Promise<string>;
-
-  getVaultManagerName(overrides?: CallOverrides): Promise<string>;
+  getVaultManagerProxyName(overrides?: CallOverrides): Promise<string>;
 
   getVaultStorageName(overrides?: CallOverrides): Promise<string>;
 
@@ -413,11 +377,6 @@ export class Voyager extends BaseContract {
 
   loanManagerName(overrides?: CallOverrides): Promise<string>;
 
-  removeMaxSecurityDeposit(
-    _reserve: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   renounceRole(
     role: BytesLike,
     account: string,
@@ -435,18 +394,12 @@ export class Voyager extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setMaxSecurityDeposit(
-    _reserve: string,
-    _amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   supportsInterface(
     interfaceId: BytesLike,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  vaultManagerName(overrides?: CallOverrides): Promise<string>;
+  vaultManagerProxyName(overrides?: CallOverrides): Promise<string>;
 
   vaultStorageName(overrides?: CallOverrides): Promise<string>;
 
@@ -467,11 +420,9 @@ export class Voyager extends BaseContract {
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
-    getVault(overrides?: CallOverrides): Promise<string>;
+    getVaultManagerProxyAddress(overrides?: CallOverrides): Promise<string>;
 
-    getVaultManagerAddress(overrides?: CallOverrides): Promise<string>;
-
-    getVaultManagerName(overrides?: CallOverrides): Promise<string>;
+    getVaultManagerProxyName(overrides?: CallOverrides): Promise<string>;
 
     getVaultStorageName(overrides?: CallOverrides): Promise<string>;
 
@@ -491,11 +442,6 @@ export class Voyager extends BaseContract {
 
     loanManagerName(overrides?: CallOverrides): Promise<string>;
 
-    removeMaxSecurityDeposit(
-      _reserve: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     renounceRole(
       role: BytesLike,
       account: string,
@@ -513,18 +459,12 @@ export class Voyager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setMaxSecurityDeposit(
-      _reserve: string,
-      _amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     supportsInterface(
       interfaceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    vaultManagerName(overrides?: CallOverrides): Promise<string>;
+    vaultManagerProxyName(overrides?: CallOverrides): Promise<string>;
 
     vaultStorageName(overrides?: CallOverrides): Promise<string>;
   };
@@ -607,11 +547,9 @@ export class Voyager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getVault(overrides?: CallOverrides): Promise<BigNumber>;
+    getVaultManagerProxyAddress(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getVaultManagerAddress(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getVaultManagerName(overrides?: CallOverrides): Promise<BigNumber>;
+    getVaultManagerProxyName(overrides?: CallOverrides): Promise<BigNumber>;
 
     getVaultStorageName(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -631,11 +569,6 @@ export class Voyager extends BaseContract {
 
     loanManagerName(overrides?: CallOverrides): Promise<BigNumber>;
 
-    removeMaxSecurityDeposit(
-      _reserve: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     renounceRole(
       role: BytesLike,
       account: string,
@@ -653,18 +586,12 @@ export class Voyager extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setMaxSecurityDeposit(
-      _reserve: string,
-      _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     supportsInterface(
       interfaceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    vaultManagerName(overrides?: CallOverrides): Promise<BigNumber>;
+    vaultManagerProxyName(overrides?: CallOverrides): Promise<BigNumber>;
 
     vaultStorageName(overrides?: CallOverrides): Promise<BigNumber>;
   };
@@ -699,13 +626,11 @@ export class Voyager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getVault(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getVaultManagerAddress(
+    getVaultManagerProxyAddress(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getVaultManagerName(
+    getVaultManagerProxyName(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -731,11 +656,6 @@ export class Voyager extends BaseContract {
 
     loanManagerName(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    removeMaxSecurityDeposit(
-      _reserve: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     renounceRole(
       role: BytesLike,
       account: string,
@@ -753,18 +673,14 @@ export class Voyager extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    setMaxSecurityDeposit(
-      _reserve: string,
-      _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     supportsInterface(
       interfaceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    vaultManagerName(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    vaultManagerProxyName(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     vaultStorageName(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };

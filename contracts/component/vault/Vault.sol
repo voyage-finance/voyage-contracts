@@ -40,12 +40,12 @@ contract Vault is AccessControl, ReentrancyGuard {
         _setupRole(BORROWER, borrower);
     }
 
-    function getVaultManagerAddress() private returns (address) {
+    function getVaultManagerProxyAddress() private returns (address) {
         Voyager voyager = Voyager(voyager);
         address addressResolver = voyager.getAddressResolverAddress();
         return
             AddressResolver(addressResolver).getAddress(
-                voyager.getVaultManagerName()
+                voyager.getVaultManagerProxyName()
             );
     }
 
