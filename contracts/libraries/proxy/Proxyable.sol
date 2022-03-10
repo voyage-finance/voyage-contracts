@@ -34,7 +34,7 @@ abstract contract Proxyable is Ownable {
     }
 
     function _onlyProxy() private view {
-        require(Proxy(msg.sender) == proxy, 'Only the proxy can call');
+        require(msg.sender == address(proxy), 'Only the proxy can call');
     }
 
     function setProxy(address payable _proxy) external onlyOwner {
@@ -48,7 +48,7 @@ abstract contract Proxyable is Ownable {
 
     // solhint-disable-next-line func-name-mixedcase
     function _optionalProxy_onlyOwner() private {
-        if (Proxy(msg.sender) != proxy && messageSender != msg.sender) {
+        if (msg.sender != address(proxy) && messageSender != msg.sender) {
             messageSender = msg.sender;
         }
         require(messageSender == owner, 'Owner only function');
