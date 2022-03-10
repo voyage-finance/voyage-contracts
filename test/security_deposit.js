@@ -50,7 +50,11 @@ describe("Security Deposit", function () {
         // deploy mock tus contract
         const Tus = await ethers.getContractFactory("Tus");
         const tus = await Tus.deploy("1000000000000000000000");
+        const amountBeforeSetting = await voyager.getMaxSecurityDeposit(tus.address);
+        expect(amountBeforeSetting).to.equal("0");
         await voyager.setMaxSecurityDeposit(tus.address, "100000000000000000000");
+        const amountAfterSetting = await voyager.getMaxSecurityDeposit(tus.address);
+        expect(amountAfterSetting).to.equal("100000000000000000000");
     })
 
     it("Security deposit should return correct value", async function () {

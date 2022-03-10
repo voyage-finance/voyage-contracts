@@ -67,3 +67,4 @@ package-lock.json
 typechain
 cache
 artifacts
+.idea
