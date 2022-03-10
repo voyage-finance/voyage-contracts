@@ -17,10 +17,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.AddressResolver__factory>;
     getContractFactory(
-      name: "AddressResolver",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.AddressResolver__factory>;
-    getContractFactory(
       name: "DefaultReserveInterestRateStrategy",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.DefaultReserveInterestRateStrategy__factory>;
@@ -105,6 +101,14 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Ownable__factory>;
     getContractFactory(
+      name: "Proxy",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Proxy__factory>;
+    getContractFactory(
+      name: "Proxyable",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Proxyable__factory>;
+    getContractFactory(
       name: "ReserveManager",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ReserveManager__factory>;
@@ -169,11 +173,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC165__factory>;
 
-    getContractAt(
-      name: "AddressResolver",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.AddressResolver>;
     getContractAt(
       name: "AddressResolver",
       address: string,
@@ -284,6 +283,16 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.Ownable>;
+    getContractAt(
+      name: "Proxy",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Proxy>;
+    getContractAt(
+      name: "Proxyable",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Proxyable>;
     getContractAt(
       name: "ReserveManager",
       address: string,
