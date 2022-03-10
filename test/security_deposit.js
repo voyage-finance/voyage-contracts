@@ -42,6 +42,9 @@ describe("Security Deposit", function () {
         const names = [ethers.utils.formatBytes32String("vaultManagerProxy"),ethers.utils.formatBytes32String("vaultStorage")];
         const destinations = [vaultManagerProxy.address, vaultStorage.address];
         await addressResolver.importAddresses(names, destinations);
+
+        await vaultManagerProxy.transferOwnership(voyager.address);
+        await voyager.claimVaultManagerProxyOwnership();
     });
 
     it("Security deposit setup should return correct value", async function () {
