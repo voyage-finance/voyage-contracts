@@ -9,7 +9,7 @@ import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
 contract Voyager is AccessControl {
     bytes32 public constant liquidityManagerName = 'liquidityManager';
     bytes32 public constant loanManagerName = 'loanManager';
-    bytes32 public constant vaultManagerProxyName = 'vaultManagerProxyName';
+    bytes32 public constant vaultManagerProxyName = 'vaultManagerProxy';
     bytes32 public constant vaultStorageName = 'vaultStorage';
     bytes32 public constant OPERATOR = keccak256('OPERATOR');
 
@@ -77,13 +77,6 @@ contract Voyager is AccessControl {
         return abi.decode(result, (address));
     }
 
-    //    /**
-    //     * @dev Get existing Vault contract address for msg.sender, 0x0000000000000000000000000000000000000000 for new user
-    //     * @return Vault address
-    //     **/
-    //    function getVault() external view returns (address) {
-    //        return VaultManagerProxy(getVaultManagerProxyAddress()).getVault(msg.sender);
-    //    }
     //
     //    /**
     //     * @dev Set max security deposit for _reserve

@@ -10,9 +10,9 @@ import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
-import '../../libraries/proxy/Proxy.sol';
+import '../../libraries/proxy/Proxyable.sol';
 
-contract VaultManager is AccessControl, ReentrancyGuard, Proxy {
+contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
     using SafeERC20 for ERC20;
 
     bytes32 public constant VOYAGER = keccak256('VOYAGER');
@@ -21,9 +21,11 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxy {
 
     event VaultCreated(address indexed player, address vault, uint256);
 
-    constructor(address _voyager) public {
+    constructor(address payable _proxy, address _voyager)
+        public
+        Proxyable(_proxy)
+    {
         voyager = _voyager;
-        _setupRole(VOYAGER, _voyager);
     }
 
     function getVaultStorageAddress() private view returns (address) {
@@ -59,12 +61,7 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxy {
      * @param _user the address of the player
      * @return Vault address
      **/
-    function getVault(address _user)
-        external
-        view
-        onlyRole(VOYAGER)
-        returns (address)
-    {
+    function getVault(address _user) external view returns (address) {
         return VaultStorage(getVaultStorageAddress()).getVaultAddress(_user);
     }
 
