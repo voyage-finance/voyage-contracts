@@ -57,9 +57,20 @@ contract Voyager is AccessControl {
         return loanManagerName;
     }
 
-    function getVaultManagerProxyAddress() public view returns (address) {
-        return
-            AddressResolver(addressResolver).getAddress(vaultManagerProxyName);
+    function getVaultManagerProxyAddress()
+        public
+        view
+        returns (address payable)
+    {
+        address vaultManagerProxyAddress = AddressResolver(addressResolver)
+            .getAddress(vaultManagerProxyName);
+        return payable(vaultManagerProxyAddress);
+    }
+
+    /************************************** HouseKeeping Interfaces **************************************/
+    function claimVaultManagerProxyOwnership() external onlyRole(OPERATOR) {
+        address payable vaultManagerProxyAddress = getVaultManagerProxyAddress();
+        VaultManagerProxy(vaultManagerProxyAddress).claimOwnership();
     }
 
     /************************************** Vault Manager Interfaces **************************************/
