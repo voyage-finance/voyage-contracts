@@ -40,7 +40,7 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
      **/
     function createVault(address _user)
         external
-        onlyRole(VOYAGER)
+        onlyProxy
         returns (address vault)
     {
         bytes memory bytecode = type(Vault).creationCode;

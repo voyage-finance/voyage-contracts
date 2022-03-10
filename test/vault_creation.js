@@ -48,18 +48,19 @@ describe("Vault Creation", function () {
         expect(await vaultManager.getVault(owner.address)).to.equal("0x0000000000000000000000000000000000000000");
     })
 
-    //
-    // it("Create Vault should return a valid vault contract", async function () {
-    //
-    //     // create vault
-    //     await voyager.createVault();
-    //
-    //     const vaultAddress = await vaultStorage.getVaultAddress(owner.address);
-    //     const Vault = await ethers.getContractFactory("Vault");
-    //     const vault = Vault.attach(vaultAddress);
-    //     expect(await vault.getVersion()).to.equal("Vault 0.0.1");
-    //
-    // })
+
+    it("Create Vault should return a valid vault contract", async function () {
+
+        // create vault
+        const tx = await voyager.createVault();
+        console.log(tx);
+
+        const vaultAddress = await vaultStorage.getVaultAddress(owner.address);
+        const Vault = await ethers.getContractFactory("Vault");
+        const vault = Vault.attach(vaultAddress);
+        expect(await vault.getVersion()).to.equal("Vault 0.0.1");
+
+    })
 
     // it("Created Vault should have own a valid escrow contract", async function () {
     //

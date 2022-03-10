@@ -200,15 +200,21 @@ interface VoyagerInterface extends ethers.utils.Interface {
   ): Result;
 
   events: {
+    "CallResult(bool,bytes)": EventFragment;
     "RoleAdminChanged(bytes32,bytes32,bytes32)": EventFragment;
     "RoleGranted(bytes32,address,address)": EventFragment;
     "RoleRevoked(bytes32,address,address)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "CallResult"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RoleAdminChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RoleGranted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RoleRevoked"): EventFragment;
 }
+
+export type CallResultEvent = TypedEvent<
+  [boolean, string] & { arg0: boolean; arg1: string }
+>;
 
 export type RoleAdminChangedEvent = TypedEvent<
   [string, string, string] & {
@@ -470,6 +476,16 @@ export class Voyager extends BaseContract {
   };
 
   filters: {
+    "CallResult(bool,bytes)"(
+      undefined?: null,
+      undefined?: null
+    ): TypedEventFilter<[boolean, string], { arg0: boolean; arg1: string }>;
+
+    CallResult(
+      undefined?: null,
+      undefined?: null
+    ): TypedEventFilter<[boolean, string], { arg0: boolean; arg1: string }>;
+
     "RoleAdminChanged(bytes32,bytes32,bytes32)"(
       role?: BytesLike | null,
       previousAdminRole?: BytesLike | null,

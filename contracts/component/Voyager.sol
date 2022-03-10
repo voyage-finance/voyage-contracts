@@ -3,7 +3,7 @@ pragma solidity ^0.8.9;
 
 import '../libraries/ownership/Ownable.sol';
 import '../component/infra/AddressResolver.sol';
-import '../component/vault/VaultManagerProxy.sol';
+import '../component/vault/VaultManager.sol';
 import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
 
 contract Voyager is AccessControl {
@@ -18,6 +18,8 @@ contract Voyager is AccessControl {
     constructor(address _operator) public {
         _setupRole(OPERATOR, _operator);
     }
+
+    event CallResult(bool, bytes);
 
     /**
      * @dev Update addressResolver contract address
@@ -68,13 +70,8 @@ contract Voyager is AccessControl {
      **/
     function createVault() external returns (address) {
         address vaultManagerProxy = getVaultManagerProxyAddress();
-        (bool success, bytes memory result) = vaultManagerProxy.delegatecall(
-            abi.encodeWithSignature('createVault(address)', msg.sender)
-        );
-        if (!success) {
-            revert();
-        }
-        return abi.decode(result, (address));
+        VaultManager vaultManager = VaultManager(vaultManagerProxy);
+        return vaultManager.createVault(msg.sender);
     }
 
     //
