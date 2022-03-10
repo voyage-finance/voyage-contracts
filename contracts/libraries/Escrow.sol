@@ -20,10 +20,10 @@ contract Escrow is Ownable, ReentrancyGuard {
     event Deposited(address indexed payee, address token, uint256 amount);
     event Withdrawn(address indexed payee, address token, uint256 amount);
 
-    // reserve address => payee => amount
-    mapping(address => mapping(address => uint256)) private _deposits;
-    // reserve address => payee => deposit record
-    mapping(address => mapping(address => Deposit[])) private _depositRecords;
+    // reserve address => amount
+    mapping(address => uint256) private _deposits;
+    // reserve address => deposit record
+    mapping(address => Deposit[]) private _depositRecords;
 
     uint40 private _lockupTimeInSeconds;
 
@@ -50,9 +50,9 @@ contract Escrow is Ownable, ReentrancyGuard {
                 'The amount and the value sent to deposit do not match'
             );
         }
-        _deposits[_reserve][_user] += _amount;
+        _deposits[_reserve] += _amount;
         Deposit memory deposit = Deposit(_amount, uint40(block.timestamp));
-        _depositRecords[_reserve][_user].push(deposit);
+        _depositRecords[_reserve].push(deposit);
         emit Deposited(_user, _reserve, _amount);
     }
 
@@ -66,7 +66,7 @@ contract Escrow is Ownable, ReentrancyGuard {
         address payable _user,
         uint256 _amount
     ) public onlyOwner {
-        Deposit[] storage deposits = _depositRecords[_reserve][_user];
+        Deposit[] storage deposits = _depositRecords[_reserve];
         uint256 eligibleAmount = 0;
         uint40 lastUpdateTime;
         for (uint256 i = 0; i < deposits.length; i++) {
@@ -89,10 +89,10 @@ contract Escrow is Ownable, ReentrancyGuard {
         if (eligibleAmount > _amount) {
             uint256 leftAmount = eligibleAmount - _amount;
             Deposit memory leftDeposit = Deposit(leftAmount, lastUpdateTime);
-            _depositRecords[_reserve][_user].push(leftDeposit);
+            _depositRecords[_reserve].push(leftDeposit);
         }
 
-        _deposits[_reserve][_user] -= _amount;
+        _deposits[_reserve] -= _amount;
         transferToUser(_reserve, _user, _amount);
         emit Withdrawn(_user, _reserve, _amount);
     }
@@ -108,7 +108,7 @@ contract Escrow is Ownable, ReentrancyGuard {
         view
         returns (uint256)
     {
-        return _deposits[_reserve][_user];
+        return _deposits[_reserve];
     }
 
     /**
@@ -122,7 +122,7 @@ contract Escrow is Ownable, ReentrancyGuard {
         view
         returns (Deposit[] memory)
     {
-        Deposit[] storage deposits = _depositRecords[_reserve][_user];
+        Deposit[] storage deposits = _depositRecords[_reserve];
         return deposits;
     }
 

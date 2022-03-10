@@ -59,6 +59,11 @@ contract Vault is AccessControl, ReentrancyGuard {
         payable
         nonReentrant
     {
+        // check max security deposit amount for this _reserve
+        uint256 maxAmount = Voyager(voyager).getMaxSecurityDeposit(_reserve);
+        SecurityDepositEscrow escrow = SecurityDepositEscrow(
+            securityDepositEscrow
+        );
         // todo check if the _reserve is allowed to be deposited
         SecurityDepositEscrow(securityDepositEscrow).deposit(
             _reserve,
