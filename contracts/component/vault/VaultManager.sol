@@ -69,21 +69,19 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
 
     function setMaxSecurityDeposit(address _reserve, uint256 _amount)
         external
-        onlyRole(VOYAGER)
+        onlyProxy
     {
         maxSecurityDeposit[_reserve] = _amount;
     }
 
-    function removeMaxSecurityDeposit(address _reserve)
-        external
-        onlyRole(VOYAGER)
-    {
+    function removeMaxSecurityDeposit(address _reserve) external onlyProxy {
         delete maxSecurityDeposit[_reserve];
     }
 
     function getMaxSecurityDeposit(address _reserve)
         external
         view
+        onlyProxy
         returns (uint256)
     {
         return maxSecurityDeposit[_reserve];

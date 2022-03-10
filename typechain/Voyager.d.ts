@@ -36,9 +36,11 @@ interface VoyagerInterface extends ethers.utils.Interface {
     "hasRole(bytes32,address)": FunctionFragment;
     "liquidityManagerName()": FunctionFragment;
     "loanManagerName()": FunctionFragment;
+    "removeMaxSecurityDeposit(address)": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
     "revokeRole(bytes32,address)": FunctionFragment;
     "setAddressResolverAddress(address)": FunctionFragment;
+    "setMaxSecurityDeposit(address,uint256)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
     "vaultManagerProxyName()": FunctionFragment;
     "vaultStorageName()": FunctionFragment;
@@ -102,6 +104,10 @@ interface VoyagerInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "removeMaxSecurityDeposit",
+    values: [string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "renounceRole",
     values: [BytesLike, string]
   ): string;
@@ -112,6 +118,10 @@ interface VoyagerInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "setAddressResolverAddress",
     values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setMaxSecurityDeposit",
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "supportsInterface",
@@ -178,12 +188,20 @@ interface VoyagerInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "removeMaxSecurityDeposit",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "renounceRole",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setAddressResolverAddress",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setMaxSecurityDeposit",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -316,6 +334,11 @@ export class Voyager extends BaseContract {
 
     loanManagerName(overrides?: CallOverrides): Promise<[string]>;
 
+    removeMaxSecurityDeposit(
+      _reserve: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     renounceRole(
       role: BytesLike,
       account: string,
@@ -330,6 +353,12 @@ export class Voyager extends BaseContract {
 
     setAddressResolverAddress(
       _addressResolver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setMaxSecurityDeposit(
+      _reserve: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -383,6 +412,11 @@ export class Voyager extends BaseContract {
 
   loanManagerName(overrides?: CallOverrides): Promise<string>;
 
+  removeMaxSecurityDeposit(
+    _reserve: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   renounceRole(
     role: BytesLike,
     account: string,
@@ -397,6 +431,12 @@ export class Voyager extends BaseContract {
 
   setAddressResolverAddress(
     _addressResolver: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setMaxSecurityDeposit(
+    _reserve: string,
+    _amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -448,6 +488,11 @@ export class Voyager extends BaseContract {
 
     loanManagerName(overrides?: CallOverrides): Promise<string>;
 
+    removeMaxSecurityDeposit(
+      _reserve: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     renounceRole(
       role: BytesLike,
       account: string,
@@ -462,6 +507,12 @@ export class Voyager extends BaseContract {
 
     setAddressResolverAddress(
       _addressResolver: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setMaxSecurityDeposit(
+      _reserve: string,
+      _amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -585,6 +636,11 @@ export class Voyager extends BaseContract {
 
     loanManagerName(overrides?: CallOverrides): Promise<BigNumber>;
 
+    removeMaxSecurityDeposit(
+      _reserve: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     renounceRole(
       role: BytesLike,
       account: string,
@@ -599,6 +655,12 @@ export class Voyager extends BaseContract {
 
     setAddressResolverAddress(
       _addressResolver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setMaxSecurityDeposit(
+      _reserve: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -672,6 +734,11 @@ export class Voyager extends BaseContract {
 
     loanManagerName(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    removeMaxSecurityDeposit(
+      _reserve: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     renounceRole(
       role: BytesLike,
       account: string,
@@ -686,6 +753,12 @@ export class Voyager extends BaseContract {
 
     setAddressResolverAddress(
       _addressResolver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setMaxSecurityDeposit(
+      _reserve: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

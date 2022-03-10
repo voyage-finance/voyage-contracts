@@ -74,33 +74,32 @@ contract Voyager is AccessControl {
         return vaultManager.createVault(msg.sender);
     }
 
-    //
-    //    /**
-    //     * @dev Set max security deposit for _reserve
-    //     * @param _reserve reserve address
-    //     * @param _amount max amount sponsor can deposit
-    //     */
-    //    function setMaxSecurityDeposit(address _reserve, uint256 _amount)
-    //        external
-    //        onlyRole(OPERATOR)
-    //    {
-    //        return
-    //            VaultManagerProxy(getVaultManagerProxyAddress()).setMaxSecurityDeposit(
-    //                _reserve,
-    //                _amount
-    //            );
-    //    }
-    //
-    //    /**
-    //     * @dev Remove max security deposit for _reserve
-    //     * @param _reserve reserve address
-    //     */
-    //    function removeMaxSecurityDeposit(address _reserve)
-    //        external
-    //        onlyRole(OPERATOR)
-    //    {
-    //        return
-    //            VaultManagerProxy(getVaultManagerProxyAddress())
-    //                .removeMaxSecurityDeposit(_reserve);
-    //    }
+    /**
+     * @dev Set max security deposit for _reserve
+     * @param _reserve reserve address
+     * @param _amount max amount sponsor can deposit
+     */
+    function setMaxSecurityDeposit(address _reserve, uint256 _amount)
+        external
+        onlyRole(OPERATOR)
+    {
+        return
+            VaultManager(getVaultManagerProxyAddress()).setMaxSecurityDeposit(
+                _reserve,
+                _amount
+            );
+    }
+
+    /**
+     * @dev Remove max security deposit for _reserve
+     * @param _reserve reserve address
+     */
+    function removeMaxSecurityDeposit(address _reserve)
+        external
+        onlyRole(OPERATOR)
+    {
+        return
+            VaultManager(getVaultManagerProxyAddress())
+                .removeMaxSecurityDeposit(_reserve);
+    }
 }
