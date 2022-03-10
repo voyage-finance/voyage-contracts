@@ -28,6 +28,7 @@ interface VoyagerInterface extends ethers.utils.Interface {
     "getAddressResolverAddress()": FunctionFragment;
     "getLiquidityManagerName()": FunctionFragment;
     "getLoanManagerName()": FunctionFragment;
+    "getMaxSecurityDeposit(address)": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
     "getVaultManagerProxyAddress()": FunctionFragment;
     "getVaultManagerProxyName()": FunctionFragment;
@@ -70,6 +71,10 @@ interface VoyagerInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "getLoanManagerName",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getMaxSecurityDeposit",
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "getRoleAdmin",
@@ -159,6 +164,10 @@ interface VoyagerInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getLoanManagerName",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getMaxSecurityDeposit",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -310,6 +319,11 @@ export class Voyager extends BaseContract {
 
     getLoanManagerName(overrides?: CallOverrides): Promise<[string]>;
 
+    getMaxSecurityDeposit(
+      _reserve: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<[string]>;
 
     getVaultManagerProxyAddress(overrides?: CallOverrides): Promise<[string]>;
@@ -388,6 +402,11 @@ export class Voyager extends BaseContract {
 
   getLoanManagerName(overrides?: CallOverrides): Promise<string>;
 
+  getMaxSecurityDeposit(
+    _reserve: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
   getVaultManagerProxyAddress(overrides?: CallOverrides): Promise<string>;
@@ -463,6 +482,11 @@ export class Voyager extends BaseContract {
     getLiquidityManagerName(overrides?: CallOverrides): Promise<string>;
 
     getLoanManagerName(overrides?: CallOverrides): Promise<string>;
+
+    getMaxSecurityDeposit(
+      _reserve: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
@@ -609,6 +633,11 @@ export class Voyager extends BaseContract {
 
     getLoanManagerName(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getMaxSecurityDeposit(
+      _reserve: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getRoleAdmin(
       role: BytesLike,
       overrides?: CallOverrides
@@ -696,6 +725,11 @@ export class Voyager extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getLoanManagerName(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getMaxSecurityDeposit(
+      _reserve: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
