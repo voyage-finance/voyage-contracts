@@ -60,11 +60,17 @@ contract Vault is AccessControl, ReentrancyGuard {
         nonReentrant
     {
         // check max security deposit amount for this _reserve
-        uint256 maxAmount = Voyager(voyager).getMaxSecurityDeposit(_reserve);
+        uint256 maxAllowedAmount = Voyager(voyager).getMaxSecurityDeposit(
+            _reserve
+        );
         SecurityDepositEscrow escrow = SecurityDepositEscrow(
             securityDepositEscrow
         );
-        // todo check if the _reserve is allowed to be deposited
+        uint256 depositedAmount = escrow.getDepositAmount(_reserve);
+        require(
+            depositedAmount + _amount < maxAllowedAmount,
+            'Vault: deposit amount exceed'
+        );
         SecurityDepositEscrow(securityDepositEscrow).deposit(
             _reserve,
             msg.sender,
@@ -72,16 +78,14 @@ contract Vault is AccessControl, ReentrancyGuard {
         );
     }
 
-    // todo refactor vault contract to remove _user parameter
-    function getCurrentSecurityDeposit(address _reserve, address _user)
+    function getCurrentSecurityDeposit(address _reserve)
         external
         view
         returns (uint256)
     {
         return
             SecurityDepositEscrow(securityDepositEscrow).getDepositAmount(
-                _reserve,
-                _user
+                _reserve
             );
     }
 
