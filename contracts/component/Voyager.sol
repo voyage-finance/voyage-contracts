@@ -102,4 +102,20 @@ contract Voyager is AccessControl {
             VaultManager(getVaultManagerProxyAddress())
                 .removeMaxSecurityDeposit(_reserve);
     }
+
+    /**
+     * @dev Get max security deposit for _reserve
+     * @param _reserve reserve address
+     * @return max deposit amount
+     */
+    function getMaxSecurityDeposit(address _reserve)
+        external
+        view
+        returns (uint256)
+    {
+        return
+            VaultManager(getVaultManagerProxyAddress()).getMaxSecurityDeposit(
+                _reserve
+            );
+    }
 }
