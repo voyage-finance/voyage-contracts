@@ -22,6 +22,7 @@ contract Voyager is AccessControl {
 
     event CallResult(bool, bytes);
 
+    /************************************** HouseKeeping Interfaces **************************************/
     /**
      * @dev Update addressResolver contract address
      * @param _addressResolver address of the resolver contract
@@ -31,6 +32,84 @@ contract Voyager is AccessControl {
         onlyRole(OPERATOR)
     {
         addressResolver = _addressResolver;
+    }
+
+    function claimVaultManagerProxyOwnership() external onlyRole(OPERATOR) {
+        address payable vaultManagerProxyAddress = getVaultManagerProxyAddress();
+        VaultManagerProxy(vaultManagerProxyAddress).claimOwnership();
+    }
+
+    /**
+     * @dev Set max security deposit for _reserve
+     * @param _reserve reserve address
+     * @param _amount max amount sponsor can deposit
+     */
+    function setMaxSecurityDeposit(address _reserve, uint256 _amount)
+        external
+        onlyRole(OPERATOR)
+    {
+        return
+            VaultManager(getVaultManagerProxyAddress()).setMaxSecurityDeposit(
+                _reserve,
+                _amount
+            );
+    }
+
+    /**
+     * @dev Remove max security deposit for _reserve
+     * @param _reserve reserve address
+     */
+    function removeMaxSecurityDeposit(address _reserve)
+        external
+        onlyRole(OPERATOR)
+    {
+        return
+            VaultManager(getVaultManagerProxyAddress())
+                .removeMaxSecurityDeposit(_reserve);
+    }
+
+    /************************************** Vault Manager Interfaces **************************************/
+
+    /**
+     * @dev Create an empty Vault for msg.sender, in addition to this, a vault also deploy
+     * a SecurityDepositEscrow contract which the fund will be held in
+     × @return address of Vault
+     **/
+    function createVault() external returns (address) {
+        address vaultManagerProxy = getVaultManagerProxyAddress();
+        VaultManager vaultManager = VaultManager(vaultManagerProxy);
+        return vaultManager.createVault(msg.sender);
+    }
+
+    /**
+     * @dev Deposit specific amount of security deposit to user owned Vault
+     * @param _reserve address of reserve
+     * @param _amount deposit amount
+     **/
+    function depositSecurity(address _reserve, uint256 _amount) external {
+        VaultManager(getVaultManagerProxyAddress()).depositSecurity(
+            msg.sender,
+            _reserve,
+            _amount
+        );
+    }
+
+    /************************************** View Interfaces **************************************/
+
+    /**
+     * @dev Get max security deposit for _reserve
+     * @param _reserve reserve address
+     * @return max deposit amount
+     */
+    function getMaxSecurityDeposit(address _reserve)
+        external
+        view
+        returns (uint256)
+    {
+        return
+            VaultManager(getVaultManagerProxyAddress()).getMaxSecurityDeposit(
+                _reserve
+            );
     }
 
     /**
@@ -65,82 +144,5 @@ contract Voyager is AccessControl {
         address vaultManagerProxyAddress = AddressResolver(addressResolver)
             .getAddress(vaultManagerProxyName);
         return payable(vaultManagerProxyAddress);
-    }
-
-    /************************************** HouseKeeping Interfaces **************************************/
-    function claimVaultManagerProxyOwnership() external onlyRole(OPERATOR) {
-        address payable vaultManagerProxyAddress = getVaultManagerProxyAddress();
-        VaultManagerProxy(vaultManagerProxyAddress).claimOwnership();
-    }
-
-    /************************************** Vault Manager Interfaces **************************************/
-
-    /**
-     * @dev Create an empty Vault for msg.sender, in addition to this, a vault also deploy
-     * a SecurityDepositEscrow contract which the fund will be held in
-     × @return address of Vault
-     **/
-    function createVault() external returns (address) {
-        address vaultManagerProxy = getVaultManagerProxyAddress();
-        VaultManager vaultManager = VaultManager(vaultManagerProxy);
-        return vaultManager.createVault(msg.sender);
-    }
-
-    /**
-     * @dev Deposit specific amount of security deposit to user owned Vault
-     * @param _reserve address of reserve
-     * @param _amount deposit amount
-     **/
-    function depositSecurity(address _reserve, uint256 _amount) external {
-        VaultManager(getVaultManagerProxyAddress()).depositSecurity(
-            msg.sender,
-            _reserve,
-            _amount
-        );
-    }
-
-    /**
-     * @dev Set max security deposit for _reserve
-     * @param _reserve reserve address
-     * @param _amount max amount sponsor can deposit
-     */
-    function setMaxSecurityDeposit(address _reserve, uint256 _amount)
-        external
-        onlyRole(OPERATOR)
-    {
-        return
-            VaultManager(getVaultManagerProxyAddress()).setMaxSecurityDeposit(
-                _reserve,
-                _amount
-            );
-    }
-
-    /**
-     * @dev Remove max security deposit for _reserve
-     * @param _reserve reserve address
-     */
-    function removeMaxSecurityDeposit(address _reserve)
-        external
-        onlyRole(OPERATOR)
-    {
-        return
-            VaultManager(getVaultManagerProxyAddress())
-                .removeMaxSecurityDeposit(_reserve);
-    }
-
-    /**
-     * @dev Get max security deposit for _reserve
-     * @param _reserve reserve address
-     * @return max deposit amount
-     */
-    function getMaxSecurityDeposit(address _reserve)
-        external
-        view
-        returns (uint256)
-    {
-        return
-            VaultManager(getVaultManagerProxyAddress()).getMaxSecurityDeposit(
-                _reserve
-            );
     }
 }
