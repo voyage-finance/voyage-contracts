@@ -3,18 +3,25 @@ pragma solidity ^0.8.9;
 
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
+import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
 import '../libraries/math/WadRayMath.sol';
 
-contract SecurityDepositToken is ERC20 {
+contract SecurityDepositToken is ERC20, AccessControl {
     using WadRayMath for uint256;
     using SafeMath for uint256;
+
+    bytes32 public constant COLLATERAL_MANAGER =
+        keccak256('COLLATERAL_MANAGER');
 
     constructor(
         address _underlyingAsset,
         uint8 _underlyingAssetDecimals,
         string memory _name,
-        string memory _symbol
-    ) ERC20(_name, _symbol) {}
+        string memory _symbol,
+        address _collateralManagerAddress
+    ) ERC20(_name, _symbol) {
+        _setupRole(COLLATERAL_MANAGER, _collateralManagerAddress);
+    }
 
     /**
      * @dev calculates the balance of the user, which is the

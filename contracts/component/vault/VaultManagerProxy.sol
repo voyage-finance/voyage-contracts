@@ -5,7 +5,6 @@ import '../../libraries/proxy/Proxy.sol';
 import '../../interfaces/IVaultManager.sol';
 
 contract VaultManagerProxy is Proxy {
-
     /************************** Immutable static call for target contract **************************/
 
     /**
