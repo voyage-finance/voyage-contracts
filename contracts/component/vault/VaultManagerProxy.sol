@@ -5,6 +5,13 @@ import '../../libraries/proxy/Proxy.sol';
 import '../../interfaces/IVaultManager.sol';
 
 contract VaultManagerProxy is Proxy {
+
+    /************************** Immutable static call for target contract **************************/
+
+    /**
+     * @dev Get max security deposit
+     * @param _reserve reserve address
+     **/
     function getMaxSecurityDeposit(address _reserve)
         public
         view

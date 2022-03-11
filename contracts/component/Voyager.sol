@@ -22,6 +22,24 @@ contract Voyager is AccessControl {
 
     event CallResult(bool, bytes);
 
+    /************************************** Getter Functions **************************************/
+
+    function getVaultManagerProxyName() external view returns (bytes32) {
+        return vaultManagerProxyName;
+    }
+
+    function getVaultStorageName() external view returns (bytes32) {
+        return vaultStorageName;
+    }
+
+    function getLiquidityManagerName() external view returns (bytes32) {
+        return liquidityManagerName;
+    }
+
+    function getLoanManagerName() external view returns (bytes32) {
+        return loanManagerName;
+    }
+
     /************************************** HouseKeeping Interfaces **************************************/
     /**
      * @dev Update addressResolver contract address
@@ -120,22 +138,10 @@ contract Voyager is AccessControl {
         return addressResolver;
     }
 
-    function getVaultManagerProxyName() external view returns (bytes32) {
-        return vaultManagerProxyName;
-    }
-
-    function getVaultStorageName() external view returns (bytes32) {
-        return vaultStorageName;
-    }
-
-    function getLiquidityManagerName() external view returns (bytes32) {
-        return liquidityManagerName;
-    }
-
-    function getLoanManagerName() external view returns (bytes32) {
-        return loanManagerName;
-    }
-
+    /**
+     * @dev Get VaultManagerProxy contract address
+     * @return address of the VaultManager
+     **/
     function getVaultManagerProxyAddress()
         public
         view
