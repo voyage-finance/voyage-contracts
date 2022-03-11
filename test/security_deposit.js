@@ -1,6 +1,5 @@
 const { expect } = require("chai");
 
-
 let voyager;
 let vaultManagerProxy;
 let vaultManager;
@@ -46,6 +45,16 @@ describe("Security Deposit", function () {
         await vaultManagerProxy.transferOwnership(voyager.address);
         await voyager.claimVaultManagerProxyOwnership();
     });
+
+    it("Non Voyager call VaultManager should throw error", async function () {
+
+        const [owner] = await ethers.getSigners();
+        // deploy mock tus contract
+        const Tus = await ethers.getContractFactory("Tus");
+        const tus = await Tus.deploy("1000000000000000000000");
+        await expect(vaultManager.setMaxSecurityDeposit(tus.address, "100000000000000000000")).to.be.revertedWith("Only the proxy can call");
+
+    })
 
     it("Security deposit setup should return correct value", async function () {
 
