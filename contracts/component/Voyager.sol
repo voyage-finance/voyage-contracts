@@ -102,6 +102,19 @@ contract Voyager is AccessControl {
                 .updateSecurityDepositRequirement(_reserve, _requirement);
     }
 
+    /**
+     * @dev Remove security deposit
+     * @param _reserve reserve address
+     */
+    function removeSecurityDepositRequirement(address _reserve)
+        external
+        onlyRole(OPERATOR)
+    {
+        return
+            VaultManager(getVaultManagerProxyAddress())
+                .removeSecurityDepositRequirement(_reserve);
+    }
+
     /************************************** Vault Manager Interfaces **************************************/
 
     /**
