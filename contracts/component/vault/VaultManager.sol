@@ -19,7 +19,13 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
     address public voyager;
     mapping(address => uint256) public maxSecurityDeposit;
 
-    event VaultCreated(address indexed player, address vault, uint256);
+    event VaultCreated(address indexed user, address vault, uint256 len);
+
+    event SecurityDeposited(
+        address indexed user,
+        address reserve,
+        uint256 amount
+    );
 
     constructor(address payable _proxy, address _voyager)
         public
@@ -65,6 +71,12 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
         emit VaultCreated(_user, vault, len);
     }
 
+    /**
+     * @dev Delegate call to Vault's depositSecurity
+     * @param _user user address
+     * @param _reserve reserve address
+     * @param _amount amount user is willing to deposit
+     */
     function depositSecurity(
         address _user,
         address _reserve,
@@ -72,6 +84,7 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
     ) external onlyProxy {
         address vaultAddress = getVault(_user);
         Vault(vaultAddress).depositSecurity(_user, _reserve, _amount);
+        emit SecurityDeposited(_user, _reserve, _amount);
     }
 
     /************************ HouseKeeping Function ******************************/
