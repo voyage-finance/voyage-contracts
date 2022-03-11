@@ -18,4 +18,19 @@ contract VaultManagerProxy is Proxy {
     {
         return IVaultManager(address(target)).getMaxSecurityDeposit(_reserve);
     }
+
+    /**
+     * @dev Get current security deposit requirement
+     * @param _reserve reserve address
+     **/
+    function getSecurityDepositRequirement(address _reserve)
+        public
+        view
+        returns (uint256)
+    {
+        return
+            IVaultManager(address(target)).getSecurityDepositRequirement(
+                _reserve
+            );
+    }
 }

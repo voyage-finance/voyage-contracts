@@ -8,4 +8,9 @@ interface IVaultManager {
         external
         view
         returns (uint256);
+
+    function getSecurityDepositRequirement(address _reserve)
+        external
+        view
+        returns (uint256);
 }

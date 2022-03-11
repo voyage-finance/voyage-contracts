@@ -130,4 +130,12 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
     {
         delete securityDepositRequirement[_reserve];
     }
+
+    function getSecurityDepositRequirement(address _reserve)
+        external
+        view
+        returns (uint256)
+    {
+        return securityDepositRequirement[_reserve];
+    }
 }

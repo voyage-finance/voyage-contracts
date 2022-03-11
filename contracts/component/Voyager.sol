@@ -160,6 +160,21 @@ contract Voyager is AccessControl {
     }
 
     /**
+     * @dev Get current security deposit requirement
+     * @param _reserve reserve address
+     * @return requirement, expressed in Ray
+     **/
+    function getSecurityDepositRequirement(address _reserve)
+        external
+        view
+        returns (uint256)
+    {
+        return
+            VaultManager(getVaultManagerProxyAddress())
+                .getSecurityDepositRequirement(_reserve);
+    }
+
+    /**
      * @dev Get addressResolver contract address
      * @return address of the resolver contract
      **/
