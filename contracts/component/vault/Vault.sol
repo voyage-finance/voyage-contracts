@@ -15,6 +15,11 @@ contract Vault is AccessControl, ReentrancyGuard {
     address[] public players;
     address public securityDepositEscrow;
 
+    modifier onlyFactory() {
+        require(msg.sender == factory, 'only factory error');
+        _;
+    }
+
     constructor() public {
         factory = msg.sender;
         // deploy securityDepositEscrow
@@ -52,13 +57,14 @@ contract Vault is AccessControl, ReentrancyGuard {
     /**
      * @dev Transfer some deposit security
      * @param _reserve reserve address
+     * @param _user user address who deposit to this escrow
      * @param _amount deposit amount
      **/
-    function depositSecurity(address _reserve, uint256 _amount)
-        external
-        payable
-        nonReentrant
-    {
+    function depositSecurity(
+        address _user,
+        address _reserve,
+        uint256 _amount
+    ) external payable nonReentrant onlyFactory {
         // check max security deposit amount for this _reserve
         uint256 maxAllowedAmount = Voyager(voyager).getMaxSecurityDeposit(
             _reserve
@@ -73,7 +79,7 @@ contract Vault is AccessControl, ReentrancyGuard {
         );
         SecurityDepositEscrow(securityDepositEscrow).deposit(
             _reserve,
-            msg.sender,
+            _user,
             _amount
         );
     }

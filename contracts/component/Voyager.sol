@@ -87,6 +87,19 @@ contract Voyager is AccessControl {
     }
 
     /**
+     * @dev Deposit specific amount of security deposit to user owned Vault
+     * @param _reserve address of reserve
+     * @param _amount deposit amount
+     **/
+    function depositSecurity(address _reserve, uint256 _amount) external {
+        VaultManager(getVaultManagerProxyAddress()).depositSecurity(
+            msg.sender,
+            _reserve,
+            _amount
+        );
+    }
+
+    /**
      * @dev Set max security deposit for _reserve
      * @param _reserve reserve address
      * @param _amount max amount sponsor can deposit

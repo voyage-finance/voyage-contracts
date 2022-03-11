@@ -35,6 +35,15 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
     }
 
     /**
+     * @dev Get existing Vault contract address for user
+     * @param _user the address of the player
+     * @return Vault address
+     **/
+    function getVault(address _user) public view returns (address) {
+        return VaultStorage(getVaultStorageAddress()).getVaultAddress(_user);
+    }
+
+    /**
      * @dev Create a Vault for user
      * @param _user the address of the player
      **/
@@ -56,13 +65,13 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
         emit VaultCreated(_user, vault, len);
     }
 
-    /**
-     * @dev Get existing Vault contract address for user
-     * @param _user the address of the player
-     * @return Vault address
-     **/
-    function getVault(address _user) external view returns (address) {
-        return VaultStorage(getVaultStorageAddress()).getVaultAddress(_user);
+    function depositSecurity(
+        address _user,
+        address _reserve,
+        uint256 _amount
+    ) external onlyProxy {
+        address vaultAddress = getVault(_user);
+        Vault(vaultAddress).depositSecurity(_user, _reserve, _amount);
     }
 
     /************************ HouseKeeping Function ******************************/
