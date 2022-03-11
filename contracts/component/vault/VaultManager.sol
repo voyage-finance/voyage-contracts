@@ -18,6 +18,8 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
     bytes32 public constant VOYAGER = keccak256('VOYAGER');
     address public voyager;
     mapping(address => uint256) public maxSecurityDeposit;
+    // reserve address => requirement expressed in ray
+    mapping(address => uint256) public securityDepositRequirement;
 
     event VaultCreated(address indexed user, address vault, uint256 len);
 
@@ -25,6 +27,11 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
         address indexed user,
         address reserve,
         uint256 amount
+    );
+
+    event SecurityDepositRequirementSet(
+        address indexed reserve,
+        uint256 requirement
     );
 
     constructor(address payable _proxy, address _voyager)
@@ -107,5 +114,20 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
         returns (uint256)
     {
         return maxSecurityDeposit[_reserve];
+    }
+
+    function updateSecurityDepositRequirement(
+        address _reserve,
+        uint256 _requirement
+    ) external onlyProxy {
+        securityDepositRequirement[_reserve] = _requirement;
+        emit SecurityDepositRequirementSet(_reserve, _requirement);
+    }
+
+    function removeSecurityDepositRequirement(address _reserve)
+        external
+        onlyProxy
+    {
+        delete securityDepositRequirement[_reserve];
     }
 }

@@ -57,6 +57,8 @@ contract Voyager is AccessControl {
         VaultManagerProxy(vaultManagerProxyAddress).claimOwnership();
     }
 
+    //todo consider merge all this setting functions, define a data struct for it
+
     /**
      * @dev Set max security deposit for _reserve
      * @param _reserve reserve address
@@ -84,6 +86,20 @@ contract Voyager is AccessControl {
         return
             VaultManager(getVaultManagerProxyAddress())
                 .removeMaxSecurityDeposit(_reserve);
+    }
+
+    /**
+     * @dev Update the security deposit requirement
+     * @param _reserve reserve address
+     * @param _requirement expressed in Ray
+     */
+    function updateSecurityDepositRequirement(
+        address _reserve,
+        uint256 _requirement
+    ) external onlyRole(OPERATOR) {
+        return
+            VaultManager(getVaultManagerProxyAddress())
+                .updateSecurityDepositRequirement(_reserve, _requirement);
     }
 
     /************************************** Vault Manager Interfaces **************************************/
