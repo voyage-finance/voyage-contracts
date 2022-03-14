@@ -145,6 +145,11 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
         Vault(vaultAddress).initSecurityDepositToken(_reserve);
     }
 
+    /**
+     * Init a deployed Vault, ensure it has overlying security deposit token and corresponding staking contract
+     * _vaultUser the user/owner of this vault
+     * _reserve the underlying asset address e.g. TUS
+     **/
     function initStakingContract(address _vaultUser, address _reserve)
         external
         onlyProxy

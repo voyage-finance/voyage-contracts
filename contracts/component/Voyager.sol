@@ -120,6 +120,11 @@ contract Voyager is AccessControl {
                 .removeSecurityDepositRequirement(_reserve);
     }
 
+    /**
+     * Init a deployed Vault, ensure it has overlying security deposit token and corresponding staking contract
+     * _vaultUser the user/owner of this vault
+     * _reserve the underlying asset address e.g. TUS
+     **/
     function initVault(address _user, address _reserve)
         external
         onlyRole(OPERATOR)
