@@ -11,6 +11,8 @@ import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
 import '../../libraries/proxy/Proxyable.sol';
+import '../../tokenization/SecurityDepositToken.sol';
+import '../../mock/Tus.sol';
 
 contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
     using SafeERC20 for ERC20;
@@ -45,6 +47,15 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
         Voyager v = Voyager(voyager);
         address resolver = v.getAddressResolverAddress();
         return AddressResolver(resolver).getAddress(v.getVaultStorageName());
+    }
+
+    function getSecurityDepositTokenAddress() private view returns (address) {
+        Voyager v = Voyager(voyager);
+        address resolver = v.getAddressResolverAddress();
+        return
+            AddressResolver(resolver).getAddress(
+                v.getSecurityDepositTokenName()
+            );
     }
 
     /**
@@ -91,6 +102,14 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
     ) external onlyProxy {
         address vaultAddress = getVault(_user);
         Vault(vaultAddress).depositSecurity(_user, _reserve, _amount);
+        address securityDepositToken = getSecurityDepositTokenAddress();
+        // todo so for MVP we only support one reserve which is Tus
+        // and we only do one securityDepositToken
+        // but long term we might consider multiple reserves and handle multiple sd tokens
+        SecurityDepositToken(securityDepositToken).mintOnDeposit(
+            _user,
+            _amount
+        );
         emit SecurityDeposited(_user, _reserve, _amount);
     }
 

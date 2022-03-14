@@ -12,6 +12,7 @@ contract Voyager is AccessControl {
     bytes32 public constant loanManagerName = 'loanManager';
     bytes32 public constant vaultManagerProxyName = 'vaultManagerProxy';
     bytes32 public constant vaultStorageName = 'vaultStorage';
+    bytes32 public constant securityDepositTokenName = 'securityDepositToken';
     bytes32 public constant OPERATOR = keccak256('OPERATOR');
 
     address public addressResolver;
@@ -38,6 +39,10 @@ contract Voyager is AccessControl {
 
     function getLoanManagerName() external view returns (bytes32) {
         return loanManagerName;
+    }
+
+    function getSecurityDepositTokenName() external view returns (bytes32) {
+        return securityDepositTokenName;
     }
 
     /************************************** HouseKeeping Interfaces **************************************/
