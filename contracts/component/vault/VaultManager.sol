@@ -28,7 +28,8 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
     event VaultCreated(address indexed user, address vault, uint256 len);
 
     event SecurityDeposited(
-        address indexed user,
+        address indexed sponsor,
+        address user,
         address reserve,
         uint256 amount
     );
@@ -52,12 +53,8 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
     }
 
     function getSecurityDepositTokenAddress() private view returns (address) {
-        Voyager v = Voyager(voyager);
-        address resolver = v.getAddressResolverAddress();
-        return
-            AddressResolver(resolver).getAddress(
-                v.getSecurityDepositTokenName()
-            );
+        //todo
+        return 0x0;
     }
 
     /**
@@ -119,26 +116,25 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
 
     /**
      * @dev Delegate call to Vault's depositSecurity
-     * @param _user user address
+     * @param _sponsor who actual deposits the reserve into the amount
+     * @param _vaultUser user address
      * @param _reserve reserve address
      * @param _amount amount user is willing to deposit
      */
     function depositSecurity(
-        address _user,
+        address _sponsor,
+        address _vaultUser,
         address _reserve,
         uint256 _amount
     ) external onlyProxy {
-        address vaultAddress = getVault(_user);
-        Vault(vaultAddress).depositSecurity(_user, _reserve, _amount);
+        address vaultAddress = getVault(_vaultUser);
+        Vault(vaultAddress).depositSecurity(_sponsor, _reserve, _amount);
         address securityDepositToken = getSecurityDepositTokenAddress();
-        // todo so for MVP we only support one reserve which is Tus
-        // and we only do one securityDepositToken
-        // but long term we might consider multiple reserves and handle multiple sd tokens
         SecurityDepositToken(securityDepositToken).mintOnDeposit(
-            _user,
+            _sponsor,
             _amount
         );
-        emit SecurityDeposited(_user, _reserve, _amount);
+        emit SecurityDeposited(_sponsor, _vaultUser, _reserve, _amount);
     }
 
     /************************ HouseKeeping Function ******************************/

@@ -56,12 +56,12 @@ contract Vault is AccessControl, ReentrancyGuard {
 
     /**
      * @dev Transfer some deposit security
+     * @param _sponsor user address who deposit to this escrow
      * @param _reserve reserve address
-     * @param _user user address who deposit to this escrow
      * @param _amount deposit amount
      **/
     function depositSecurity(
-        address _user,
+        address _sponsor,
         address _reserve,
         uint256 _amount
     ) external payable nonReentrant onlyFactory {
@@ -79,7 +79,7 @@ contract Vault is AccessControl, ReentrancyGuard {
         );
         SecurityDepositEscrow(securityDepositEscrow).deposit(
             _reserve,
-            _user,
+            _sponsor,
             _amount
         );
     }
