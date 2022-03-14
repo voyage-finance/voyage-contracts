@@ -13,9 +13,11 @@ import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
 import '../../libraries/proxy/Proxyable.sol';
 import '../../tokenization/SecurityDepositToken.sol';
 import '../../mock/Tus.sol';
+import '../../libraries/math/WadRayMath.sol';
 
 contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
     using SafeERC20 for ERC20;
+    using WadRayMath for uint256;
 
     bytes32 public constant VOYAGER = keccak256('VOYAGER');
     address public voyager;
@@ -65,6 +67,32 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
      **/
     function getVault(address _user) public view returns (address) {
         return VaultStorage(getVaultStorageAddress()).getVaultAddress(_user);
+    }
+
+    /**
+     * @dev Get credit limit for a specific reserve
+     * @param _user user address
+     * @return _reserve reserve address
+     **/
+    function getCreditLimit(address _user, address _reserve)
+        public
+        view
+        returns (uint256)
+    {
+        address vaultAddress = getVault(_user);
+        uint256 currentSecurityDeposit = Vault(vaultAddress)
+            .getCurrentSecurityDeposit(_reserve);
+        uint256 securityDepositRequirement = securityDepositRequirement[
+            _reserve
+        ];
+        require(
+            securityDepositRequirement != 0,
+            'security deposit requirement cannot be 0'
+        );
+        uint256 creditLimitInRay = currentSecurityDeposit.wadToRay().rayDiv(
+            securityDepositRequirement
+        );
+        return creditLimitInRay.rayToWad();
     }
 
     /**

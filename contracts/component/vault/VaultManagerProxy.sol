@@ -33,4 +33,17 @@ contract VaultManagerProxy is Proxy {
                 _reserve
             );
     }
+
+    /**
+     * @dev Get credit limit for a specific reserve
+     * @param _user user address
+     * @return _reserve reserve address
+     **/
+    function getCreditLimit(address _user, address _reserve)
+        public
+        view
+        returns (uint256)
+    {
+        return IVaultManager(address(target)).getCreditLimit(_user, _reserve);
+    }
 }

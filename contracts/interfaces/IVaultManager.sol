@@ -13,4 +13,9 @@ interface IVaultManager {
         external
         view
         returns (uint256);
+
+    function getCreditLimit(address _user, address _reserve)
+        external
+        view
+        returns (uint256);
 }

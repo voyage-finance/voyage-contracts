@@ -146,6 +146,23 @@ contract Voyager is AccessControl {
         );
     }
 
+    /**
+     * @dev Get maximum reserve amount the use can borrow
+     * @param _user user address
+     * @param _reserve reserve contract address
+     **/
+    function getCreditLimit(address _user, address _reserve)
+        external
+        view
+        returns (uint256)
+    {
+        return
+            VaultManager(getVaultManagerProxyAddress()).getCreditLimit(
+                _user,
+                _reserve
+            );
+    }
+
     /************************************** View Interfaces **************************************/
 
     /**
