@@ -61,12 +61,31 @@ contract Vault is AccessControl, ReentrancyGuard {
     }
 
     function initSecurityDepositToken(address _reserve) external onlyFactory {
+        require(
+            address(securityDepositToken) == address(0),
+            'Vault: security deposit token has been initialized'
+        );
         ERC20 token = ERC20(_reserve);
         securityDepositToken = new SecurityDepositToken(
             _reserve,
             token.decimals(),
             token.name(),
             token.symbol()
+        );
+    }
+
+    function initStakingContract(address _reserve) external onlyFactory {
+        require(
+            address(stakingContract) == address(0),
+            'Vault: staking contract has been initialized'
+        );
+        require(
+            address(securityDepositToken) != address(0),
+            'Vault: security deposit token has not been initialized'
+        );
+        stakingContract = new StakingRewards(
+            address(securityDepositToken),
+            _reserve
         );
     }
 

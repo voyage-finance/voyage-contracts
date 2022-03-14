@@ -120,6 +120,15 @@ contract Voyager is AccessControl {
                 .removeSecurityDepositRequirement(_reserve);
     }
 
+    function initVault(address _user, address _reserve)
+        external
+        onlyRole(OPERATOR)
+    {
+        VaultManager vaultManager = VaultManager(getVaultManagerProxyAddress());
+        vaultManager.initSecurityDepositToken(_user, _reserve);
+        vaultManager.initStakingContract(_user, _reserve);
+    }
+
     /************************************** Vault Manager Interfaces **************************************/
 
     /**

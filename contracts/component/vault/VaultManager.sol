@@ -137,6 +137,22 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
         emit SecurityDeposited(_sponsor, _vaultUser, _reserve, _amount);
     }
 
+    function initSecurityDepositToken(address _vaultUser, address _reserve)
+        external
+        onlyProxy
+    {
+        address vaultAddress = getVault(_vaultUser);
+        Vault(vaultAddress).initSecurityDepositToken(_reserve);
+    }
+
+    function initStakingContract(address _vaultUser, address _reserve)
+        external
+        onlyProxy
+    {
+        address vaultAddress = getVault(_vaultUser);
+        Vault(vaultAddress).initStakingContract(_reserve);
+    }
+
     /************************ HouseKeeping Function ******************************/
 
     function setMaxSecurityDeposit(address _reserve, uint256 _amount)

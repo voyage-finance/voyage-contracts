@@ -47,10 +47,7 @@ contract StakingRewards is
         _;
     }
 
-    constructor(
-        address _stakingToken,
-        address _rewardsToken
-    ) public Ownable() {
+    constructor(address _stakingToken, address _rewardsToken) public Ownable() {
         stakingToken = IERC20(_stakingToken);
         rewardsToken = IERC20(_rewardsToken);
     }
