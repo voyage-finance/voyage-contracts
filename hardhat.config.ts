@@ -65,6 +65,9 @@ function createTestnetConfig(network: keyof typeof chainIds): NetworkUserConfig 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   networks: {
+    hardhat: {
+      allowUnlimitedContractSize: true
+    },
     mainnet: createTestnetConfig("mainnet"),
     goerli: createTestnetConfig("goerli"),
     kovan: createTestnetConfig("kovan"),
