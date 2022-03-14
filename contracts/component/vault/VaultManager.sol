@@ -54,7 +54,7 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
 
     function getSecurityDepositTokenAddress() private view returns (address) {
         //todo
-        return 0x0;
+        return address(0);
     }
 
     /**

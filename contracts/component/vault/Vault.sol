@@ -14,6 +14,8 @@ contract Vault is AccessControl, ReentrancyGuard {
     address public voyager;
     address[] public players;
     address public securityDepositEscrow;
+    address public securityDepositToken;
+    address public stakingContract;
 
     modifier onlyFactory() {
         require(msg.sender == factory, 'only factory error');
@@ -22,20 +24,24 @@ contract Vault is AccessControl, ReentrancyGuard {
 
     constructor() public {
         factory = msg.sender;
-        // deploy securityDepositEscrow
+        securityDepositEscrow = deployEscrow();
+    }
+
+
+    function deployEscrow() private returns (address) {
         // salt just an arbitrary value
         bytes32 salt = keccak256(abi.encodePacked(msg.sender));
         bytes memory bytecode = type(SecurityDepositEscrow).creationCode;
         address deployedEscrow;
         assembly {
             deployedEscrow := create2(
-                0,
-                add(bytecode, 32),
-                mload(bytecode),
-                salt
+            0,
+            add(bytecode, 32),
+            mload(bytecode),
+            salt
             )
         }
-        securityDepositEscrow = deployedEscrow;
+        return deployedEscrow;
     }
 
     // called once by the factory at time of deployment
