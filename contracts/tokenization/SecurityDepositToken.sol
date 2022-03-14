@@ -10,8 +10,10 @@ contract SecurityDepositToken is ERC20, AccessControl {
     using WadRayMath for uint256;
     using SafeMath for uint256;
 
-    bytes32 public constant VAULT_MANAGER_PROXY =
-        keccak256('VAULT_MANAGER_PROXY');
+    bytes32 public constant VAULT = keccak256('VAULT');
+
+    address public underlyingAsset;
+    uint8 public underlyingAssetDecimals;
 
     event MintOnDeposit(address indexed account, uint256 amount);
 
@@ -19,15 +21,16 @@ contract SecurityDepositToken is ERC20, AccessControl {
         address _underlyingAsset,
         uint8 _underlyingAssetDecimals,
         string memory _name,
-        string memory _symbol,
-        address _vaultManagerProxy
+        string memory _symbol
     ) ERC20(_name, _symbol) {
-        _setupRole(VAULT_MANAGER_PROXY, _vaultManagerProxy);
+        _setupRole(VAULT, msg.sender);
+        underlyingAsset = _underlyingAsset;
+        underlyingAssetDecimals = _underlyingAssetDecimals;
     }
 
     function mintOnDeposit(address account, uint256 amount)
         external
-        onlyRole(VAULT_MANAGER_PROXY)
+        onlyRole(VAULT)
     {
         _mint(account, amount);
         emit MintOnDeposit(account, amount);

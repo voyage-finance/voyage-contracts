@@ -6,6 +6,8 @@ import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
 import './SecurityDepositEscrow.sol';
 import '../infra/AddressResolver.sol';
 import '../Voyager.sol';
+import '../staking/StakingRewards.sol';
+import '../../tokenization/SecurityDepositToken.sol';
 
 contract Vault is AccessControl, ReentrancyGuard {
     bytes32 public constant BORROWER = keccak256('BORROWER');
@@ -14,8 +16,8 @@ contract Vault is AccessControl, ReentrancyGuard {
     address public voyager;
     address[] public players;
     address public securityDepositEscrow;
-    address public securityDepositToken;
-    address public stakingContract;
+    SecurityDepositToken public securityDepositToken;
+    StakingRewards public stakingContract;
 
     modifier onlyFactory() {
         require(msg.sender == factory, 'only factory error');
@@ -27,18 +29,16 @@ contract Vault is AccessControl, ReentrancyGuard {
         securityDepositEscrow = deployEscrow();
     }
 
-
     function deployEscrow() private returns (address) {
-        // salt just an arbitrary value
         bytes32 salt = keccak256(abi.encodePacked(msg.sender));
         bytes memory bytecode = type(SecurityDepositEscrow).creationCode;
         address deployedEscrow;
         assembly {
             deployedEscrow := create2(
-            0,
-            add(bytecode, 32),
-            mload(bytecode),
-            salt
+                0,
+                add(bytecode, 32),
+                mload(bytecode),
+                salt
             )
         }
         return deployedEscrow;
@@ -58,6 +58,16 @@ contract Vault is AccessControl, ReentrancyGuard {
             AddressResolver(addressResolver).getAddress(
                 voyager.getVaultManagerProxyName()
             );
+    }
+
+    function initSecurityDepositToken(address _reserve) external onlyFactory {
+        ERC20 token = ERC20(_reserve);
+        securityDepositToken = new SecurityDepositToken(
+            _reserve,
+            token.decimals(),
+            token.name(),
+            token.symbol()
+        );
     }
 
     /**

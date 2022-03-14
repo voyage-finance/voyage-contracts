@@ -48,7 +48,6 @@ contract StakingRewards is
     }
 
     constructor(
-        address _rewardsDistribution,
         address _stakingToken,
         address _rewardsToken
     ) public Ownable() {
