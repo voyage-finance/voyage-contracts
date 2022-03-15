@@ -53,23 +53,33 @@ describe("Staking contract", function () {
     })
 
     it("Single user stake with rewards should get all rewards", async  function() {
-        const sevenDays = 7 * 24 * 60 * 60;
+        const oneDay = 24 * 60 * 60;
+        const fourDays = 4 * 24 * 60 * 60;
 
         // transfer tus to staking contract
         await tus.transfer(stakingRewards.address, "10000000000000000000");
         // before increasing time, stake some
         await stakingRewards.stake("10000000000000000000");
-        const notifyTxn = await stakingRewards.notifyRewardAmount("1000000000000000000");
-        console.log(notifyTxn);
+        await stakingRewards.notifyRewardAmount("1000000000000000000");
 
-        // increase seven days
-        await ethers.provider.send('evm_increaseTime', [sevenDays]);
+        await ethers.provider.send('evm_increaseTime', [oneDay]);
         await ethers.provider.send('evm_mine');
+        const earned0 = await stakingRewards.earned(owner.address);
+        expect(earned0).to.equal("142857142857129600");
 
-        // 999999999999907200
-        // 1000000000000000000
-        const earned = await stakingRewards.earned(owner.address);
-        expect(earned).to.equal("999999999999907200");
+        await ethers.provider.send('evm_increaseTime', [oneDay]);
+        await ethers.provider.send('evm_mine');
+        const earned1 = await stakingRewards.earned(owner.address);
+        expect(earned1).to.equal("285714285714259200");
+
+        await ethers.provider.send('evm_increaseTime', [oneDay]);
+        await ethers.provider.send('evm_mine');
+        const earned2 = await stakingRewards.earned(owner.address);
+        expect(earned2).to.equal("428571428571388800");
+
+        await ethers.provider.send('evm_increaseTime', [fourDays]);
+        await ethers.provider.send('evm_mine');
+        // 142857142857129600 * 7
         await expect(stakingRewards.getReward()).to.emit(stakingRewards, 'RewardPaid').withArgs(owner.address,"999999999999907200")
 
     })
