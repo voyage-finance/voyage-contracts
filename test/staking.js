@@ -16,7 +16,8 @@ describe("Staking contract", function () {
         tus = await Tus.deploy("100000000000000000000");
 
         // deploy security deposit token
-        // attention: we use mock TUS contract, not actual SecurityDepositToken contract to avoid minting
+        // attention: we use mock TUS contract, not actual SecurityDepositToken contract to avoid minting stuff
+        // but overall it's ok as they all ERC20 token
         const SecurityDepositToken = await ethers.getContractFactory("Tus");
         securityDepositToken = await SecurityDepositToken.deploy("100000000000000000000");
 
@@ -82,6 +83,9 @@ describe("Staking contract", function () {
         await ethers.provider.send('evm_mine');
         // 142857142857129600 * 7
         await expect(stakingRewards.getReward()).to.emit(stakingRewards, 'RewardPaid').withArgs(owner.address,"999999999999907200")
+
+         // withdraw principal
+        await expect(stakingRewards.withdraw("10000000000000000000")).to.emit(stakingRewards, "Withdrawn").withArgs(owner.address, "10000000000000000000");
 
     })
 
