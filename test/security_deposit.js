@@ -94,10 +94,7 @@ describe("Security Deposit", function () {
 
         //  init vault
         await voyager.initVault(owner.address, tus.address);
-        const securityDepositToken = await vault.getSecurityDepositTokenAddress();
-        console.log(securityDepositToken);
         const stakingContract = await vault.getStakingContractAddress();
-        console.log(stakingContract);
 
         const SecurityDepositEscrow = await ethers.getContractFactory("SecurityDepositEscrow");
         const securityDepositEscrow = SecurityDepositEscrow.attach(securityDepositEscrowAddress);
@@ -107,6 +104,11 @@ describe("Security Deposit", function () {
         await voyager.depositSecurity(owner.address, tus.address, "10000000000000000000");
         const depositAmountAfter = await securityDepositEscrow.getDepositAmount(tus.address);
         expect(depositAmountAfter).to.equal("10000000000000000000");
+
+        const SecurityDepositToken = await ethers.getContractFactory("SecurityDepositToken");
+        const securityDepositToken = SecurityDepositToken.attach(await vault.getSecurityDepositTokenAddress());
+        const balanceOfSponsor = await securityDepositToken.balanceOf(owner.address);
+        expect(balanceOfSponsor).to.equal("10000000000000000000");
     })
 
 
