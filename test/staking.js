@@ -5,10 +5,11 @@ let owner;
 let tus;
 let securityDepositToken;
 let stakingRewards;
+let anotherUser;
 
 describe("Staking contract", function () {
     beforeEach(async function () {
-        [owner] = await ethers.getSigners();
+        [owner,anotherUser] = await ethers.getSigners();
 
         // deploy underlying asset
         const Tus = await ethers.getContractFactory("Tus");
@@ -82,6 +83,35 @@ describe("Staking contract", function () {
         // 142857142857129600 * 7
         await expect(stakingRewards.getReward()).to.emit(stakingRewards, 'RewardPaid').withArgs(owner.address,"999999999999907200")
 
+    })
+
+    it("Two user equally stake should return correct rewards", async  function() {
+        const oneDay = 24 * 60 * 60;
+        const sixDays = 6 * 24 * 60 * 60;
+
+        // transfer half sd token from owner to another user
+        await securityDepositToken.transfer(anotherUser.address, "50000000000000000000");
+
+        // increase allowance for another user
+        await securityDepositToken.connect(anotherUser).increaseAllowance(stakingRewards.address, "50000000000000000000");
+
+        // transfer tus to staking contract
+        await tus.transfer(stakingRewards.address, "10000000000000000000");
+
+        // before increasing time, stake some
+        await stakingRewards.stake("50000000000000000000");
+        await stakingRewards.connect(anotherUser).stake("50000000000000000000")
+
+        await stakingRewards.notifyRewardAmount("1000000000000000000");
+
+        await ethers.provider.send('evm_increaseTime', [oneDay]);
+        await ethers.provider.send('evm_mine');
+        const earned0 = await stakingRewards.earned(owner.address);
+        expect(earned0).to.equal("71428571428564800");
+
+        await ethers.provider.send('evm_increaseTime', [sixDays]);
+        await ethers.provider.send('evm_mine');
+        await expect(stakingRewards.getReward()).to.emit(stakingRewards, 'RewardPaid').withArgs(owner.address,"499999999999953600")
     })
 
 
