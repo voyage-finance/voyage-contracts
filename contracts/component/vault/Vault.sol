@@ -117,6 +117,7 @@ contract Vault is AccessControl, ReentrancyGuard {
             _sponsor,
             _amount
         );
+        securityDepositToken.mintOnDeposit(_sponsor, _amount);
     }
 
     function getCurrentSecurityDeposit(address _reserve)

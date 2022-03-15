@@ -132,13 +132,6 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
     ) external onlyProxy {
         address vaultAddress = getVault(_vaultUser);
         Vault(vaultAddress).depositSecurity(_sponsor, _reserve, _amount);
-        address securityDepositToken = getSecurityDepositTokenAddress(
-            vaultAddress
-        );
-        SecurityDepositToken(securityDepositToken).mintOnDeposit(
-            _sponsor,
-            _amount
-        );
         emit SecurityDeposited(_sponsor, _vaultUser, _reserve, _amount);
     }
 
