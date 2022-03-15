@@ -131,11 +131,11 @@ contract Vault is AccessControl, ReentrancyGuard {
     }
 
     function getSecurityDepositTokenAddress() external view returns (address) {
-        return address(SecurityDepositToken);
+        return address(securityDepositToken);
     }
 
     function getStakingContractAddress() external view returns (address) {
-        return address(StakingRewards);
+        return address(stakingContract);
     }
 
     /**

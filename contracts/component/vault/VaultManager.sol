@@ -52,9 +52,12 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
         return AddressResolver(resolver).getAddress(v.getVaultStorageName());
     }
 
-    function getSecurityDepositTokenAddress() private view returns (address) {
-        //todo
-        return address(0);
+    function getSecurityDepositTokenAddress(address vault)
+        private
+        view
+        returns (address)
+    {
+        return Vault(vault).getSecurityDepositTokenAddress();
     }
 
     /**
@@ -129,7 +132,9 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
     ) external onlyProxy {
         address vaultAddress = getVault(_vaultUser);
         Vault(vaultAddress).depositSecurity(_sponsor, _reserve, _amount);
-        address securityDepositToken = getSecurityDepositTokenAddress();
+        address securityDepositToken = getSecurityDepositTokenAddress(
+            vaultAddress
+        );
         SecurityDepositToken(securityDepositToken).mintOnDeposit(
             _sponsor,
             _amount
