@@ -130,6 +130,14 @@ contract Vault is AccessControl, ReentrancyGuard {
             );
     }
 
+    function getSecurityDepositTokenAddress() external view returns (address) {
+        return address(SecurityDepositToken);
+    }
+
+    function getStakingContractAddress() external view returns (address) {
+        return address(StakingRewards);
+    }
+
     /**
      * @dev Get SecurityDepositEscrow contract address
      * @return address
