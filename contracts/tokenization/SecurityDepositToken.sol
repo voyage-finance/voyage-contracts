@@ -30,7 +30,7 @@ contract SecurityDepositToken is ERC20, AccessControl {
 
     function mintOnDeposit(address account, uint256 amount)
         external
-    //            onlyRole(VAULT)
+        onlyRole(VAULT)
     {
         _mint(account, amount);
         emit MintOnDeposit(account, amount);
