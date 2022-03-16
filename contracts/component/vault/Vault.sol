@@ -121,6 +121,18 @@ contract Vault is AccessControl, ReentrancyGuard {
     }
 
     /**
+     * @dev get current security amount
+     * @param _reserve underlying asset address
+     **/
+    function getCurrentSecurityDeposit(address _reserve)
+        public
+        view
+        returns (uint256)
+    {
+        return securityDepositEscrow.getDepositAmount(_reserve);
+    }
+
+    /**
      * @dev Get unused deposits
      * @param _sponsor sponsor address
      * @param _reserve reserve address
@@ -137,8 +149,14 @@ contract Vault is AccessControl, ReentrancyGuard {
             totalDebt.wadToRay().rayMul(securityRequirement);
     }
 
+    /**
+     * @dev Redeem underlying reserve
+     * @param _sponsor sponsor address
+     * @param _reserve reserve address
+     * @param _amount redeem amount
+     **/
     function redeemSecurity(
-        address _sponsor,
+        address payable _sponsor,
         address _reserve,
         uint256 _amount
     ) external payable nonReentrant onlyFactory {
@@ -146,19 +164,13 @@ contract Vault is AccessControl, ReentrancyGuard {
             _amount <= getUnusedDeposits(_sponsor, _reserve),
             'Vault: cannot redeem more than unused deposits'
         );
-        // todo
-    }
-
-    /**
-     * @dev get current security amount
-     * @param _reserve underlying asset address
-     **/
-    function getCurrentSecurityDeposit(address _reserve)
-        external
-        view
-        returns (uint256)
-    {
-        return securityDepositEscrow.getDepositAmount(_reserve);
+        uint256 amountToRedeem = securityDepositToken
+            .balanceOf(_sponsor)
+            .wadToRay()
+            .rayDiv(securityDepositToken.totalSupply().wadToRay())
+            .rayMul(getCurrentSecurityDeposit(_reserve).wadToRay());
+        securityDepositEscrow.withdraw(_reserve, _sponsor, amountToRedeem);
+        securityDepositToken.burnOnRedeem(_sponsor, _amount);
     }
 
     function getSecurityDepositTokenAddress() external view returns (address) {
