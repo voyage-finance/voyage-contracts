@@ -154,7 +154,7 @@ describe("Security Deposit", function () {
         const eligibleAmount = await voyager.eligibleAmount(owner.address, tus.address, owner.address);
         expect(eligibleAmount).to.equal("10000000000000000000");
 
-        // await voyager.redeemSecurity(owner.address, tus.address, "1000000000000000000");
+        await voyager.redeemSecurity(owner.address, tus.address, "1000000000000000000");
     })
 
 
