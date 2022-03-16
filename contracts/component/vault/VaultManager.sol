@@ -169,6 +169,17 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
         return Vault(vaultAddress).eligibleAmount(_reserve, _sponsor);
     }
 
+    // placeholder function
+    function slash(
+        address _vaultUser,
+        address _reserve,
+        address payable _to,
+        uint256 _amount
+    ) public nonReentrant onlyProxy {
+        address vaultAddress = getVault(_vaultUser);
+        return Vault(vaultAddress).slash(_reserve, _to, _amount);
+    }
+
     function underlyingBalance(
         address _vaultUser,
         address _reserve,

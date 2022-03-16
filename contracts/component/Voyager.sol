@@ -167,11 +167,11 @@ contract Voyager is AccessControl {
     }
 
     /**
-    * @dev Get underlying balance of security deposit token
-    * @param _vaultUser _vaultUser the user address that has be sponsored
-    * @param _reserve address of reserve
-    * @param _sponsor sponsor address
-    **/
+     * @dev Get underlying balance of security deposit token
+     * @param _vaultUser _vaultUser the user address that has be sponsored
+     * @param _reserve address of reserve
+     * @param _sponsor sponsor address
+     **/
     function underlyingBalance(
         address _vaultUser,
         address _reserve,
@@ -200,6 +200,20 @@ contract Voyager is AccessControl {
             payable(msg.sender),
             _vaultUser,
             _reserve,
+            _amount
+        );
+    }
+
+    function slash(
+        address _vaultUser,
+        address _reserve,
+        address payable _to,
+        uint256 _amount
+    ) external {
+        VaultManager(getVaultManagerProxyAddress()).slash(
+            _vaultUser,
+            _reserve,
+            _to,
             _amount
         );
     }

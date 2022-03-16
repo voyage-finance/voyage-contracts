@@ -193,6 +193,15 @@ contract Vault is AccessControl, ReentrancyGuard {
         return securityDepositEscrow.eligibleAmount(_reserve, _sponsor);
     }
 
+    // placeholder function
+    function slash(
+        address _reserve,
+        address payable _to,
+        uint256 _amount
+    ) public nonReentrant onlyFactory {
+        securityDepositEscrow.slash(_reserve, _to, _amount);
+    }
+
     function getSecurityDepositTokenAddress() external view returns (address) {
         return address(securityDepositToken);
     }
