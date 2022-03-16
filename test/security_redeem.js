@@ -5,6 +5,7 @@ let vaultManagerProxy;
 let vaultManager;
 let vaultStorage;
 let owner;
+let tus;
 
 describe("Security Deposit", function () {
 
@@ -44,39 +45,7 @@ describe("Security Deposit", function () {
 
         await vaultManagerProxy.transferOwnership(voyager.address);
         await voyager.claimVaultManagerProxyOwnership();
-    });
 
-    it("Non Voyager call VaultManager should throw error", async function () {
-
-        const [owner] = await ethers.getSigners();
-        // deploy mock tus contract
-        const Tus = await ethers.getContractFactory("Tus");
-        const tus = await Tus.deploy("1000000000000000000000");
-        await expect(vaultManager.setMaxSecurityDeposit(tus.address, "100000000000000000000")).to.be.revertedWith("Only the proxy can call");
-
-    })
-
-    it("Security deposit setup should return correct value", async function () {
-
-        const [owner] = await ethers.getSigners();
-        // deploy mock tus contract
-        const Tus = await ethers.getContractFactory("Tus");
-        const tus = await Tus.deploy("1000000000000000000000");
-
-        const amountBeforeSetting = await voyager.getMaxSecurityDeposit(tus.address);
-        expect(amountBeforeSetting).to.equal("0");
-        await voyager.setMaxSecurityDeposit(tus.address, "100000000000000000000");
-        const amountAfterSetting = await voyager.getMaxSecurityDeposit(tus.address);
-        expect(amountAfterSetting).to.equal("100000000000000000000");
-
-        await voyager.removeMaxSecurityDeposit(tus.address);
-        expect(amountBeforeSetting).to.equal("0");
-
-    })
-
-    it("Security deposit should return correct value", async function () {
-
-        const [owner] = await ethers.getSigners();
         // create vault
         await voyager.createVault();
 
@@ -87,7 +56,7 @@ describe("Security Deposit", function () {
 
         // deploy mock tus contract
         const Tus = await ethers.getContractFactory("Tus");
-        const tus = await Tus.deploy("1000000000000000000000");
+        tus = await Tus.deploy("1000000000000000000000");
         await tus.increaseAllowance(securityDepositEscrowAddress, "10000000000000000000000");
 
         await voyager.setMaxSecurityDeposit(tus.address, "100000000000000000000");
@@ -109,6 +78,21 @@ describe("Security Deposit", function () {
         const securityDepositToken = SecurityDepositToken.attach(await vault.getSecurityDepositTokenAddress());
         const balanceOfSponsor = await securityDepositToken.balanceOf(owner.address);
         expect(balanceOfSponsor).to.equal("10000000000000000000");
+    });
+
+
+
+    it("Security redeem with no slash should return correct value", async function () {
+        const oneDay = 24 * 60 * 60;
+
+        await ethers.provider.send('evm_increaseTime', [oneDay]);
+        await ethers.provider.send('evm_mine');
+
+        const eligibleAmount = await voyager.eligibleAmount(owner.address, tus.address, owner.address);
+        expect(eligibleAmount).to.equal("10000000000000000000");
+
+        await voyager.redeemSecurity(owner.address, tus.address, "1000000000000000000");
     })
+
 });
 
