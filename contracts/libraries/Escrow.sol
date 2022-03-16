@@ -25,7 +25,7 @@ contract Escrow is Ownable, ReentrancyGuard {
     // reserve address => deposit record
     mapping(address => Deposit[]) private _depositRecords;
 
-    uint40 private _lockupTimeInSeconds;
+    uint40 private _lockupTimeInSeconds = 7 days;
 
     /**
      * @dev Stores the sent amount as credit to be withdrawn.

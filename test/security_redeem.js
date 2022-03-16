@@ -80,18 +80,18 @@ describe("Security Deposit", function () {
         expect(balanceOfSponsor).to.equal("10000000000000000000");
     });
 
-    // it("Security redeem within lockup time should throw error", async function () {
-    //     const eligibleAmount = await voyager.eligibleAmount(owner.address, tus.address, owner.address);
-    //     expect(eligibleAmount).to.equal("0");
-    //     const underlyingBalance = await voyager.underlyingBalance(owner.address, tus.address, owner.address);
-    //     //await voyager.redeemSecurity(owner.address, tus.address, "1000000000000000000")
-    //     // await expect().to.throw("Do not have enough amount to withdraw");
-    // })
+    it("Security redeem within lockup time should throw error", async function () {
+        const eligibleAmount = await voyager.eligibleAmount(owner.address, tus.address, owner.address);
+        const underlyingBalance = await voyager.underlyingBalance(owner.address, tus.address, owner.address);
+        expect(underlyingBalance).to.equal("10000000000000000000");
+        expect(eligibleAmount).to.equal("0");
+        await expect(voyager.redeemSecurity(owner.address, tus.address, "1000000000000000000")).to.be.revertedWith("Do not have enough amount to withdraw");
+    })
 
     it("Security redeem with no slash should return correct value", async function () {
-        const oneDay = 24 * 60 * 60;
+        const tenDay = 10 * 24 * 60 * 60;
 
-        await ethers.provider.send('evm_increaseTime', [oneDay]);
+        await ethers.provider.send('evm_increaseTime', [tenDay]);
         await ethers.provider.send('evm_mine');
 
         const eligibleAmount = await voyager.eligibleAmount(owner.address, tus.address, owner.address);
