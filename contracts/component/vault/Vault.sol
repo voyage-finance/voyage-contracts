@@ -132,6 +132,14 @@ contract Vault is AccessControl, ReentrancyGuard {
         return securityDepositEscrow.getDepositAmount(_reserve);
     }
 
+    function getActualSecurityDeposit(address _reserve)
+        public
+        view
+        returns (uint256)
+    {
+        return ERC20(_reserve).balanceOf(address(securityDepositEscrow));
+    }
+
     /**
      * @dev Get unused deposits
      * @param _sponsor sponsor address
@@ -181,7 +189,7 @@ contract Vault is AccessControl, ReentrancyGuard {
             .balanceOf(_sponsor)
             .wadToRay()
             .rayDiv(securityDepositToken.totalSupply().wadToRay())
-            .rayMul(getCurrentSecurityDeposit(_reserve).wadToRay());
+            .rayMul(getActualSecurityDeposit(_reserve).wadToRay());
         return amountToRedeemInRay.rayToWad();
     }
 
