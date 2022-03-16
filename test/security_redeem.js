@@ -6,6 +6,7 @@ let vaultManager;
 let vaultStorage;
 let owner;
 let tus;
+let securityDepositEscrow;
 
 describe('Security Deposit', function () {
   beforeEach(async function () {
@@ -79,7 +80,7 @@ describe('Security Deposit', function () {
     const SecurityDepositEscrow = await ethers.getContractFactory(
       'SecurityDepositEscrow'
     );
-    const securityDepositEscrow = SecurityDepositEscrow.attach(
+    securityDepositEscrow = SecurityDepositEscrow.attach(
       securityDepositEscrowAddress
     );
     const depositAmount = await securityDepositEscrow.getDepositAmount(
@@ -151,4 +152,35 @@ describe('Security Deposit', function () {
       '1000000000000000000'
     );
   });
+
+  it('Security redeem with slash should return correct value', async function () {
+    const tenDay = 10 * 24 * 60 * 60;
+
+    await ethers.provider.send('evm_increaseTime', [tenDay]);
+    await ethers.provider.send('evm_mine');
+
+
+    const beforeSlashing = await tus.balanceOf(securityDepositEscrow.address);
+    expect(beforeSlashing).to.equal('10000000000000000000');
+
+    await voyager.slash(owner.address, tus.address, owner.address, "1000000000000000000")
+
+    const afterSlashing = await tus.balanceOf(securityDepositEscrow.address);
+    expect(afterSlashing).to.equal('9000000000000000000');
+
+    const eligibleAmount = await voyager.eligibleAmount(
+        owner.address,
+        tus.address,
+        owner.address
+    );
+    expect(eligibleAmount).to.equal('10000000000000000000');
+
+    const underlyingBalance = await voyager.underlyingBalance(
+        owner.address,
+        tus.address,
+        owner.address
+    );
+    expect(underlyingBalance).to.equal('9000000000000000000');
+  });
+
 });
