@@ -8,8 +8,10 @@ import '../infra/AddressResolver.sol';
 import '../Voyager.sol';
 import '../staking/StakingRewards.sol';
 import '../../tokenization/SecurityDepositToken.sol';
+import '../../libraries/math/WadRayMath.sol';
 
 contract Vault is AccessControl, ReentrancyGuard {
+    using WadRayMath for uint256;
     bytes32 public constant BORROWER = keccak256('BORROWER');
 
     address public factory;
@@ -18,6 +20,8 @@ contract Vault is AccessControl, ReentrancyGuard {
     SecurityDepositEscrow public securityDepositEscrow;
     SecurityDepositToken public securityDepositToken;
     StakingRewards public stakingContract;
+
+    uint256 public totalDebt;
 
     modifier onlyFactory() {
         require(msg.sender == factory, 'only factory error');
@@ -115,6 +119,36 @@ contract Vault is AccessControl, ReentrancyGuard {
         securityDepositToken.mintOnDeposit(_sponsor, _amount);
     }
 
+    /**
+    * @dev Get unused deposits
+    * @param _sponsor sponsor address
+    * @param _reserve reserve address
+    **/
+    function getUnusedDeposits(address _sponsor, address _reserve)
+        public
+        view
+        returns (uint256)
+    {
+        uint256 securityRequirement = Vault(factory)
+            .getSecurityDepositRequirement(_reserve);
+        return
+            securityDepositToken.balanceOf(_sponsor) -
+            totalDebt.wadToRay().ratMul(securityRequirement);
+    }
+
+    function redeemSecurity(
+        address _sponsor,
+        address _reserve,
+        uint256 _amount
+    ) external payable nonReentrant onlyFactory {
+       require(_amount <= getUnusedDeposits(_sponsor, _reserve), 'Vault: cannot redeem more than unused deposits');
+        // todo
+    }
+
+    /**
+     * @dev get current security amount
+     * @param _reserve underlying asset address
+     **/
     function getCurrentSecurityDeposit(address _reserve)
         external
         view
