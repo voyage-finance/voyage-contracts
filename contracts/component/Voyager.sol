@@ -167,6 +167,25 @@ contract Voyager is AccessControl {
     }
 
     /**
+     * @dev Redeem specific amount of security deposit to user owned Vault
+     * @param _vaultUser the user address that has be sponsored
+     * @param _reserve address of reserve
+     * @param _amount deposit amount
+     **/
+    function redeemSecurity(
+        address _vaultUser,
+        address _reserve,
+        uint256 amount
+    ) external {
+        VaultManager(getVaultManagerProxyAddress()).redeemSecurity(
+            msg.sender,
+            _vaultUser,
+            _reserve,
+            _amount
+        );
+    }
+
+    /**
      * @dev Get maximum reserve amount the use can borrow
      * @param _user user address
      * @param _reserve reserve contract address

@@ -34,6 +34,13 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
         uint256 amount
     );
 
+    event SecurityRedeemed(
+        address indexed sponsor,
+        address user,
+        address reserve,
+        uint256 amount
+    );
+
     event SecurityDepositRequirementSet(
         address indexed reserve,
         uint256 requirement
@@ -133,6 +140,24 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
         address vaultAddress = getVault(_vaultUser);
         Vault(vaultAddress).depositSecurity(_sponsor, _reserve, _amount);
         emit SecurityDeposited(_sponsor, _vaultUser, _reserve, _amount);
+    }
+
+    /**
+     * @dev  Delegate call to Vault's redeemSecurity
+     * @param _sponsor sponsor address
+     * @param _vaultUser user address
+     * @param _reserve reserve address
+     * @param _amount redeem amount
+     **/
+    function redeemSecurity(
+        address payable _sponsor,
+        address _vaultUser,
+        address _reserve,
+        uint256 _amount
+    ) external onlyProxy {
+        address vaultAddress = getVault(_vaultUser);
+        Vault(vaultAddress).redeemSecurity(_sponsor, _reserve, _amount);
+        emit SecurityRedeemed(_sponsor, _vaultUser, _reserve, _amount);
     }
 
     function initSecurityDepositToken(address _vaultUser, address _reserve)
