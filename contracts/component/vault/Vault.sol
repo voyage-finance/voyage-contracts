@@ -15,7 +15,7 @@ contract Vault is AccessControl, ReentrancyGuard {
     address public factory;
     address public voyager;
     address[] public players;
-    address public securityDepositEscrow;
+    SecurityDepositEscrow public securityDepositEscrow;
     SecurityDepositToken public securityDepositToken;
     StakingRewards public stakingContract;
 
@@ -26,7 +26,7 @@ contract Vault is AccessControl, ReentrancyGuard {
 
     constructor() public {
         factory = msg.sender;
-        securityDepositEscrow = deployEscrow();
+        securityDepositEscrow = SecurityDepositEscrow(deployEscrow());
     }
 
     function deployEscrow() private returns (address) {
@@ -104,19 +104,14 @@ contract Vault is AccessControl, ReentrancyGuard {
         uint256 maxAllowedAmount = Voyager(voyager).getMaxSecurityDeposit(
             _reserve
         );
-        SecurityDepositEscrow escrow = SecurityDepositEscrow(
-            securityDepositEscrow
+        uint256 depositedAmount = securityDepositEscrow.getDepositAmount(
+            _reserve
         );
-        uint256 depositedAmount = escrow.getDepositAmount(_reserve);
         require(
             depositedAmount + _amount < maxAllowedAmount,
             'Vault: deposit amount exceed'
         );
-        SecurityDepositEscrow(securityDepositEscrow).deposit(
-            _reserve,
-            _sponsor,
-            _amount
-        );
+        securityDepositEscrow.deposit(_reserve, _sponsor, _amount);
         securityDepositToken.mintOnDeposit(_sponsor, _amount);
     }
 
@@ -125,10 +120,7 @@ contract Vault is AccessControl, ReentrancyGuard {
         view
         returns (uint256)
     {
-        return
-            SecurityDepositEscrow(securityDepositEscrow).getDepositAmount(
-                _reserve
-            );
+        return securityDepositEscrow.getDepositAmount(_reserve);
     }
 
     function getSecurityDepositTokenAddress() external view returns (address) {
@@ -144,7 +136,7 @@ contract Vault is AccessControl, ReentrancyGuard {
      * @return address
      **/
     function getSecurityDepositEscrowAddress() external view returns (address) {
-        return securityDepositEscrow;
+        return address(securityDepositEscrow);
     }
 
     function getVersion() external view returns (string memory) {
