@@ -169,6 +169,15 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
         return Vault(vaultAddress).eligibleAmount(_reserve, _sponsor);
     }
 
+    function underlyingBalance(
+        address _vaultUser,
+        address _reserve,
+        address _sponsor
+    ) public view returns (uint256) {
+        address vaultAddress = getVault(_vaultUser);
+        return Vault(vaultAddress).underlyingBalance(_reserve, _sponsor);
+    }
+
     function initSecurityDepositToken(address _vaultUser, address _reserve)
         external
         onlyProxy

@@ -59,4 +59,17 @@ contract VaultManagerProxy is Proxy {
                 _sponsor
             );
     }
+
+    function underlyingBalance(
+        address _vaultUser,
+        address _reserve,
+        address _sponsor
+    ) external view returns (uint256) {
+        return
+            IVaultManager(address(target)).underlyingBalance(
+                _vaultUser,
+                _reserve,
+                _sponsor
+            );
+    }
 }

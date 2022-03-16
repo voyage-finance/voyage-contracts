@@ -164,13 +164,25 @@ contract Vault is AccessControl, ReentrancyGuard {
             _amount <= getUnusedDeposits(_sponsor, _reserve),
             'Vault: cannot redeem more than unused deposits'
         );
+        securityDepositEscrow.withdraw(
+            _reserve,
+            _sponsor,
+            underlyingBalance(_sponsor, _reserve)
+        );
+        securityDepositToken.burnOnRedeem(_sponsor, _amount);
+    }
+
+    function underlyingBalance(address _sponsor, address _reserve)
+        public
+        view
+        returns (uint256)
+    {
         uint256 amountToRedeemInRay = securityDepositToken
             .balanceOf(_sponsor)
             .wadToRay()
             .rayDiv(securityDepositToken.totalSupply().wadToRay())
             .rayMul(getCurrentSecurityDeposit(_reserve).wadToRay());
-        securityDepositEscrow.withdraw(_reserve, _sponsor, amountToRedeemInRay.rayToWad());
-        securityDepositToken.burnOnRedeem(_sponsor, _amount);
+        return amountToRedeemInRay.rayToWad();
     }
 
     function eligibleAmount(address _reserve, address _sponsor)

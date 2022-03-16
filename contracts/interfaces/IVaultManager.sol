@@ -24,4 +24,10 @@ interface IVaultManager {
         address _reserve,
         address _sponsor
     ) external view returns (uint256);
+
+    function underlyingBalance(
+        address _vaultUser,
+        address _reserve,
+        address _sponsor
+    ) external view returns (uint256);
 }
