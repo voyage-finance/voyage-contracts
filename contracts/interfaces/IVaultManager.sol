@@ -18,4 +18,10 @@ interface IVaultManager {
         external
         view
         returns (uint256);
+
+    function eligibleAmount(
+        address _vaultUser,
+        address _reserve,
+        address _sponsor
+    ) external view returns (uint256);
 }

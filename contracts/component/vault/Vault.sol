@@ -173,6 +173,14 @@ contract Vault is AccessControl, ReentrancyGuard {
         securityDepositToken.burnOnRedeem(_sponsor, _amount);
     }
 
+    function eligibleAmount(address _reserve, address _sponsor)
+        public
+        view
+        returns (uint256)
+    {
+        return securityDepositEscrow.eligibleAmount(_reserve, _sponsor);
+    }
+
     function getSecurityDepositTokenAddress() external view returns (address) {
         return address(securityDepositToken);
     }

@@ -56,6 +56,24 @@ contract Escrow is Ownable, ReentrancyGuard {
         emit Deposited(_user, _reserve, _amount);
     }
 
+    function eligibleAmount(address _reserve, address _user)
+        public
+        view
+        returns (uint256)
+    {
+        Deposit[] storage deposits = _depositRecords[_reserve];
+        uint256 eligibleAmount = 0;
+        for (uint256 i = 0; i < deposits.length; i++) {
+            if (
+                uint40(block.timestamp) - deposits[i].depositTime >
+                _lockupTimeInSeconds
+            ) {
+                eligibleAmount += deposits[i].amount;
+            }
+        }
+        return eligibleAmount;
+    }
+
     /**
      * @dev Withdraw accumulated balance for a payee, only beyond _lockupTimeInSeconds
      * @param _reserve the asset address

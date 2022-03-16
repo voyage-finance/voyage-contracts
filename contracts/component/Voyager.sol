@@ -175,10 +175,10 @@ contract Voyager is AccessControl {
     function redeemSecurity(
         address _vaultUser,
         address _reserve,
-        uint256 amount
+        uint256 _amount
     ) external {
         VaultManager(getVaultManagerProxyAddress()).redeemSecurity(
-            msg.sender,
+            payable(msg.sender),
             _vaultUser,
             _reserve,
             _amount
@@ -199,6 +199,19 @@ contract Voyager is AccessControl {
             VaultManager(getVaultManagerProxyAddress()).getCreditLimit(
                 _user,
                 _reserve
+            );
+    }
+
+    function eligibleAmount(
+        address _vaultUser,
+        address _reserve,
+        address _sponsor
+    ) external view returns (uint256) {
+        return
+            VaultManager(getVaultManagerProxyAddress()).eligibleAmount(
+                _vaultUser,
+                _reserve,
+                _sponsor
             );
     }
 

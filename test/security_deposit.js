@@ -112,6 +112,7 @@ describe("Security Deposit", function () {
     })
 
     it("Security redeem with no slash should return correct value", async function () {
+        const oneDay = 24 * 60 * 60;
 
         const [owner] = await ethers.getSigners();
         // create vault
@@ -146,6 +147,14 @@ describe("Security Deposit", function () {
         const securityDepositToken = SecurityDepositToken.attach(await vault.getSecurityDepositTokenAddress());
         const balanceOfSponsor = await securityDepositToken.balanceOf(owner.address);
         expect(balanceOfSponsor).to.equal("10000000000000000000");
+
+        await ethers.provider.send('evm_increaseTime', [oneDay]);
+        await ethers.provider.send('evm_mine');
+
+        const eligibleAmount = await voyager.eligibleAmount(owner.address, tus.address, owner.address);
+        expect(eligibleAmount).to.equal("10000000000000000000");
+
+        // await voyager.redeemSecurity(owner.address, tus.address, "1000000000000000000");
     })
 
 
