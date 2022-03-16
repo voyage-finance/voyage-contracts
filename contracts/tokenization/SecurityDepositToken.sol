@@ -17,6 +17,8 @@ contract SecurityDepositToken is ERC20, AccessControl {
 
     event MintOnDeposit(address indexed account, uint256 amount);
 
+    event BurnOnRedeem(address indexed account, uint256 amount);
+
     constructor(
         address _underlyingAsset,
         uint8 _underlyingAssetDecimals,
@@ -34,5 +36,13 @@ contract SecurityDepositToken is ERC20, AccessControl {
     {
         _mint(account, amount);
         emit MintOnDeposit(account, amount);
+    }
+
+    function burnOnRedeem(address account, uint256 amount)
+        external
+        onlyRole(VAULT)
+    {
+        _burn(account, amount);
+        emit BurnOnRedeem(account, amount);
     }
 }

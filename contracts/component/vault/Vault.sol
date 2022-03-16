@@ -9,6 +9,7 @@ import '../Voyager.sol';
 import '../staking/StakingRewards.sol';
 import '../../tokenization/SecurityDepositToken.sol';
 import '../../libraries/math/WadRayMath.sol';
+import './VaultManager.sol';
 
 contract Vault is AccessControl, ReentrancyGuard {
     using WadRayMath for uint256;
@@ -120,20 +121,20 @@ contract Vault is AccessControl, ReentrancyGuard {
     }
 
     /**
-    * @dev Get unused deposits
-    * @param _sponsor sponsor address
-    * @param _reserve reserve address
-    **/
+     * @dev Get unused deposits
+     * @param _sponsor sponsor address
+     * @param _reserve reserve address
+     **/
     function getUnusedDeposits(address _sponsor, address _reserve)
         public
         view
         returns (uint256)
     {
-        uint256 securityRequirement = Vault(factory)
+        uint256 securityRequirement = VaultManager(factory)
             .getSecurityDepositRequirement(_reserve);
         return
             securityDepositToken.balanceOf(_sponsor) -
-            totalDebt.wadToRay().ratMul(securityRequirement);
+            totalDebt.wadToRay().rayMul(securityRequirement);
     }
 
     function redeemSecurity(
@@ -141,7 +142,10 @@ contract Vault is AccessControl, ReentrancyGuard {
         address _reserve,
         uint256 _amount
     ) external payable nonReentrant onlyFactory {
-       require(_amount <= getUnusedDeposits(_sponsor, _reserve), 'Vault: cannot redeem more than unused deposits');
+        require(
+            _amount <= getUnusedDeposits(_sponsor, _reserve),
+            'Vault: cannot redeem more than unused deposits'
+        );
         // todo
     }
 
