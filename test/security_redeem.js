@@ -80,7 +80,13 @@ describe("Security Deposit", function () {
         expect(balanceOfSponsor).to.equal("10000000000000000000");
     });
 
-
+    // it("Security redeem within lockup time should throw error", async function () {
+    //     const eligibleAmount = await voyager.eligibleAmount(owner.address, tus.address, owner.address);
+    //     expect(eligibleAmount).to.equal("0");
+    //     const underlyingBalance = await voyager.underlyingBalance(owner.address, tus.address, owner.address);
+    //     //await voyager.redeemSecurity(owner.address, tus.address, "1000000000000000000")
+    //     // await expect().to.throw("Do not have enough amount to withdraw");
+    // })
 
     it("Security redeem with no slash should return correct value", async function () {
         const oneDay = 24 * 60 * 60;
@@ -90,7 +96,8 @@ describe("Security Deposit", function () {
 
         const eligibleAmount = await voyager.eligibleAmount(owner.address, tus.address, owner.address);
         expect(eligibleAmount).to.equal("10000000000000000000");
-
+        const underlyingBalance = await voyager.underlyingBalance(owner.address, tus.address, owner.address);
+        expect(underlyingBalance).to.equal("10000000000000000000");
         await voyager.redeemSecurity(owner.address, tus.address, "1000000000000000000");
     })
 
