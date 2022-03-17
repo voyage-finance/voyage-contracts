@@ -6,6 +6,7 @@ import '../component/infra/AddressResolver.sol';
 import '../component/vault/VaultManager.sol';
 import '../component/vault/VaultManagerProxy.sol';
 import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
+import '../libraries/acl/ExtCallACL.sol';
 
 contract Voyager is AccessControl {
     bytes32 public constant liquidityManagerName = 'liquidityManager';
@@ -13,12 +14,20 @@ contract Voyager is AccessControl {
     bytes32 public constant vaultManagerProxyName = 'vaultManagerProxy';
     bytes32 public constant vaultStorageName = 'vaultStorage';
     bytes32 public constant securityDepositTokenName = 'securityDepositToken';
-    bytes32 public constant extCallACLName = 'extCallACL';
+    bytes32 public constant extCallACLProxyName = 'extCallACLProxy';
     bytes32 public constant OPERATOR = keccak256('OPERATOR');
 
     address public addressResolver;
 
-    modifier onlyWhitelisted(address caller) {}
+    modifier onlyWhitelisted(address caller) {
+        require(
+            ExtCallACL(getExtCallACLProxyAddress()).isWhitelistedAddress(
+                caller
+            ),
+            'Voyager: not whitelisted address'
+        );
+        _;
+    }
 
     constructor(address _operator) public {
         _setupRole(OPERATOR, _operator);
@@ -48,8 +57,8 @@ contract Voyager is AccessControl {
         return securityDepositTokenName;
     }
 
-    function getExtCallACLName() external view returns (bytes32) {
-        return extCallACLName;
+    function getExtCallACLProxyName() external view returns (bytes32) {
+        return extCallACLProxyName;
     }
 
     /************************************** HouseKeeping Interfaces **************************************/
@@ -318,9 +327,9 @@ contract Voyager is AccessControl {
     }
 
     /**
-     * @dev Get ExtCallACL contract address
+     * @dev Get ExtCallACLProxy contract address
      **/
-    function getExtCallACLAddress() public view returns (address) {
-        return AddressResolver(addressResolver).getAddress(extCallACLName);
+    function getExtCallACLProxyAddress() public view returns (address) {
+        return AddressResolver(addressResolver).getAddress(extCallACLProxyName);
     }
 }
