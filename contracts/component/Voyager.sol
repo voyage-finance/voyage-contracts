@@ -204,6 +204,7 @@ contract Voyager is AccessControl {
         );
     }
 
+    // todo placeholder functions, more detail should be impl in the future
     function slash(
         address _vaultUser,
         address _reserve,
@@ -235,6 +236,12 @@ contract Voyager is AccessControl {
             );
     }
 
+    /**
+     * @dev Eligible amount that can be withdraw, calculated by deposit records without considering slash
+     * @param _vaultUser user address
+     * @param _reserve reserve address
+     * @param _sponsor sponsor address
+     **/
     function eligibleAmount(
         address _vaultUser,
         address _reserve,
