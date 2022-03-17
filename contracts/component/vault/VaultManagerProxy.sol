@@ -7,10 +7,6 @@ import '../../interfaces/IVaultManager.sol';
 contract VaultManagerProxy is Proxy {
     /************************** Immutable static call for target contract **************************/
 
-    /**
-     * @dev Get max security deposit
-     * @param _reserve reserve address
-     **/
     function getMaxSecurityDeposit(address _reserve)
         public
         view
@@ -19,10 +15,6 @@ contract VaultManagerProxy is Proxy {
         return IVaultManager(address(target)).getMaxSecurityDeposit(_reserve);
     }
 
-    /**
-     * @dev Get current security deposit requirement
-     * @param _reserve reserve address
-     **/
     function getSecurityDepositRequirement(address _reserve)
         public
         view
@@ -34,11 +26,6 @@ contract VaultManagerProxy is Proxy {
             );
     }
 
-    /**
-     * @dev Get credit limit for a specific reserve
-     * @param _user user address
-     * @return _reserve reserve address
-     **/
     function getCreditLimit(address _user, address _reserve)
         public
         view
