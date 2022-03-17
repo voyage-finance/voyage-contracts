@@ -10,12 +10,18 @@ contract ExtCallACL is Proxyable, IExtCallACL {
 
     constructor(address payable _proxy) public Proxyable(_proxy) {}
 
-    function whitelistAddress(address _address) external onlyOwner {
-        whitelistedAddress[_address] = true;
+    function whitelistAddress(address[] calldata _address) external onlyOwner {
+        uint256 arrayLength = _address.length;
+        for (uint256 i = 0; i < arrayLength; i++) {
+            whitelistedAddress[_address[i]] = true;
+        }
     }
 
-    function blockAddress(address _address) external onlyOwner {
-        delete whitelistedAddress[_address];
+    function blockAddress(address[] calldata _address) external onlyOwner {
+        uint256 arrayLength = _address.length;
+        for (uint256 i = 0; i < arrayLength; i++) {
+            delete whitelistedAddress[_address[i]];
+        }
     }
 
     function isWhitelistedAddress(address _address)
@@ -26,12 +32,18 @@ contract ExtCallACL is Proxyable, IExtCallACL {
         return whitelistedAddress[_address];
     }
 
-    function whitelistFunction(bytes32 _func) external onlyOwner {
-        whitelistedFunctions[_func] = true;
+    function whitelistFunction(bytes32[] calldata _func) external onlyOwner {
+        uint256 arrayLength = _func.length;
+        for (uint256 i = 0; i < arrayLength; i++) {
+            whitelistedFunctions[_func[i]] = true;
+        }
     }
 
-    function blockFunction(bytes32 _func) external onlyOwner {
-        delete whitelistedFunctions[_func];
+    function blockFunction(bytes32[] calldata _func) external onlyOwner {
+        uint256 arrayLength = _func.length;
+        for (uint256 i = 0; i < arrayLength; i++) {
+            delete whitelistedFunctions[_func[i]];
+        }
     }
 
     function isWhitelistedFunction(bytes32 _func) external view returns (bool) {
