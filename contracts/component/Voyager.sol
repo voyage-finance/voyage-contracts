@@ -7,6 +7,7 @@ import '../component/vault/VaultManager.sol';
 import '../component/vault/VaultManagerProxy.sol';
 import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
 import '../libraries/acl/ExtCallACL.sol';
+import '../libraries/acl/ExtCallACLProxy.sol';
 
 contract Voyager is AccessControl {
     bytes32 public constant liquidityManagerName = 'liquidityManager';
@@ -19,10 +20,10 @@ contract Voyager is AccessControl {
 
     address public addressResolver;
 
-    modifier onlyWhitelisted(address caller) {
+    modifier onlyWhitelisted() {
         require(
             ExtCallACL(getExtCallACLProxyAddress()).isWhitelistedAddress(
-                caller
+                msg.sender
             ),
             'Voyager: not whitelisted address'
         );
@@ -76,6 +77,11 @@ contract Voyager is AccessControl {
     function claimVaultManagerProxyOwnership() external onlyRole(OPERATOR) {
         address payable vaultManagerProxyAddress = getVaultManagerProxyAddress();
         VaultManagerProxy(vaultManagerProxyAddress).claimOwnership();
+    }
+
+    function claimExtCallACLProxyOwnership() external onlyRole(OPERATOR) {
+        address payable extCallACLProxyAddress = getExtCallACLProxyAddress();
+        ExtCallACLProxy(extCallACLProxyAddress).claimOwnership();
     }
 
     //todo consider merge all this setting functions, define a data struct for it
@@ -150,6 +156,14 @@ contract Voyager is AccessControl {
         vaultManager.initStakingContract(_user, _reserve);
     }
 
+    function whitelistAddress(address[] calldata _address)
+        external
+        onlyRole(OPERATOR)
+    {
+        ExtCallACL extCallACL = ExtCallACL(getExtCallACLProxyAddress());
+        extCallACL.whitelistAddress(_address);
+    }
+
     /************************************** Vault Manager Interfaces **************************************/
 
     /**
@@ -173,7 +187,7 @@ contract Voyager is AccessControl {
         address _vaultUser,
         address _reserve,
         uint256 _amount
-    ) external {
+    ) external onlyWhitelisted {
         VaultManager(getVaultManagerProxyAddress()).depositSecurity(
             msg.sender,
             _vaultUser,
@@ -329,7 +343,9 @@ contract Voyager is AccessControl {
     /**
      * @dev Get ExtCallACLProxy contract address
      **/
-    function getExtCallACLProxyAddress() public view returns (address) {
-        return AddressResolver(addressResolver).getAddress(extCallACLProxyName);
+    function getExtCallACLProxyAddress() public view returns (address payable) {
+        address extCallACLProxyAddress = AddressResolver(addressResolver)
+            .getAddress(extCallACLProxyName);
+        return payable(extCallACLProxyAddress);
     }
 }

@@ -10,14 +10,14 @@ contract ExtCallACL is Proxyable, IExtCallACL {
 
     constructor(address payable _proxy) public Proxyable(_proxy) {}
 
-    function whitelistAddress(address[] calldata _address) external onlyOwner {
+    function whitelistAddress(address[] calldata _address) external onlyProxy {
         uint256 arrayLength = _address.length;
         for (uint256 i = 0; i < arrayLength; i++) {
             whitelistedAddress[_address[i]] = true;
         }
     }
 
-    function blockAddress(address[] calldata _address) external onlyOwner {
+    function blockAddress(address[] calldata _address) external onlyProxy {
         uint256 arrayLength = _address.length;
         for (uint256 i = 0; i < arrayLength; i++) {
             delete whitelistedAddress[_address[i]];
@@ -32,14 +32,14 @@ contract ExtCallACL is Proxyable, IExtCallACL {
         return whitelistedAddress[_address];
     }
 
-    function whitelistFunction(bytes32[] calldata _func) external onlyOwner {
+    function whitelistFunction(bytes32[] calldata _func) external onlyProxy {
         uint256 arrayLength = _func.length;
         for (uint256 i = 0; i < arrayLength; i++) {
             whitelistedFunctions[_func[i]] = true;
         }
     }
 
-    function blockFunction(bytes32[] calldata _func) external onlyOwner {
+    function blockFunction(bytes32[] calldata _func) external onlyProxy {
         uint256 arrayLength = _func.length;
         for (uint256 i = 0; i < arrayLength; i++) {
             delete whitelistedFunctions[_func[i]];
