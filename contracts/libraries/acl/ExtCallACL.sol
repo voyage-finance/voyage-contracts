@@ -2,10 +2,11 @@
 pragma solidity ^0.8.9;
 
 import '../proxy/Proxyable.sol';
+import './IExtCallACL.sol';
 
-contract ExtCallACL is Proxyable {
+contract ExtCallACL is Proxyable, IExtCallACL {
     mapping(address => bool) public whitelistedAddress;
-    mapping(string => bool) public whitelistedFunctions;
+    mapping(bytes32 => bool) public whitelistedFunctions;
 
     constructor(address payable _proxy) public Proxyable(_proxy) {}
 
@@ -23,5 +24,17 @@ contract ExtCallACL is Proxyable {
         returns (bool)
     {
         return whitelistedAddress[_address];
+    }
+
+    function whitelistFunction(bytes32 _func) external onlyOwner {
+        whitelistedFunctions[_func] = true;
+    }
+
+    function blockFunction(bytes32 _func) external onlyOwner {
+        delete whitelistedFunctions[_func];
+    }
+
+    function isWhitelistedFunction(bytes32 _func) external view returns (bool) {
+        return whitelistedFunctions[_func];
     }
 }
