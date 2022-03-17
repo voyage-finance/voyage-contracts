@@ -13,9 +13,12 @@ contract Voyager is AccessControl {
     bytes32 public constant vaultManagerProxyName = 'vaultManagerProxy';
     bytes32 public constant vaultStorageName = 'vaultStorage';
     bytes32 public constant securityDepositTokenName = 'securityDepositToken';
+    bytes32 public constant extCallACLName = 'extCallACL';
     bytes32 public constant OPERATOR = keccak256('OPERATOR');
 
     address public addressResolver;
+
+    modifier onlyWhitelisted(address caller) {}
 
     constructor(address _operator) public {
         _setupRole(OPERATOR, _operator);
@@ -43,6 +46,10 @@ contract Voyager is AccessControl {
 
     function getSecurityDepositTokenName() external view returns (bytes32) {
         return securityDepositTokenName;
+    }
+
+    function getExtCallACLName() external view returns (bytes32) {
+        return extCallACLName;
     }
 
     /************************************** HouseKeeping Interfaces **************************************/
@@ -308,5 +315,12 @@ contract Voyager is AccessControl {
         address vaultManagerProxyAddress = AddressResolver(addressResolver)
             .getAddress(vaultManagerProxyName);
         return payable(vaultManagerProxyAddress);
+    }
+
+    /**
+     * @dev Get ExtCallACL contract address
+     **/
+    function getExtCallACLAddress() public view returns (address) {
+        return AddressResolver(addressResolver).getAddress(extCallACLName);
     }
 }
