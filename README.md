@@ -1,4 +1,5 @@
 # Voyage
+![test](https://github.com/voyage-finance/voyage-contracts/actions/workflows/test.yml/badge.svg?branch=main)
 
 ## Architecture
 
