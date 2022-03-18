@@ -9,5 +9,5 @@ pragma solidity ^0.8.9;
  *  - LM = LiquidityManager
  */
 library Errors {
-  string public constant LM_NOT_CONTRACT = '60';
+    string public constant LM_NOT_CONTRACT = '60';
 }

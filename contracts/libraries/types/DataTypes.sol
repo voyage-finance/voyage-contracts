@@ -28,6 +28,7 @@ library DataTypes {
         address interestRateStrategyAddress;
         address juniorDepositTokenAddress;
         address seniorDepositTokenAddress;
+        address stableDebtAddress;
         uint40 lastUpdateTimestamp;
     }
 
