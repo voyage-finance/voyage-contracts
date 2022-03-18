@@ -67,6 +67,11 @@ describe('Security Deposit', function () {
     await voyager.claimExtCallACLProxyOwnership();
 
     await voyager.whitelistAddress([owner.address]);
+    await voyager.whitelistFunction([
+      ethers.utils.formatBytes32String('createVault'),
+      ethers.utils.formatBytes32String('depositSecurity'),
+      ethers.utils.formatBytes32String('redeemSecurity'),
+    ]);
 
     await vaultManagerProxy.transferOwnership(voyager.address);
     await voyager.claimVaultManagerProxyOwnership();

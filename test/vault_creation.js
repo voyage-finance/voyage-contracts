@@ -41,13 +41,34 @@ describe('Vault Creation', function () {
     const VaultStorage = await ethers.getContractFactory('VaultStorage');
     vaultStorage = await VaultStorage.deploy(vaultManager.address);
 
+    // deploy ExtCallACL contract
+    const ExtCallACLProxy = await ethers.getContractFactory('ExtCallACLProxy');
+    extCallACLProxy = await ExtCallACLProxy.deploy();
+    const ExtCallALC = await ethers.getContractFactory('ExtCallACL');
+    extCallACL = await ExtCallALC.deploy(extCallACLProxy.address);
+    await extCallACLProxy.setTarget(extCallACL.address);
+
     // import vaultManager to AddressResolver
     const names = [
       ethers.utils.formatBytes32String('vaultManagerProxy'),
       ethers.utils.formatBytes32String('vaultStorage'),
+      ethers.utils.formatBytes32String('extCallACLProxy'),
     ];
-    const destinations = [vaultManagerProxy.address, vaultStorage.address];
+    const destinations = [
+      vaultManagerProxy.address,
+      vaultStorage.address,
+      extCallACLProxy.address,
+    ];
     await addressResolver.importAddresses(names, destinations);
+    await extCallACLProxy.transferOwnership(voyager.address);
+    await voyager.claimExtCallACLProxyOwnership();
+
+    await voyager.whitelistAddress([owner.address]);
+    await voyager.whitelistFunction([
+      ethers.utils.formatBytes32String('createVault'),
+      ethers.utils.formatBytes32String('depositSecurity'),
+      ethers.utils.formatBytes32String('redeemSecurity'),
+    ]);
 
     await vaultManagerProxy.transferOwnership(voyager.address);
     await voyager.claimVaultManagerProxyOwnership();
