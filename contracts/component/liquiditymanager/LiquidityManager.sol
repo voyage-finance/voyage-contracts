@@ -5,6 +5,8 @@ import '../../libraries/proxy/Proxyable.sol';
 import '../../libraries/helpers/Errors.sol';
 import '../Voyager.sol';
 import 'openzeppelin-solidity/contracts/utils/Address.sol';
+import './LiquidityManagerStorage.sol';
+import '../infra/AddressResolver.sol';
 
 contract LiquidityManager is Proxyable {
     Voyager public voyager;
@@ -20,9 +22,19 @@ contract LiquidityManager is Proxyable {
         address _asset,
         address _juniorDepositTokenAddress,
         address _seniorDepositTokenAddress,
-        address stableDebtAddress,
+        address _stableDebtAddress,
         address _interestRateStrategyAddress
     ) external onlyProxy {
         require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
+        address liquidityManagerStorageAddress = AddressResolver(
+            voyager.getAddressResolverAddress()
+        ).getAddress(voyager.getLiquidityManagerStorageName());
+        LiquidityManagerStorage(liquidityManagerStorageAddress).initReserve(
+            _asset,
+            _juniorDepositTokenAddress,
+            _seniorDepositTokenAddress,
+            _stableDebtAddress,
+            _interestRateStrategyAddress
+        );
     }
 }

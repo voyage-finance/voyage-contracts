@@ -13,6 +13,8 @@ import '../component/liquiditymanager/LiquidityManager.sol';
 contract Voyager is AccessControl {
     bytes32 public constant liquidityManagerProxyName =
         'liquidityManagerProxyName';
+    bytes32 public constant liquidityManagerStorageName =
+        'liquidityManagerStorage';
     bytes32 public constant loanManagerName = 'loanManager';
     bytes32 public constant vaultManagerProxyName = 'vaultManagerProxy';
     bytes32 public constant vaultStorageName = 'vaultStorage';
@@ -54,6 +56,10 @@ contract Voyager is AccessControl {
 
     function getLiquidityManagerProxyName() external view returns (bytes32) {
         return liquidityManagerProxyName;
+    }
+
+    function getLiquidityManagerStorageName() external view returns (bytes32) {
+        return liquidityManagerStorageName;
     }
 
     function getLoanManagerName() external view returns (bytes32) {
@@ -204,6 +210,11 @@ contract Voyager is AccessControl {
             _interestRateStrategyAddress
         );
     }
+
+    function setReserveInterestRateStrategyAddress(
+        address asset,
+        address rateStrategyAddress
+    ) external onlyRole(OPERATOR) {}
 
     /************************************** Vault Manager Interfaces **************************************/
 
