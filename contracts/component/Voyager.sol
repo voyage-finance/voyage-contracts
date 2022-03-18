@@ -10,7 +10,8 @@ import '../libraries/acl/ExtCallACL.sol';
 import '../libraries/acl/ExtCallACLProxy.sol';
 
 contract Voyager is AccessControl {
-    bytes32 public constant liquidityManagerName = 'liquidityManager';
+    bytes32 public constant liquidityManagerProxyName =
+        'liquidityManagerProxyName';
     bytes32 public constant loanManagerName = 'loanManager';
     bytes32 public constant vaultManagerProxyName = 'vaultManagerProxy';
     bytes32 public constant vaultStorageName = 'vaultStorage';
@@ -50,8 +51,8 @@ contract Voyager is AccessControl {
         return vaultStorageName;
     }
 
-    function getLiquidityManagerName() external view returns (bytes32) {
-        return liquidityManagerName;
+    function getLiquidityManagerProxyName() external view returns (bytes32) {
+        return liquidityManagerProxyName;
     }
 
     function getLoanManagerName() external view returns (bytes32) {
