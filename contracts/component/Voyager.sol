@@ -8,9 +8,13 @@ import '../component/vault/VaultManagerProxy.sol';
 import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
 import '../libraries/acl/ExtCallACL.sol';
 import '../libraries/acl/ExtCallACLProxy.sol';
+import '../component/liquiditymanager/LiquidityManager.sol';
 
 contract Voyager is AccessControl {
-    bytes32 public constant liquidityManagerName = 'liquidityManager';
+    bytes32 public constant liquidityManagerProxyName =
+        'liquidityManagerProxyName';
+    bytes32 public constant liquidityManagerStorageName =
+        'liquidityManagerStorage';
     bytes32 public constant loanManagerName = 'loanManager';
     bytes32 public constant vaultManagerProxyName = 'vaultManagerProxy';
     bytes32 public constant vaultStorageName = 'vaultStorage';
@@ -50,8 +54,12 @@ contract Voyager is AccessControl {
         return vaultStorageName;
     }
 
-    function getLiquidityManagerName() external view returns (bytes32) {
-        return liquidityManagerName;
+    function getLiquidityManagerProxyName() external view returns (bytes32) {
+        return liquidityManagerProxyName;
+    }
+
+    function getLiquidityManagerStorageName() external view returns (bytes32) {
+        return liquidityManagerStorageName;
     }
 
     function getLoanManagerName() external view returns (bytes32) {
@@ -175,6 +183,38 @@ contract Voyager is AccessControl {
         ExtCallACL extCallACL = ExtCallACL(getExtCallACLProxyAddress());
         extCallACL.whitelistFunction(_function);
     }
+
+    /************************************** Liquidity Manager Interfaces **************************************/
+
+    /**
+     * @dev Initializes a reserve, activating it, assigning two deposit tokens and an interest rate strategy
+     * Only callable by protocol operator
+     * @param _asset The address of the underlying asset of the reserve
+     * @param _juniorDepositTokenAddress The address of the junior deposit token that will be assigned to the reserve
+     * @param _seniorDepositTokenAddress The address of the senior deposit token that will be assigned to the reserve
+     * @param _stableDebtAddress The address of the StableDebtToken that will be assigned to the reserve
+     * @param _interestRateStrategyAddress The address of the interest rate strategy contract
+     **/
+    function initReserve(
+        address _asset,
+        address _juniorDepositTokenAddress,
+        address _seniorDepositTokenAddress,
+        address _stableDebtAddress,
+        address _interestRateStrategyAddress
+    ) external onlyRole(OPERATOR) {
+        LiquidityManager(getLiquidityManagerProxyAddress()).initReserve(
+            _asset,
+            _juniorDepositTokenAddress,
+            _seniorDepositTokenAddress,
+            _stableDebtAddress,
+            _interestRateStrategyAddress
+        );
+    }
+
+    function setReserveInterestRateStrategyAddress(
+        address asset,
+        address rateStrategyAddress
+    ) external onlyRole(OPERATOR) {}
 
     /************************************** Vault Manager Interfaces **************************************/
 
@@ -363,5 +403,18 @@ contract Voyager is AccessControl {
         address extCallACLProxyAddress = AddressResolver(addressResolver)
             .getAddress(extCallACLProxyName);
         return payable(extCallACLProxyAddress);
+    }
+
+    /**
+     * @dev Get LiquidityManagerProxy contract address
+     **/
+    function getLiquidityManagerProxyAddress()
+        public
+        view
+        returns (address payable)
+    {
+        address liquidityManagerProxyAddress = AddressResolver(addressResolver)
+            .getAddress(liquidityManagerProxyName);
+        return payable(liquidityManagerProxyAddress);
     }
 }
