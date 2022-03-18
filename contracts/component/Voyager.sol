@@ -20,12 +20,16 @@ contract Voyager is AccessControl {
 
     address public addressResolver;
 
-    modifier onlyWhitelisted() {
+    modifier onlyWhitelisted(bytes32 func) {
         require(
             ExtCallACL(getExtCallACLProxyAddress()).isWhitelistedAddress(
                 msg.sender
             ),
             'Voyager: not whitelisted address'
+        );
+        require(
+            ExtCallACL(getExtCallACLProxyAddress()).isWhitelistedFunction(func),
+            'Voyager: not whitelisted functions'
         );
         _;
     }
@@ -164,6 +168,14 @@ contract Voyager is AccessControl {
         extCallACL.whitelistAddress(_address);
     }
 
+    function whitelistFunction(bytes32[] calldata _function)
+        external
+        onlyRole(OPERATOR)
+    {
+        ExtCallACL extCallACL = ExtCallACL(getExtCallACLProxyAddress());
+        extCallACL.whitelistFunction(_function);
+    }
+
     /************************************** Vault Manager Interfaces **************************************/
 
     /**
@@ -171,7 +183,11 @@ contract Voyager is AccessControl {
      * a SecurityDepositEscrow contract which the fund will be held in
      × @return address of Vault
      **/
-    function createVault() external returns (address) {
+    function createVault()
+        external
+        onlyWhitelisted('createVault')
+        returns (address)
+    {
         address vaultManagerProxy = getVaultManagerProxyAddress();
         VaultManager vaultManager = VaultManager(vaultManagerProxy);
         return vaultManager.createVault(msg.sender);
@@ -187,7 +203,7 @@ contract Voyager is AccessControl {
         address _vaultUser,
         address _reserve,
         uint256 _amount
-    ) external onlyWhitelisted {
+    ) external onlyWhitelisted('depositSecurity') {
         VaultManager(getVaultManagerProxyAddress()).depositSecurity(
             msg.sender,
             _vaultUser,
@@ -225,7 +241,7 @@ contract Voyager is AccessControl {
         address _vaultUser,
         address _reserve,
         uint256 _amount
-    ) external {
+    ) external onlyWhitelisted('redeemSecurity') {
         VaultManager(getVaultManagerProxyAddress()).redeemSecurity(
             payable(msg.sender),
             _vaultUser,
