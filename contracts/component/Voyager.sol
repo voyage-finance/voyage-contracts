@@ -180,6 +180,15 @@ contract Voyager is AccessControl {
 
     /************************************** Liquidity Manager Interfaces **************************************/
 
+    /**
+     * @dev Initializes a reserve, activating it, assigning two deposit tokens and an interest rate strategy
+     * Only callable by protocol operator
+     * @param _asset The address of the underlying asset of the reserve
+     * @param _juniorDepositTokenAddress The address of the junior deposit token that will be assigned to the reserve
+     * @param _seniorDepositTokenAddress The address of the senior deposit token that will be assigned to the reserve
+     * @param _stableDebtAddress The address of the StableDebtToken that will be assigned to the reserve
+     * @param _interestRateStrategyAddress The address of the interest rate strategy contract
+     **/
     function initReserve(
         address _asset,
         address _juniorDepositTokenAddress,
