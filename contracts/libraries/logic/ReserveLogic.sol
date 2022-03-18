@@ -2,8 +2,8 @@
 pragma solidity ^0.8.9;
 
 import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
-import "../math/WadRayMath.sol";
-
+import '../math/WadRayMath.sol';
+import '../types/DataTypes.sol';
 
 /**
  * @title ReserveLogic library
@@ -14,5 +14,5 @@ library ReserveLogic {
     using SafeMath for uint256;
     using WadRayMath for uint256;
 
-
+    function init(DataTypes.ReserveData storage reserve) external {}
 }

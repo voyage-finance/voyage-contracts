@@ -26,8 +26,8 @@ library DataTypes {
         //the decimals of the reserve asset
         uint256 decimals;
         address interestRateStrategyAddress;
-        address jdTokenAddress;
-        address sdTokenAddress;
+        address juniorDepositTokenAddress;
+        address seniorDepositTokenAddress;
         uint40 lastUpdateTimestamp;
     }
 
