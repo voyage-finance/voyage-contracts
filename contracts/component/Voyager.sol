@@ -96,6 +96,11 @@ contract Voyager is AccessControl {
         ExtCallACLProxy(extCallACLProxyAddress).claimOwnership();
     }
 
+    function claimLiquidityManagerProxyOwnership() external onlyRole(OPERATOR) {
+        address payable liquidityManagerProxyAddress = getLiquidityManagerProxyAddress();
+        LiquidityManager(liquidityManagerProxyAddress).claimOwnership();
+    }
+
     //todo consider merge all this setting functions, define a data struct for it
 
     /**

@@ -49,7 +49,7 @@ describe('Reserve Init', function () {
 
     // import vaultManager to AddressResolver
     const names = [
-      ethers.utils.formatBytes32String('liquidityManagerProxy'),
+      ethers.utils.formatBytes32String('liquidityManagerProxyName'),
       ethers.utils.formatBytes32String('liquidityManagerStorage'),
     ];
     const destinations = [
