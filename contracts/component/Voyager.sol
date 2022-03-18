@@ -8,6 +8,7 @@ import '../component/vault/VaultManagerProxy.sol';
 import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
 import '../libraries/acl/ExtCallACL.sol';
 import '../libraries/acl/ExtCallACLProxy.sol';
+import '../component/liquiditymanager/LiquidityManager.sol';
 
 contract Voyager is AccessControl {
     bytes32 public constant liquidityManagerProxyName =
@@ -175,6 +176,24 @@ contract Voyager is AccessControl {
     {
         ExtCallACL extCallACL = ExtCallACL(getExtCallACLProxyAddress());
         extCallACL.whitelistFunction(_function);
+    }
+
+    /************************************** Liquidity Manager Interfaces **************************************/
+
+    function initReserve(
+        address _asset,
+        address _juniorDepositTokenAddress,
+        address _seniorDepositTokenAddress,
+        address _stableDebtAddress,
+        address _interestRateStrategyAddress
+    ) external onlyRole(OPERATOR) {
+        LiquidityManager(getLiquidityManagerProxyAddress()).initReserve(
+            _asset,
+            _juniorDepositTokenAddress,
+            _seniorDepositTokenAddress,
+            _stableDebtAddress,
+            _interestRateStrategyAddress
+        );
     }
 
     /************************************** Vault Manager Interfaces **************************************/
@@ -364,5 +383,18 @@ contract Voyager is AccessControl {
         address extCallACLProxyAddress = AddressResolver(addressResolver)
             .getAddress(extCallACLProxyName);
         return payable(extCallACLProxyAddress);
+    }
+
+    /**
+     * @dev Get LiquidityManagerProxy contract address
+     **/
+    function getLiquidityManagerProxyAddress()
+        public
+        view
+        returns (address payable)
+    {
+        address liquidityManagerProxyAddress = AddressResolver(addressResolver)
+            .getAddress(liquidityManagerProxyName);
+        return payable(liquidityManagerProxyAddress);
     }
 }
