@@ -197,6 +197,8 @@ contract Voyager is AccessControl {
      * @param _asset The address of the underlying asset of the reserve
      * @param _juniorDepositTokenAddress The address of the junior deposit token that will be assigned to the reserve
      * @param _seniorDepositTokenAddress The address of the senior deposit token that will be assigned to the reserve
+     * @param _juniorIncomeAllocation Junior income allocation, express in RAY
+     * @param _seniorIncomeAllocation Senior income allocation, express in RAY
      * @param _stableDebtAddress The address of the StableDebtToken that will be assigned to the reserve
      * @param _interestRateStrategyAddress The address of the interest rate strategy contract
      **/

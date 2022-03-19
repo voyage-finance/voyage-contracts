@@ -76,6 +76,8 @@ describe('Reserve Init', function () {
       tus.address,
       fakeAddress,
       fakeAddress,
+      "400000000000000000000000000",
+      "600000000000000000000000000",
       fakeAddress,
       fakeAddress
     );
