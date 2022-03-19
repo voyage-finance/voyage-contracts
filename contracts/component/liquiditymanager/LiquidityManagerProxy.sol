@@ -25,4 +25,12 @@ contract LiquidityManagerProxy is Proxy {
     {
         return ILiquidityManager(address(target)).getReserveData(_reserve);
     }
+
+    function getConfiguration(address _reserve)
+        external
+        view
+        returns (DataTypes.ReserveConfigurationMap memory)
+    {
+        return ILiquidityManager(address(target)).getConfiguration(_reserve);
+    }
 }

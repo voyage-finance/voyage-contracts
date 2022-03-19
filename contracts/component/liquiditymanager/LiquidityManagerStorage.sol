@@ -35,6 +35,14 @@ contract LiquidityManagerStorage is State {
         return _reserves[_asset];
     }
 
+    function getConfiguration(address _asset)
+        public
+        view
+        returns (DataTypes.ReserveConfigurationMap memory)
+    {
+        return _reserves[_asset].configuration;
+    }
+
     function getLiquidityRate(address _asset, ReserveLogic.Tranche _tranche)
         public
         view

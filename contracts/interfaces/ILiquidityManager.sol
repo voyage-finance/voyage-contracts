@@ -13,4 +13,9 @@ interface ILiquidityManager {
         external
         view
         returns (DataTypes.ReserveData memory);
+
+    function getConfiguration(address _asset)
+        external
+        view
+        returns (DataTypes.ReserveConfigurationMap memory);
 }
