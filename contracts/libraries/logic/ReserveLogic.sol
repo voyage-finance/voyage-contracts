@@ -44,9 +44,7 @@ library ReserveLogic {
     function updateState(
         DataTypes.ReserveData storage reserve,
         Tranche _tranche
-    ) internal {
-
-    }
+    ) internal {}
 
     function getLiquidityRate(
         DataTypes.ReserveData storage reserve,
@@ -85,12 +83,20 @@ library ReserveLogic {
     ) internal {
         if (_tranche == Tranche.JUNIOR) {
             uint256 previousJuniorLiquidityIndex = reserve.juniorLiquidityIndex;
-            uint256 lastJuniorUpdatedTimestamp = reserve.juniorLastUpdateTimestamp;
-            reserve._updateJuniorLiquidityIndex(previousJuniorLiquidityIndex, lastJuniorUpdatedTimestamp);
+            uint256 lastJuniorUpdatedTimestamp = reserve
+                .juniorLastUpdateTimestamp;
+            reserve._updateJuniorLiquidityIndex(
+                previousJuniorLiquidityIndex,
+                lastJuniorUpdatedTimestamp
+            );
         } else {
             uint256 previousSeniorLiquidityIndex = reserve.seniorLiquidityIndex;
-            uint256 lastSeniorUpdatedTimestamp = reserve.seniorLastUpdateTimestamp;
-            reserve._updateSeniorLiquidityIndex(previousSeniorLiquidityIndex, lastSeniorUpdatedTimestamp);
+            uint256 lastSeniorUpdatedTimestamp = reserve
+                .seniorLastUpdateTimestamp;
+            reserve._updateSeniorLiquidityIndex(
+                previousSeniorLiquidityIndex,
+                lastSeniorUpdatedTimestamp
+            );
         }
     }
 
