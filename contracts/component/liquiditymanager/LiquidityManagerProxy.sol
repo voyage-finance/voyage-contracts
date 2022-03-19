@@ -17,4 +17,12 @@ contract LiquidityManagerProxy is Proxy {
                 _tranche
             );
     }
+
+    function getReserveData(address _reserve)
+        external
+        view
+        returns (DataTypes.ReserveData memory)
+    {
+        return ILiquidityManager(address(target)).getReserveData(_reserve);
+    }
 }

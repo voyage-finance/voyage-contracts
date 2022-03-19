@@ -8,4 +8,9 @@ interface ILiquidityManager {
         external
         view
         returns (uint256);
+
+    function getReserveData(address _asset)
+        external
+        view
+        returns (DataTypes.ReserveData memory);
 }

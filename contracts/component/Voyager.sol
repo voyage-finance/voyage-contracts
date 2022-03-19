@@ -217,6 +217,23 @@ contract Voyager is AccessControl {
     }
 
     /**
+     * @dev Returns the state and configuration of the reserve
+     * @param _asset The address of the underlying asset of the reserve
+     * @return The state of the reserve
+     **/
+    function getReserveData(address _asset)
+        external
+        view
+        returns (DataTypes.ReserveData memory)
+    {
+        require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
+        return
+            LiquidityManager(getLiquidityManagerProxyAddress()).getReserveData(
+                _asset
+            );
+    }
+
+    /**
      * @dev Get current liquidity rate for a specific reserve for it junior tranche or senior tranche
      * @param _asset The address of the underlying asset of the reserve
      * @param _tranche Either junior tranche or senior tranche

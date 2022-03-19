@@ -36,6 +36,17 @@ contract ReserveManager is Proxyable {
         );
     }
 
+    function getReserveData(address _asset)
+        public
+        view
+        returns (DataTypes.ReserveData memory)
+    {
+        require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
+        return
+            LiquidityManagerStorage(liquidityManagerStorageAddress())
+                .getReserveData(_asset);
+    }
+
     function getLiquidityRate(address _asset, ReserveLogic.Tranche _tranche)
         public
         view
