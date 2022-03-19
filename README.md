@@ -1,5 +1,7 @@
 # Voyage
 ![test](https://github.com/voyage-finance/voyage-contracts/actions/workflows/test.yml/badge.svg?branch=main)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/b267ea2078424f5b927060006ca5c66b)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=voyage-finance/voyage-contracts&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Coverage/b267ea2078424f5b927060006ca5c66b)](https://www.codacy.com?utm_source=github.com&utm_medium=referral&utm_content=voyage-finance/voyage-contracts&utm_campaign=Badge_Coverage)
 
 ## Architecture
 
