@@ -26,4 +26,12 @@ contract LiquidityManagerStorage is State {
             _interestRateStrategyAddress
         );
     }
+
+    function getLiquidityRate(address _asset, ReserveLogic.Tranche _tranche)
+        public
+        view
+        returns (uint256)
+    {
+        return _reserves[_asset].getLiquidityRate(_tranche);
+    }
 }

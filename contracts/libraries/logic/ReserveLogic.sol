@@ -41,10 +41,10 @@ library ReserveLogic {
         Tranche _tranche
     ) internal {}
 
-    function _getLiquidityRate(
+    function getLiquidityRate(
         DataTypes.ReserveData storage reserve,
         Tranche _tranche
-    ) internal returns (uint256) {
+    ) public view returns (uint256) {
         uint256 totalAllocationInRay = reserve
             .currentJuniorIncomeAllocation
             .add(reserve.currentSeniorIncomeAllocation);

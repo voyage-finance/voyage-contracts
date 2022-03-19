@@ -216,6 +216,21 @@ contract Voyager is AccessControl {
         );
     }
 
+    /**
+     * @dev Get current liquidity rate for a specific reserve for it junior tranche or senior tranche
+     * @param _asset The address of the underlying asset of the reserve
+     * @param _tranche Either junior tranche or senior tranche
+     **/
+    function liquidityRate(address _asset, ReserveLogic.Tranche _tranche)
+        external
+        view
+        returns (uint256)
+    {
+        return
+            LiquidityManager(getLiquidityManagerProxyAddress())
+                .getLiquidityRate(_asset, _tranche);
+    }
+
     function setReserveInterestRateStrategyAddress(
         address asset,
         address rateStrategyAddress
