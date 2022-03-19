@@ -8,7 +8,7 @@ let owner;
 let tus;
 let securityDepositEscrow;
 
-describe('Security Deposit', function () {
+describe('Security Redeem', function () {
   beforeEach(async function () {
     [owner] = await ethers.getSigners();
 

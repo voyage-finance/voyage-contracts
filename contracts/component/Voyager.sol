@@ -197,6 +197,8 @@ contract Voyager is AccessControl {
      * @param _asset The address of the underlying asset of the reserve
      * @param _juniorDepositTokenAddress The address of the junior deposit token that will be assigned to the reserve
      * @param _seniorDepositTokenAddress The address of the senior deposit token that will be assigned to the reserve
+     * @param _juniorIncomeAllocation Junior income allocation, express in RAY
+     * @param _seniorIncomeAllocation Senior income allocation, express in RAY
      * @param _stableDebtAddress The address of the StableDebtToken that will be assigned to the reserve
      * @param _interestRateStrategyAddress The address of the interest rate strategy contract
      **/
@@ -204,6 +206,8 @@ contract Voyager is AccessControl {
         address _asset,
         address _juniorDepositTokenAddress,
         address _seniorDepositTokenAddress,
+        uint256 _juniorIncomeAllocation,
+        uint256 _seniorIncomeAllocation,
         address _stableDebtAddress,
         address _interestRateStrategyAddress
     ) external onlyRole(OPERATOR) {
@@ -211,9 +215,59 @@ contract Voyager is AccessControl {
             _asset,
             _juniorDepositTokenAddress,
             _seniorDepositTokenAddress,
+            _juniorIncomeAllocation,
+            _seniorIncomeAllocation,
             _stableDebtAddress,
             _interestRateStrategyAddress
         );
+    }
+
+    /**
+     * @dev Returns the state and configuration of the reserve
+     * @param _asset The address of the underlying asset of the reserve
+     * @return The state of the reserve
+     **/
+    function getReserveData(address _asset)
+        external
+        view
+        returns (DataTypes.ReserveData memory)
+    {
+        require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
+        return
+            LiquidityManager(getLiquidityManagerProxyAddress()).getReserveData(
+                _asset
+            );
+    }
+
+    /**
+     * @dev Returns the configuration of the reserve
+     * @param _asset The address of the underlying asset of the reserve
+     * @return The state of the reserve
+     **/
+    function getConfiguration(address _asset)
+        external
+        view
+        returns (DataTypes.ReserveConfigurationMap memory)
+    {
+        require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
+        return
+            LiquidityManager(getLiquidityManagerProxyAddress())
+                .getConfiguration(_asset);
+    }
+
+    /**
+     * @dev Get current liquidity rate for a specific reserve for it junior tranche or senior tranche
+     * @param _asset The address of the underlying asset of the reserve
+     * @param _tranche Either junior tranche or senior tranche
+     **/
+    function liquidityRate(address _asset, ReserveLogic.Tranche _tranche)
+        external
+        view
+        returns (uint256)
+    {
+        return
+            LiquidityManager(getLiquidityManagerProxyAddress())
+                .getLiquidityRate(_asset, _tranche);
     }
 
     function setReserveInterestRateStrategyAddress(

@@ -16,14 +16,42 @@ contract LiquidityManagerStorage is State {
         address _asset,
         address _juniorDepositTokenAddress,
         address _seniorDepositTokenAddress,
+        uint256 _juniorIncomeAllocation,
+        uint256 _seniorIncomeAllocation,
         address _stableDebtAddress,
         address _interestRateStrategyAddress
     ) external onlyAssociatedContract {
         _reserves[_asset].init(
             _juniorDepositTokenAddress,
             _seniorDepositTokenAddress,
+            _juniorIncomeAllocation,
+            _seniorIncomeAllocation,
             _stableDebtAddress,
             _interestRateStrategyAddress
         );
+    }
+
+    function getReserveData(address _asset)
+        public
+        view
+        returns (DataTypes.ReserveData memory)
+    {
+        return _reserves[_asset];
+    }
+
+    function getConfiguration(address _asset)
+        public
+        view
+        returns (DataTypes.ReserveConfigurationMap memory)
+    {
+        return _reserves[_asset].configuration;
+    }
+
+    function getLiquidityRate(address _asset, ReserveLogic.Tranche _tranche)
+        public
+        view
+        returns (uint256)
+    {
+        return _reserves[_asset].getLiquidityRate(_tranche);
     }
 }

@@ -1,7 +1,10 @@
 const { expect } = require('chai');
 
+let owner;
+let voyager;
+
 describe('Reserve Init', function () {
-  it('Init reserve should return correct value', async function () {
+  beforeEach(async function () {
     [owner] = await ethers.getSigners();
 
     // deploy Voyager contract
@@ -61,5 +64,29 @@ describe('Reserve Init', function () {
 
     await liquidityManagerProxy.transferOwnership(voyager.address);
     await voyager.claimLiquidityManagerProxyOwnership();
+  });
+
+  it('Init reserve should return correct value', async function () {
+    const ray = '1000000000000000000000000000';
+    const fakeAddress = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D';
+    // deploy mock tus contract as reserve
+    const Tus = await ethers.getContractFactory('Tus');
+    const tus = await Tus.deploy('1000000000000000000000');
+    await voyager.initReserve(
+      tus.address,
+      fakeAddress,
+      fakeAddress,
+      '400000000000000000000000000',
+      '600000000000000000000000000',
+      fakeAddress,
+      fakeAddress
+    );
+    const reserveState = await voyager.getReserveData(tus.address);
+    expect(reserveState.currentJuniorLiquidityIndex).to.equal(ray);
+    expect(reserveState.currentSeniorLiquidityIndex).to.equal(ray);
+
+    // 0 represents junior
+    const juniorLiquidityRate = await voyager.liquidityRate(tus.address, "0");
+    expect(juniorLiquidityRate).to.equal('0');
   });
 });
