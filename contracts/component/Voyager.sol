@@ -204,6 +204,8 @@ contract Voyager is AccessControl {
         address _asset,
         address _juniorDepositTokenAddress,
         address _seniorDepositTokenAddress,
+        uint256 _juniorIncomeAllocation,
+        uint256 _seniorIncomeAllocation,
         address _stableDebtAddress,
         address _interestRateStrategyAddress
     ) external onlyRole(OPERATOR) {
@@ -211,6 +213,8 @@ contract Voyager is AccessControl {
             _asset,
             _juniorDepositTokenAddress,
             _seniorDepositTokenAddress,
+            _juniorIncomeAllocation,
+            _seniorIncomeAllocation,
             _stableDebtAddress,
             _interestRateStrategyAddress
         );

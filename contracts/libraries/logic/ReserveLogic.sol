@@ -25,6 +25,8 @@ library ReserveLogic {
         DataTypes.ReserveData storage reserve,
         address _juniorDepositTokenAddress,
         address _seniorDepositTokenAddress,
+        uint256 _juniorIncomeAllocation,
+        uint256 _seniorIncomeAllocation,
         address _stableDebtAddress,
         address _interestRateStrategyAddress
     ) external {
@@ -32,6 +34,8 @@ library ReserveLogic {
         reserve.currentSeniorLiquidityIndex = WadRayMath.ray();
         reserve.juniorDepositTokenAddress = _juniorDepositTokenAddress;
         reserve.seniorDepositTokenAddress = _seniorDepositTokenAddress;
+        reserve.currentJuniorIncomeAllocation = _juniorIncomeAllocation;
+        reserve.currentSeniorIncomeAllocation = _seniorIncomeAllocation;
         reserve.stableDebtAddress = _stableDebtAddress;
         reserve.interestRateStrategyAddress = _interestRateStrategyAddress;
     }
