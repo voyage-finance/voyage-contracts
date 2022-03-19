@@ -76,13 +76,17 @@ describe('Reserve Init', function () {
       tus.address,
       fakeAddress,
       fakeAddress,
-      "400000000000000000000000000",
-      "600000000000000000000000000",
+      '400000000000000000000000000',
+      '600000000000000000000000000',
       fakeAddress,
       fakeAddress
     );
     const reserveState = await voyager.getReserveData(tus.address);
     expect(reserveState.currentJuniorLiquidityIndex).to.equal(ray);
     expect(reserveState.currentSeniorLiquidityIndex).to.equal(ray);
+
+    // 0 represents junior
+    const juniorLiquidityRate = await voyager.liquidityRate(tus.address, "0");
+    expect(juniorLiquidityRate).to.equal('400000000000000000000000000');
   });
 });
