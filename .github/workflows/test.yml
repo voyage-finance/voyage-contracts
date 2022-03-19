@@ -9,5 +9,12 @@ jobs:
       - uses: borales/actions-yarn@v2.3.0
         with:
           cmd: install # will run `yarn install` command
+      - run: npx hardhat check
       - run: npx hardhat compile
-      - run: npx hardhat test
+      - run: npx hardhat coverage
+      - name: Run codacy-coverage-reporter
+        uses: codacy/codacy-coverage-reporter-action@v1
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          language: Solidity
+          coverage-reports: coverage/lcov.info

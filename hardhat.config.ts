@@ -1,5 +1,6 @@
 import { task } from "hardhat/config";
 import "hardhat-prettier";
+import "solidity-coverage"
 
 import { config as dotenvConfig } from "dotenv";
 import { resolve } from "path";
