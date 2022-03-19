@@ -82,8 +82,8 @@ describe('Reserve Init', function () {
       fakeAddress
     );
     const reserveState = await voyager.getReserveData(tus.address);
-    expect(reserveState.currentJuniorLiquidityIndex).to.equal(ray);
-    expect(reserveState.currentSeniorLiquidityIndex).to.equal(ray);
+    expect(reserveState.juniorLiquidityIndex).to.equal(ray);
+    expect(reserveState.seniorLiquidityIndex).to.equal(ray);
 
     // 0 represents junior
     const juniorLiquidityRate = await voyager.liquidityRate(tus.address, "0");

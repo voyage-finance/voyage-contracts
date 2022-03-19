@@ -87,7 +87,7 @@ library ReserveLogic {
                 .juniorLastUpdateTimestamp;
             reserve._updateJuniorLiquidityIndex(
                 previousJuniorLiquidityIndex,
-                lastJuniorUpdatedTimestamp
+                uint40(lastJuniorUpdatedTimestamp)
             );
         } else {
             uint256 previousSeniorLiquidityIndex = reserve.seniorLiquidityIndex;
@@ -95,7 +95,7 @@ library ReserveLogic {
                 .seniorLastUpdateTimestamp;
             reserve._updateSeniorLiquidityIndex(
                 previousSeniorLiquidityIndex,
-                lastSeniorUpdatedTimestamp
+                uint40(lastSeniorUpdatedTimestamp)
             );
         }
     }
