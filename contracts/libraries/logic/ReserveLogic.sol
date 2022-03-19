@@ -32,7 +32,6 @@ library ReserveLogic {
     ) external {
         reserve.currentJuniorLiquidityIndex = WadRayMath.ray();
         reserve.currentSeniorLiquidityIndex = WadRayMath.ray();
-        reserve.currentOverallLiquidityRate = WadRayMath.ray();
         reserve.juniorDepositTokenAddress = _juniorDepositTokenAddress;
         reserve.seniorDepositTokenAddress = _seniorDepositTokenAddress;
         reserve.currentJuniorIncomeAllocation = _juniorIncomeAllocation;
@@ -72,7 +71,14 @@ library ReserveLogic {
 
     function _updateIndexes(
         DataTypes.ReserveData storage reserve,
-        uint256 _juniorLiquidityIndex,
-        uint256 _seniorLiquidityIndex
+        Tranche _tranche
     ) internal {}
+
+    function _updateJuniorLiquidityIndex(
+        DataTypes.ReserveData storage reserve,
+        uint256 juniorLiquidityIndex,
+        uint40 timestamp
+    ) external {
+        uint256 newJuniorLiquidityIndex = juniorLiquidityIndex;
+    }
 }

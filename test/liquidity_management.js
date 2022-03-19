@@ -87,6 +87,6 @@ describe('Reserve Init', function () {
 
     // 0 represents junior
     const juniorLiquidityRate = await voyager.liquidityRate(tus.address, "0");
-    expect(juniorLiquidityRate).to.equal('400000000000000000000000000');
+    expect(juniorLiquidityRate).to.equal('0');
   });
 });
