@@ -17,8 +17,8 @@ library DataTypes {
         uint256 currentSeniorIncomeAllocation;
         // Expressed in ray
         uint256 currentJuniorIncomeAllocation;
-        uint256 currentJuniorLiquidityIndex;
-        uint256 currentSeniorLiquidityIndex;
+        uint256 juniorLiquidityIndex;
+        uint256 seniorLiquidityIndex;
         uint256 totalBorrows;
         uint256 currentBorrowRate;
         // Expressed in ray
@@ -29,7 +29,8 @@ library DataTypes {
         address juniorDepositTokenAddress;
         address seniorDepositTokenAddress;
         address stableDebtAddress;
-        uint40 lastUpdateTimestamp;
+        uint40 juniorLastUpdateTimestamp;
+        uint40 seniorLastUpdateTimestamp;
     }
 
     struct ReserveConfigurationMap {
