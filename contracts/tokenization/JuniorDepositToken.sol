@@ -18,4 +18,9 @@ contract SecurityDepositToken is Context {
         );
         _;
     }
+
+    function initialize(
+        LiquidityManagerProxy _liquidityManagerProxy,
+        address underlying
+    ) external {}
 }
