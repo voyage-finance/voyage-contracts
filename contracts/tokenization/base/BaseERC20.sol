@@ -43,6 +43,7 @@ contract BaseERC20 is Context, IERC20, IERC20Metadata {
 
     string private _name;
     string private _symbol;
+    uint8 private _decimals;
 
     /**
      * @dev Sets the values for {name} and {symbol}.
@@ -53,9 +54,14 @@ contract BaseERC20 is Context, IERC20, IERC20Metadata {
      * All two of these values are immutable: they can only be set once during
      * construction.
      */
-    constructor(string memory name_, string memory symbol_) {
+    constructor(
+        string memory name_,
+        string memory symbol_,
+        uint8 _decimals
+    ) {
         _name = name_;
         _symbol = symbol_;
+        _decimals = _decimals;
     }
 
     /**
@@ -382,4 +388,16 @@ contract BaseERC20 is Context, IERC20, IERC20Metadata {
         address to,
         uint256 amount
     ) internal virtual {}
+
+    function _setName(string memory newName) internal {
+        _name = newName;
+    }
+
+    function _setSymbol(string memory newSymbol) internal {
+        _symbol = newSymbol;
+    }
+
+    function _setDecimals(uint8 newDecimals) internal {
+        _decimals = newDecimals;
+    }
 }

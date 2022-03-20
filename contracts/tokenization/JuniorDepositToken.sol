@@ -3,9 +3,13 @@ pragma solidity ^0.8.9;
 
 import '../../contracts/component/liquiditymanager/LiquidityManagerProxy.sol';
 import '../libraries/helpers/Errors.sol';
+import './base/BaseERC20.sol';
 import 'openzeppelin-solidity/contracts/utils/Context.sol';
 
-contract SecurityDepositToken is Context {
+contract JuniorDepositToken is
+    Context,
+    BaseERC20('JuniorDepositToken_IMPL', 'JuniorDepositToken_IMPL', 0)
+{
     LiquidityManagerProxy internal _liquidityManagerProxy;
     address internal _underlying;
 
