@@ -31,4 +31,18 @@ interface IInitializableDepositToken {
      * @param index The new liquidity index of the reserve
      **/
     event Mint(address indexed from, uint256 value, uint256 index);
+
+    /**
+     * @dev Emitted after aTokens are burned
+     * @param from The owner of the aTokens, getting them burned
+     * @param target The address that will receive the underlying
+     * @param value The amount being burned
+     * @param index The new liquidity index of the reserve
+     **/
+    event Burn(
+        address indexed from,
+        address indexed target,
+        uint256 value,
+        uint256 index
+    );
 }

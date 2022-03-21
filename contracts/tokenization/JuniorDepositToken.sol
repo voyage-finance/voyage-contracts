@@ -6,6 +6,7 @@ import '../libraries/helpers/Errors.sol';
 import '../interfaces/IInitializableDepositToken.sol';
 import './BaseDepositERC20.sol';
 import 'openzeppelin-solidity/contracts/utils/Context.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
 import '../libraries/math/WadRayMath.sol';
 
 contract JuniorDepositToken is
@@ -14,6 +15,7 @@ contract JuniorDepositToken is
     BaseDepositERC20('JuniorDepositToken_IMPL', 'JuniorDepositToken_IMPL', 0)
 {
     using WadRayMath for uint256;
+    using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
     LiquidityManagerProxy internal liquidityManagerProxy;
@@ -82,5 +84,27 @@ contract JuniorDepositToken is
         emit Mint(_user, _amount, _index);
 
         return previousBalance == 0;
+    }
+
+    /**
+     * @dev Burns JuniorDepositToken from `_user` and sends the equivalent amount of underlying to `_receiverOfUnderlying`
+     * - Only callable by the LiquidityManagerProxy, as extra state updates there need to the managed
+     * @param _user The owner of the JuniorDepositToken, getting them burned
+     * @param _receiverOfUnderlying The address that will receive the underlying
+     * @param _amount The amount being burned
+     * @param _index The new liquidity index of the reserve
+     **/
+    function burn(
+        address _user,
+        address _receiverOfUnderlying,
+        uint256 _amount,
+        uint256 _index
+    ) external onlyLiquidityManagerProxy {
+        uint256 amountScaled = _amount.rayDiv(_index);
+        require(amountScaled != 0, Errors.CT_INVALID_BURN_AMOUNT);
+        _burn(_user, amountScaled);
+        IERC20(underlyingAsset).safeTransfer(_receiverOfUnderlying, _amount);
+        emit Transfer(_user, address(0), _amount);
+        emit Burn(_user, _receiverOfUnderlying, _amount, _index);
     }
 }
