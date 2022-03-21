@@ -13,6 +13,7 @@ import '../component/liquiditymanager/LiquidityManager.sol';
 contract Voyager is AccessControl {
     bytes32 public constant liquidityManagerProxyName =
         'liquidityManagerProxyName';
+    bytes32 public constant liquidityManagerName = 'liquidityManager';
     bytes32 public constant liquidityManagerStorageName =
         'liquidityManagerStorage';
     bytes32 public constant loanManagerName = 'loanManager';

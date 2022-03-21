@@ -8,6 +8,7 @@ import './BaseDepositERC20.sol';
 import 'openzeppelin-solidity/contracts/utils/Context.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
 import '../libraries/math/WadRayMath.sol';
+import '../component/infra/AddressResolver.sol';
 
 contract JuniorDepositToken is
     Context,
@@ -18,14 +19,15 @@ contract JuniorDepositToken is
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
-    LiquidityManagerProxy internal liquidityManagerProxy;
+    AddressResolver internal addressResolver;
     address internal underlyingAsset;
 
     uint256 public constant JUNIOR_DEPOSIT_TOKEN_REVISION = 0x1;
 
     modifier onlyLiquidityManagerProxy() {
         require(
-            _msgSender() == address(liquidityManagerProxy),
+            // todo hardcode name for now
+            _msgSender() == addressResolver.getAddress('liquidityManager'),
             Errors.CT_CALLER_MUST_BE_LIQUIDITY_MANAGER_POOL
         );
         _;
@@ -33,14 +35,14 @@ contract JuniorDepositToken is
 
     /**
      * @dev Initializes the JuniorDepositToken
-     * @param _liquidityManagerProxy The address of the liquidity manager proxy
+     * @param _addressResolver The address of the AddressResolver
      * @param _underlyingAsset The address of the underlying asset of this JuniorDepositToken
      * @param _juniorDepositTokenDecimals The decimals of the JuniorDepositToken, same as the underlying asset's
      * @param _juniorDepositTokenName The name of the JuniorDepositToken
      * @param _juniorDepositTokenSymbol The symbol of the JuniorDepositToken
      **/
     function initialize(
-        LiquidityManagerProxy _liquidityManagerProxy,
+        AddressResolver _addressResolver,
         address _underlyingAsset,
         uint8 _juniorDepositTokenDecimals,
         string calldata _juniorDepositTokenName,
@@ -51,12 +53,12 @@ contract JuniorDepositToken is
         _setSymbol(_juniorDepositTokenSymbol);
         _setDecimals(_juniorDepositTokenDecimals);
 
-        liquidityManagerProxy = _liquidityManagerProxy;
+        addressResolver = _addressResolver;
         underlyingAsset = _underlyingAsset;
 
         emit Initialized(
             _underlyingAsset,
-            address(_liquidityManagerProxy),
+            addressResolver.getAddress('liquidityManager'),
             _juniorDepositTokenDecimals,
             _juniorDepositTokenName,
             _juniorDepositTokenSymbol,
