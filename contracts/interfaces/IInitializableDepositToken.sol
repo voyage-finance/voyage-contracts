@@ -18,9 +18,9 @@ interface IInitializableDepositToken {
     event Initialized(
         address indexed underlyingAsset,
         address indexed liquidityManagerProxy,
-        address tokenDecimals,
-        address tokenName,
-        address tokenSymbol,
+        uint8 tokenDecimals,
+        string tokenName,
+        string tokenSymbol,
         bytes params
     );
 }

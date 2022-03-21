@@ -4,14 +4,18 @@ pragma solidity ^0.8.9;
 import '../../contracts/component/liquiditymanager/LiquidityManagerProxy.sol';
 import '../libraries/helpers/Errors.sol';
 import '../interfaces/IInitializableDepositToken.sol';
-import './base/BaseERC20.sol';
+import './BaseDepositERC20.sol';
 import 'openzeppelin-solidity/contracts/utils/Context.sol';
+import '../libraries/math/WadRayMath.sol';
 
 contract JuniorDepositToken is
     Context,
     IInitializableDepositToken,
-    BaseERC20('JuniorDepositToken_IMPL', 'JuniorDepositToken_IMPL', 0)
+    BaseDepositERC20('JuniorDepositToken_IMPL', 'JuniorDepositToken_IMPL', 0)
 {
+    using WadRayMath for uint256;
+    using SafeMath for uint256;
+
     LiquidityManagerProxy internal liquidityManagerProxy;
     address internal underlyingAsset;
 
@@ -25,6 +29,14 @@ contract JuniorDepositToken is
         _;
     }
 
+    /**
+     * @dev Initializes the JuniorDepositToken
+     * @param _liquidityManagerProxy The address of the liquidity manager proxy
+     * @param _underlyingAsset The address of the underlying asset of this JuniorDepositToken
+     * @param _juniorDepositTokenDecimals The decimals of the JuniorDepositToken, same as the underlying asset's
+     * @param _juniorDepositTokenName The name of the JuniorDepositToken
+     * @param _juniorDepositTokenSymbol The symbol of the JuniorDepositToken
+     **/
     function initialize(
         LiquidityManagerProxy _liquidityManagerProxy,
         address _underlyingAsset,
@@ -42,11 +54,21 @@ contract JuniorDepositToken is
 
         emit Initialized(
             _underlyingAsset,
-            _liquidityManagerProxy,
+            address(_liquidityManagerProxy),
             _juniorDepositTokenDecimals,
             _juniorDepositTokenName,
             _juniorDepositTokenSymbol,
             params
         );
+    }
+
+    function mint(
+        address user,
+        uint256 amount,
+        uint256 index
+    ) external onlyLiquidityManagerProxy {
+        uint256 previousBalance = super.balanceOf(user);
+        uint256 amountScaled = amount.rayDiv(index);
+        require(amountScaled != 0, Errors.CT_INVALID_MINT_AMOUNT);
     }
 }

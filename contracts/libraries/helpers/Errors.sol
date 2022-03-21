@@ -11,5 +11,6 @@ pragma solidity ^0.8.9;
  */
 library Errors {
     string public constant CT_CALLER_MUST_BE_LIQUIDITY_MANAGER_POOL = '20';
+    string public constant CT_INVALID_MINT_AMOUNT = '21';
     string public constant LM_NOT_CONTRACT = '60';
 }
