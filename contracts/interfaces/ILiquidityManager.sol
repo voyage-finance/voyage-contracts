@@ -18,4 +18,9 @@ interface ILiquidityManager {
         external
         view
         returns (DataTypes.ReserveConfigurationMap memory);
+
+    function getReserveNormalizedIncome(
+        address _asset,
+        ReserveLogic.Tranche _tranche
+    ) external view returns (uint256);
 }
