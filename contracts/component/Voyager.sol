@@ -2,6 +2,7 @@
 pragma solidity ^0.8.9;
 
 import '../libraries/ownership/Ownable.sol';
+import '../libraries/types/DataTypes.sol';
 import '../component/infra/AddressResolver.sol';
 import '../component/vault/VaultManager.sol';
 import '../component/vault/VaultManagerProxy.sol';
@@ -221,6 +222,21 @@ contract Voyager is AccessControl {
             _stableDebtAddress,
             _interestRateStrategyAddress
         );
+    }
+
+    /**
+     * @dev Returns the normalized income per unit of asset
+     * @param _asset The address of the underlying asset of the reserve
+     * @param _tranche The tranche of the reserve, either Junior or Senior
+     * @return The reserve's normalized income
+     **/
+    function getReserveNormalizedIncome(
+        address _asset,
+        ReserveLogic.Tranche _tranche
+    ) external view returns (uint256) {
+        return
+            LiquidityManager(getLiquidityManagerProxyAddress())
+                .getReserveNormalizedIncome(_asset, _tranche);
     }
 
     /**
