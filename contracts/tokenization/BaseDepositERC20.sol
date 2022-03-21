@@ -89,7 +89,20 @@ contract BaseDepositERC20 is Context, IERC20, IERC20Metadata {
     function totalSupply() public view virtual override returns (uint256) {
         return _totalSupply;
     }
-    
+
+    /**
+     * @return The balance of the token
+     **/
+    function balanceOf(address account)
+        public
+        view
+        virtual
+        override
+        returns (uint256)
+    {
+        return _balances[account];
+    }
+
     /**
      * @dev See {IERC20-transfer}.
      *

@@ -53,6 +53,34 @@ library ReserveLogic {
         return reserve._getLiquidityRate(_tranche);
     }
 
+    function getNormalizedIncome(
+        DataTypes.ReserveData storage reserve,
+        Tranche _tranche
+    ) internal view returns (uint256) {
+        uint40 timestamp;
+        uint256 liquidityIndex;
+        if (_tranche == Tranche.JUNIOR) {
+            timestamp = reserve.juniorLastUpdateTimestamp;
+            liquidityIndex = reserve.juniorLiquidityIndex;
+        } else {
+            timestamp = reserve.seniorLastUpdateTimestamp;
+            liquidityIndex = reserve.seniorLiquidityIndex;
+        }
+
+        //solium-disable-next-line
+        if (timestamp == uint40(block.timestamp)) {
+            return liquidityIndex;
+        }
+
+        uint256 cumulated = MathUtils
+            .calculateLinearInterest(
+                reserve._getLiquidityRate(_tranche),
+                timestamp
+            )
+            .rayMul(liquidityIndex);
+        return cumulated;
+    }
+
     function _getLiquidityRate(
         DataTypes.ReserveData storage reserve,
         Tranche _tranche
