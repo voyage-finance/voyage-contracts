@@ -9,6 +9,7 @@ import 'openzeppelin-solidity/contracts/utils/Context.sol';
 
 contract JuniorDepositToken is
     Context,
+    IInitializableDepositToken,
     BaseERC20('JuniorDepositToken_IMPL', 'JuniorDepositToken_IMPL', 0)
 {
     LiquidityManagerProxy internal liquidityManagerProxy;
@@ -38,5 +39,14 @@ contract JuniorDepositToken is
 
         liquidityManagerProxy = _liquidityManagerProxy;
         underlyingAsset = _underlyingAsset;
+
+        emit Initialized(
+            _underlyingAsset,
+            _liquidityManagerProxy,
+            _juniorDepositTokenDecimals,
+            _juniorDepositTokenName,
+            _juniorDepositTokenSymbol,
+            params
+        );
     }
 }
