@@ -23,4 +23,12 @@ interface IInitializableDepositToken {
         string tokenSymbol,
         bytes params
     );
+
+    /**
+     * @dev Emitted after the mint action
+     * @param from The address performing the mint
+     * @param value The amount being
+     * @param index The new liquidity index of the reserve
+     **/
+    event Mint(address indexed from, uint256 value, uint256 index);
 }

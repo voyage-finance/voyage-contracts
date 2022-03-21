@@ -43,7 +43,7 @@ contract JuniorDepositToken is
         uint8 _juniorDepositTokenDecimals,
         string calldata _juniorDepositTokenName,
         string calldata _juniorDepositTokenSymbol,
-        bytes calldata params
+        bytes calldata _params
     ) external {
         _setName(_juniorDepositTokenName);
         _setSymbol(_juniorDepositTokenSymbol);
@@ -58,17 +58,29 @@ contract JuniorDepositToken is
             _juniorDepositTokenDecimals,
             _juniorDepositTokenName,
             _juniorDepositTokenSymbol,
-            params
+            _params
         );
     }
 
+    /**
+     * @dev Mints `_amount` junior deposit token to `_user`
+     * @param _user The address receiving the minted tokens
+     * @param _amount The amount of tokens getting minted
+     * @param _index The new liquidity index of the reserve
+     * @return `true` if the previous balance of the user was 0
+     **/
     function mint(
-        address user,
-        uint256 amount,
-        uint256 index
-    ) external onlyLiquidityManagerProxy {
-        uint256 previousBalance = super.balanceOf(user);
-        uint256 amountScaled = amount.rayDiv(index);
+        address _user,
+        uint256 _amount,
+        uint256 _index
+    ) external onlyLiquidityManagerProxy returns (bool) {
+        uint256 previousBalance = super.balanceOf(_user);
+        uint256 amountScaled = _amount.rayDiv(_index);
         require(amountScaled != 0, Errors.CT_INVALID_MINT_AMOUNT);
+        _mint(_user, amountScaled);
+        emit Transfer(address(0), _user, _amount);
+        emit Mint(_user, _amount, _index);
+
+        return previousBalance == 0;
     }
 }
