@@ -80,7 +80,7 @@ contract BaseDepositERC20 is Context, IERC20, IERC20Metadata {
     }
 
     function decimals() public view virtual override returns (uint8) {
-        return decimals;
+        return _decimals;
     }
 
     /**
@@ -276,6 +276,32 @@ contract BaseDepositERC20 is Context, IERC20, IERC20Metadata {
         emit Transfer(sender, recipient, amount);
 
         _afterTokenTransfer(sender, recipient, amount);
+    }
+
+    function _mint(address account, uint256 amount) internal virtual {
+        require(account != address(0), 'ERC20: mint to the zero address');
+        _beforeTokenTransfer(address(0), account, amount);
+
+        uint256 oldTotalSupply = _totalSupply;
+        _totalSupply = oldTotalSupply.add(amount);
+
+        uint256 oldAccountBalance = _balances[account];
+        _balances[account] = oldAccountBalance.add(amount);
+    }
+
+    function _burn(address account, uint256 amount) internal virtual {
+        require(account != address(0), 'ERC20: burn from the zero address');
+
+        _beforeTokenTransfer(account, address(0), amount);
+
+        uint256 oldTotalSupply = _totalSupply;
+        _totalSupply = oldTotalSupply.sub(amount);
+
+        uint256 oldAccountBalance = _balances[account];
+        _balances[account] = oldAccountBalance.sub(
+            amount,
+            'ERC20: burn amount exceeds balance'
+        );
     }
 
     /**
