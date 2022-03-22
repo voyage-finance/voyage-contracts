@@ -53,6 +53,27 @@ library ReserveLogic {
         return reserve._getLiquidityRate(_tranche);
     }
 
+    struct UpdateInterestRatesLocalVars {
+        address stableDebtTokenAddress;
+        uint256 availableLiquidity;
+        uint256 totalStableDebt;
+        uint256 newLiquidityRate;
+        uint256 newStableRate;
+    }
+
+    function updateInterestRates(
+        DataTypes.ReserveData storage _reserve,
+        address _reserveAddress,
+        uint256 liquidityAdded,
+        uint256 liquidityTaken
+    ) internal {
+        UpdateInterestRatesLocalVars memory vars;
+
+        vars.stableDebtTokenAddress = _reserve.stableDebtAddress;
+
+        // todo debt token
+    }
+
     function getNormalizedIncome(
         DataTypes.ReserveData storage reserve,
         Tranche _tranche

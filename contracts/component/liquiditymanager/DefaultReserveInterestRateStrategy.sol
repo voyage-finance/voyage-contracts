@@ -2,6 +2,7 @@
 pragma solidity ^0.8.9;
 
 import '../../libraries/math/WadRayMath.sol';
+import '../../interfaces/IReserveInterestRateStrategy.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 
 contract DefaultReserveInterestRateStrategy {
