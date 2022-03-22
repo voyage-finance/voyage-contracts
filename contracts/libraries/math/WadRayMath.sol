@@ -19,6 +19,10 @@ library WadRayMath {
 
     uint256 internal constant WAD_RAY_RATIO = 1e9;
 
+    function Ray() public pure returns (uint256) {
+        return RAY;
+    }
+
     function ray() internal pure returns (uint256) {
         return RAY;
     }
