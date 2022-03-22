@@ -5,6 +5,7 @@ import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 import '../math/WadRayMath.sol';
 import '../math/MathUtils.sol';
 import '../types/DataTypes.sol';
+import '../../component/liquiditymanager/DefaultReserveInterestRateStrategy.sol';
 
 /**
  * @title ReserveLogic library
@@ -72,6 +73,8 @@ library ReserveLogic {
         vars.stableDebtTokenAddress = _reserve.stableDebtAddress;
 
         // todo debt token
+
+        //        IReserveInterestRateStrategy(_reserve.interestRateStrategyAddress).calculateInterestRates(_reserveAddress, )
     }
 
     function getNormalizedIncome(

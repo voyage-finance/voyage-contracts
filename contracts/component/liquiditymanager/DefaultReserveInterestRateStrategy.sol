@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 import '../../libraries/math/WadRayMath.sol';
 import '../../interfaces/IReserveInterestRateStrategy.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 
 contract DefaultReserveInterestRateStrategy {
     using WadRayMath for uint256;
@@ -43,6 +44,33 @@ contract DefaultReserveInterestRateStrategy {
     }
 
     /**
+     * @dev Calculates the interest rates depending on the reserve's state and configuration
+     * @param reserve The address of the reserve
+     * @param depositToken Either junior deposit token or senior deposit token
+     * @param liquidityAdded The liquidity added during the operation
+     * @param liquidityTaken The liquidity taken during the operation
+     * @param totalStableDebt The total borrowed from the reserve a stable rate
+     **/
+    function calculateInterestRates(
+        address reserve,
+        address depositToken,
+        uint256 liquidityAdded,
+        uint256 liquidityTaken,
+        uint256 totalStableDebt
+    ) external view returns (uint256, uint256) {
+        uint256 availableLiquidity = IERC20(reserve).balanceOf(depositToken);
+        availableLiquidity = availableLiquidity.add(liquidityAdded).sub(
+            liquidityTaken
+        );
+        return
+            calculateInterestRates(
+                reserve,
+                availableLiquidity,
+                totalStableDebt
+            );
+    }
+
+    /**
      * @dev Calculates the interest rates depending on the reserve's state and configurations.
      * @param reserve The address of the reserve
      * @param availableLiquidity The liquidity available in the corresponding aToken
@@ -53,7 +81,7 @@ contract DefaultReserveInterestRateStrategy {
         address reserve,
         uint256 availableLiquidity,
         uint256 totalStableDebt
-    ) public returns (uint256, uint256) {
+    ) public view returns (uint256, uint256) {
         CalcInterestRatesLocalVars memory vars;
 
         vars.totalDebt = totalStableDebt;
