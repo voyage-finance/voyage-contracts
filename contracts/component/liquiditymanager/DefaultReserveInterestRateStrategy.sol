@@ -41,11 +41,18 @@ contract DefaultReserveInterestRateStrategy {
         uint256 utilizationRate;
     }
 
+    /**
+     * @dev Calculates the interest rates depending on the reserve's state and configurations.
+     * @param reserve The address of the reserve
+     * @param availableLiquidity The liquidity available in the corresponding aToken
+     * @param totalStableDebt The total borrowed from the reserve a stable rate
+     * @return The liquidity rate, the stable borrow rate
+     **/
     function calculateInterestRates(
         address reserve,
         uint256 availableLiquidity,
         uint256 totalStableDebt
-    ) public {
+    ) public returns (uint256, uint256) {
         CalcInterestRatesLocalVars memory vars;
 
         vars.totalDebt = totalStableDebt;
@@ -74,5 +81,10 @@ contract DefaultReserveInterestRateStrategy {
                 )
             );
         }
+
+        vars.currentLiquidityRate = vars.currentStableBorrowRate.rayMul(
+            vars.utilizationRate
+        );
+        return (vars.currentLiquidityRate, vars.currentStableBorrowRate);
     }
 }
