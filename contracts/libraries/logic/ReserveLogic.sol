@@ -64,6 +64,7 @@ library ReserveLogic {
 
     function updateInterestRates(
         DataTypes.ReserveData storage _reserve,
+        Tranche _tranche,
         address _reserveAddress,
         uint256 liquidityAdded,
         uint256 liquidityTaken
@@ -74,7 +75,33 @@ library ReserveLogic {
 
         // todo debt token
 
-        //        IReserveInterestRateStrategy(_reserve.interestRateStrategyAddress).calculateInterestRates(_reserveAddress, )
+        if (_tranche == Tranche.JUNIOR) {
+            (
+                vars.newLiquidityRate,
+                vars.newStableRate
+            ) = IReserveInterestRateStrategy(
+                _reserve.interestRateStrategyAddress
+            ).calculateInterestRates(
+                    _reserveAddress,
+                    _reserve.juniorDepositTokenAddress,
+                    liquidityAdded,
+                    liquidityTaken,
+                    _reserve.totalBorrows
+                );
+        } else {
+            (
+                vars.newLiquidityRate,
+                vars.newStableRate
+            ) = IReserveInterestRateStrategy(
+                _reserve.interestRateStrategyAddress
+            ).calculateInterestRates(
+                    _reserveAddress,
+                    _reserve.seniorDepositTokenAddress,
+                    liquidityAdded,
+                    liquidityTaken,
+                    _reserve.totalBorrows
+                );
+        }
     }
 
     function getNormalizedIncome(
