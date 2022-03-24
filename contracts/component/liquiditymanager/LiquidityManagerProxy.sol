@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 import '../../libraries/proxy/Proxy.sol';
 import '../../interfaces/ILiquidityManager.sol';
 import '../../libraries/logic/ReserveLogic.sol';
+import '../../interfaces/ILiquidityManagerProxy.sol';
 
 contract LiquidityManagerProxy is Proxy {
     function getLiquidityRate(address _reserve, ReserveLogic.Tranche _tranche)
