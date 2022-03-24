@@ -5,6 +5,7 @@ import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 import '../math/WadRayMath.sol';
 import '../math/MathUtils.sol';
 import '../types/DataTypes.sol';
+import '../helpers/Errors.sol';
 import '../../component/liquiditymanager/DefaultReserveInterestRateStrategy.sol';
 
 /**
@@ -64,44 +65,46 @@ library ReserveLogic {
 
     function updateInterestRates(
         DataTypes.ReserveData storage _reserve,
-        Tranche _tranche,
         address _reserveAddress,
-        uint256 liquidityAdded,
-        uint256 liquidityTaken
+        uint256 _juniorLiquidityAdded,
+        uint256 _juniorLiquidityTaken,
+        uint256 _seniorLiquidityAdded,
+        uint256 _seniorLiquidityTaken
     ) internal {
         UpdateInterestRatesLocalVars memory vars;
 
         vars.stableDebtTokenAddress = _reserve.stableDebtAddress;
+        uint256 liquidityAdded = _juniorLiquidityAdded.add(
+            _seniorLiquidityAdded
+        );
+        uint256 liquidityTaken = _juniorLiquidityTaken.add(
+            _seniorLiquidityTaken
+        );
 
         // todo debt token
 
-        if (_tranche == Tranche.JUNIOR) {
-            (
-                vars.newLiquidityRate,
-                vars.newStableRate
-            ) = IReserveInterestRateStrategy(
-                _reserve.interestRateStrategyAddress
-            ).calculateInterestRates(
-                    _reserveAddress,
-                    _reserve.juniorDepositTokenAddress,
-                    liquidityAdded,
-                    liquidityTaken,
-                    _reserve.totalBorrows
-                );
-        } else {
-            (
-                vars.newLiquidityRate,
-                vars.newStableRate
-            ) = IReserveInterestRateStrategy(
-                _reserve.interestRateStrategyAddress
-            ).calculateInterestRates(
-                    _reserveAddress,
-                    _reserve.seniorDepositTokenAddress,
-                    liquidityAdded,
-                    liquidityTaken,
-                    _reserve.totalBorrows
-                );
-        }
+        (
+            vars.newLiquidityRate,
+            vars.newStableRate
+        ) = IReserveInterestRateStrategy(_reserve.interestRateStrategyAddress)
+            .calculateInterestRates(
+                _reserveAddress,
+                _reserve.juniorDepositTokenAddress,
+                _reserve.seniorDepositTokenAddress,
+                liquidityAdded,
+                liquidityTaken,
+                _reserve.totalBorrows
+            );
+        require(
+            vars.newLiquidityRate <= type(uint128).max,
+            Errors.RL_LIQUIDITY_RATE_OVERFLOW
+        );
+        require(
+            vars.newStableRate <= type(uint128).max,
+            Errors.RL_STABLE_BORROW_RATE_OVERFLOW
+        );
+        _reserve.currentOverallLiquidityRate = vars.newLiquidityRate;
+        _reserve.currentBorrowRate = vars.newStableRate;
     }
 
     function getNormalizedIncome(

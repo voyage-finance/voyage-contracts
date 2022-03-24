@@ -46,19 +46,29 @@ contract DefaultReserveInterestRateStrategy {
     /**
      * @dev Calculates the interest rates depending on the reserve's state and configuration
      * @param reserve The address of the reserve
-     * @param depositToken Either junior deposit token or senior deposit token
+     * @param juniorDepositToken The address of junior deposit token
+     * @param seniorDepositToken The address of senior deposit token
      * @param liquidityAdded The liquidity added during the operation
      * @param liquidityTaken The liquidity taken during the operation
      * @param totalStableDebt The total borrowed from the reserve a stable rate
      **/
     function calculateInterestRates(
         address reserve,
-        address depositToken,
+        address juniorDepositToken,
+        address seniorDepositToken,
         uint256 liquidityAdded,
         uint256 liquidityTaken,
         uint256 totalStableDebt
     ) external view returns (uint256, uint256) {
-        uint256 availableLiquidity = IERC20(reserve).balanceOf(depositToken);
+        uint256 availableJuniorLiquidity = IERC20(reserve).balanceOf(
+            juniorDepositToken
+        );
+        uint256 availableSeniorLiquidity = IERC20(reserve).balanceOf(
+            seniorDepositToken
+        );
+        uint256 availableLiquidity = availableJuniorLiquidity.add(
+            availableSeniorLiquidity
+        );
         availableLiquidity = availableLiquidity.add(liquidityAdded).sub(
             liquidityTaken
         );
