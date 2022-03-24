@@ -6,7 +6,7 @@ import '../../interfaces/IReserveInterestRateStrategy.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 
-contract DefaultReserveInterestRateStrategy {
+contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
     using WadRayMath for uint256;
     using SafeMath for uint256;
     /**
@@ -125,5 +125,12 @@ contract DefaultReserveInterestRateStrategy {
             vars.utilizationRate
         );
         return (vars.currentLiquidityRate, vars.currentStableBorrowRate);
+    }
+
+    /**
+     * @dev Get base borrow rate, in Ray
+     **/
+    function getBaseBorrowRate() external view returns (uint256) {
+        return baseBorrowRate;
     }
 }
