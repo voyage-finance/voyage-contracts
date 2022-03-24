@@ -12,8 +12,7 @@ import '../libraries/acl/ExtCallACLProxy.sol';
 import '../component/liquiditymanager/LiquidityManager.sol';
 
 contract Voyager is AccessControl {
-    bytes32 public constant liquidityManagerProxyName =
-        'liquidityManagerProxyName';
+    bytes32 public constant liquidityManagerProxyName = 'liquidityManagerProxy';
     bytes32 public constant liquidityManagerName = 'liquidityManager';
     bytes32 public constant liquidityManagerStorageName =
         'liquidityManagerStorage';
