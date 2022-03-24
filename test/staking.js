@@ -63,7 +63,7 @@ describe('Staking contract', function () {
 
   it('Single user stake with rewards should get all rewards', async function () {
     const oneDay = 24 * 60 * 60;
-    const fourDays = 4 * 24 * 60 * 60;
+    const fourDays = 4 * oneDay;
 
     // transfer tus to staking contract
     await tus.transfer(stakingRewards.address, '10000000000000000000');
