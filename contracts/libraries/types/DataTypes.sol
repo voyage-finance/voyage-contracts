@@ -34,7 +34,7 @@ library DataTypes {
     }
 
     struct ReserveConfigurationMap {
-        //bit 0-15: Liq. bonus
+        //bit 0-15: Liquidate bonus
         //bit 16-23: Decimals
         //bit 24: Reserve is active
         //bit 25: reserve is frozen
