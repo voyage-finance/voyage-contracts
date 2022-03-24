@@ -109,4 +109,14 @@ contract JuniorDepositToken is
         emit Transfer(_user, address(0), _amount);
         emit Burn(_user, _receiverOfUnderlying, _amount, _index);
     }
+
+    /**
+     * @dev Returns the scaled balance of the user. The scaled balance is the sum of all the updated
+     * stored balance divided by the reserve's liquidity index at the moment of the update
+     * @param _user The user whose balance is calculated
+     * @return THe scaled balance of the user
+     **/
+    function scaledBalanceOf(address _user) external view returns (uint256) {
+        return super.balanceOf(_user);
+    }
 }
