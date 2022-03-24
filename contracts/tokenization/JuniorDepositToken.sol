@@ -171,6 +171,10 @@ contract JuniorDepositToken is
             );
     }
 
+    function scaledTotalSupply() public view returns (uint256) {
+        return super.totalSupply();
+    }
+
     /**
      * @dev Return instance of ILiquidityManagerProxy
      **/
