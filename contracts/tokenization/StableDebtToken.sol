@@ -36,6 +36,14 @@ contract StableDebtToken is IInitializableDebtToken, DebtTokenBase {
         );
     }
 
+    /**
+     * @dev Gets the revision of the stable debt token implementation
+     * @return The debt token implementation revision
+     **/
+    function getRevision() internal pure virtual returns (uint256) {
+        return DEBT_TOKEN_REVISION;
+    }
+
     function _getUnderlyingAssetAddress()
         internal
         view
