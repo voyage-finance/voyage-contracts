@@ -11,7 +11,6 @@ import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
 import '../libraries/math/WadRayMath.sol';
 import '../libraries/logic/ReserveLogic.sol';
 import '../component/infra/AddressResolver.sol';
-//import "../interfaces/IERC20.sol";
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 
 contract JuniorDepositToken is
