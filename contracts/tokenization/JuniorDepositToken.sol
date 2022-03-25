@@ -149,12 +149,7 @@ contract JuniorDepositToken is
      * since the balance of every single user increases over time, the totally supply does that too.
      * @return the current total supply
      **/
-    function totalSupply()
-        public
-        view
-        override(BaseERC20)
-        returns (uint256)
-    {
+    function totalSupply() public view override(BaseERC20) returns (uint256) {
         uint256 currentSupplyScaled = super.totalSupply();
         if (currentSupplyScaled == 0) {
             return 0;
