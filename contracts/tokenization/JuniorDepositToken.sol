@@ -5,7 +5,7 @@ import '../../contracts/component/liquiditymanager/LiquidityManagerProxy.sol';
 import '../libraries/helpers/Errors.sol';
 import '../interfaces/IInitializableDepositToken.sol';
 import '../interfaces/ILiquidityManagerProxy.sol';
-import './BaseDepositERC20.sol';
+import './BaseERC20.sol';
 import 'openzeppelin-solidity/contracts/utils/Context.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
 import '../libraries/math/WadRayMath.sol';
@@ -16,7 +16,7 @@ import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 contract JuniorDepositToken is
     Context,
     IInitializableDepositToken,
-    BaseDepositERC20('JuniorDepositToken_IMPL', 'JuniorDepositToken_IMPL', 0)
+    BaseERC20('JuniorDepositToken_IMPL', 'JuniorDepositToken_IMPL', 0)
 {
     using WadRayMath for uint256;
     using SafeERC20 for IERC20;
@@ -131,7 +131,7 @@ contract JuniorDepositToken is
     function balanceOf(address _user)
         public
         view
-        override(BaseDepositERC20)
+        override(BaseERC20)
         returns (uint256)
     {
         ILiquidityManagerProxy liquidityManagerProxy = getLiquidityManagerProxy();
@@ -152,7 +152,7 @@ contract JuniorDepositToken is
     function totalSupply()
         public
         view
-        override(BaseDepositERC20)
+        override(BaseERC20)
         returns (uint256)
     {
         uint256 currentSupplyScaled = super.totalSupply();

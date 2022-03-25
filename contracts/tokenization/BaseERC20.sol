@@ -33,14 +33,12 @@ import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
  * functions have been added to mitigate the well-known issues around setting
  * allowances. See {IERC20-approve}.
  */
-contract BaseDepositERC20 is Context, IERC20, IERC20Metadata {
+contract BaseERC20 is Context, IERC20, IERC20Metadata {
     using SafeMath for uint256;
+
     mapping(address => uint256) private _balances;
-
     mapping(address => mapping(address => uint256)) private _allowances;
-
     uint256 internal _totalSupply;
-
     string private _name;
     string private _symbol;
     uint8 private _decimals;
