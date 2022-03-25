@@ -61,4 +61,6 @@ contract LiquidityManagerStorage is State {
     ) public view returns (uint256) {
         return _reserves[_asset].getNormalizedIncome(_tranche);
     }
+
+    function updateState(address _asset) public onlyAssociatedContract {}
 }

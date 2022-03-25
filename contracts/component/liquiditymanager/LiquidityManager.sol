@@ -19,4 +19,11 @@ contract LiquidityManager is ReserveManager {
             LiquidityManagerStorage(liquidityManagerStorageAddress())
                 .getReserveNormalizedIncome(_asset, _tranche);
     }
+
+    function deposit(
+        address _asset,
+        ReserveLogic.Tranche _tranche,
+        uint256 _amount,
+        address _onBehalfOf
+    ) external {}
 }
