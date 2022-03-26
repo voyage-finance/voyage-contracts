@@ -4,9 +4,9 @@ pragma solidity ^0.8.9;
 import '../libraries/math/WadRayMath.sol';
 import '../libraries/math/MathUtils.sol';
 import '../interfaces/IInitializableDebtToken.sol';
-import '../interfaces/IStableDebtToken.sol';
 import '../component/infra/AddressResolver.sol';
 import './DebtTokenBase.sol';
+import "../interfaces/IDebtToken.sol";
 
 contract StableDebtToken is
     IInitializableDebtToken,

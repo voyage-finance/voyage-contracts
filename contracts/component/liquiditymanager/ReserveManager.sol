@@ -7,6 +7,7 @@ import 'openzeppelin-solidity/contracts/utils/Address.sol';
 import './LiquidityManagerStorage.sol';
 import '../infra/AddressResolver.sol';
 import '../../libraries/proxy/Proxyable.sol';
+import '../../interfaces/IDebtToken.sol';
 import '../../libraries/logic/ReserveLogic.sol';
 
 contract ReserveManager is Proxyable {
