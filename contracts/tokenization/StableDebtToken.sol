@@ -4,10 +4,15 @@ pragma solidity ^0.8.9;
 import '../libraries/math/WadRayMath.sol';
 import '../libraries/math/MathUtils.sol';
 import '../interfaces/IInitializableDebtToken.sol';
+import '../interfaces/IStableDebtToken.sol';
 import '../component/infra/AddressResolver.sol';
 import './DebtTokenBase.sol';
 
-contract StableDebtToken is IInitializableDebtToken, DebtTokenBase {
+contract StableDebtToken is
+    IInitializableDebtToken,
+    IStableDebtToken,
+    DebtTokenBase
+{
     using WadRayMath for uint256;
 
     uint256 public constant DEBT_TOKEN_REVISION = 0x1;

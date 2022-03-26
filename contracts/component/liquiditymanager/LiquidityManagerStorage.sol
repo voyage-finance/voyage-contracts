@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 import '../../libraries/state/State.sol';
 import '../../libraries/types/DataTypes.sol';
 import '../../libraries/logic/ReserveLogic.sol';
+import '../../libraries/logic/ValidationLogic.sol';
 
 contract LiquidityManagerStorage is State {
     using ReserveLogic for DataTypes.ReserveData;
@@ -62,5 +63,11 @@ contract LiquidityManagerStorage is State {
         return _reserves[_asset].getNormalizedIncome(_tranche);
     }
 
-    function updateState(address _asset) public onlyAssociatedContract {}
+    function deposit(address _asset, uint256 _amount)
+        public
+        onlyAssociatedContract
+    {
+        DataTypes.ReserveData storage reserve = _reserves[_asset];
+        ValidationLogic.validateDeposit(reserve, _amount);
+    }
 }
