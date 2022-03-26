@@ -25,6 +25,20 @@ library ReserveLogic {
         SENIOR
     }
 
+    /**
+     * @dev Emitted when the state of a reserve is updated
+     * @param asset The address of the underlying asset of the reserve
+     * @param liquidityRate The new liquidity rate
+     * @param stableBorrowRate The new stable borrow rate
+     * @param liquidityIndex The new liquidity index
+     **/
+    event ReserveDataUpdated(
+        address indexed asset,
+        uint256 liquidityRate,
+        uint256 stableBorrowRate,
+        uint256 liquidityIndex
+    );
+
     function init(
         DataTypes.ReserveData storage reserve,
         address _juniorDepositTokenAddress,
@@ -110,6 +124,13 @@ library ReserveLogic {
         );
         _reserve.currentOverallLiquidityRate = vars.newLiquidityRate;
         _reserve.currentBorrowRate = vars.newStableRate;
+
+        emit ReserveDataUpdated(
+            _reserveAddress,
+            vars.newLiquidityRate,
+            vars.newStableRate,
+            vars.newLiquidityRate
+        );
     }
 
     function getNormalizedIncome(
