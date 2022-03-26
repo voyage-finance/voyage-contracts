@@ -61,7 +61,9 @@ library ReserveLogic {
     function updateState(
         DataTypes.ReserveData storage reserve,
         Tranche _tranche
-    ) internal {}
+    ) public {
+        _updateIndexes(reserve, _tranche);
+    }
 
     function getLiquidityRate(
         DataTypes.ReserveData storage reserve,
@@ -86,7 +88,7 @@ library ReserveLogic {
         uint256 _juniorLiquidityTaken,
         uint256 _seniorLiquidityAdded,
         uint256 _seniorLiquidityTaken
-    ) internal {
+    ) public {
         UpdateInterestRatesLocalVars memory vars;
 
         vars.stableDebtTokenAddress = _reserve.stableDebtAddress;
