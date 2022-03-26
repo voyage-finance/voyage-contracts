@@ -4,11 +4,32 @@ pragma solidity ^0.8.9;
 import './ReserveManager.sol';
 import '../../libraries/helpers/Errors.sol';
 import '../../libraries/logic/ReserveLogic.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
+import './LiquidityDepositEscrow.sol';
 
 contract LiquidityManager is ReserveManager {
+    LiquidityDepositEscrow public liquidityDepositEscrow;
+
     constructor(address payable _proxy, address _voyager)
         ReserveManager(_proxy, _voyager)
-    {}
+    {
+        liquidityDepositEscrow = LiquidityDepositEscrow(deployEscrow());
+    }
+
+    function deployEscrow() private returns (address) {
+        bytes32 salt = keccak256(abi.encodePacked(msg.sender));
+        bytes memory bytecode = type(LiquidityDepositEscrow).creationCode;
+        address deployedEscrow;
+        assembly {
+            deployedEscrow := create2(
+                0,
+                add(bytecode, 32),
+                mload(bytecode),
+                salt
+            )
+        }
+        return deployedEscrow;
+    }
 
     function getReserveNormalizedIncome(
         address _asset,
@@ -29,6 +50,7 @@ contract LiquidityManager is ReserveManager {
         LiquidityManagerStorage lms = LiquidityManagerStorage(
             liquidityManagerStorageAddress()
         );
+
         lms.updateStateOnDeposit(_asset, _tranche, _amount);
     }
 }
