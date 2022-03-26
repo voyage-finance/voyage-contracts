@@ -16,7 +16,7 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
     uint256 public immutable OPTIMAL_UTILIZATION_RATE;
 
     // Base interest rate set by governance. Expressed in ray
-    //uint256 internal immutable baseBorrowRate;
+    uint256 internal immutable baseBorrowRate;
 
     // Slope of the stable interest curve when utilization rate > 0 and <= OPTIMAL_UTILIZATION_RATE. Expressed in ray
     uint256 internal immutable stableRateSlope1;
@@ -27,10 +27,11 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
     constructor(
         uint256 _optimalUtilizationRate,
         uint256 _stableRateSlope1,
-        uint256 _stableRateSlope2
+        uint256 _stableRateSlope2,
+        uint256 _baseBorrowRate
     ) public {
         OPTIMAL_UTILIZATION_RATE = _optimalUtilizationRate;
-        // baseBorrowRate = _baseBorrowRate;
+        baseBorrowRate = _baseBorrowRate;
         stableRateSlope1 = _stableRateSlope1;
         stableRateSlope2 = _stableRateSlope2;
     }
@@ -99,7 +100,7 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
         CalcInterestRatesLocalVars memory vars;
 
         vars.totalDebt = totalStableDebt;
-        vars.currentStableBorrowRate = averageBorrowRate;
+        vars.currentStableBorrowRate = baseBorrowRate;
         vars.currentLiquidityRate = 0;
 
         vars.utilizationRate = vars.totalDebt == 0
@@ -125,7 +126,7 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
             );
         }
 
-        vars.currentLiquidityRate = vars.currentStableBorrowRate.rayMul(
+        vars.currentLiquidityRate = averageBorrowRate.rayMul(
             vars.utilizationRate
         );
         return (vars.currentLiquidityRate, vars.currentStableBorrowRate);

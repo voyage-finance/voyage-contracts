@@ -86,7 +86,6 @@ library ReserveLogic {
         (vars.totalStableDebt, vars.avgStableRate) = IStableDebtToken(
             _reserve.stableDebtAddress
         ).getTotalSupplyAndAvgRate();
-        // todo debt token
 
         (
             vars.newLiquidityRate,
