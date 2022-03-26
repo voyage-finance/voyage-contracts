@@ -6,6 +6,7 @@ import '../math/WadRayMath.sol';
 import '../math/MathUtils.sol';
 import '../types/DataTypes.sol';
 import '../helpers/Errors.sol';
+import '../../interfaces/IDebtToken.sol';
 import '../../component/liquiditymanager/DefaultReserveInterestRateStrategy.sol';
 
 /**
@@ -61,6 +62,7 @@ library ReserveLogic {
         uint256 totalStableDebt;
         uint256 newLiquidityRate;
         uint256 newStableRate;
+        uint256 avgStableRate;
     }
 
     function updateInterestRates(
@@ -81,6 +83,9 @@ library ReserveLogic {
             _seniorLiquidityTaken
         );
 
+        (vars.totalStableDebt, vars.avgStableRate) = IStableDebtToken(
+            _reserve.stableDebtAddress
+        ).getTotalSupplyAndAvgRate();
         // todo debt token
 
         (
@@ -93,7 +98,8 @@ library ReserveLogic {
                 _reserve.seniorDepositTokenAddress,
                 liquidityAdded,
                 liquidityTaken,
-                _reserve.totalBorrows
+                _reserve.totalBorrows,
+                vars.avgStableRate
             );
         require(
             vars.newLiquidityRate <= type(uint128).max,

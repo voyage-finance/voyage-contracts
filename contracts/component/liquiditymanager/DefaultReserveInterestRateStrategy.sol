@@ -16,7 +16,7 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
     uint256 public immutable OPTIMAL_UTILIZATION_RATE;
 
     // Base interest rate set by governance. Expressed in ray
-    uint256 internal immutable baseBorrowRate;
+    //uint256 internal immutable baseBorrowRate;
 
     // Slope of the stable interest curve when utilization rate > 0 and <= OPTIMAL_UTILIZATION_RATE. Expressed in ray
     uint256 internal immutable stableRateSlope1;
@@ -26,12 +26,11 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
 
     constructor(
         uint256 _optimalUtilizationRate,
-        uint256 _baseBorrowRate,
         uint256 _stableRateSlope1,
         uint256 _stableRateSlope2
     ) public {
         OPTIMAL_UTILIZATION_RATE = _optimalUtilizationRate;
-        baseBorrowRate = _baseBorrowRate;
+        // baseBorrowRate = _baseBorrowRate;
         stableRateSlope1 = _stableRateSlope1;
         stableRateSlope2 = _stableRateSlope2;
     }
@@ -51,6 +50,7 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
      * @param liquidityAdded The liquidity added during the operation
      * @param liquidityTaken The liquidity taken during the operation
      * @param totalStableDebt The total borrowed from the reserve a stable rate
+     * @param averageBorrowRate The current average borrow rate
      **/
     function calculateInterestRates(
         address reserve,
@@ -58,7 +58,8 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
         address seniorDepositToken,
         uint256 liquidityAdded,
         uint256 liquidityTaken,
-        uint256 totalStableDebt
+        uint256 totalStableDebt,
+        uint256 averageBorrowRate
     ) external view returns (uint256, uint256) {
         uint256 availableJuniorLiquidity = IERC20(reserve).balanceOf(
             juniorDepositToken
@@ -76,7 +77,8 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
             calculateInterestRates(
                 reserve,
                 availableLiquidity,
-                totalStableDebt
+                totalStableDebt,
+                averageBorrowRate
             );
     }
 
@@ -86,16 +88,18 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
      * @param availableLiquidity The liquidity available in the corresponding aToken
      * @param totalStableDebt The total borrowed from the reserve a stable rate
      * @return The liquidity rate, the stable borrow rate
+     * @param averageBorrowRate The current average borrow rate
      **/
     function calculateInterestRates(
         address reserve,
         uint256 availableLiquidity,
-        uint256 totalStableDebt
+        uint256 totalStableDebt,
+        uint256 averageBorrowRate
     ) public view returns (uint256, uint256) {
         CalcInterestRatesLocalVars memory vars;
 
         vars.totalDebt = totalStableDebt;
-        vars.currentStableBorrowRate = baseBorrowRate;
+        vars.currentStableBorrowRate = averageBorrowRate;
         vars.currentLiquidityRate = 0;
 
         vars.utilizationRate = vars.totalDebt == 0
@@ -125,12 +129,5 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
             vars.utilizationRate
         );
         return (vars.currentLiquidityRate, vars.currentStableBorrowRate);
-    }
-
-    /**
-     * @dev Get base borrow rate, in Ray
-     **/
-    function getBaseBorrowRate() external view returns (uint256) {
-        return baseBorrowRate;
     }
 }

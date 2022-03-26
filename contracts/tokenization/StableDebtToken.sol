@@ -6,7 +6,7 @@ import '../libraries/math/MathUtils.sol';
 import '../interfaces/IInitializableDebtToken.sol';
 import '../component/infra/AddressResolver.sol';
 import './DebtTokenBase.sol';
-import "../interfaces/IDebtToken.sol";
+import '../interfaces/IDebtToken.sol';
 
 contract StableDebtToken is
     IInitializableDebtToken,

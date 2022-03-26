@@ -6,16 +6,11 @@ pragma solidity ^0.8.9;
 */
 
 interface IReserveInterestRateStrategy {
-    /**
-     * @dev returns the base borrow rate, in rays
-     */
-
-    function getBaseBorrowRate() external view returns (uint256);
-
     function calculateInterestRates(
         address reserve,
         uint256 availableLiquidity,
-        uint256 totalStableDebt
+        uint256 totalStableDebt,
+        uint256 averageBorrowRate
     ) external view returns (uint256, uint256);
 
     function calculateInterestRates(
@@ -24,6 +19,7 @@ interface IReserveInterestRateStrategy {
         address seniorDepositToken,
         uint256 liquidityAdded,
         uint256 liquidityTaken,
-        uint256 totalStableDebt
+        uint256 totalStableDebt,
+        uint256 averageBorrowRate
     ) external view returns (uint256, uint256);
 }
