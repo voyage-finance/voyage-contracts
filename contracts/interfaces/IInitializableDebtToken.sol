@@ -17,4 +17,10 @@ interface IInitializableDebtToken {
         string debtTokenSymbol,
         bytes params
     );
+
+    /**
+     * @dev Returns the average rate of all the stable rate loans.
+     * @return The average stable rate
+     **/
+    function getAverageStableRate() external view returns (uint256);
 }

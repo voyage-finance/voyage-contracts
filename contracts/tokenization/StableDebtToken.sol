@@ -11,6 +11,11 @@ contract StableDebtToken is IInitializableDebtToken, DebtTokenBase {
 
     uint256 public constant DEBT_TOKEN_REVISION = 0x1;
 
+    uint256 internal _avgStableRate;
+    mapping(address => uint40) internal _timestamps;
+    mapping(address => uint256) internal _usersStableRate;
+    uint40 internal _totalSupplyTimestamp;
+
     AddressResolver internal addressResolver;
     address internal underlyingAsset;
 
@@ -42,6 +47,13 @@ contract StableDebtToken is IInitializableDebtToken, DebtTokenBase {
      **/
     function getRevision() internal pure virtual returns (uint256) {
         return DEBT_TOKEN_REVISION;
+    }
+
+    /**
+     * @dev Returns the average stable rate
+     **/
+    function getAverageStableRate() external view override returns (uint256) {
+        return _avgStableRate;
     }
 
     function _getUnderlyingAssetAddress()
