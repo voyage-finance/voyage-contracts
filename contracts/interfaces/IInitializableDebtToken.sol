@@ -23,4 +23,12 @@ interface IInitializableDebtToken {
      * @return The average stable rate
      **/
     function getAverageStableRate() external view returns (uint256);
+
+    /**
+     * @dev Returns the total supply and the average stable rate
+     **/
+    function getTotalSupplyAndAvgRate()
+        external
+        view
+        returns (uint256, uint256);
 }

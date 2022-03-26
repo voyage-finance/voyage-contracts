@@ -2,6 +2,7 @@
 pragma solidity ^0.8.9;
 
 import '../libraries/math/WadRayMath.sol';
+import '../libraries/math/MathUtils.sol';
 import '../interfaces/IInitializableDebtToken.sol';
 import '../component/infra/AddressResolver.sol';
 import './DebtTokenBase.sol';
@@ -54,6 +55,67 @@ contract StableDebtToken is IInitializableDebtToken, DebtTokenBase {
      **/
     function getAverageStableRate() external view override returns (uint256) {
         return _avgStableRate;
+    }
+
+    /**
+     * @dev Calculates the current user debt balance
+     * @return The accumulated debt of the user
+     **/
+    function balanceOf(address _account)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        uint256 accountBalance = super.balanceOf(_account);
+        uint256 stableRate = _usersStableRate[_account];
+        if (accountBalance == 0) {
+            return 0;
+        }
+
+        uint256 cumulatedInterest = MathUtils.calculateCompoundedInterest(
+            stableRate,
+            _timestamps[_account]
+        );
+        return accountBalance.rayMul(cumulatedInterest);
+    }
+
+    /**
+     * @dev Returns the the total supply and the average stable rate
+     **/
+    function getTotalSupplyAndAvgRate()
+        public
+        view
+        override
+        returns (uint256, uint256)
+    {
+        uint256 avgRate = _avgStableRate;
+        return (_calcTotalSupply(avgRate), avgRate);
+    }
+
+    /**
+     * @dev Calculates the total supply
+     * @param avgRate The average rate at which the total supply increases
+     * @return The debt balance of the user since the last burn/mint action
+     **/
+    function _calcTotalSupply(uint256 avgRate)
+        internal
+        view
+        virtual
+        returns (uint256)
+    {
+        uint256 principalSupply = super.totalSupply();
+
+        if (principalSupply == 0) {
+            return 0;
+        }
+
+        uint256 cumulatedInterest = MathUtils.calculateCompoundedInterest(
+            avgRate,
+            _totalSupplyTimestamp
+        );
+
+        return principalSupply.rayMul(cumulatedInterest);
     }
 
     function _getUnderlyingAssetAddress()
