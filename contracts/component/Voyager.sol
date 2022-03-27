@@ -231,7 +231,7 @@ contract Voyager is AccessControl {
      * @param _tranche The tranche of the liquidity pool the user wants to deposit to
      * @param _amount The amount to be deposited
      * @param _onBehalfOf The address that will receive the deposit tokens, same as msg.sender if the user
-     *   wants to receive them on his own wallet, or a different address if the beneficiary of aTokens
+     *   wants to receive them on his own wallet, or a different address if the beneficiary of deposit token
      *   is a different wallet
      **/
     function deposit(
