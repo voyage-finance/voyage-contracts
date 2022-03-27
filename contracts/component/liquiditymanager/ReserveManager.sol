@@ -9,8 +9,9 @@ import '../infra/AddressResolver.sol';
 import '../../libraries/proxy/Proxyable.sol';
 import '../../interfaces/IDebtToken.sol';
 import '../../libraries/logic/ReserveLogic.sol';
+import '../../interfaces/IReserveManager.sol';
 
-contract ReserveManager is Proxyable {
+contract ReserveManager is Proxyable, IReserveManager {
     Voyager public voyager;
 
     constructor(address payable _proxy, address _voyager)

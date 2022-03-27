@@ -6,8 +6,10 @@ import '../../libraries/helpers/Errors.sol';
 import '../../libraries/logic/ReserveLogic.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
 import './LiquidityDepositEscrow.sol';
+import '../../interfaces/IReserveManager.sol';
+import '../../interfaces/ILiquidityManager.sol';
 
-contract LiquidityManager is ReserveManager {
+contract LiquidityManager is ReserveManager, ILiquidityManager {
     LiquidityDepositEscrow public liquidityDepositEscrow;
 
     constructor(address payable _proxy, address _voyager)
@@ -47,7 +49,7 @@ contract LiquidityManager is ReserveManager {
         uint256 _amount,
         address _user,
         address _onBehalfOf
-    ) external {
+    ) external onlyProxy {
         LiquidityManagerStorage lms = LiquidityManagerStorage(
             liquidityManagerStorageAddress()
         );

@@ -2,9 +2,9 @@
 pragma solidity ^0.8.9;
 
 import '../../libraries/proxy/Proxy.sol';
+import '../../interfaces/IReserveManager.sol';
 import '../../interfaces/ILiquidityManager.sol';
 import '../../libraries/logic/ReserveLogic.sol';
-import '../../interfaces/ILiquidityManagerProxy.sol';
 
 contract LiquidityManagerProxy is Proxy {
     function getLiquidityRate(address _reserve, ReserveLogic.Tranche _tranche)
@@ -13,7 +13,7 @@ contract LiquidityManagerProxy is Proxy {
         returns (uint256)
     {
         return
-            ILiquidityManager(address(target)).getLiquidityRate(
+            IReserveManager(address(target)).getLiquidityRate(
                 _reserve,
                 _tranche
             );
@@ -24,7 +24,7 @@ contract LiquidityManagerProxy is Proxy {
         view
         returns (DataTypes.ReserveData memory)
     {
-        return ILiquidityManager(address(target)).getReserveData(_reserve);
+        return IReserveManager(address(target)).getReserveData(_reserve);
     }
 
     function getConfiguration(address _reserve)
@@ -32,7 +32,7 @@ contract LiquidityManagerProxy is Proxy {
         view
         returns (DataTypes.ReserveConfigurationMap memory)
     {
-        return ILiquidityManager(address(target)).getConfiguration(_reserve);
+        return IReserveManager(address(target)).getConfiguration(_reserve);
     }
 
     function getReserveNormalizedIncome(
