@@ -56,5 +56,6 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
 
         lms.updateStateOnDeposit(_asset, _tranche, _amount);
         liquidityDepositEscrow.deposit(_asset, _user, _amount);
+        emit Deposit(_asset, _tranche, _user, _onBehalfOf, _amount);
     }
 }

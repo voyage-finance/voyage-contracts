@@ -18,5 +18,4 @@ interface IReserveManager {
         external
         view
         returns (DataTypes.ReserveConfigurationMap memory);
-
 }
