@@ -8,6 +8,8 @@ import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
 import './LiquidityDepositEscrow.sol';
 import '../../interfaces/IReserveManager.sol';
 import '../../interfaces/ILiquidityManager.sol';
+import '../../tokenization/JuniorDepositToken.sol';
+import '../../tokenization/SeniorDepositToken.sol';
 
 contract LiquidityManager is ReserveManager, ILiquidityManager {
     LiquidityDepositEscrow public liquidityDepositEscrow;
@@ -53,9 +55,26 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
         LiquidityManagerStorage lms = LiquidityManagerStorage(
             liquidityManagerStorageAddress()
         );
+        DataTypes.ReserveData memory reserve = getReserveData(_asset);
 
         lms.updateStateOnDeposit(_asset, _tranche, _amount);
         liquidityDepositEscrow.deposit(_asset, _user, _amount);
+
+        uint256 liquidityRate = getLiquidityRate(_asset, _tranche);
+
+        if (ReserveLogic.Tranche.JUNIOR == _tranche) {
+            JuniorDepositToken(reserve.juniorDepositTokenAddress).mint(
+                _onBehalfOf,
+                _amount,
+                liquidityRate
+            );
+        } else {
+            SeniorDepositToken(reserve.seniorDepositTokenAddress).mint(
+                _onBehalfOf,
+                _amount,
+                liquidityRate
+            );
+        }
         emit Deposit(_asset, _tranche, _user, _onBehalfOf, _amount);
     }
 }

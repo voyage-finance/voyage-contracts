@@ -3,6 +3,7 @@ pragma solidity ^0.8.9;
 
 import '../libraries/ownership/Ownable.sol';
 import '../libraries/types/DataTypes.sol';
+import '../libraries/logic/ReserveLogic.sol';
 import '../component/infra/AddressResolver.sol';
 import '../component/vault/VaultManager.sol';
 import '../component/vault/VaultManagerProxy.sol';
@@ -220,6 +221,31 @@ contract Voyager is AccessControl {
             _seniorIncomeAllocation,
             _stableDebtAddress,
             _interestRateStrategyAddress
+        );
+    }
+
+    /**
+     * @dev Deposits an `amount` of underlying asset into the reserve, receiving in return overlying tokens: Either
+     * Junior Deposit Token or Senior Deposit token
+     * @param _asset The address of the underlying asset to deposit
+     * @param _tranche The tranche of the liquidity pool the user wants to deposit to
+     * @param _amount The amount to be deposited
+     * @param _onBehalfOf The address that will receive the deposit tokens, same as msg.sender if the user
+     *   wants to receive them on his own wallet, or a different address if the beneficiary of aTokens
+     *   is a different wallet
+     **/
+    function deposit(
+        address _asset,
+        ReserveLogic.Tranche _tranche,
+        uint256 _amount,
+        address _onBehalfOf
+    ) external {
+        LiquidityManager(getLiquidityManagerProxyAddress()).deposit(
+            _asset,
+            _tranche,
+            _amount,
+            msg.sender,
+            _onBehalfOf
         );
     }
 
