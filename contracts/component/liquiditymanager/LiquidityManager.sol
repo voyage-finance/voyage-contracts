@@ -45,6 +45,7 @@ contract LiquidityManager is ReserveManager {
         address _asset,
         ReserveLogic.Tranche _tranche,
         uint256 _amount,
+        address _user,
         address _onBehalfOf
     ) external {
         LiquidityManagerStorage lms = LiquidityManagerStorage(
@@ -52,5 +53,6 @@ contract LiquidityManager is ReserveManager {
         );
 
         lms.updateStateOnDeposit(_asset, _tranche, _amount);
+        liquidityDepositEscrow.deposit(_asset, _user, _amount);
     }
 }
