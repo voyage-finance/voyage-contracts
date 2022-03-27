@@ -37,12 +37,17 @@ describe('Reserve Init', function () {
     // deploy ReserveLogic library
     const ReserveLogic = await ethers.getContractFactory('ReserveLogic');
     const reserveLogic = await ReserveLogic.deploy();
+    // deploy ValidationLogic library
+    const ValidationLogic = await ethers.getContractFactory('ValidationLogic');
+    const validationLogic = await ValidationLogic.deploy();
+
     // deploy LiquidityManagerStorage contract
     const LiquidityManagerStorage = await ethers.getContractFactory(
       'LiquidityManagerStorage',
       {
         libraries: {
           ReserveLogic: reserveLogic.address,
+          ValidationLogic: validationLogic.address,
         },
       }
     );
@@ -86,7 +91,7 @@ describe('Reserve Init', function () {
     expect(reserveState.seniorLiquidityIndex).to.equal(ray);
 
     // 0 represents junior
-    const juniorLiquidityRate = await voyager.liquidityRate(tus.address, "0");
+    const juniorLiquidityRate = await voyager.liquidityRate(tus.address, '0');
     expect(juniorLiquidityRate).to.equal('0');
   });
 });
