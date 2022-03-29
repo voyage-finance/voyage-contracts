@@ -78,5 +78,33 @@ describe('Reserve Init', function () {
     const tus = await Tus.deploy(BigInt(1000) * BigInt(wad));
 
     // deploy junior deposit token
+    const JuniorDepositToken = await ethers.getContractFactory(
+      'JuniorDepositToken'
+    );
+    const juniorDepositToken = await JuniorDepositToken.deploy();
+
+    await juniorDepositToken.initialize(
+      addressResolver.address,
+      tus.address,
+      tus.decimals(),
+      tus.name(),
+      tus.symbol(),
+      ethers.utils.formatBytes32String('')
+    );
+
+    // deploy senior deposit token
+    const SeniorDepositToken = await ethers.getContractFactory(
+      'SeniorDepositToken'
+    );
+    const seniorDepositToken = SeniorDepositToken.deploy();
+
+    await seniorDepositToken.initialize(
+      addressResolver.address,
+      tus.address,
+      tus.decimals(),
+      tus.name(),
+      tus.symbol(),
+      ethers.utils.formatBytes32String('')
+    );
   });
 });

@@ -21,7 +21,7 @@ describe('Initialize Deposit Token', function () {
     await juniorDepositToken.initialize(
       addressResolver.address,
       tus.address,
-      18,
+      tus.decimals(),
       tus.name(),
       tus.symbol(),
       ethers.utils.formatBytes32String('')
@@ -40,7 +40,7 @@ describe('Initialize Deposit Token', function () {
     await seniorDepositToken.initialize(
       addressResolver.address,
       tus.address,
-      18,
+      tus.decimals(),
       tus.name(),
       tus.symbol(),
       ethers.utils.formatBytes32String('')
@@ -59,7 +59,7 @@ describe('Initialize Deposit Token', function () {
     await juniorDepositToken.initialize(
       addressResolver.address,
       tus.address,
-      18,
+      tus.decimals(),
       tus.name(),
       tus.symbol(),
       ethers.utils.formatBytes32String('')
@@ -68,7 +68,7 @@ describe('Initialize Deposit Token', function () {
       juniorDepositToken.initialize(
         addressResolver.address,
         tus.address,
-        18,
+        tus.decimals(),
         tus.name(),
         tus.symbol(),
         ethers.utils.formatBytes32String('')
@@ -85,7 +85,7 @@ describe('Initialize Deposit Token', function () {
     await seniorDepositToken.initialize(
       addressResolver.address,
       tus.address,
-      18,
+      tus.decimals(),
       tus.name(),
       tus.symbol(),
       ethers.utils.formatBytes32String('')
@@ -94,7 +94,7 @@ describe('Initialize Deposit Token', function () {
       seniorDepositToken.initialize(
         addressResolver.address,
         tus.address,
-        18,
+        tus.decimals(),
         tus.name(),
         tus.symbol(),
         ethers.utils.formatBytes32String('')
