@@ -69,5 +69,14 @@ describe('Reserve Init', function () {
 
     await liquidityManagerProxy.transferOwnership(voyager.address);
     await voyager.claimLiquidityManagerProxyOwnership();
+
+    /******************************** init reserve ********************************/
+    const wad = 1000000000000000000;
+
+    // deploy Tus
+    const Tus = await ethers.getContractFactory('Tus');
+    const tus = await Tus.deploy(BigInt(1000) * BigInt(wad));
+
+    // deploy junior deposit token
   });
 });
