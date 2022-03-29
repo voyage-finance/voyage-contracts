@@ -72,6 +72,7 @@ describe('Reserve Init', function () {
 
     /******************************** init reserve ********************************/
     const wad = 1000000000000000000;
+    const ray = 1000000000000000000000000000;
 
     // deploy Tus
     const Tus = await ethers.getContractFactory('Tus');
@@ -96,7 +97,7 @@ describe('Reserve Init', function () {
     const SeniorDepositToken = await ethers.getContractFactory(
       'SeniorDepositToken'
     );
-    const seniorDepositToken = SeniorDepositToken.deploy();
+    const seniorDepositToken = await SeniorDepositToken.deploy();
 
     await seniorDepositToken.initialize(
       addressResolver.address,
@@ -106,5 +107,50 @@ describe('Reserve Init', function () {
       tus.symbol(),
       ethers.utils.formatBytes32String('')
     );
+
+    // deploy debt token
+    const StableDebtToken = await ethers.getContractFactory('StableDebtToken');
+    const stableDebtToken = await StableDebtToken.deploy();
+    await stableDebtToken.initialize(
+      tus.address,
+      tus.decimals(),
+      tus.name(),
+      tus.symbol(),
+      ethers.utils.formatBytes32String('')
+    );
+
+    const WadRayMath = await ethers.getContractFactory('WadRayMath');
+    const wadRayMath = await WadRayMath.deploy();
+
+    const DefaultReserveInterestRateStrategy = await ethers.getContractFactory(
+      'DefaultReserveInterestRateStrategy',
+      {
+        libraries: {
+          WadRayMath: wadRayMath.address,
+        },
+      }
+    );
+    // 50% 10% 20% 8%
+    const defaultReserveInterestRateStrategy =
+      await DefaultReserveInterestRateStrategy.deploy(
+        '500000000000000000000000000',
+        '100000000000000000000000000',
+        '200000000000000000000000000',
+        '80000000000000000000000000'
+      );
+    await voyager.initReserve(
+      tus.address,
+      juniorDepositToken.address,
+      seniorDepositToken.address,
+      '100000000000000000000000000',
+      '900000000000000000000000000',
+      stableDebtToken.address,
+      defaultReserveInterestRateStrategy.address
+    );
+
+    const reserveData = await voyager.getReserveData(tus.address);
+    console.log(reserveData);
   });
+
+  it('Deposit liquidity should return correct value', async function () {});
 });
