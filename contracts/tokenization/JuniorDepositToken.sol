@@ -3,7 +3,7 @@ pragma solidity ^0.8.9;
 
 import '../../contracts/component/liquiditymanager/LiquidityManagerProxy.sol';
 import '../libraries/helpers/Errors.sol';
-import '../interfaces/IInitializableDepositToken.sol';
+import './IInitializableDepositToken.sol';
 import '../interfaces/ILiquidityManagerProxy.sol';
 import './BaseERC20.sol';
 import 'openzeppelin-solidity/contracts/utils/Context.sol';
@@ -181,5 +181,9 @@ contract JuniorDepositToken is
             'liquidityManagerProxy'
         );
         return ILiquidityManagerProxy(liquidityManagerProxyAddress);
+    }
+
+    function getRevision() internal pure virtual override returns (uint256) {
+        return JUNIOR_DEPOSIT_TOKEN_REVISION;
     }
 }

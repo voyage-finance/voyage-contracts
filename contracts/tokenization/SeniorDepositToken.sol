@@ -3,7 +3,7 @@ pragma solidity ^0.8.9;
 
 import '../../contracts/component/liquiditymanager/LiquidityManagerProxy.sol';
 import '../libraries/helpers/Errors.sol';
-import '../interfaces/IInitializableDepositToken.sol';
+import './IInitializableDepositToken.sol';
 import '../interfaces/ILiquidityManagerProxy.sol';
 import './BaseERC20.sol';
 import 'openzeppelin-solidity/contracts/utils/Context.sol';
@@ -25,7 +25,7 @@ contract SeniorDepositToken is
     AddressResolver internal addressResolver;
     address internal underlyingAsset;
 
-    uint256 public constant JUNIOR_DEPOSIT_TOKEN_REVISION = 0x1;
+    uint256 public constant SENIOR_DEPOSIT_TOKEN_REVISION = 0x1;
 
     modifier onlyLiquidityManagerProxy() {
         require(
@@ -181,5 +181,9 @@ contract SeniorDepositToken is
             'liquidityManagerProxy'
         );
         return ILiquidityManagerProxy(liquidityManagerProxyAddress);
+    }
+
+    function getRevision() internal pure virtual override returns (uint256) {
+        return SENIOR_DEPOSIT_TOKEN_REVISION;
     }
 }
