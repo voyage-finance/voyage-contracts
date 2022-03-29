@@ -51,7 +51,7 @@ contract SeniorDepositToken is
         string calldata _seniorDepositTokenName,
         string calldata _seniorDepositTokenSymbol,
         bytes calldata _params
-    ) external {
+    ) external initializer {
         _setName(_seniorDepositTokenName);
         _setSymbol(_seniorDepositTokenSymbol);
         _setDecimals(_seniorDepositTokenDecimals);

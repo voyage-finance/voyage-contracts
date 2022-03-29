@@ -51,7 +51,7 @@ contract JuniorDepositToken is
         string calldata _juniorDepositTokenName,
         string calldata _juniorDepositTokenSymbol,
         bytes calldata _params
-    ) external {
+    ) external initializer {
         _setName(_juniorDepositTokenName);
         _setSymbol(_juniorDepositTokenSymbol);
         _setDecimals(_juniorDepositTokenDecimals);
