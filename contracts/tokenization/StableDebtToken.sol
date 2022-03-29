@@ -3,7 +3,7 @@ pragma solidity ^0.8.9;
 
 import '../libraries/math/WadRayMath.sol';
 import '../libraries/math/MathUtils.sol';
-import '../interfaces/IInitializableDebtToken.sol';
+import './IInitializableDebtToken.sol';
 import '../component/infra/AddressResolver.sol';
 import './DebtTokenBase.sol';
 import '../interfaces/IDebtToken.sol';
@@ -31,7 +31,7 @@ contract StableDebtToken is
         string memory _debtTokenName,
         string memory _debtTokenSymbol,
         bytes calldata _params
-    ) public {
+    ) external initializer {
         _setName(_debtTokenName);
         _setSymbol(_debtTokenSymbol);
         _setDecimals(_debtTokenDecimals);
@@ -45,14 +45,6 @@ contract StableDebtToken is
             _debtTokenSymbol,
             _params
         );
-    }
-
-    /**
-     * @dev Gets the revision of the stable debt token implementation
-     * @return The debt token implementation revision
-     **/
-    function getRevision() internal pure virtual returns (uint256) {
-        return DEBT_TOKEN_REVISION;
     }
 
     /**
@@ -130,5 +122,9 @@ contract StableDebtToken is
         returns (address)
     {
         return underlyingAsset;
+    }
+
+    function getRevision() internal pure virtual override returns (uint256) {
+        return DEBT_TOKEN_REVISION;
     }
 }
