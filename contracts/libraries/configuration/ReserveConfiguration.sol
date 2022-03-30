@@ -48,4 +48,18 @@ library ReserveConfiguration {
             (dataLocal & ~BORROWING_ENABLE_MASK) != 0
         );
     }
+
+    /**
+     * @dev Gets the active state of the reserve
+     * @param self The reserve configuration
+     * @param active The active state
+     **/
+    function setActive(
+        DataTypes.ReserveConfigurationMap memory self,
+        bool active
+    ) internal pure {
+        self.data =
+            (self.data & ACTIVE_MASK) |
+            (uint256(active ? 1 : 0) << ACTIVE_MASK_BIT_POSITION);
+    }
 }
