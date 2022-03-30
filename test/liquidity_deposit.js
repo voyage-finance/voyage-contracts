@@ -2,6 +2,7 @@ const { expect } = require('chai');
 
 let owner;
 let voyager;
+let tus;
 
 describe('Reserve Init', function () {
   beforeEach(async function () {
@@ -76,7 +77,7 @@ describe('Reserve Init', function () {
 
     // deploy Tus
     const Tus = await ethers.getContractFactory('Tus');
-    const tus = await Tus.deploy(BigInt(1000) * BigInt(wad));
+    tus = await Tus.deploy(BigInt(1000) * BigInt(wad));
 
     // deploy junior deposit token
     const JuniorDepositToken = await ethers.getContractFactory(
@@ -149,8 +150,10 @@ describe('Reserve Init', function () {
     );
 
     const reserveData = await voyager.getReserveData(tus.address);
-    console.log(reserveData);
+    //console.log(reserveData);
   });
 
-  it('Deposit liquidity should return correct value', async function () {});
+  it('Deposit liquidity should return correct value', async function () {
+    await voyager.deposit(tus.address, 0, 100, owner.address);
+  });
 });

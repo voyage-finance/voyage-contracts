@@ -47,6 +47,11 @@ contract LiquidityManagerStorage is State {
         }
     }
 
+    function activeReserve(address _asset) public onlyAssociatedContract {
+        DataTypes.ReserveConfigurationMap
+            memory currentConfig = getConfiguration(_asset);
+    }
+
     function getReserveData(address _asset)
         public
         view

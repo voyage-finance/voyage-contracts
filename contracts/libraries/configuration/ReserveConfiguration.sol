@@ -18,6 +18,14 @@ library ReserveConfiguration {
     uint256 constant RESERVE_FACTOR_MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFA0007FFFFFFF; // prettier-ignore
     uint256 constant LOCKUP_PERIOD_MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF80007FFFFFFFFFFF; // prettier-ignore
 
+    uint256 constant DECIMAL_MASK_BIT_POSITION = 16;
+    uint256 constant ACTIVE_MASK_BIT_POSITION = 24;
+    uint256 constant FROZEN_MASK_BIT_POSITION = 25;
+    uint256 constant BORROWING_ENABLE_MASK_POSITION = 26;
+    uint256 constant RESERVED_MASK_BIT_POSITION = 26;
+    uint256 constant RESERVE_FACTOR_MASK_BIT_POSITION = 31;
+    uint256 constant LOCKUP_PERIOD_MASK_BIT_POSITION = 47;
+
     /**
      * Gets the configuration flags of the reserve
      * @param self The reserve configuration
