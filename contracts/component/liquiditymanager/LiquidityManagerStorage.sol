@@ -5,9 +5,11 @@ import '../../libraries/state/State.sol';
 import '../../libraries/types/DataTypes.sol';
 import '../../libraries/logic/ReserveLogic.sol';
 import '../../libraries/logic/ValidationLogic.sol';
+import '../../libraries/configuration/ReserveConfiguration.sol';
 
 contract LiquidityManagerStorage is State {
     using ReserveLogic for DataTypes.ReserveData;
+    using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
 
     mapping(address => DataTypes.ReserveData) internal _reserves;
 
@@ -50,6 +52,8 @@ contract LiquidityManagerStorage is State {
     function activeReserve(address _asset) public onlyAssociatedContract {
         DataTypes.ReserveConfigurationMap
             memory currentConfig = getConfiguration(_asset);
+        currentConfig.setActive(true);
+        setConfiguration(_asset, currentConfig.data);
     }
 
     function getReserveData(address _asset)
@@ -66,6 +70,10 @@ contract LiquidityManagerStorage is State {
         returns (DataTypes.ReserveConfigurationMap memory)
     {
         return _reserves[_asset].configuration;
+    }
+
+    function setConfiguration(address _asset, uint256 configuration) internal {
+        _reserves[_asset].configuration.data = configuration;
     }
 
     function getLiquidityRate(address _asset, ReserveLogic.Tranche _tranche)

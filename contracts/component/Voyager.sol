@@ -225,6 +225,16 @@ contract Voyager is AccessControl {
     }
 
     /**
+     * @dev Active a reserve for borrowing
+     * @param _asset The address of the reserve
+     **/
+    function activeReserve(address _asset) external onlyRole(OPERATOR) {
+        LiquidityManager(getLiquidityManagerProxyAddress()).activeReserve(
+            _asset
+        );
+    }
+
+    /**
      * @dev Deposits an `amount` of underlying asset into the reserve, receiving in return overlying tokens: Either
      * Junior Deposit Token or Senior Deposit token
      * @param _asset The address of the underlying asset to deposit

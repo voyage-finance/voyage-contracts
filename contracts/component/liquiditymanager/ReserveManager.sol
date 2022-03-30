@@ -55,6 +55,9 @@ contract ReserveManager is Proxyable, IReserveManager {
 
     function activeReserve(address _asset) external onlyProxy {
         require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
+        LiquidityManagerStorage(liquidityManagerStorageAddress()).activeReserve(
+                _asset
+            );
     }
 
     function getConfiguration(address _asset)
