@@ -35,7 +35,7 @@ contract LiquidityManagerProxy is Proxy {
         return IReserveManager(address(target)).getConfiguration(_reserve);
     }
 
-    function getFlag(address _asset)
+    function getFlags(address _asset)
         external
         view
         returns (
