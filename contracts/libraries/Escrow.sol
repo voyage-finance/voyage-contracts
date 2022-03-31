@@ -33,11 +33,11 @@ contract Escrow is Ownable, ReentrancyGuard {
      * @param _user user address who deposit to this escrow
      * @param _amount token amount
      */
-    function deposit(
+    function _deposit(
         address _reserve,
         address _user,
         uint256 _amount
-    ) public payable nonReentrant onlyOwner {
+    ) internal {
         if (_reserve != EthAddressLib.ethAddress()) {
             require(
                 msg.value == 0,
@@ -79,11 +79,11 @@ contract Escrow is Ownable, ReentrancyGuard {
      * @param _reserve the asset address
      * @param _user user address who deposit to this escrow
      */
-    function withdraw(
+    function _withdraw(
         address _reserve,
         address payable _user,
         uint256 _amount
-    ) public onlyOwner {
+    ) internal onlyOwner {
         Deposit[] storage deposits = _depositRecords[_reserve];
         uint256 eligibleAmount = 0;
         uint40 lastUpdateTime;

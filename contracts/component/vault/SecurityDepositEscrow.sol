@@ -17,4 +17,20 @@ contract SecurityDepositEscrow is Escrow {
     ) public payable nonReentrant onlyOwner {
         transferToUser(_reserve, _to, _amount);
     }
+
+    function deposit(
+        address _reserve,
+        address _user,
+        uint256 _amount
+    ) public payable nonReentrant onlyOwner {
+        _deposit(_reserve, _user, _amount);
+    }
+
+    function withdraw(
+        address _reserve,
+        address payable _user,
+        uint256 _amount
+    ) public onlyOwner {
+        _withdraw(_reserve, _user, _amount);
+    }
 }
