@@ -35,6 +35,10 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
         return deployedEscrow;
     }
 
+    function getEscrowAddress() external view returns (address) {
+        return address(liquidityDepositEscrow);
+    }
+
     function getReserveNormalizedIncome(
         address _asset,
         ReserveLogic.Tranche _tranche

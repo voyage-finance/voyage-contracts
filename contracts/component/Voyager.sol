@@ -347,6 +347,19 @@ contract Voyager is AccessControl {
         address rateStrategyAddress
     ) external onlyRole(OPERATOR) {}
 
+    /**
+    * @dev Get EscrowContract owned by LiquidityManager
+    **/
+    function getLiquidityManagerEscrowContractAddress()
+        external
+        view
+        returns (address)
+    {
+        return
+            LiquidityManager(getLiquidityManagerProxyAddress())
+                .getEscrowAddress();
+    }
+
     /************************************** Vault Manager Interfaces **************************************/
 
     /**
