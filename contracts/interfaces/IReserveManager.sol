@@ -18,4 +18,13 @@ interface IReserveManager {
         external
         view
         returns (DataTypes.ReserveConfigurationMap memory);
+
+    function getFlags(address _asset)
+        external
+        view
+        returns (
+            bool,
+            bool,
+            bool
+        );
 }

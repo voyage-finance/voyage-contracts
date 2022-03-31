@@ -292,6 +292,26 @@ contract Voyager is AccessControl {
     }
 
     /**
+     * @dev Returns the reserve flags
+     * @param _asset The address of asset
+     * @return The state flags representing active, frozen, borrowing enabled
+     **/
+    function getReserveFlags(address _asset)
+        external
+        view
+        returns (
+            bool,
+            bool,
+            bool
+        )
+    {
+        return
+            LiquidityManager(getLiquidityManagerProxyAddress()).getFlags(
+                _asset
+            );
+    }
+
+    /**
      * @dev Returns the configuration of the reserve
      * @param _asset The address of the underlying asset of the reserve
      * @return The state of the reserve

@@ -31,7 +31,7 @@ library ReserveConfiguration {
      * @param self The reserve configuration
      * @return The state flags representing active, frozen, borrowing enabled
      **/
-    function getFlags(DataTypes.ReserveConfigurationMap storage self)
+    function getFlags(DataTypes.ReserveConfigurationMap memory self)
         internal
         view
         returns (
@@ -61,5 +61,13 @@ library ReserveConfiguration {
         self.data =
             (self.data & ACTIVE_MASK) |
             (uint256(active ? 1 : 0) << ACTIVE_MASK_BIT_POSITION);
+    }
+
+    function getActive(DataTypes.ReserveConfigurationMap storage self)
+        internal
+        view
+        returns (bool)
+    {
+        return (self.data & ~ACTIVE_MASK) != 0;
     }
 }

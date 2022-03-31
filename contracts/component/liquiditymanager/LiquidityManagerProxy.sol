@@ -35,6 +35,18 @@ contract LiquidityManagerProxy is Proxy {
         return IReserveManager(address(target)).getConfiguration(_reserve);
     }
 
+    function getFlag(address _asset)
+        external
+        view
+        returns (
+            bool,
+            bool,
+            bool
+        )
+    {
+        return IReserveManager(address(target)).getFlags(_asset);
+    }
+
     function getReserveNormalizedIncome(
         address _asset,
         ReserveLogic.Tranche _tranche

@@ -14,6 +14,15 @@ interface ILiquidityManagerProxy {
         view
         returns (DataTypes.ReserveData memory);
 
+    function getFlag(address _asset)
+        external
+        view
+        returns (
+            bool,
+            bool,
+            bool
+        );
+
     function getConfiguration(address _reserve)
         external
         view

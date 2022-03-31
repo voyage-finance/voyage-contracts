@@ -71,6 +71,21 @@ contract ReserveManager is Proxyable, IReserveManager {
                 .getConfiguration(_asset);
     }
 
+    function getFlags(address _asset)
+        public
+        view
+        returns (
+            bool,
+            bool,
+            bool
+        )
+    {
+        return
+            LiquidityManagerStorage(liquidityManagerStorageAddress()).getFlags(
+                _asset
+            );
+    }
+
     function getLiquidityRate(address _asset, ReserveLogic.Tranche _tranche)
         public
         view

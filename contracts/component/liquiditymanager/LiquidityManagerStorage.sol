@@ -56,6 +56,22 @@ contract LiquidityManagerStorage is State {
         setConfiguration(_asset, currentConfig.data);
     }
 
+    /*********************************************** View functions ***********************************************/
+
+    function getFlags(address _asset)
+        public
+        view
+        returns (
+            bool,
+            bool,
+            bool
+        )
+    {
+        DataTypes.ReserveConfigurationMap
+            memory currentConfig = getConfiguration(_asset);
+        return currentConfig.getFlags();
+    }
+
     function getReserveData(address _asset)
         public
         view
