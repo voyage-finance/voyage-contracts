@@ -36,6 +36,15 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
     }
 
     function getEscrowAddress() external view returns (address) {
+        return escrowAddress();
+    }
+
+    function escrowAddress()
+        internal
+        view
+        override(ReserveManager)
+        returns (address)
+    {
         return address(liquidityDepositEscrow);
     }
 

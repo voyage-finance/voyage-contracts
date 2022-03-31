@@ -10,14 +10,12 @@ import '../../libraries/proxy/Proxyable.sol';
 import '../../interfaces/IDebtToken.sol';
 import '../../libraries/logic/ReserveLogic.sol';
 import '../../interfaces/IReserveManager.sol';
+import '../escrow/LiquidityDepositEscrow.sol';
 
-contract ReserveManager is Proxyable, IReserveManager {
+abstract contract ReserveManager is Proxyable, IReserveManager {
     Voyager public voyager;
 
-    constructor(address payable _proxy, address _voyager)
-        public
-        Proxyable(_proxy)
-    {
+    constructor(address payable _proxy, address _voyager) Proxyable(_proxy) {
         voyager = Voyager(_voyager);
     }
 
@@ -42,6 +40,17 @@ contract ReserveManager is Proxyable, IReserveManager {
         );
     }
 
+    function activeReserve(address _asset) external onlyProxy {
+        require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
+        LiquidityManagerStorage(liquidityManagerStorageAddress()).activeReserve(
+                _asset
+            );
+    }
+
+    function setLoanManagerToEscrow(address _loadManager) external onlyProxy {
+        LiquidityDepositEscrow(escrowAddress()).setLoadManager(_loadManager);
+    }
+
     function getReserveData(address _asset)
         public
         view
@@ -51,13 +60,6 @@ contract ReserveManager is Proxyable, IReserveManager {
         return
             LiquidityManagerStorage(liquidityManagerStorageAddress())
                 .getReserveData(_asset);
-    }
-
-    function activeReserve(address _asset) external onlyProxy {
-        require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
-        LiquidityManagerStorage(liquidityManagerStorageAddress()).activeReserve(
-                _asset
-            );
     }
 
     function getConfiguration(address _asset)
@@ -123,4 +125,6 @@ contract ReserveManager is Proxyable, IReserveManager {
             LiquidityManagerStorage(liquidityManagerStorageAddress())
                 .getSeniorLiquidityIndex(_asset);
     }
+
+    function escrowAddress() internal view virtual returns (address);
 }

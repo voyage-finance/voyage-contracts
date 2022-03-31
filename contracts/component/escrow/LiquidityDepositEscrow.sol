@@ -26,4 +26,8 @@ contract LiquidityDepositEscrow is Escrow, AccessControl {
     ) public onlyOwner {
         _withdraw(_reserve, _user, _amount);
     }
+
+    function setLoadManager(address _loanManager) public onlyOwner {
+        _setupRole(LoanManager, _loanManager);
+    }
 }
