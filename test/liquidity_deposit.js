@@ -1,10 +1,14 @@
 const { expect } = require('chai');
+const { BigNumber } = require('ethers');
 
 let owner;
 let voyager;
 let tus;
+let escrowContract;
+let juniorDepositToken;
+let seniorDepositToken;
 
-describe('Reserve Init', function () {
+describe('Reserve Deposit', function () {
   beforeEach(async function () {
     [owner] = await ethers.getSigners();
 
@@ -59,10 +63,12 @@ describe('Reserve Init', function () {
     // import vaultManager to AddressResolver
     const names = [
       ethers.utils.formatBytes32String('liquidityManagerProxy'),
+      ethers.utils.formatBytes32String('liquidityManager'),
       ethers.utils.formatBytes32String('liquidityManagerStorage'),
     ];
     const destinations = [
       liquidityManagerProxy.address,
+      liquidityManager.address,
       liquidityManagerStorage.address,
     ];
 
@@ -83,7 +89,7 @@ describe('Reserve Init', function () {
     const JuniorDepositToken = await ethers.getContractFactory(
       'JuniorDepositToken'
     );
-    const juniorDepositToken = await JuniorDepositToken.deploy();
+    juniorDepositToken = await JuniorDepositToken.deploy();
 
     await juniorDepositToken.initialize(
       addressResolver.address,
@@ -98,7 +104,7 @@ describe('Reserve Init', function () {
     const SeniorDepositToken = await ethers.getContractFactory(
       'SeniorDepositToken'
     );
-    const seniorDepositToken = await SeniorDepositToken.deploy();
+    seniorDepositToken = await SeniorDepositToken.deploy();
 
     await seniorDepositToken.initialize(
       addressResolver.address,
@@ -151,9 +157,40 @@ describe('Reserve Init', function () {
 
     const reserveData = await voyager.getReserveData(tus.address);
     //console.log(reserveData);
+    await voyager.activeReserve(tus.address);
+    const reserveFlags = await voyager.getReserveFlags(tus.address);
+    expect(reserveFlags[0]).to.equal(true);
+    expect(reserveFlags[1]).to.equal(false);
+    expect(reserveFlags[2]).to.equal(false);
+
+    escrowContract = await voyager.getLiquidityManagerEscrowContractAddress();
+    await tus.increaseAllowance(escrowContract, '100000000000000000000');
   });
 
-  it('Deposit liquidity should return correct value', async function () {
-    await voyager.deposit(tus.address, 0, 100, owner.address);
+  it('Deposit junior liquidity should return correct value', async function () {
+    const depositAmount = '1000000000000000000';
+    await voyager.deposit(tus.address, 0, depositAmount, owner.address);
+    const juniorTokenAmount = await juniorDepositToken.balanceOf(owner.address);
+    expect(juniorTokenAmount).to.equal(BigNumber.from(depositAmount));
+    expect(await tus.balanceOf(escrowContract)).to.equal(
+      BigNumber.from(depositAmount)
+    );
+
+    expect(await voyager.liquidityRate(tus.address, '0')).to.equal('0');
+    // deposit again
+    await voyager.deposit(tus.address, 0, depositAmount, owner.address);
+    expect(await voyager.liquidityRate(tus.address, '0')).to.equal('0');
+  });
+
+  it('Deposit senior liquidity should return correct value', async function () {
+    const depositAmount = '1000000000000000000';
+    await voyager.deposit(tus.address, 1, depositAmount, owner.address);
+    const seniorTokenAmount = await seniorDepositToken.balanceOf(owner.address);
+    expect(seniorTokenAmount).to.equal(BigNumber.from(depositAmount));
+
+    expect(await voyager.liquidityRate(tus.address, '1')).to.equal('0');
+    // deposit again
+    await voyager.deposit(tus.address, 1, depositAmount, owner.address);
+    expect(await voyager.liquidityRate(tus.address, '1')).to.equal('0');
   });
 });
