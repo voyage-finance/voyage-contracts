@@ -103,4 +103,24 @@ contract ReserveManager is Proxyable, IReserveManager {
                 voyager.getLiquidityManagerStorageName()
             );
     }
+
+    function getJuniorLiquidityIndex(address _asset)
+        public
+        view
+        returns (uint256)
+    {
+        return
+            LiquidityManagerStorage(liquidityManagerStorageAddress())
+                .getJuniorLiquidityIndex(_asset);
+    }
+
+    function getSeniorLiquidityIndex(address _asset)
+        public
+        view
+        returns (uint256)
+    {
+        return
+            LiquidityManagerStorage(liquidityManagerStorageAddress())
+                .getSeniorLiquidityIndex(_asset);
+    }
 }

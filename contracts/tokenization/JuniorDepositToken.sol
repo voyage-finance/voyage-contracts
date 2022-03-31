@@ -29,7 +29,6 @@ contract JuniorDepositToken is
 
     modifier onlyLiquidityManagerProxy() {
         require(
-            // todo hardcode name for now, to figure out who is the sender, liquidity manager proxy or liquidity manager
             _msgSender() == addressResolver.getAddress('liquidityManager'),
             Errors.CT_CALLER_MUST_BE_LIQUIDITY_MANAGER_POOL
         );

@@ -100,6 +100,22 @@ contract LiquidityManagerStorage is State {
         return _reserves[_asset].getLiquidityRate(_tranche);
     }
 
+    function getJuniorLiquidityIndex(address _asset)
+        public
+        view
+        returns (uint256)
+    {
+        return _reserves[_asset].juniorLiquidityIndex;
+    }
+
+    function getSeniorLiquidityIndex(address _asset)
+        public
+        view
+        returns (uint256)
+    {
+        return _reserves[_asset].seniorLiquidityIndex;
+    }
+
     function getReserveNormalizedIncome(
         address _asset,
         ReserveLogic.Tranche _tranche

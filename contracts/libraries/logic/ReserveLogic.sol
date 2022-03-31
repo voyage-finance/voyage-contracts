@@ -52,6 +52,7 @@ library ReserveLogic {
         reserve.seniorLiquidityIndex = WadRayMath.ray();
         reserve.juniorDepositTokenAddress = _juniorDepositTokenAddress;
         reserve.seniorDepositTokenAddress = _seniorDepositTokenAddress;
+        //reserve.currentOverallLiquidityRate = WadRayMath.ray();
         reserve.currentJuniorIncomeAllocation = _juniorIncomeAllocation;
         reserve.currentSeniorIncomeAllocation = _seniorIncomeAllocation;
         reserve.stableDebtAddress = _stableDebtAddress;

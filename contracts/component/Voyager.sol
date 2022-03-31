@@ -348,8 +348,8 @@ contract Voyager is AccessControl {
     ) external onlyRole(OPERATOR) {}
 
     /**
-    * @dev Get EscrowContract owned by LiquidityManager
-    **/
+     * @dev Get EscrowContract owned by LiquidityManager
+     **/
     function getLiquidityManagerEscrowContractAddress()
         external
         view

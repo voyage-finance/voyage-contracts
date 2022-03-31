@@ -64,19 +64,17 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
         lms.updateStateOnDeposit(_asset, _tranche, _amount);
         liquidityDepositEscrow.deposit(_asset, _user, _amount);
 
-        uint256 liquidityRate = getLiquidityRate(_asset, _tranche);
-
         if (ReserveLogic.Tranche.JUNIOR == _tranche) {
             JuniorDepositToken(reserve.juniorDepositTokenAddress).mint(
                 _onBehalfOf,
                 _amount,
-                liquidityRate
+                getJuniorLiquidityIndex(_asset)
             );
         } else {
             SeniorDepositToken(reserve.seniorDepositTokenAddress).mint(
                 _onBehalfOf,
                 _amount,
-                liquidityRate
+                getSeniorLiquidityIndex(_asset)
             );
         }
         emit Deposit(_asset, _tranche, _user, _onBehalfOf, _amount);
