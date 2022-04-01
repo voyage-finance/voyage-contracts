@@ -7,10 +7,6 @@ import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
 contract LiquidityDepositEscrow is Escrow, AccessControl {
     bytes32 public constant LoanManager = keccak256('LoanManager');
 
-    //    constructor(address _loanManager) public Ownable() {
-    //        _setupRole(LoanManager, _loanManager);
-    //    }
-
     function deposit(
         address _reserve,
         address _user,

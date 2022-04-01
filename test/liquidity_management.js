@@ -94,4 +94,27 @@ describe('Reserve Init', function () {
     const juniorLiquidityRate = await voyager.liquidityRate(tus.address, '0');
     expect(juniorLiquidityRate).to.equal('0');
   });
+
+  it('Active reserve should return correct value', async function () {
+    const ray = '1000000000000000000000000000';
+    const fakeAddress = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D';
+    // deploy mock tus contract as reserve
+    const Tus = await ethers.getContractFactory('Tus');
+    const tus = await Tus.deploy('1000000000000000000000');
+    await voyager.initReserve(
+      tus.address,
+      fakeAddress,
+      fakeAddress,
+      '400000000000000000000000000',
+      '600000000000000000000000000',
+      fakeAddress,
+      fakeAddress
+    );
+    const flags = await voyager.getReserveFlags(tus.address);
+    expect(flags[0]).to.equal(false);
+
+    await voyager.activeReserve(tus.address);
+    const newFlags = await voyager.getReserveFlags(tus.address);
+    expect(newFlags[0]).to.equal(true);
+  });
 });
