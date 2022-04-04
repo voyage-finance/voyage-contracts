@@ -10,11 +10,14 @@ import '../../libraries/proxy/Proxyable.sol';
 import '../../interfaces/IDebtToken.sol';
 import '../../libraries/logic/ReserveLogic.sol';
 import '../../interfaces/IReserveManager.sol';
+import '../../interfaces/IVoyagerComponent.sol';
 import '../shared/escrow/LiquidityDepositEscrow.sol';
 
-abstract contract ReserveManager is Proxyable, IReserveManager {
-    Voyager public voyager;
-
+abstract contract ReserveManager is
+    Proxyable,
+    IReserveManager,
+    IVoyagerComponent
+{
     constructor(address payable _proxy, address _voyager) Proxyable(_proxy) {
         voyager = Voyager(_voyager);
     }
