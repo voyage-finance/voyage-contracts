@@ -4,10 +4,19 @@ pragma solidity ^0.8.9;
 import '../libraries/logic/ReserveLogic.sol';
 
 interface IReserveManager {
-    function getLiquidityRate(address _reserve, ReserveLogic.Tranche _tranche)
-        external
-        view
-        returns (uint256);
+    function initReserve(
+        address _asset,
+        address _juniorDepositTokenAddress,
+        address _seniorDepositTokenAddress,
+        uint256 _juniorIncomeAllocation,
+        uint256 _seniorIncomeAllocation,
+        address _stableDebtAddress,
+        address _interestRateStrategyAddress
+    ) external;
+
+    function activeReserve(address _asset) external;
+
+    function setLoanManagerToEscrow(address _loadManager) external;
 
     function getReserveData(address _asset)
         external
@@ -27,4 +36,9 @@ interface IReserveManager {
             bool,
             bool
         );
+
+    function getLiquidityRate(address _reserve, ReserveLogic.Tranche _tranche)
+        external
+        view
+        returns (uint256);
 }

@@ -18,4 +18,12 @@ interface ILiquidityManager {
     ) external view returns (uint256);
 
     function getEscrowAddress() external view returns (address);
+
+    function deposit(
+        address _asset,
+        ReserveLogic.Tranche _tranche,
+        uint256 _amount,
+        address _user,
+        address _onBehalfOf
+    ) external;
 }
