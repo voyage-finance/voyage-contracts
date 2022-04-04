@@ -9,4 +9,19 @@ contract LoanManager is Proxyable, IVoyagerComponent {
     constructor(address payable _proxy, address _voyager) Proxyable(_proxy) {
         voyager = Voyager(_voyager);
     }
+
+    struct ExecuteBorrowParams {
+        address asset;
+        address user;
+        address onBehalfOf;
+        uint256 amount;
+    }
+
+    function borrow(
+        address _asset,
+        uint256 _amount,
+        address _onBehalfOf
+    ) external {}
+
+    function _executeBorrow(ExecuteBorrowParams memory vars) internal {}
 }

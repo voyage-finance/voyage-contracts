@@ -13,6 +13,8 @@ contract LiquidityManagerStorage is State {
 
     mapping(address => DataTypes.ReserveData) internal _reserves;
 
+    bool internal _paused;
+
     constructor(address _liquidityManager) State(_liquidityManager) {}
 
     function initReserve(
@@ -121,5 +123,9 @@ contract LiquidityManagerStorage is State {
         ReserveLogic.Tranche _tranche
     ) public view returns (uint256) {
         return _reserves[_asset].getNormalizedIncome(_tranche);
+    }
+
+    function paused() public view returns (bool) {
+        return _paused;
     }
 }
