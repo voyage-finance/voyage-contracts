@@ -5,7 +5,7 @@ import './ReserveManager.sol';
 import '../../libraries/helpers/Errors.sol';
 import '../../libraries/logic/ReserveLogic.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
-import '../escrow/LiquidityDepositEscrow.sol';
+import '../shared/escrow/LiquidityDepositEscrow.sol';
 import '../../interfaces/IReserveManager.sol';
 import '../../interfaces/ILiquidityManager.sol';
 import '../../tokenization/JuniorDepositToken.sol';

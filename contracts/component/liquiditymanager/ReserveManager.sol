@@ -4,13 +4,13 @@ pragma solidity ^0.8.9;
 import '../Voyager.sol';
 import '../../libraries/helpers/Errors.sol';
 import 'openzeppelin-solidity/contracts/utils/Address.sol';
-import './LiquidityManagerStorage.sol';
+import '../shared/storage/LiquidityManagerStorage.sol';
 import '../infra/AddressResolver.sol';
 import '../../libraries/proxy/Proxyable.sol';
 import '../../interfaces/IDebtToken.sol';
 import '../../libraries/logic/ReserveLogic.sol';
 import '../../interfaces/IReserveManager.sol';
-import '../escrow/LiquidityDepositEscrow.sol';
+import '../shared/escrow/LiquidityDepositEscrow.sol';
 
 abstract contract ReserveManager is Proxyable, IReserveManager {
     Voyager public voyager;

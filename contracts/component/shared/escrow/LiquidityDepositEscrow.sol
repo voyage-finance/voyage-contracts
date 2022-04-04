@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import '../../libraries/Escrow.sol';
+import '../../../libraries/Escrow.sol';
 import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
 
 contract LiquidityDepositEscrow is Escrow, AccessControl {

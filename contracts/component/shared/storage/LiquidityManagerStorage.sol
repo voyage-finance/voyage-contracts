@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import '../../libraries/state/State.sol';
-import '../../libraries/types/DataTypes.sol';
-import '../../libraries/logic/ReserveLogic.sol';
-import '../../libraries/logic/ValidationLogic.sol';
-import '../../libraries/configuration/ReserveConfiguration.sol';
+import '../../../libraries/state/State.sol';
+import '../../../libraries/types/DataTypes.sol';
+import '../../../libraries/logic/ReserveLogic.sol';
+import '../../../libraries/logic/ValidationLogic.sol';
+import '../../../libraries/configuration/ReserveConfiguration.sol';
 
 contract LiquidityManagerStorage is State {
     using ReserveLogic for DataTypes.ReserveData;
