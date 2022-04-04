@@ -102,13 +102,6 @@ abstract contract ReserveManager is
                 .getLiquidityRate(_asset, _tranche);
     }
 
-    function liquidityManagerStorageAddress() internal view returns (address) {
-        return
-            AddressResolver(voyager.getAddressResolverAddress()).getAddress(
-                voyager.getLiquidityManagerStorageName()
-            );
-    }
-
     function getJuniorLiquidityIndex(address _asset)
         public
         view
