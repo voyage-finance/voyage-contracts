@@ -8,6 +8,7 @@ pragma solidity ^0.8.9;
  * @dev Error messages prefix glossary:
  *  - VL = ValidationLogic
  *  - LM = LiquidityManager
+ *  - LOM = LoanManager
  *  - CT = Common errors between tokens
  *  - RL = ReserveLogic
  */
@@ -20,6 +21,7 @@ library Errors {
     string public constant CT_INVALID_BURN_AMOUNT = '22';
     string public constant LM_NOT_CONTRACT = '60';
     string public constant LP_IS_PAUSED = '61'; // 'Pool is paused'
+    string public constant LOM_RESERVE_NOT_SUFFICIENT = '70';
     string public constant RL_LIQUIDITY_RATE_OVERFLOW = '80'; //  Liquidity rate overflows uint128
     string public constant RL_STABLE_BORROW_RATE_OVERFLOW = '81'; //  Stable borrow rate overflows uint128
 }

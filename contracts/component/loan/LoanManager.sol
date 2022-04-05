@@ -3,13 +3,19 @@ pragma solidity ^0.8.9;
 
 import '../../libraries/proxy/Proxyable.sol';
 import '../../interfaces/IVoyagerComponent.sol';
+import '../../libraries/helpers/Errors.sol';
 import '../Voyager.sol';
 
 contract LoanManager is Proxyable, IVoyagerComponent {
     LiquidityDepositEscrow public liquidityDepositEscrow;
 
-    constructor(address payable _proxy, address _voyager) Proxyable(_proxy) {
+    constructor(
+        address payable _proxy,
+        address _voyager,
+        address _escrow
+    ) Proxyable(_proxy) {
         voyager = Voyager(_voyager);
+        liquidityDepositEscrow = LiquidityDepositEscrow(_escrow);
     }
 
     struct ExecuteBorrowParams {
@@ -28,6 +34,9 @@ contract LoanManager is Proxyable, IVoyagerComponent {
         // 3. check if HF > 1
         // 4. update liquidity index
         // todo
+
+        uint256 reserveBalance = liquidityDepositEscrow.balanceOf(_asset);
+        require(reserveBalance >= _amount, Errors.LOM_RESERVE_NOT_SUFFICIENT);
     }
 
     function _executeBorrow(ExecuteBorrowParams memory vars) internal {}
