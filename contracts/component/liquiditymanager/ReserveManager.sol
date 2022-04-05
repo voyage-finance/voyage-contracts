@@ -51,7 +51,7 @@ abstract contract ReserveManager is
     }
 
     function setLoanManagerToEscrow(address _loadManager) external onlyProxy {
-        LiquidityDepositEscrow(escrowAddress()).setLoadManager(_loadManager);
+        escrow().setLoadManager(_loadManager);
     }
 
     function getReserveData(address _asset)
@@ -121,6 +121,4 @@ abstract contract ReserveManager is
             LiquidityManagerStorage(liquidityManagerStorageAddress())
                 .getSeniorLiquidityIndex(_asset);
     }
-
-    function escrowAddress() internal view virtual returns (address);
 }

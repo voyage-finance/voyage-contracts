@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 import '../component/Voyager.sol';
 import '../component/infra/AddressResolver.sol';
 import '../component/shared/storage/LiquidityManagerStorage.sol';
+import '../component/shared/escrow/LiquidityDepositEscrow.sol';
 
 abstract contract IVoyagerComponent {
     Voyager public voyager;
@@ -28,4 +29,6 @@ abstract contract IVoyagerComponent {
         address storageAddress = liquidityManagerStorageAddress();
         return LiquidityManagerStorage(storageAddress).paused();
     }
+
+    function escrow() internal view virtual returns (LiquidityDepositEscrow);
 }
