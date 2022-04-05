@@ -22,6 +22,14 @@ abstract contract ReserveManager is
         voyager = Voyager(_voyager);
     }
 
+    function pause() external onlyProxy {
+        LiquidityManagerStorage(liquidityManagerStorageAddress()).pause();
+    }
+
+    function unPause() external onlyProxy {
+        LiquidityManagerStorage(liquidityManagerStorageAddress()).unPause();
+    }
+
     function initReserve(
         address _asset,
         address _juniorDepositTokenAddress,

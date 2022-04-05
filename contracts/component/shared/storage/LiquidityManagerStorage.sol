@@ -58,6 +58,14 @@ contract LiquidityManagerStorage is State {
         setConfiguration(_asset, currentConfig.data);
     }
 
+    function pause() public onlyAssociatedContract {
+        _paused = true;
+    }
+
+    function unPause() public onlyAssociatedContract {
+        _paused = false;
+    }
+
     /*********************************************** View functions ***********************************************/
 
     function getFlags(address _asset)

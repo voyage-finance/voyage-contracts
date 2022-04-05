@@ -225,6 +225,20 @@ contract Voyager is AccessControl {
     }
 
     /**
+     * @dev Pause the protocol
+     **/
+    function pause() external onlyRole(OPERATOR) {
+        LiquidityManager(getLiquidityManagerProxyAddress()).pause();
+    }
+
+    /**
+     * @dev UnPause the protocol
+     **/
+    function unPause() external onlyRole(OPERATOR) {
+        LiquidityManager(getLiquidityManagerProxyAddress()).unPause();
+    }
+
+    /**
      * @dev Active a reserve for borrowing
      * @param _asset The address of the reserve
      **/
