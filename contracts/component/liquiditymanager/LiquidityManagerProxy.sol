@@ -61,8 +61,4 @@ contract LiquidityManagerProxy is Proxy {
     function getEscrowAddress() external view returns (address) {
         return ILiquidityManager(address(target)).getEscrowAddress();
     }
-
-    function getDepositAmount() external view returns (uint256, uint256) {
-        return ILiquidityManager(address(target)).getDepositAmount();
-    }
 }

@@ -26,6 +26,4 @@ interface ILiquidityManager {
         address _user,
         address _onBehalfOf
     ) external;
-
-    function getDepositAmount() external view returns (uint256, uint256);
 }

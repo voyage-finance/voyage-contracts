@@ -6,14 +6,19 @@ import '../../../libraries/types/DataTypes.sol';
 import '../../../libraries/logic/ReserveLogic.sol';
 import '../../../libraries/logic/ValidationLogic.sol';
 import '../../../libraries/configuration/ReserveConfiguration.sol';
+import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 
 contract LiquidityManagerStorage is State {
     using ReserveLogic for DataTypes.ReserveData;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
+    using SafeMath for uint256;
 
     mapping(address => DataTypes.ReserveData) internal _reserves;
 
     bool internal _paused;
+    uint256 public juniorDepositAmount;
+    uint256 public seniorDepositAmount;
+    uint256 public totalDebt;
 
     constructor(address _liquidityManager) State(_liquidityManager) {}
 
@@ -64,6 +69,38 @@ contract LiquidityManagerStorage is State {
 
     function unPause() public onlyAssociatedContract {
         _paused = false;
+    }
+
+    function increaseJuniorDeposit(uint256 _amount)
+        public
+        onlyAssociatedContract
+    {
+        juniorDepositAmount += _amount;
+    }
+
+    function increaseSeniorDeposit(uint256 _amount)
+        public
+        onlyAssociatedContract
+    {
+        seniorDepositAmount += _amount;
+    }
+
+    function decreaseJuniorDeposit(uint256 _amount)
+        public
+        onlyAssociatedContract
+    {
+        juniorDepositAmount -= _amount;
+    }
+
+    function decreaseSeniorDeposit(uint256 _amount)
+        public
+        onlyAssociatedContract
+    {
+        seniorDepositAmount -= _amount;
+    }
+
+    function increaseTotalDebt(uint256 _amount) public onlyAssociatedContract {
+        totalDebt += _amount;
     }
 
     /*********************************************** View functions ***********************************************/

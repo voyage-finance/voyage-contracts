@@ -382,15 +382,6 @@ contract Voyager is AccessControl {
                 .getEscrowAddress();
     }
 
-    /**
-     * @dev Get junior deposit amount and senior deposit amount
-     **/
-    function getDepositAmount() external view returns (uint256, uint256) {
-        return
-            LiquidityManager(getLiquidityManagerProxyAddress())
-                .getDepositAmount();
-    }
-
     /************************************** Vault Manager Interfaces **************************************/
 
     /**
