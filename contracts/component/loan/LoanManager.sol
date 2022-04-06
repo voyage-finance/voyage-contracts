@@ -5,8 +5,11 @@ import '../../libraries/proxy/Proxyable.sol';
 import '../../interfaces/IVoyagerComponent.sol';
 import '../../libraries/helpers/Errors.sol';
 import '../Voyager.sol';
+import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 
 contract LoanManager is Proxyable, IVoyagerComponent {
+    using SafeMath for uint256;
+
     LiquidityDepositEscrow public liquidityDepositEscrow;
 
     constructor(
@@ -31,7 +34,11 @@ contract LoanManager is Proxyable, IVoyagerComponent {
         address vault
     ) external requireNotPaused {
         // 1. check if pool liquidity is sufficient
-        uint256 reserveBalance = liquidityDepositEscrow.balanceOf(_asset);
+        uint256 juniorDepositAmount;
+        uint256 seniorDepositAmount;
+        uint256 totalDebt;
+        ( juniorDepositAmount, seniorDepositAmount, totalDebt) = getDepositAndDebt();
+        uint256 reserveBalance = seniorDepositAmount - totalDebt;
         require(reserveBalance >= _amount, Errors.LOM_RESERVE_NOT_SUFFICIENT);
 
         // 2. check HF
@@ -45,6 +52,13 @@ contract LoanManager is Proxyable, IVoyagerComponent {
             availableCreditLimit >= _amount,
             Errors.LOM_CREDIT_NOT_SUFFICIENT
         );
+
+        // 4. update liquidity index and interest rate
+        LiquidityManagerStorage lms = LiquidityManagerStorage(
+            liquidityManagerStorageAddress()
+        );
+        lms.updateStateOnBorrow(_asset, _amount);
+
     }
 
     function _executeBorrow(ExecuteBorrowParams memory vars) internal {}
