@@ -88,6 +88,13 @@ abstract contract IInitializableDepositToken {
     );
 
     /**
+     * @dev Returns true if the contract has been initialized
+     **/
+    function isInitialized() public view returns (bool) {
+        return !initializing && getRevision() > lastInitializedRevision;
+    }
+
+    /**
      * @dev Returns true if and only if the function is running in the constructor
      **/
     function isConstructor() private view returns (bool) {
