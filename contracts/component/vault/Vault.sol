@@ -157,6 +157,8 @@ contract Vault is AccessControl, ReentrancyGuard {
             totalDebt.wadToRay().rayMul(securityRequirement);
     }
 
+//    function getUsableBorrow(address _reserve) {}
+
     /**
      * @dev Redeem underlying reserve
      * @param _sponsor sponsor address

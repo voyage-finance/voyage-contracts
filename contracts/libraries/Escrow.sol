@@ -22,8 +22,8 @@ contract Escrow is Ownable, ReentrancyGuard {
 
     // reserve address => amount
     mapping(address => uint256) private _deposits;
-    // reserve address => deposit record
-    mapping(address => Deposit[]) private _depositRecords;
+    // reserve address => user address => deposit record
+    mapping(address => mapping(address => Deposit[])) private _depositRecords;
 
     uint40 private _lockupTimeInSeconds = 7 days;
 
@@ -52,7 +52,7 @@ contract Escrow is Ownable, ReentrancyGuard {
         }
         _deposits[_reserve] += _amount;
         Deposit memory deposit = Deposit(_amount, uint40(block.timestamp));
-        _depositRecords[_reserve].push(deposit);
+        _depositRecords[_reserve][_user].push(deposit);
         emit Deposited(_user, _reserve, _amount);
     }
 
@@ -61,7 +61,7 @@ contract Escrow is Ownable, ReentrancyGuard {
         view
         returns (uint256)
     {
-        Deposit[] storage deposits = _depositRecords[_reserve];
+        Deposit[] storage deposits = _depositRecords[_reserve][_user];
         uint256 eligibleAmount = 0;
         for (uint256 i = 0; i < deposits.length; i++) {
             if (
@@ -84,7 +84,7 @@ contract Escrow is Ownable, ReentrancyGuard {
         address payable _user,
         uint256 _amount
     ) internal onlyOwner {
-        Deposit[] storage deposits = _depositRecords[_reserve];
+        Deposit[] storage deposits = _depositRecords[_reserve][_user];
         uint256 eligibleAmount = 0;
         uint40 lastUpdateTime;
         for (uint256 i = 0; i < deposits.length; i++) {
@@ -107,7 +107,7 @@ contract Escrow is Ownable, ReentrancyGuard {
         if (eligibleAmount > _amount) {
             uint256 leftAmount = eligibleAmount - _amount;
             Deposit memory leftDeposit = Deposit(leftAmount, lastUpdateTime);
-            _depositRecords[_reserve].push(leftDeposit);
+            _depositRecords[_reserve][_user].push(leftDeposit);
         }
 
         _deposits[_reserve] -= _amount;
@@ -135,7 +135,7 @@ contract Escrow is Ownable, ReentrancyGuard {
         view
         returns (Deposit[] memory)
     {
-        Deposit[] storage deposits = _depositRecords[_reserve];
+        Deposit[] storage deposits = _depositRecords[_reserve][_user];
         return deposits;
     }
 
