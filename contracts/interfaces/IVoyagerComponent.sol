@@ -30,5 +30,18 @@ abstract contract IVoyagerComponent {
         return LiquidityManagerStorage(storageAddress).paused();
     }
 
+    function getDepositAndDebt()
+        public
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256
+        )
+    {
+        address storageAddress = liquidityManagerStorageAddress();
+        return LiquidityManagerStorage(storageAddress).getDepositAndDebt();
+    }
+
     function escrow() internal view virtual returns (LiquidityDepositEscrow);
 }

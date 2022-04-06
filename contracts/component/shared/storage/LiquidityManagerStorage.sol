@@ -173,4 +173,16 @@ contract LiquidityManagerStorage is State {
     function paused() public view returns (bool) {
         return _paused;
     }
+
+    function getDepositAndDebt()
+        public
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256
+        )
+    {
+        return (juniorDepositAmount, seniorDepositAmount, totalDebt);
+    }
 }
