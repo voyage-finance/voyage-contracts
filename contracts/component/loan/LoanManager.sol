@@ -37,10 +37,14 @@ contract LoanManager is Proxyable, IVoyagerComponent {
         // 2. check HF
 
         // 3. check credit limit
-        // todo here should be the usable credit limit
-        // todo add a new function to Vault contract
-        uint256 usableCreditLimit = voyager.getCreditLimit(_user, _asset);
-        require(usableCreditLimit >= _amount, Errors.LOM_CREDIT_NOT_SUFFICIENT);
+        uint256 availableCreditLimit = voyager.getAvailableCredit(
+            _user,
+            _asset
+        );
+        require(
+            availableCreditLimit >= _amount,
+            Errors.LOM_CREDIT_NOT_SUFFICIENT
+        );
     }
 
     function _executeBorrow(ExecuteBorrowParams memory vars) internal {}

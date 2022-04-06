@@ -13,6 +13,9 @@ import '../../tokenization/SeniorDepositToken.sol';
 
 contract LiquidityManager is ReserveManager, ILiquidityManager {
     LiquidityDepositEscrow public liquidityDepositEscrow;
+    uint256 public juniorDepositAmount;
+    uint256 public seniorDepositAmount;
+
 
     constructor(address payable _proxy, address _voyager)
         ReserveManager(_proxy, _voyager)
@@ -66,7 +69,6 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
         DataTypes.ReserveData memory reserve = getReserveData(_asset);
 
         lms.updateStateOnDeposit(_asset, _tranche, _amount);
-        liquidityDepositEscrow.deposit(_asset, _user, _amount);
 
         if (ReserveLogic.Tranche.JUNIOR == _tranche) {
             JuniorDepositToken(reserve.juniorDepositTokenAddress).mint(
@@ -74,13 +76,16 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
                 _amount,
                 getJuniorLiquidityIndex(_asset)
             );
+            juniorDepositAmount += _amount;
         } else {
             SeniorDepositToken(reserve.seniorDepositTokenAddress).mint(
                 _onBehalfOf,
                 _amount,
                 getSeniorLiquidityIndex(_asset)
             );
+            seniorDepositAmount += _amount;
         }
+        liquidityDepositEscrow.deposit(_asset, _user, _amount);
         emit Deposit(_asset, _tranche, _user, _onBehalfOf, _amount);
     }
 }

@@ -8,6 +8,8 @@ import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 contract LiquidityDepositEscrow is Escrow, AccessControl {
     bytes32 public constant LoanManager = keccak256('LoanManager');
 
+
+
     function deposit(
         address _reserve,
         address _user,
