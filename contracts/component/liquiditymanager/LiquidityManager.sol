@@ -16,7 +16,6 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
     uint256 public juniorDepositAmount;
     uint256 public seniorDepositAmount;
 
-
     constructor(address payable _proxy, address _voyager)
         ReserveManager(_proxy, _voyager)
     {
@@ -87,5 +86,9 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
         }
         liquidityDepositEscrow.deposit(_asset, _user, _amount);
         emit Deposit(_asset, _tranche, _user, _onBehalfOf, _amount);
+    }
+
+    function getDepositAmount() external view returns (uint256, uint256) {
+        return (juniorDepositAmount, seniorDepositAmount);
     }
 }
