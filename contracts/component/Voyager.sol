@@ -489,6 +489,23 @@ contract Voyager is AccessControl {
     }
 
     /**
+    * @dev Get available credit
+    * @param _user user address
+    * @param _reserve address of reserve
+    **/
+    function getAvailableCredit(address _user, address _reserve)
+        external
+        view
+        returns (uint256)
+    {
+        return
+            VaultManager(getVaultManagerProxyAddress()).getAvailableCredit(
+                _user,
+                _reserve
+            );
+    }
+
+    /**
      * @dev Eligible amount that can be withdraw, calculated by deposit records without considering slash
      * @param _vaultUser user address
      * @param _reserve reserve address
