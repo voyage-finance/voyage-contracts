@@ -8,6 +8,7 @@ import '../infra/AddressResolver.sol';
 import '../Voyager.sol';
 import '../staking/StakingRewards.sol';
 import '../../tokenization/SecurityDepositToken.sol';
+import '../../tokenization/StableDebtToken.sol';
 import '../../libraries/math/WadRayMath.sol';
 import './VaultManager.sol';
 
@@ -20,6 +21,7 @@ contract Vault is AccessControl, ReentrancyGuard {
     address[] public players;
     SecurityDepositEscrow public securityDepositEscrow;
     SecurityDepositToken public securityDepositToken;
+    StableDebtToken public stableDebtToken;
     StakingRewards public stakingContract;
 
     uint256 public totalDebt;
@@ -141,6 +143,13 @@ contract Vault is AccessControl, ReentrancyGuard {
     }
 
     /**
+     * @dev Get total debt of the vault
+     **/
+    function getTotalDebt() public view returns (uint256) {
+        return totalDebt;
+    }
+
+    /**
      * @dev Get unused deposits
      * @param _sponsor sponsor address
      * @param _reserve reserve address
@@ -156,8 +165,6 @@ contract Vault is AccessControl, ReentrancyGuard {
             securityDepositToken.balanceOf(_sponsor) -
             totalDebt.wadToRay().rayMul(securityRequirement);
     }
-
-//    function getUsableBorrow(address _reserve) {}
 
     /**
      * @dev Redeem underlying reserve

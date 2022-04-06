@@ -8,6 +8,7 @@ import '../infra/AddressResolver.sol';
 import './VaultStorage.sol';
 import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
+import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
 import '../../libraries/proxy/Proxyable.sol';
@@ -18,6 +19,7 @@ import '../../libraries/math/WadRayMath.sol';
 contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
     using SafeERC20 for ERC20;
     using WadRayMath for uint256;
+    using SafeMath for uint256;
 
     bytes32 public constant VOYAGER = keccak256('VOYAGER');
     address public voyager;
@@ -100,6 +102,21 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
             securityDepositRequirement
         );
         return creditLimitInRay.rayToWad();
+    }
+
+    /**
+     * @dev Get available credit
+     * @param _user user address
+     * @param _reserve reserve address
+     **/
+    function getAvailableCredit(address _user, address _reserve)
+        public
+        view
+        returns (uint256)
+    {
+        uint256 creditLimit = getCreditLimit(_user, _reserve);
+        uint256 accumulatedDebt = Vault(getVault(_user)).getTotalDebt();
+        return creditLimit - accumulatedDebt;
     }
 
     /**
