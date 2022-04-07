@@ -16,10 +16,10 @@ There is a docker image available for use.
 yarn build:docker
 
 # to run on port 8545 with deploy
-docker run -d -it --rm --name hh-voyage -p 8545:8545 596511190950.dkr.ecr.us-west-2.amazonaws.com/voyage-finance:latest
+docker run -d -it --rm --name hh-voyage -p 8545:8545 596511190950.dkr.ecr.us-west-2.amazonaws.com/voyage-core-contracts:latest
 
 # to run on port 8545 without deploying contracts
-docker run -d -it --rm --name hh-voyage -p 8545:8545 596511190950.dkr.ecr.us-west-2.amazonaws.com/voyage-finance:latest 'node'
+docker run -d -it --rm --name hh-voyage -p 8545:8545 596511190950.dkr.ecr.us-west-2.amazonaws.com/voyage-core-contracts:latest 'node'
 ```
 
 ## Specification
