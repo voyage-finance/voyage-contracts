@@ -44,4 +44,8 @@ library DataTypes {
         //bit 47-62: lock up period in seconds
         uint256 data;
     }
+
+    struct VaultData {
+        address vaultAddress;
+    }
 }

@@ -37,7 +37,11 @@ contract LoanManager is Proxyable, IVoyagerComponent {
         uint256 juniorDepositAmount;
         uint256 seniorDepositAmount;
         uint256 totalDebt;
-        ( juniorDepositAmount, seniorDepositAmount, totalDebt) = getDepositAndDebt();
+        (
+            juniorDepositAmount,
+            seniorDepositAmount,
+            totalDebt
+        ) = getDepositAndDebt();
         uint256 reserveBalance = seniorDepositAmount - totalDebt;
         require(reserveBalance >= _amount, Errors.LOM_RESERVE_NOT_SUFFICIENT);
 
@@ -58,7 +62,6 @@ contract LoanManager is Proxyable, IVoyagerComponent {
             liquidityManagerStorageAddress()
         );
         lms.updateStateOnBorrow(_asset, _amount);
-
     }
 
     function _executeBorrow(ExecuteBorrowParams memory vars) internal {}

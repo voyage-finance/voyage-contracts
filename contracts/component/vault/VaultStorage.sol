@@ -2,12 +2,15 @@
 pragma solidity ^0.8.9;
 
 import '../../libraries/state/State.sol';
+import '../../libraries/types/DataTypes.sol';
 
 // central storage for all vaults
 contract VaultStorage is State {
     address[] public allVaults;
     // player address => vault address
     mapping(address => address) public getVault;
+
+    mapping(address => DataTypes.VaultData) public vaultData;
 
     constructor(address _vaultManager) State(_vaultManager) {}
 

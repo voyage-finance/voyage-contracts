@@ -56,10 +56,13 @@ contract LiquidityManagerStorage is State {
         }
     }
 
-    function updateStateOnBorrow(address _asset, uint256 _amount) public onlyAssociatedContract {
+    function updateStateOnBorrow(address _asset, uint256 _amount)
+        public
+        onlyAssociatedContract
+    {
         DataTypes.ReserveData storage reserve = _reserves[_asset];
         reserve.updateState(ReserveLogic.Tranche.SENIOR);
-        reserve.updateInterestRates(_asset, 0,0,0,_amount);
+        reserve.updateInterestRates(_asset, 0, 0, 0, _amount);
     }
 
     function activeReserve(address _asset) public onlyAssociatedContract {
