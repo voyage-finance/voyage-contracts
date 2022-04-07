@@ -7,8 +7,6 @@ import '../../libraries/ownership/Ownable.sol';
 contract AddressResolver is IAddressResolver, Ownable {
     mapping(bytes32 => address) public repository;
 
-    event AddressImported(bytes32 name, address destination);
-
     function importAddresses(
         bytes32[] calldata names,
         address[] calldata destinations

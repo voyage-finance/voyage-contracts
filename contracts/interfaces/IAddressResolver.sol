@@ -2,9 +2,14 @@
 pragma solidity ^0.8.9;
 
 interface IAddressResolver {
-    function getAddress(bytes32 name) external view returns (address);
+    event AddressImported(bytes32 name, address destination);
 
-    //function getSynth(byte32 key) external view returns (address);
+    function importAddresses(
+        bytes32[] calldata names,
+        address[] calldata destinations
+    ) external;
+
+    function getAddress(bytes32 name) external view returns (address);
 
     function requireAndGetAddress(bytes32 name, string calldata reason)
         external
