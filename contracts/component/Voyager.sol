@@ -14,15 +14,6 @@ import '../component/liquiditymanager/LiquidityManager.sol';
 import './infra/MessageBus.sol';
 
 contract Voyager is AccessControl, MessageBus {
-    bytes32 public constant liquidityManagerProxyName = 'liquidityManagerProxy';
-    bytes32 public constant liquidityManagerName = 'liquidityManager';
-    bytes32 public constant liquidityManagerStorageName =
-        'liquidityManagerStorage';
-    bytes32 public constant loanManagerName = 'loanManager';
-    bytes32 public constant vaultManagerProxyName = 'vaultManagerProxy';
-    bytes32 public constant vaultStorageName = 'vaultStorage';
-    bytes32 public constant securityDepositTokenName = 'securityDepositToken';
-    bytes32 public constant extCallACLProxyName = 'extCallACLProxy';
     bytes32 public constant OPERATOR = keccak256('OPERATOR');
 
     modifier onlyWhitelisted(bytes32 func) {
@@ -44,36 +35,6 @@ contract Voyager is AccessControl, MessageBus {
     }
 
     event CallResult(bool, bytes);
-
-    /************************************** Getter Functions **************************************/
-
-    function getVaultManagerProxyName() external view returns (bytes32) {
-        return vaultManagerProxyName;
-    }
-
-    function getVaultStorageName() external view returns (bytes32) {
-        return vaultStorageName;
-    }
-
-    function getLiquidityManagerProxyName() external view returns (bytes32) {
-        return liquidityManagerProxyName;
-    }
-
-    function getLiquidityManagerStorageName() external view returns (bytes32) {
-        return liquidityManagerStorageName;
-    }
-
-    function getLoanManagerName() external view returns (bytes32) {
-        return loanManagerName;
-    }
-
-    function getSecurityDepositTokenName() external view returns (bytes32) {
-        return securityDepositTokenName;
-    }
-
-    function getExtCallACLProxyName() external view returns (bytes32) {
-        return extCallACLProxyName;
-    }
 
     /************************************** HouseKeeping Interfaces **************************************/
     /**
@@ -526,69 +487,11 @@ contract Voyager is AccessControl, MessageBus {
     /************************************** View Interfaces **************************************/
 
     /**
-     * @dev Get max security deposit for _reserve
-     * @param _reserve reserve address
-     * @return max deposit amount
-     */
-    function getMaxSecurityDeposit(address _reserve)
-        external
-        view
-        returns (uint256)
-    {
-        return
-            VaultManager(getVaultManagerProxyAddress()).getMaxSecurityDeposit(
-                _reserve
-            );
-    }
-
-    /**
-     * @dev Get current security deposit requirement
-     * @param _reserve reserve address
-     * @return requirement, expressed in Ray
-     **/
-    function getSecurityDepositRequirement(address _reserve)
-        external
-        view
-        returns (uint256)
-    {
-        return
-            VaultManager(getVaultManagerProxyAddress())
-                .getSecurityDepositRequirement(_reserve);
-    }
-
-    /**
-     * @dev Get VaultManagerProxy contract address
-     * @return address of the VaultManager
-     **/
-    function getVaultManagerProxyAddress()
-        public
-        view
-        returns (address payable)
-    {
-        address vaultManagerProxyAddress = AddressResolver(addressResolver)
-            .getAddress(vaultManagerProxyName);
-        return payable(vaultManagerProxyAddress);
-    }
-
-    /**
      * @dev Get ExtCallACLProxy contract address
      **/
     function getExtCallACLProxyAddress() public view returns (address payable) {
         address extCallACLProxyAddress = AddressResolver(addressResolver)
             .getAddress(extCallACLProxyName);
         return payable(extCallACLProxyAddress);
-    }
-
-    /**
-     * @dev Get LiquidityManagerProxy contract address
-     **/
-    function getLiquidityManagerProxyAddress()
-        public
-        view
-        returns (address payable)
-    {
-        address liquidityManagerProxyAddress = AddressResolver(addressResolver)
-            .getAddress(liquidityManagerProxyName);
-        return payable(liquidityManagerProxyAddress);
     }
 }
