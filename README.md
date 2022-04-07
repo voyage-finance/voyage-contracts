@@ -7,6 +7,21 @@
 
 ![contract architecture](https://github.com/halcyon-project/voyage-contracts/blob/main/doc/voyage_arch.png)
 
+## Docker
+
+There is a docker image available for use.
+
+```shell
+# in the repository root
+yarn build:docker
+
+# to run on port 8545 with deploy
+docker run -d -it --rm --name hh-voyage -p 8545:8545 596511190950.dkr.ecr.us-west-2.amazonaws.com/voyage-finance:latest
+
+# to run on port 8545 without deploying contracts
+docker run -d -it --rm --name hh-voyage -p 8545:8545 596511190950.dkr.ecr.us-west-2.amazonaws.com/voyage-finance:latest 'node'
+```
+
 ## Specification
 
 ### Voyager
