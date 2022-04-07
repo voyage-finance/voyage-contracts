@@ -63,6 +63,7 @@ const deployFn: DeployFunction = async (hre) => {
       ethers.utils.formatBytes32String('')
     );
   }
+
   if (!(await read(SR_TOKEN_NAME, 'isInitialized'))) {
     await execute(
       SR_TOKEN_NAME,
