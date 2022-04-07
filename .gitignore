@@ -64,7 +64,9 @@ typechain
 cache
 artifacts
 .idea
-/deployments/
+# check in test and mainnet deployments
+/deployments/localhost
+/deployments/hardhat
 
 # yarn zero-install
 .pnp.*
