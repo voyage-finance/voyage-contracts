@@ -6,6 +6,10 @@ import '../../interfaces/IMessageBus.sol';
 import '../../interfaces/IVaultManager.sol';
 import '../../libraries/ownership/Ownable.sol';
 
+/**
+ * todo it might be a bad name here, it actually performs as the centralise place
+ * for querying each other among the internal components
+ **/
 contract MessageBus is IMessageBus, Ownable {
     bytes32 public constant liquidityManagerProxyName = 'liquidityManagerProxy';
     bytes32 public constant liquidityManagerName = 'liquidityManager';
@@ -46,9 +50,9 @@ contract MessageBus is IMessageBus, Ownable {
     /************************************** Vault Functions **************************************/
 
     /**
-    * @dev Get vault address
-    * @param _user The owner of the vault
-    **/
+     * @dev Get vault address
+     * @param _user The owner of the vault
+     **/
     function getVault(address _user) external view returns (address) {
         return IVaultManager(getVaultManagerProxyAddress()).getVault(_user);
     }
