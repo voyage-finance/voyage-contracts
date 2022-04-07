@@ -8,10 +8,11 @@ import '../Voyager.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 import '../../interfaces/IMessageBus.sol';
 
-contract LoanManager is Proxyable, IVoyagerComponent, IMessageBus {
+contract LoanManager is Proxyable, IVoyagerComponent {
     using SafeMath for uint256;
 
     LiquidityDepositEscrow public liquidityDepositEscrow;
+    MessageBus public messageBus;
 
     constructor(
         address payable _proxy,
@@ -34,6 +35,8 @@ contract LoanManager is Proxyable, IVoyagerComponent, IMessageBus {
         uint256 _amount,
         address vault
     ) external requireNotPaused {
+        // 0. check if the user owns the vault
+
         // 1. check if pool liquidity is sufficient
         uint256 juniorDepositAmount;
         uint256 seniorDepositAmount;

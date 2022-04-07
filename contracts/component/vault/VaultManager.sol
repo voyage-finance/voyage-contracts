@@ -16,37 +16,22 @@ import '../../tokenization/SecurityDepositToken.sol';
 import '../../mock/Tus.sol';
 import '../../libraries/math/WadRayMath.sol';
 
-contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
+contract VaultManager is
+    AccessControl,
+    ReentrancyGuard,
+    Proxyable,
+    IVaultManager
+{
+    bytes32 public constant VOYAGER = keccak256('VOYAGER');
+
     using SafeERC20 for ERC20;
     using WadRayMath for uint256;
     using SafeMath for uint256;
 
-    bytes32 public constant VOYAGER = keccak256('VOYAGER');
     address public voyager;
     mapping(address => uint256) public maxSecurityDeposit;
     // reserve address => requirement expressed in ray
     mapping(address => uint256) public securityDepositRequirement;
-
-    event VaultCreated(address indexed user, address vault, uint256 len);
-
-    event SecurityDeposited(
-        address indexed sponsor,
-        address user,
-        address reserve,
-        uint256 amount
-    );
-
-    event SecurityRedeemed(
-        address indexed sponsor,
-        address user,
-        address reserve,
-        uint256 amount
-    );
-
-    event SecurityDepositRequirementSet(
-        address indexed reserve,
-        uint256 requirement
-    );
 
     constructor(address payable _proxy, address _voyager)
         public
@@ -74,7 +59,11 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
      * @param _user the address of the player
      * @return Vault address
      **/
-    function getVault(address _user) public view returns (address) {
+    function getVault(address _user) external view returns (address) {
+        return _getVault(_user);
+    }
+
+    function _getVault(address _user) internal view returns (address) {
         return VaultStorage(getVaultStorageAddress()).getVaultAddress(_user);
     }
 
@@ -88,7 +77,7 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
         view
         returns (uint256)
     {
-        address vaultAddress = getVault(_user);
+        address vaultAddress = _getVault(_user);
         uint256 currentSecurityDeposit = Vault(vaultAddress)
             .getCurrentSecurityDeposit(_reserve);
         uint256 securityDepositRequirement = securityDepositRequirement[
@@ -115,7 +104,7 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
         returns (uint256)
     {
         uint256 creditLimit = getCreditLimit(_user, _reserve);
-        uint256 accumulatedDebt = Vault(getVault(_user)).getTotalDebt();
+        uint256 accumulatedDebt = Vault(_getVault(_user)).getTotalDebt();
         return creditLimit - accumulatedDebt;
     }
 
@@ -154,7 +143,7 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
         address _reserve,
         uint256 _amount
     ) external onlyProxy {
-        address vaultAddress = getVault(_vaultUser);
+        address vaultAddress = _getVault(_vaultUser);
         Vault(vaultAddress).depositSecurity(_sponsor, _reserve, _amount);
         emit SecurityDeposited(_sponsor, _vaultUser, _reserve, _amount);
     }
@@ -172,7 +161,7 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
         address _reserve,
         uint256 _amount
     ) external onlyProxy {
-        address vaultAddress = getVault(_vaultUser);
+        address vaultAddress = _getVault(_vaultUser);
         Vault(vaultAddress).redeemSecurity(_sponsor, _reserve, _amount);
         emit SecurityRedeemed(_sponsor, _vaultUser, _reserve, _amount);
     }
@@ -182,7 +171,7 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
         address _reserve,
         address _sponsor
     ) public view returns (uint256) {
-        address vaultAddress = getVault(_vaultUser);
+        address vaultAddress = _getVault(_vaultUser);
         return Vault(vaultAddress).eligibleAmount(_reserve, _sponsor);
     }
 
@@ -193,7 +182,7 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
         address payable _to,
         uint256 _amount
     ) public nonReentrant onlyProxy {
-        address vaultAddress = getVault(_vaultUser);
+        address vaultAddress = _getVault(_vaultUser);
         return Vault(vaultAddress).slash(_reserve, _to, _amount);
     }
 
@@ -202,7 +191,7 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
         address _reserve,
         address _sponsor
     ) public view returns (uint256) {
-        address vaultAddress = getVault(_vaultUser);
+        address vaultAddress = _getVault(_vaultUser);
         return Vault(vaultAddress).underlyingBalance(_sponsor, _reserve);
     }
 
@@ -210,7 +199,7 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
         external
         onlyProxy
     {
-        address vaultAddress = getVault(_vaultUser);
+        address vaultAddress = _getVault(_vaultUser);
         Vault(vaultAddress).initSecurityDepositToken(_reserve);
     }
 
@@ -223,7 +212,7 @@ contract VaultManager is AccessControl, ReentrancyGuard, Proxyable {
         external
         onlyProxy
     {
-        address vaultAddress = getVault(_vaultUser);
+        address vaultAddress = _getVault(_vaultUser);
         Vault(vaultAddress).initStakingContract(_reserve);
     }
 
