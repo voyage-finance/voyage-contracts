@@ -33,9 +33,11 @@ contract LoanManager is Proxyable, IVoyagerComponent {
         address _user,
         address _asset,
         uint256 _amount,
-        address vault
+        address _vault
     ) external requireNotPaused {
         // 0. check if the user owns the vault
+        address vault = messageBus.getVault(_user);
+        require(vault == _vault, Errors.LOM_NOT_VAULT_OWNER);
 
         // 1. check if pool liquidity is sufficient
         uint256 juniorDepositAmount;
