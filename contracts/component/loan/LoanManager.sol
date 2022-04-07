@@ -37,6 +37,7 @@ contract LoanManager is Proxyable, IVoyagerComponent {
     ) external requireNotPaused {
         // 0. check if the user owns the vault
 
+
         // 1. check if pool liquidity is sufficient
         uint256 juniorDepositAmount;
         uint256 seniorDepositAmount;

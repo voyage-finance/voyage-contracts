@@ -52,5 +52,5 @@ interface IVaultManager {
 
     function createVault(address _user) external returns (address vault);
 
-    function getVault(address _user) external returns (address);
+    function getVault(address _user) external view returns (address);
 }
