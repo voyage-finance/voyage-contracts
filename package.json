@@ -6,6 +6,7 @@
   "scripts": {
     "compile": "hardhat compile",
     "deploy:local": "hardhat --network localhost deploy",
+    "deploy:testnet": "hardhat --network avalancheFuji deploy",
     "dev": "hardhat node --hostname 0.0.0.0 --watch --no-deploy",
     "dev:deploy": "hardhat node --hostname 0.0.0.0 --watch",
     "node": "hardhat node --hostname 0.0.0.0 --no-deploy",
@@ -26,6 +27,7 @@
     "@types/mocha": "^8.2.2",
     "@types/node": "^15.12.2",
     "chai": "^4.3.4",
+    "cross-env": "^7.0.3",
     "dotenv": "^10.0.0",
     "ethereum-waffle": "^3.3.0",
     "ethers": "^5.6.2",
