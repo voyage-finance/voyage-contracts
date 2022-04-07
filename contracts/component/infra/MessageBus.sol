@@ -4,8 +4,9 @@ pragma solidity ^0.8.9;
 import './AddressResolver.sol';
 import '../../interfaces/IMessageBus.sol';
 import '../../interfaces/IVaultManager.sol';
+import '../../libraries/ownership/Ownable.sol';
 
-contract MessageBus is IMessageBus {
+contract MessageBus is IMessageBus, Ownable {
     bytes32 public constant liquidityManagerProxyName = 'liquidityManagerProxy';
     bytes32 public constant liquidityManagerName = 'liquidityManager';
     bytes32 public constant liquidityManagerStorageName =

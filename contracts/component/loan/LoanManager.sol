@@ -12,7 +12,7 @@ contract LoanManager is Proxyable, IVoyagerComponent {
     using SafeMath for uint256;
 
     LiquidityDepositEscrow public liquidityDepositEscrow;
-    MessageBus public messageBus;
+    IMessageBus public messageBus;
 
     constructor(
         address payable _proxy,
