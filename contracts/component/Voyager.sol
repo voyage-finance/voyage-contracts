@@ -11,8 +11,9 @@ import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
 import '../libraries/acl/ExtCallACL.sol';
 import '../libraries/acl/ExtCallACLProxy.sol';
 import '../component/liquiditymanager/LiquidityManager.sol';
+import './infra/MessageBus.sol';
 
-contract Voyager is AccessControl {
+contract Voyager is AccessControl, MessageBus {
     bytes32 public constant liquidityManagerProxyName = 'liquidityManagerProxy';
     bytes32 public constant liquidityManagerName = 'liquidityManager';
     bytes32 public constant liquidityManagerStorageName =
@@ -23,8 +24,6 @@ contract Voyager is AccessControl {
     bytes32 public constant securityDepositTokenName = 'securityDepositToken';
     bytes32 public constant extCallACLProxyName = 'extCallACLProxy';
     bytes32 public constant OPERATOR = keccak256('OPERATOR');
-
-    address public addressResolver;
 
     modifier onlyWhitelisted(bytes32 func) {
         require(
@@ -85,7 +84,7 @@ contract Voyager is AccessControl {
         external
         onlyRole(OPERATOR)
     {
-        addressResolver = _addressResolver;
+        addressResolver = AddressResolver(_addressResolver);
     }
 
     function claimVaultManagerProxyOwnership() external onlyRole(OPERATOR) {
@@ -555,14 +554,6 @@ contract Voyager is AccessControl {
         return
             VaultManager(getVaultManagerProxyAddress())
                 .getSecurityDepositRequirement(_reserve);
-    }
-
-    /**
-     * @dev Get addressResolver contract address
-     * @return address of the resolver contract
-     **/
-    function getAddressResolverAddress() external view returns (address) {
-        return addressResolver;
     }
 
     /**

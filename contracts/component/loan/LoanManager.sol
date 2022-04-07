@@ -6,8 +6,9 @@ import '../../interfaces/IVoyagerComponent.sol';
 import '../../libraries/helpers/Errors.sol';
 import '../Voyager.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
+import '../../interfaces/IMessageBus.sol';
 
-contract LoanManager is Proxyable, IVoyagerComponent {
+contract LoanManager is Proxyable, IVoyagerComponent, IMessageBus {
     using SafeMath for uint256;
 
     LiquidityDepositEscrow public liquidityDepositEscrow;
