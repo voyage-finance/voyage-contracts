@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "check": "hardhat check",
+    "build:docker": "./docker/build.sh",
     "compile": "hardhat compile",
     "deploy:local": "hardhat --network localhost deploy",
     "deploy:testnet": "hardhat --network avalancheFuji deploy",
