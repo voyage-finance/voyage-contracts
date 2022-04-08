@@ -1,5 +1,5 @@
 import { DeployFunction } from 'hardhat-deploy/types';
-import { LiquidityManager, Tus } from '../typechain';
+import { Tus } from '@contracts';
 import TusABI from '../artifacts/contracts/mock/Tus.sol/Tus.json';
 
 const LM_NAME = 'LiquidityManager';

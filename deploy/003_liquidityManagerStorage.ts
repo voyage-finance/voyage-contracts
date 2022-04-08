@@ -1,7 +1,5 @@
 import { ethers } from 'hardhat';
 import { DeployFunction } from 'hardhat-deploy/types';
-import { LiquidityManager } from '../typechain';
-
 const LM_PROXY_NAME = 'LiquidityManagerProxy';
 const LM_NAME = 'LiquidityManager';
 const LM_STORAGE_NAME = 'LiquidityManagerStorage';
