@@ -21,7 +21,12 @@ contract DefaultHealthStrategy is IHealthStrategy {
 
     uint256 internal immutable weightedRepaymentRatio;
 
-    constructor(uint256 _premiumFactor, uint256 _loanTenure, uint256 _wightedLTV, uint256 _weightedRepaymentRatio) public {
+    constructor(
+        uint256 _premiumFactor,
+        uint256 _loanTenure,
+        uint256 _wightedLTV,
+        uint256 _weightedRepaymentRatio
+    ) public {
         premiumFactor = _premiumFactor;
         loanTenure = _loanTenure;
         wightedLTV = _wightedLTV;
@@ -51,8 +56,9 @@ contract DefaultHealthStrategy is IHealthStrategy {
         uint256 compoundedDebt = MathUtils
             .calculateCompoundedInterest(_currentBorrowRate, _lastTimestamp)
             .rayMul(principalDebt);
-        uint256 ltvRatio = _grossAssetValue.add(_securityDeposit).rayDiv(compoundedDebt);
+        uint256 ltvRatio = _grossAssetValue.add(_securityDeposit).rayDiv(
+            compoundedDebt
+        );
         return 1;
-
     }
 }
