@@ -47,6 +47,8 @@ library DataTypes {
 
     struct VaultData {
         address vaultAddress;
+        uint256 drawDownNumber;
+        mapping(uint256 => DrawDown) drawDowns;
     }
 
     // borrow amount and timestamp

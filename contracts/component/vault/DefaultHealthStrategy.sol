@@ -15,10 +15,13 @@ contract DefaultHealthStrategy is IHealthStrategy {
     // a higher PF, effectively increasing the expected repayment rate. Expressed in ray
     uint256 internal immutable premiumFactor;
 
+    // Tenure for a given draw down
     uint256 internal immutable loanTenure;
 
+    // Wight of LTV in HF computation
     uint256 internal immutable wightedLTV;
 
+    // Wight of RR(Repayment Ratio) in HF computation
     uint256 internal immutable weightedRepaymentRatio;
 
     constructor(
@@ -52,6 +55,8 @@ contract DefaultHealthStrategy is IHealthStrategy {
         // 1. calculate principal debt
         // 2. calculate compounded debt
         // 3. calculate LTV ratio
+        // 4. calculate actual repayment
+        // 5. calculate optimal repayment rate
         uint256 principalDebt = getPrincipalDebt(_drawDown);
         uint256 compoundedDebt = MathUtils
             .calculateCompoundedInterest(_currentBorrowRate, _lastTimestamp)
