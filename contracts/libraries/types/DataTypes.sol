@@ -47,13 +47,21 @@ library DataTypes {
 
     struct VaultData {
         uint256 drawDownNumber;
+        uint256 totalDebt;
         mapping(uint256 => DrawDown) drawDowns;
+        mapping(uint256 => Repayment) repayments;
     }
 
-    // borrow amount and timestamp
     struct DrawDown {
         uint256 amount;
         uint256 tenure;
         uint256 timestamp;
+    }
+
+    struct Repayment {
+        uint256 totalPaid;
+        // tenure => amount
+        // todo wrapper this in the future
+        mapping(uint256 => uint256) repayment;
     }
 }
