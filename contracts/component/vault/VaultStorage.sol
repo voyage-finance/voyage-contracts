@@ -24,6 +24,21 @@ contract VaultStorage is State {
         return allVaults.length;
     }
 
+    function addNewDebt(
+        address _vault,
+        uint256 _amount,
+        uint256 _tenure,
+        uint256 _timestamp
+    ) external onlyAssociatedContract {
+        DataTypes.VaultData storage vd = vaultData[_vault];
+        DataTypes.DrawDown memory drawDone;
+        drawDone.amount = _amount;
+        drawDone.tenure = _tenure;
+        drawDone.timestamp = _timestamp;
+        vd.drawDowns[vd.drawDownNumber] = drawDone;
+        vd.drawDownNumber += 1;
+    }
+
     /**
      * @dev Get Vault address for a specific user
      * @param _user the address of the player
