@@ -37,7 +37,8 @@ abstract contract ReserveManager is
         uint256 _juniorIncomeAllocation,
         uint256 _seniorIncomeAllocation,
         address _stableDebtAddress,
-        address _interestRateStrategyAddress
+        address _interestRateStrategyAddress,
+        address _healthStrategyAddress
     ) external onlyProxy {
         require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
         LiquidityManagerStorage(liquidityManagerStorageAddress()).initReserve(
@@ -47,7 +48,8 @@ abstract contract ReserveManager is
             _juniorIncomeAllocation,
             _seniorIncomeAllocation,
             _stableDebtAddress,
-            _interestRateStrategyAddress
+            _interestRateStrategyAddress,
+            _healthStrategyAddress
         );
     }
 

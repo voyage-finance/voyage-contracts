@@ -171,7 +171,8 @@ contract Voyager is AccessControl, MessageBus {
         uint256 _juniorIncomeAllocation,
         uint256 _seniorIncomeAllocation,
         address _stableDebtAddress,
-        address _interestRateStrategyAddress
+        address _interestRateStrategyAddress,
+        address _healthStrategyAddress
     ) external onlyRole(OPERATOR) {
         LiquidityManager(getLiquidityManagerProxyAddress()).initReserve(
             _asset,
@@ -180,7 +181,8 @@ contract Voyager is AccessControl, MessageBus {
             _juniorIncomeAllocation,
             _seniorIncomeAllocation,
             _stableDebtAddress,
-            _interestRateStrategyAddress
+            _interestRateStrategyAddress,
+                _healthStrategyAddress
         );
     }
 
