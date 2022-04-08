@@ -60,6 +60,7 @@ library DataTypes {
 
     struct Repayment {
         uint256 totalPaid;
+        uint256 tenurePassed;
         // tenure => amount
         // todo wrapper this in the future
         mapping(uint256 => uint256) repayment;

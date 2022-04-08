@@ -59,6 +59,21 @@ contract VaultStorage is State {
         return aggregateOptimalRepaymentRate;
     }
 
+    function getAggregateActualRepaymentRate(address _vault)
+        external
+        view
+        returns (uint256)
+    {
+        DataTypes.VaultData storage vd = vaultData[_vault];
+        uint256 aggregateActualRepayment;
+        for (uint256 i = 0; i < vd.drawDownNumber; i++) {
+            aggregateActualRepayment += vd.repayments[i].totalPaid.rayDiv(
+                vd.repayments[i].tenurePassed
+            );
+        }
+        return aggregateActualRepayment;
+    }
+
     /**
      * @dev Get Vault address for a specific user
      * @param _user the address of the player
