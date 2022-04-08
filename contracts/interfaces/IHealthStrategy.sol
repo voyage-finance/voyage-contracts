@@ -9,6 +9,8 @@ interface IHealthStrategy {
         uint256 _currentBorrowRate,
         uint40 _lastTimestamp,
         DataTypes.DrawDown memory _drawDown,
-        uint256 _grossAssetValue
+        uint256 _grossAssetValue,
+        uint256 _aggregateOptimalRepaymentRate,
+        uint256 _aggregateActualRepaymentRate
     ) external view returns (uint256);
 }
