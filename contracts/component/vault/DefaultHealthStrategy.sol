@@ -4,9 +4,10 @@ pragma solidity ^0.8.9;
 import '../../interfaces/IHealthStrategy.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 import '../../libraries/math/WadRayMath.sol';
+import '../../libraries/math/MathUtils.sol';
 import '../../libraries/types/DataTypes.sol';
 
-contract DefaultHealthStrategy is IHealthStrategy{
+contract DefaultHealthStrategy is IHealthStrategy {
     using WadRayMath for uint256;
     using SafeMath for uint256;
 
@@ -16,13 +17,19 @@ contract DefaultHealthStrategy is IHealthStrategy{
 
     uint256 internal immutable loanTenure;
 
-    constructor(uint256 _premiumFactor, uint256 _loanTenure) public {
+    uint256 internal immutable wightedLTV;
+
+    uint256 internal immutable weightedRepaymentRatio;
+
+    constructor(uint256 _premiumFactor, uint256 _loanTenure, uint256 _wightedLTV, uint256 _weightedRepaymentRatio) public {
         premiumFactor = _premiumFactor;
         loanTenure = _loanTenure;
+        wightedLTV = _wightedLTV;
+        weightedRepaymentRatio = _weightedRepaymentRatio;
     }
 
     function getPrincipalDebt(DataTypes.DrawDown memory _drawDown)
-        external
+        internal
         view
         returns (uint256)
     {
@@ -31,9 +38,21 @@ contract DefaultHealthStrategy is IHealthStrategy{
 
     function calculateHealthRisk(
         uint256 _securityDeposit,
-        DataTypes.DrawDown memory _drawDown
+        uint256 _currentBorrowRate,
+        uint40 _lastTimestamp,
+        DataTypes.DrawDown memory _drawDown,
+        uint256 _grossAssetValue
     ) external view returns (uint256) {
         //todo
+        // 1. calculate principal debt
+        // 2. calculate compounded debt
+        // 3. calculate LTV ratio
+        uint256 principalDebt = getPrincipalDebt(_drawDown);
+        uint256 compoundedDebt = MathUtils
+            .calculateCompoundedInterest(_currentBorrowRate, _lastTimestamp)
+            .rayMul(principalDebt);
+        uint256 ltvRatio = _grossAssetValue.add(_securityDeposit).rayDiv(compoundedDebt);
         return 1;
+
     }
 }
