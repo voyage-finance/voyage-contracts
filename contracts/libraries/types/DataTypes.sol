@@ -48,4 +48,10 @@ library DataTypes {
     struct VaultData {
         address vaultAddress;
     }
+
+    // borrow amount and timestamp
+    struct DrawDown {
+        uint256 amount;
+        uint256 timestamp;
+    }
 }
