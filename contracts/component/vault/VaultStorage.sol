@@ -3,9 +3,14 @@ pragma solidity ^0.8.9;
 
 import '../../libraries/state/State.sol';
 import '../../libraries/types/DataTypes.sol';
+import '../../libraries/math/WadRayMath.sol';
+import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 
 // central storage for all vaults
 contract VaultStorage is State {
+    using WadRayMath for uint256;
+    using SafeMath for uint256;
+
     address[] public allVaults;
     // player address => vault address
     mapping(address => address) public getVault;
@@ -37,6 +42,21 @@ contract VaultStorage is State {
         drawDone.timestamp = _timestamp;
         vd.drawDowns[vd.drawDownNumber] = drawDone;
         vd.drawDownNumber += 1;
+    }
+
+    function getAggregateOptimalRepaymentRate(address _vault)
+        external
+        view
+        returns (uint256)
+    {
+        DataTypes.VaultData storage vd = vaultData[_vault];
+        uint256 aggregateOptimalRepaymentRate;
+        for (uint256 i = 0; i < vd.drawDownNumber; i++) {
+            aggregateOptimalRepaymentRate += vd.drawDowns[i].amount.rayDiv(
+                vd.drawDowns[i].tenure
+            );
+        }
+        return aggregateOptimalRepaymentRate;
     }
 
     /**
