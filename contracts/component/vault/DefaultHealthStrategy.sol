@@ -4,8 +4,9 @@ pragma solidity ^0.8.9;
 import '../../interfaces/IHealthStrategy.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 import '../../libraries/math/WadRayMath.sol';
+import '../../libraries/types/DataTypes.sol';
 
-contract DefaultHealthStrategy is IHealthStrategy {
+contract DefaultHealthStrategy is IHealthStrategy{
     using WadRayMath for uint256;
     using SafeMath for uint256;
 
@@ -13,15 +14,26 @@ contract DefaultHealthStrategy is IHealthStrategy {
     // a higher PF, effectively increasing the expected repayment rate. Expressed in ray
     uint256 internal immutable premiumFactor;
 
-    uint256 internal immutable loanPeriod;
+    uint256 internal immutable loanTenure;
 
-    constructor(uint256 _premiumFactor, uint256 _loanPeriod) public {
+    constructor(uint256 _premiumFactor, uint256 _loanTenure) public {
         premiumFactor = _premiumFactor;
-        loanPeriod = _loanPeriod;
+        loanTenure = _loanTenure;
     }
 
-    function calculateHealthRisk() external view returns (uint256) {
+    function getPrincipalDebt(DataTypes.DrawDown memory _drawDown)
+        external
+        view
+        returns (uint256)
+    {
+        return premiumFactor.add(WadRayMath.Ray()).rayMul(_drawDown.amount);
+    }
+
+    function calculateHealthRisk(
+        uint256 _securityDeposit,
+        DataTypes.DrawDown memory _drawDown
+    ) external view returns (uint256) {
         //todo
-        //return 1;
+        return 1;
     }
 }
