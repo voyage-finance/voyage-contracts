@@ -1,5 +1,5 @@
 import { DeployFunction } from 'hardhat-deploy/types';
-import { Tus } from '@contracts';
+import {DefaultHealthStrategy, Tus} from '@contracts';
 import TusABI from '../artifacts/contracts/mock/Tus.sol/Tus.json';
 
 const LM_NAME = 'LiquidityManager';
@@ -8,7 +8,8 @@ const JR_TOKEN_NAME = 'JuniorDepositToken';
 const SR_TOKEN_NAME = 'SeniorDepositToken';
 const DEBT_TOKEN_NAME = 'StableDebtToken';
 const WRM_NAME = 'WadRayMath';
-const INTEREST_STRAT_NAME = 'DefaultReserveInterestRateStrategy';
+const INTEREST_STRATEGY_NAME = 'DefaultReserveInterestRateStrategy';
+const HEALTH_STRATEGY_ADDRESS = 'DefaultHealthStrategy';
 
 const WAD = 1000000000000000000;
 
@@ -90,7 +91,7 @@ const deployFn: DeployFunction = async (hre) => {
   }
 
   const WadRayMath = await deploy(WRM_NAME, { from: owner, log: true });
-  const InterestStrategy = await deploy(INTEREST_STRAT_NAME, {
+  const InterestStrategy = await deploy(INTEREST_STRATEGY_NAME, {
     from: owner,
     log: true,
     libraries: { WadRayMath: WadRayMath.address },
@@ -102,6 +103,20 @@ const deployFn: DeployFunction = async (hre) => {
       '80000000000000000000000000',
     ],
   });
+
+  const HealthStrategy = await deploy(HEALTH_STRATEGY_ADDRESS, {
+    from: owner,
+    log: true,
+    libraries: { WadRayMath: WadRayMath.address },
+    // 5, 5, 2,8
+    args: [
+      '5000000000000000000000000000',
+      '5000000000000000000000000000',
+      '2000000000000000000000000000',
+      '8000000000000000000000000000',
+    ],
+  });
+
   await execute(
     'Voyager',
     { from: owner, log: true },
@@ -112,7 +127,7 @@ const deployFn: DeployFunction = async (hre) => {
     '100000000000000000000000000',
     '900000000000000000000000000',
     StableDebtToken.address,
-    InterestStrategy.address
+    InterestStrategy.address, HealthStrategy.address,
   );
 };
 
