@@ -5,6 +5,10 @@ import './AddressResolver.sol';
 import '../../interfaces/IMessageBus.sol';
 import '../../interfaces/IVaultManager.sol';
 import '../../libraries/ownership/Ownable.sol';
+import '../../libraries/types/DataTypes.sol';
+//import "../../libraries/utils/Address.sol";
+import '../../libraries/helpers/Errors.sol';
+import '../liquiditymanager/LiquidityManager.sol';
 
 /**
  * todo it might be a bad name here, it actually performs as the centralise place
@@ -45,6 +49,23 @@ contract MessageBus is IMessageBus, Ownable {
             liquidityManagerProxyName
         );
         return payable(liquidityManagerProxyAddress);
+    }
+
+    /**
+     * @dev Returns the state and configuration of the reserve
+     * @param _asset The address of the underlying asset of the reserve
+     * @return The state of the reserve
+     **/
+    function getReserveData(address _asset)
+        external
+        view
+        returns (DataTypes.ReserveData memory)
+    {
+        require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
+        return
+            LiquidityManager(getLiquidityManagerProxyAddress()).getReserveData(
+                _asset
+            );
     }
 
     /************************************** Vault Functions **************************************/
