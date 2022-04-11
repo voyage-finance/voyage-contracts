@@ -44,6 +44,15 @@ contract VaultStorage is State {
         vd.drawDownNumber += 1;
     }
 
+    function getVaultLastUpdateTime(address _vault)
+        external
+        view
+        returns (uint256)
+    {
+        DataTypes.VaultData storage vd = vaultData[_vault];
+        return vd.lastUpdateTime;
+    }
+
     function getAggregateOptimalRepaymentRate(address _vault)
         external
         view

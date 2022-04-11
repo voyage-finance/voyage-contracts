@@ -54,6 +54,11 @@ interface IVaultManager {
 
     function getVault(address _user) external view returns (address);
 
+    function getVaultLastUpdateTime(address _vault)
+        external
+        view
+        returns (uint256);
+
     function getSecurityDeposit(address _user, address _reserve)
         external
         view
