@@ -62,7 +62,7 @@ contract LoanManager is Proxyable, IVoyagerComponent {
         //        uint256 securityDeposit = messageBus.getSecurityDeposit(_user, _asset);
         //        uint256 currentBorrowRate = reserveData.currentBorrowRate;
         //        uint256 lastUpdateTime = messageBus.getVaultLastUpdateTime(_vault);
-        //healthStrategy.calculateHealthRisk();
+        //healthStrategy.calculateHealthRisk(messageBus.getSecurityDeposit(_user, _asset), reserveData.currentBorrowRate);
 
         // 3. check credit limit
         uint256 availableCreditLimit = voyager.getAvailableCredit(

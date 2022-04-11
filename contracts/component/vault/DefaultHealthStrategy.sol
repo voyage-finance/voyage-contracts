@@ -43,22 +43,13 @@ contract DefaultHealthStrategy is IHealthStrategy {
     function calculateHealthRisk(
         uint256 _securityDeposit,
         uint256 _currentBorrowRate,
-        uint40 _lastTimestamp,
-        uint256 _amount,
+        uint256 _compoundedDebt,
         uint256 _grossAssetValue,
         uint256 _aggregateOptimalRepaymentRate,
         uint256 _aggregateActualRepaymentRate
     ) external view returns (uint256) {
-        // 1. calculate principal debt
-        // 2. calculate compounded debt
-        // 3. calculate LTV ratio
-        // 4. calculate repayment ratio
-        uint256 principalDebt = getPrincipalDebt(_amount);
-        uint256 compoundedDebt = MathUtils
-            .calculateCompoundedInterest(_currentBorrowRate, _lastTimestamp)
-            .rayMul(principalDebt);
         uint256 ltvRatio = _grossAssetValue.add(_securityDeposit).rayDiv(
-            compoundedDebt
+            _compoundedDebt
         );
         uint256 repaymentRatio = _aggregateActualRepaymentRate.rayDiv(
             _aggregateOptimalRepaymentRate

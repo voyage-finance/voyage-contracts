@@ -55,7 +55,7 @@ library DataTypes {
     struct DrawDown {
         uint256 amount;
         uint256 tenure;
-        uint256 timestamp;
+        uint40 timestamp;
         Repayment repayment;
     }
 
