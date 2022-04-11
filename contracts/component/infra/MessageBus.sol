@@ -78,17 +78,6 @@ contract MessageBus is IMessageBus, Ownable {
         return IVaultManager(getVaultManagerProxyAddress()).getVault(_user);
     }
 
-    function getVaultLastUpdateTime(address _vault)
-        external
-        view
-        returns (uint256)
-    {
-        return
-            IVaultManager(getVaultManagerProxyAddress()).getVaultLastUpdateTime(
-                _vault
-            );
-    }
-
     function getSecurityDeposit(address _user, address _reserve)
         external
         view

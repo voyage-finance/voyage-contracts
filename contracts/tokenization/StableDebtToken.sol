@@ -7,6 +7,7 @@ import './IInitializableDebtToken.sol';
 import '../component/infra/AddressResolver.sol';
 import './DebtTokenBase.sol';
 import '../interfaces/IDebtToken.sol';
+import '../libraries/types/DataTypes.sol';
 
 contract StableDebtToken is
     IInitializableDebtToken,
@@ -21,6 +22,7 @@ contract StableDebtToken is
     mapping(address => uint40) internal _timestamps;
     mapping(address => uint256) internal _usersStableRate;
     uint40 internal _totalSupplyTimestamp;
+    mapping(address => DataTypes.BorrowData) _borrowData;
 
     AddressResolver internal addressResolver;
     address internal underlyingAsset;
@@ -126,5 +128,35 @@ contract StableDebtToken is
 
     function getRevision() internal pure virtual override returns (uint256) {
         return DEBT_TOKEN_REVISION;
+    }
+
+    function getAggregateOptimalRepaymentRate(address _vault)
+        external
+        view
+        returns (uint256)
+    {
+        DataTypes.BorrowData storage bd = _borrowData[_vault];
+        uint256 aggregateOptimalRepaymentRate;
+        for (uint256 i = 0; i < bd.drawDownNumber; i++) {
+            aggregateOptimalRepaymentRate += bd.drawDowns[i].amount.rayDiv(
+                bd.drawDowns[i].tenure
+            );
+        }
+        return aggregateOptimalRepaymentRate;
+    }
+
+    function getAggregateActualRepaymentRate(address _vault)
+        external
+        view
+        returns (uint256)
+    {
+        DataTypes.BorrowData storage bd = _borrowData[_vault];
+        uint256 aggregateActualRepayment;
+        for (uint256 i = 0; i < bd.drawDownNumber; i++) {
+            aggregateActualRepayment += bd.repayments[i].totalPaid.rayDiv(
+                bd.repayments[i].tenurePassed
+            );
+        }
+        return aggregateActualRepayment;
     }
 }

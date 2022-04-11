@@ -34,14 +34,6 @@ contract VaultManagerProxy is Proxy {
         return IVaultManager(address(target)).getCreditLimit(_user, _reserve);
     }
 
-    function getVaultLastUpdateTime(address _vault)
-        external
-        view
-        returns (uint256)
-    {
-        return IVaultManager(address(target)).getVaultLastUpdateTime(_vault);
-    }
-
     function eligibleAmount(
         address _vaultUser,
         address _reserve,

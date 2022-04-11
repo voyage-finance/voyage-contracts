@@ -67,17 +67,6 @@ contract VaultManager is
         return VaultStorage(getVaultStorageAddress()).getVaultAddress(_user);
     }
 
-    function getVaultLastUpdateTime(address _vault)
-        external
-        view
-        returns (uint256)
-    {
-        return
-            VaultStorage(getVaultStorageAddress()).getVaultLastUpdateTime(
-                _vault
-            );
-    }
-
     /**
      * @dev Get credit limit for a specific reserve
      * @param _user user address

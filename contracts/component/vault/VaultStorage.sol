@@ -15,8 +15,6 @@ contract VaultStorage is State {
     // player address => vault address
     mapping(address => address) public getVault;
 
-    mapping(address => DataTypes.VaultData) public vaultData;
-
     constructor(address _vaultManager) State(_vaultManager) {}
 
     function pushNewVault(address _player, address vault)
@@ -27,69 +25,6 @@ contract VaultStorage is State {
         allVaults.push(vault);
         getVault[_player] = vault;
         return allVaults.length;
-    }
-
-    function addNewDebt(
-        address _vault,
-        uint256 _amount,
-        uint256 _tenure,
-        uint256 _timestamp
-    ) external onlyAssociatedContract {
-        DataTypes.VaultData storage vd = vaultData[_vault];
-        //DataTypes.DrawDown memory drawDone;
-        //        drawDone.amount = _amount;
-        //        drawDone.tenure = _tenure;
-        //        drawDone.timestamp = _timestamp;
-        //vd.drawDowns[vd.drawDownNumber] = drawDone;
-        //        vd.drawDownNumber += 1;
-    }
-
-    //    function getDrawDownData(address _vault)
-    //        external
-    //        view
-    //        returns ( mapping(uint256 => DataTypes.DrawDown) memory)
-    //    {
-    //        DataTypes.VaultData memory vd = vaultData[_vault];
-    //        return vd.drawDowns;
-    //    }
-
-    function getVaultLastUpdateTime(address _vault)
-        external
-        view
-        returns (uint256)
-    {
-        DataTypes.VaultData storage vd = vaultData[_vault];
-        return vd.lastUpdateTime;
-    }
-
-    function getAggregateOptimalRepaymentRate(address _vault)
-        external
-        view
-        returns (uint256)
-    {
-        DataTypes.VaultData storage vd = vaultData[_vault];
-        uint256 aggregateOptimalRepaymentRate;
-        //        for (uint256 i = 0; i < vd.drawDownNumber; i++) {
-        //            aggregateOptimalRepaymentRate += vd.drawDowns[i].amount.rayDiv(
-        //                vd.drawDowns[i].tenure
-        //            );
-        //        }
-        return aggregateOptimalRepaymentRate;
-    }
-
-    function getAggregateActualRepaymentRate(address _vault)
-        external
-        view
-        returns (uint256)
-    {
-        DataTypes.VaultData storage vd = vaultData[_vault];
-        uint256 aggregateActualRepayment;
-        //        for (uint256 i = 0; i < vd.drawDownNumber; i++) {
-        //            aggregateActualRepayment += vd.repayments[i].totalPaid.rayDiv(
-        //                vd.repayments[i].tenurePassed
-        //            );
-        //        }
-        return aggregateActualRepayment;
     }
 
     /**
