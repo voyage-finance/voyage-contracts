@@ -27,4 +27,9 @@ interface IMessageBus {
         external
         view
         returns (uint256);
+
+    function getVaultLastUpdateTime(address _vault)
+        external
+        view
+        returns (uint256);
 }

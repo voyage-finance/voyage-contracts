@@ -36,19 +36,15 @@ contract DefaultHealthStrategy is IHealthStrategy {
         weightedRepaymentRatio = _weightedRepaymentRatio;
     }
 
-    function getPrincipalDebt(DataTypes.DrawDown memory _drawDown)
-        internal
-        view
-        returns (uint256)
-    {
-        return premiumFactor.add(WadRayMath.Ray()).rayMul(_drawDown.amount);
+    function getPrincipalDebt(uint256 _amount) internal view returns (uint256) {
+        return premiumFactor.add(WadRayMath.Ray()).rayMul(_amount);
     }
 
     function calculateHealthRisk(
         uint256 _securityDeposit,
         uint256 _currentBorrowRate,
         uint40 _lastTimestamp,
-        DataTypes.DrawDown memory _drawDown,
+        uint256 _amount,
         uint256 _grossAssetValue,
         uint256 _aggregateOptimalRepaymentRate,
         uint256 _aggregateActualRepaymentRate
@@ -57,7 +53,7 @@ contract DefaultHealthStrategy is IHealthStrategy {
         // 2. calculate compounded debt
         // 3. calculate LTV ratio
         // 4. calculate repayment ratio
-        uint256 principalDebt = getPrincipalDebt(_drawDown);
+        uint256 principalDebt = getPrincipalDebt(_amount);
         uint256 compoundedDebt = MathUtils
             .calculateCompoundedInterest(_currentBorrowRate, _lastTimestamp)
             .rayMul(principalDebt);

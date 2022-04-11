@@ -36,13 +36,22 @@ contract VaultStorage is State {
         uint256 _timestamp
     ) external onlyAssociatedContract {
         DataTypes.VaultData storage vd = vaultData[_vault];
-        DataTypes.DrawDown memory drawDone;
-        drawDone.amount = _amount;
-        drawDone.tenure = _tenure;
-        drawDone.timestamp = _timestamp;
-        vd.drawDowns[vd.drawDownNumber] = drawDone;
-        vd.drawDownNumber += 1;
+        //DataTypes.DrawDown memory drawDone;
+        //        drawDone.amount = _amount;
+        //        drawDone.tenure = _tenure;
+        //        drawDone.timestamp = _timestamp;
+        //vd.drawDowns[vd.drawDownNumber] = drawDone;
+        //        vd.drawDownNumber += 1;
     }
+
+    //    function getDrawDownData(address _vault)
+    //        external
+    //        view
+    //        returns ( mapping(uint256 => DataTypes.DrawDown) memory)
+    //    {
+    //        DataTypes.VaultData memory vd = vaultData[_vault];
+    //        return vd.drawDowns;
+    //    }
 
     function getVaultLastUpdateTime(address _vault)
         external
@@ -60,11 +69,11 @@ contract VaultStorage is State {
     {
         DataTypes.VaultData storage vd = vaultData[_vault];
         uint256 aggregateOptimalRepaymentRate;
-        for (uint256 i = 0; i < vd.drawDownNumber; i++) {
-            aggregateOptimalRepaymentRate += vd.drawDowns[i].amount.rayDiv(
-                vd.drawDowns[i].tenure
-            );
-        }
+        //        for (uint256 i = 0; i < vd.drawDownNumber; i++) {
+        //            aggregateOptimalRepaymentRate += vd.drawDowns[i].amount.rayDiv(
+        //                vd.drawDowns[i].tenure
+        //            );
+        //        }
         return aggregateOptimalRepaymentRate;
     }
 
@@ -75,11 +84,11 @@ contract VaultStorage is State {
     {
         DataTypes.VaultData storage vd = vaultData[_vault];
         uint256 aggregateActualRepayment;
-        for (uint256 i = 0; i < vd.drawDownNumber; i++) {
-            aggregateActualRepayment += vd.repayments[i].totalPaid.rayDiv(
-                vd.repayments[i].tenurePassed
-            );
-        }
+        //        for (uint256 i = 0; i < vd.drawDownNumber; i++) {
+        //            aggregateActualRepayment += vd.repayments[i].totalPaid.rayDiv(
+        //                vd.repayments[i].tenurePassed
+        //            );
+        //        }
         return aggregateActualRepayment;
     }
 
