@@ -19,10 +19,9 @@ contract StableDebtToken is
     uint256 public constant DEBT_TOKEN_REVISION = 0x1;
 
     uint256 internal _avgStableRate;
-    mapping(address => uint40) internal _timestamps;
     mapping(address => uint256) internal _usersStableRate;
     uint40 internal _totalSupplyTimestamp;
-    mapping(address => DataTypes.BorrowData) _borrowData;
+    mapping(address => DataTypes.BorrowData) internal _borrowData;
 
     AddressResolver internal addressResolver;
     address internal underlyingAsset;
@@ -66,17 +65,19 @@ contract StableDebtToken is
         override
         returns (uint256)
     {
-        uint256 accountBalance = super.balanceOf(_account);
+        DataTypes.BorrowData storage borrowData = _borrowData[_account];
         uint256 stableRate = _usersStableRate[_account];
-        if (accountBalance == 0) {
-            return 0;
+        uint256 cumulatedBalance;
+        for (uint256 i = 0; i < borrowData.drawDownNumber; i++) {
+            uint256 cumulatedInterest = MathUtils.calculateCompoundedInterest(
+                stableRate,
+                borrowData.drawDowns[i].timestamp
+            );
+            cumulatedBalance += borrowData.drawDowns[i].amount.rayMul(
+                cumulatedInterest
+            );
         }
-
-        uint256 cumulatedInterest = MathUtils.calculateCompoundedInterest(
-            stableRate,
-            _timestamps[_account]
-        );
-        return accountBalance.rayMul(cumulatedInterest);
+        return cumulatedBalance;
     }
 
     /**
