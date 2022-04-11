@@ -7,6 +7,7 @@ import '../../libraries/helpers/Errors.sol';
 import '../Voyager.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 import '../../interfaces/IMessageBus.sol';
+import '../../interfaces/IHealthStrategy.sol';
 
 contract LoanManager is Proxyable, IVoyagerComponent {
     using SafeMath for uint256;
@@ -52,6 +53,13 @@ contract LoanManager is Proxyable, IVoyagerComponent {
         require(reserveBalance >= _amount, Errors.LOM_RESERVE_NOT_SUFFICIENT);
 
         // 2. check HF
+        DataTypes.ReserveData memory reserveData = messageBus.getReserveData(
+            _asset
+        );
+        IHealthStrategy healthStrategy = IHealthStrategy(
+            reserveData.healthStrategyAddress
+        );
+        //        healthStrategy.calculateHealthRisk();
 
         // 3. check credit limit
         uint256 availableCreditLimit = voyager.getAvailableCredit(
