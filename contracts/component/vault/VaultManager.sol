@@ -77,7 +77,7 @@ contract VaultManager is
         view
         returns (uint256)
     {
-        uint256 currentSecurityDeposit = getSecurityDeposit(_user, _reserve);
+        uint256 currentSecurityDeposit = _getSecurityDeposit(_user, _reserve);
         uint256 securityDepositRequirement = securityDepositRequirement[
             _reserve
         ];
@@ -92,7 +92,15 @@ contract VaultManager is
     }
 
     function getSecurityDeposit(address _user, address _reserve)
-        public
+        external
+        view
+        returns (uint256)
+    {
+        return _getSecurityDeposit(_user, _reserve);
+    }
+
+    function _getSecurityDeposit(address _user, address _reserve)
+        internal
         view
         returns (uint256)
     {
