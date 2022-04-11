@@ -22,4 +22,9 @@ interface IMessageBus {
         external
         view
         returns (DataTypes.ReserveData memory);
+
+    function getSecurityDeposit(address _user, address _reserve)
+        external
+        view
+        returns (uint256);
 }

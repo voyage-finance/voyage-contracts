@@ -78,6 +78,18 @@ contract MessageBus is IMessageBus, Ownable {
         return IVaultManager(getVaultManagerProxyAddress()).getVault(_user);
     }
 
+    function getSecurityDeposit(address _user, address _reserve)
+        external
+        view
+        returns (uint256)
+    {
+        return
+            IVaultManager(getVaultManagerProxyAddress()).getSecurityDeposit(
+                _user,
+                _reserve
+            );
+    }
+
     /**
      * @dev Get max security deposit for _reserve
      * @param _reserve reserve address
