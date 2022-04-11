@@ -46,7 +46,6 @@ library DataTypes {
         uint256 data;
     }
 
-
     struct FungibleTokenData {
         string symbol;
         address tokenAddress;
@@ -56,6 +55,8 @@ library DataTypes {
         uint256 drawDownNumber;
         uint256 totalDebt;
         mapping(uint256 => DrawDown) drawDowns;
+        mapping(uint256 => Repayment) repayments;
+        uint256 lastUpdateTime;
     }
 
     struct DrawDown {

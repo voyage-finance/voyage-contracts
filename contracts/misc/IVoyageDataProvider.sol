@@ -4,46 +4,46 @@ import '../libraries/types/DataTypes.sol';
 
 interface IVoyageDataProvider {
     function getPoolTokens()
-    external
-    view
-    returns (DataTypes.FungibleTokenData[] memory tokens);
+        external
+        view
+        returns (DataTypes.FungibleTokenData[] memory tokens);
 
     function getPoolData(address underlyingAsset)
-    external
-    view
-    returns (
-        uint256 totalLiquidity,
-        uint256 juniorLiquidity,
-        uint256 seniorLiquidity,
-        uint256 juniorLiquidityRate,
-        uint256 seniorLiquidityRate,
-        uint256 totalDebt,
-        uint256 borrowRate,
-        uint256 trancheRatio
-    );
+        external
+        view
+        returns (
+            uint256 totalLiquidity,
+            uint256 juniorLiquidity,
+            uint256 seniorLiquidity,
+            uint256 juniorLiquidityRate,
+            uint256 seniorLiquidityRate,
+            uint256 totalDebt,
+            uint256 borrowRate,
+            uint256 trancheRatio
+        );
 
     function getPoolConfiguration(address underlyingAsset)
-    external
-    view
-    returns (
-        uint256 securityRequirement,
-        uint256 minSecurity,
-        uint256 maxSecurity,
-        uint256 loanTenure,
-        uint256 optimalTrancheRatio,
-        uint256 optimalIncomeRatio,
-        bool isActive
-    );
+        external
+        view
+        returns (
+            uint256 securityRequirement,
+            uint256 minSecurity,
+            uint256 maxSecurity,
+            uint256 loanTenure,
+            uint256 optimalTrancheRatio,
+            uint256 optimalIncomeRatio,
+            bool isActive
+        );
 
     function userPoolData(address underlyingAsset, address user)
-    external
-    view
-    returns (uint256 juniorTrancheBalance, uint256 seniorTrancheBalance);
+        external
+        view
+        returns (uint256 juniorTrancheBalance, uint256 seniorTrancheBalance);
 
     function getVaults()
-    external
-    view
-    returns (address[] memory vaultAddresses);
+        external
+        view
+        returns (address[] memory vaultAddresses);
 
     /**
      * @notice get the address of vault managed by this address
@@ -51,9 +51,9 @@ interface IVoyageDataProvider {
      * @return vaultAddress the vault address. if no vault exists for this address, returns 0x0
      **/
     function getUserVaults(address user)
-    external
-    view
-    returns (address vaultAddress);
+        external
+        view
+        returns (address vaultAddress);
 
     /**
      * @notice Returns vault data for a given underlying credit asset
@@ -61,21 +61,21 @@ interface IVoyageDataProvider {
      * @param underlyingPool the address of the pool asset for which you want to get the vault state
      **/
     function getVaultData(address vaultAddress, address underlyingPool)
-    external
-    view
-    returns (
-        uint256 borrowRate,
-        uint256 totalDebt,
-        uint256 totalSecurityDeposit,
-        uint256 withdrawableSecurityDeposit,
-        uint256 creditLimit,
-        uint256 spendableBalance,
-        uint256 gav,
-        uint256 ltv,
-        uint256 minRepaymentRate,
-        uint256 aggregateRepaymentRate,
-        uint256 healthFactor
-    );
+        external
+        view
+        returns (
+            uint256 borrowRate,
+            uint256 totalDebt,
+            uint256 totalSecurityDeposit,
+            uint256 withdrawableSecurityDeposit,
+            uint256 creditLimit,
+            uint256 spendableBalance,
+            uint256 gav,
+            uint256 ltv,
+            uint256 minRepaymentRate,
+            uint256 aggregateRepaymentRate,
+            uint256 healthFactor
+        );
 
     /**
      * @notice Returns the actual draw downs for a vault and underlying asset pool
@@ -89,16 +89,16 @@ interface IVoyageDataProvider {
      * @return timestamp block timestamp at time of origination
      **/
     function getVaultDebt(address vaultAddress, address underlyingPool)
-    external
-    view
-    returns (
-        uint256 principal,
-        uint256 balance,
-        uint256 amountRepaid,
-        uint256 tenure,
-        uint256 minRepaymentRate,
-        uint256 timestamp
-    );
+        external
+        view
+        returns (
+            uint256 principal,
+            uint256 balance,
+            uint256 amountRepaid,
+            uint256 tenure,
+            uint256 minRepaymentRate,
+            uint256 timestamp
+        );
 
     function getVaultFungibleAssets(
         address vaultAddress,
@@ -119,13 +119,13 @@ interface IVoyageDataProvider {
         address underlyingPool,
         address underlyingCollection
     )
-    external
-    view
-    returns (
-        uint256 floorPrice,
-        uint256 gav,
-        uint256[] memory ids
-    );
+        external
+        view
+        returns (
+            uint256 floorPrice,
+            uint256 gav,
+            uint256[] memory ids
+        );
 
     /**
      * @notice returns the details of a specific collateralised asset (i.e. not repaid)
@@ -144,12 +144,12 @@ interface IVoyageDataProvider {
         uint256 id,
         address underlyingCollection
     )
-    external
-    view
-    returns (
-        uint256 currentValue,
-        uint256 purchasePrice,
-        uint256 protocolFee,
-        uint256 affiliateFee
-    );
+        external
+        view
+        returns (
+            uint256 currentValue,
+            uint256 purchasePrice,
+            uint256 protocolFee,
+            uint256 affiliateFee
+        );
 }
