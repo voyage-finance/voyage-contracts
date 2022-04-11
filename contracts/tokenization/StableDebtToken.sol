@@ -153,9 +153,12 @@ contract StableDebtToken is
         DataTypes.BorrowData storage bd = _borrowData[_vault];
         uint256 aggregateActualRepayment;
         for (uint256 i = 0; i < bd.drawDownNumber; i++) {
-            aggregateActualRepayment += bd.repayments[i].totalPaid.rayDiv(
-                bd.repayments[i].tenurePassed
-            );
+            DataTypes.Repayment storage repayment = bd.drawDowns[i].repayment;
+            if (repayment.totalPaid != 0) {
+                aggregateActualRepayment += repayment.totalPaid.rayDiv(
+                    repayment.tenurePassed
+                );
+            }
         }
         return aggregateActualRepayment;
     }
