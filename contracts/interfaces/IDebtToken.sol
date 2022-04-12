@@ -8,4 +8,14 @@ interface IStableDebtToken {
         external
         view
         returns (uint256, uint256);
+
+    function getAggregateOptimalRepaymentRate(address _user)
+        external
+        view
+        returns (uint256);
+
+    function getAggregateActualRepaymentRate(address _user)
+        external
+        view
+        returns (uint256);
 }
