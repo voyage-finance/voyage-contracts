@@ -84,6 +84,7 @@ describe('Reserve Init', function () {
       '400000000000000000000000000',
       '600000000000000000000000000',
       fakeAddress,
+      fakeAddress,
       fakeAddress
     );
     const reserveState = await voyager.getReserveData(tus.address);
@@ -107,6 +108,7 @@ describe('Reserve Init', function () {
       fakeAddress,
       '400000000000000000000000000',
       '600000000000000000000000000',
+      fakeAddress,
       fakeAddress,
       fakeAddress
     );
