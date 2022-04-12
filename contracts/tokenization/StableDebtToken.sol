@@ -132,29 +132,36 @@ contract StableDebtToken is
         return DEBT_TOKEN_REVISION;
     }
 
-    function getAggregateOptimalRepaymentRate(address _vault)
+    function getAggregateOptimalRepaymentRate(address _user)
         external
         view
         returns (uint256)
     {
-        DataTypes.BorrowData storage bd = _borrowData[_vault];
+        DataTypes.BorrowData storage bd = _borrowData[_user];
+        uint256 stableRate = _usersStableRate[_user];
         uint256 aggregateOptimalRepaymentRate;
         for (uint256 i = 0; i < bd.drawDownNumber; i++) {
-            aggregateOptimalRepaymentRate += bd.drawDowns[i].amount.rayDiv(
-                bd.drawDowns[i].tenure.rayMul(
-                    SECONDS_PER_DAY * WadRayMath.ray()
-                )
+            DataTypes.DrawDown storage drawDone = bd.drawDowns[i];
+            uint256 cumulatedInterest = MathUtils.calculateCompoundedInterest(
+                stableRate,
+                drawDone.timestamp
+            );
+            uint256 cumulatedBalance = drawDone.amount.rayMul(
+                cumulatedInterest
+            );
+            aggregateOptimalRepaymentRate += cumulatedBalance.rayDiv(
+                drawDone.tenure.rayMul(SECONDS_PER_DAY * WadRayMath.ray())
             );
         }
         return aggregateOptimalRepaymentRate;
     }
 
-    function getAggregateActualRepaymentRate(address _vault)
+    function getAggregateActualRepaymentRate(address _user)
         external
         view
         returns (uint256)
     {
-        DataTypes.BorrowData storage bd = _borrowData[_vault];
+        DataTypes.BorrowData storage bd = _borrowData[_user];
         uint256 aggregateActualRepayment;
         for (uint256 i = 0; i < bd.drawDownNumber; i++) {
             DataTypes.DrawDown storage drawDone = bd.drawDowns[i];
