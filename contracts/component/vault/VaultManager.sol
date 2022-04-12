@@ -1,11 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import './Vault.sol';
-import '../../interfaces/IVaultManager.sol';
-import '../Voyager.sol';
-import '../infra/AddressResolver.sol';
-import './VaultStorage.sol';
 import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
@@ -15,6 +10,12 @@ import '../../libraries/proxy/Proxyable.sol';
 import '../../tokenization/SecurityDepositToken.sol';
 import '../../mock/Tus.sol';
 import '../../libraries/math/WadRayMath.sol';
+import './Vault.sol';
+import '../../interfaces/IVaultManager.sol';
+import '../../interfaces/IACLManager.sol';
+import '../Voyager.sol';
+import '../infra/AddressResolver.sol';
+import './VaultStorage.sol';
 
 contract VaultManager is
     AccessControl,
@@ -132,10 +133,12 @@ contract VaultManager is
         Vault(vaultAddress).initStakingContract(_reserve);
     }
 
-    function setMaxSecurityDeposit(address _reserve, uint256 _amount)
-        external
-        onlyProxy
-    {
+    function setMaxSecurityDeposit(
+        address _reserve,
+        uint256 _amount,
+        address _caller
+    ) external onlyProxy {
+        _requireCallerAdmin(_caller);
         maxSecurityDeposit[_reserve] = _amount;
     }
 
@@ -280,5 +283,13 @@ contract VaultManager is
 
     function _getVault(address _user) internal view returns (address) {
         return VaultStorage(getVaultStorageAddress()).getVaultAddress(_user);
+    }
+
+    function _requireCallerAdmin(address _caller) internal {
+        Voyager v = Voyager(voyager);
+        IACLManager aclManager = IACLManager(
+            v.addressResolver().getAddress(v.getACLManagerName())
+        );
+        require(aclManager.isVaultManager(_caller), 'Not vault admin');
     }
 }

@@ -77,7 +77,8 @@ contract Voyager is AccessControl, MessageBus {
         return
             VaultManager(getVaultManagerProxyAddress()).setMaxSecurityDeposit(
                 _reserve,
-                _amount
+                _amount,
+                msg.sender
             );
     }
 
