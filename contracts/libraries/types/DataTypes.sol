@@ -46,6 +46,12 @@ library DataTypes {
         uint256 data;
     }
 
+
+    struct FungibleTokenData {
+        string symbol;
+        address tokenAddress;
+    }
+
     struct BorrowData {
         uint256 drawDownNumber;
         uint256 totalDebt;
