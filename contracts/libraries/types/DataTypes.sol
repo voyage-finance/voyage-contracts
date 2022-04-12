@@ -46,6 +46,11 @@ library DataTypes {
         uint256 data;
     }
 
+    struct FungibleTokenData {
+        string symbol;
+        address tokenAddress;
+    }
+
     struct VaultData {
         uint256 drawDownNumber;
         uint256 totalDebt;
