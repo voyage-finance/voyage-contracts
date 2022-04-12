@@ -188,12 +188,12 @@ contract LiquidityManagerStorage is State {
     function getDepositAndDebt()
         public
         view
-        returns (
-            uint256,
-            uint256,
-            uint256
-        )
+        returns (DataTypes.DepositAndDebt memory)
     {
-        return (juniorDepositAmount, seniorDepositAmount, totalDebt);
+        DataTypes.DepositAndDebt memory res;
+        res.juniorDepositAmount = juniorDepositAmount;
+        res.seniorDepositAmount = seniorDepositAmount;
+        res.totalDebt = totalDebt;
+        return res;
     }
 }

@@ -40,19 +40,16 @@ contract DefaultHealthStrategy is IHealthStrategy {
         return premiumFactor.add(WadRayMath.Ray()).rayMul(_amount);
     }
 
-    function calculateHealthRisk(
-        uint256 _securityDeposit,
-        uint256 _currentBorrowRate,
-        uint256 _compoundedDebt,
-        uint256 _grossAssetValue,
-        uint256 _aggregateOptimalRepaymentRate,
-        uint256 _aggregateActualRepaymentRate
-    ) external view returns (uint256) {
-        uint256 ltvRatio = _grossAssetValue.add(_securityDeposit).rayDiv(
-            _compoundedDebt
+    function calculateHealthRisk(DataTypes.HealthRiskParameter memory hrp)
+        external
+        view
+        returns (uint256)
+    {
+        uint256 ltvRatio = hrp.grossAssetValue.add(hrp.securityDeposit).rayDiv(
+            hrp.compoundedDebt
         );
-        uint256 repaymentRatio = _aggregateActualRepaymentRate.rayDiv(
-            _aggregateOptimalRepaymentRate
+        uint256 repaymentRatio = hrp.aggregateActualRepaymentRate.rayDiv(
+            hrp.aggregateOptimalRepaymentRate
         );
         return
             ltvRatio

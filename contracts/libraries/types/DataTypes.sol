@@ -65,4 +65,21 @@ library DataTypes {
         // todo wrapper this in the future
         mapping(uint256 => uint256) repayment;
     }
+
+    // tmp struct to avoid stack too long
+
+    struct DepositAndDebt {
+        uint256 juniorDepositAmount;
+        uint256 seniorDepositAmount;
+        uint256 totalDebt;
+    }
+
+    struct HealthRiskParameter {
+        uint256 securityDeposit;
+        uint256 currentBorrowRate;
+        uint256 compoundedDebt;
+        uint256 grossAssetValue;
+        uint256 aggregateOptimalRepaymentRate;
+        uint256 aggregateActualRepaymentRate;
+    }
 }

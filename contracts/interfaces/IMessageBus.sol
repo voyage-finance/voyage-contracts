@@ -28,15 +28,15 @@ interface IMessageBus {
         view
         returns (uint256);
 
-    function getCompoundedDebt(address _user) public view returns (uint256);
+    function getCompoundedDebt(address _user) external view returns (uint256);
 
     function getAggregateOptimalRepaymentRate(address _user)
-        public
+        external
         view
         returns (uint256);
 
     function getAggregateActualRepaymentRate(address _user)
-        public
+        external
         view
         returns (uint256);
 }

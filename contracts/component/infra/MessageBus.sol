@@ -141,30 +141,30 @@ contract MessageBus is IMessageBus, Ownable {
 
     /************************************** Stable Debt Token Functions **************************************/
 
-    function getCompoundedDebt(address _user) public view returns (uint256) {
-        address debtTokenAddress = addressResolver.getAddress(
-            stableDebtTokenName
-        );
-        return IERC20(debtTokenAddress).balanceOf(_user);
+    function getCompoundedDebt(address _user) external view returns (uint256) {
+        return
+            IERC20(addressResolver.getAddress(stableDebtTokenName)).balanceOf(
+                _user
+            );
     }
 
     function getAggregateOptimalRepaymentRate(address _user)
-        public
+        external
         view
         returns (uint256)
     {
         return
-            IDebtToken(addressResolver.getAddress(stableDebtTokenName))
+            IStableDebtToken(addressResolver.getAddress(stableDebtTokenName))
                 .getAggregateOptimalRepaymentRate(_user);
     }
 
     function getAggregateActualRepaymentRate(address _user)
-        public
+        external
         view
         returns (uint256)
     {
         return
-            IDebtToken(addressResolver.getAddress(stableDebtTokenName))
+            IStableDebtToken(addressResolver.getAddress(stableDebtTokenName))
                 .getAggregateActualRepaymentRate(_user);
     }
 
