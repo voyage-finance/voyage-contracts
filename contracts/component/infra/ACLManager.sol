@@ -11,4 +11,8 @@ contract ACLManager is AccessControl, IACLManager {
     constructor(address _aclAdmin) {
         _setupRole(DEFAULT_ADMIN_ROLE, _aclAdmin);
     }
+
+    function isLiquidityManager(address _admin) external view returns (bool) {
+        return hasRole(LIQUIDITY_MANAGER_ADMIN_ROLE, _admin);
+    }
 }
