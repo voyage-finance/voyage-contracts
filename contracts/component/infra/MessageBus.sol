@@ -3,12 +3,14 @@ pragma solidity ^0.8.9;
 
 import './AddressResolver.sol';
 import '../../interfaces/IMessageBus.sol';
+import '../../interfaces/IDebtToken.sol';
 import '../../interfaces/IVaultManager.sol';
 import '../../libraries/ownership/Ownable.sol';
 import '../../libraries/types/DataTypes.sol';
 //import "../../libraries/utils/Address.sol";
 import '../../libraries/helpers/Errors.sol';
 import '../liquiditymanager/LiquidityManager.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 
 /**
  * todo it might be a bad name here, it actually performs as the centralise place
@@ -23,6 +25,7 @@ contract MessageBus is IMessageBus, Ownable {
     bytes32 public constant vaultManagerProxyName = 'vaultManagerProxy';
     bytes32 public constant vaultStorageName = 'vaultStorage';
     bytes32 public constant securityDepositTokenName = 'securityDepositToken';
+    bytes32 public constant stableDebtTokenName = 'stableDebtToken';
     bytes32 public constant extCallACLProxyName = 'extCallACLProxy';
 
     AddressResolver public addressResolver;
@@ -134,6 +137,35 @@ contract MessageBus is IMessageBus, Ownable {
             vaultManagerProxyName
         );
         return payable(vaultManagerProxyAddress);
+    }
+
+    /************************************** Stable Debt Token Functions **************************************/
+
+    function getCompoundedDebt(address _user) public view returns (uint256) {
+        address debtTokenAddress = addressResolver.getAddress(
+            stableDebtTokenName
+        );
+        return IERC20(debtTokenAddress).balanceOf(_user);
+    }
+
+    function getAggregateOptimalRepaymentRate(address _user)
+        public
+        view
+        returns (uint256)
+    {
+        return
+            IDebtToken(addressResolver.getAddress(stableDebtTokenName))
+                .getAggregateOptimalRepaymentRate(_user);
+    }
+
+    function getAggregateActualRepaymentRate(address _user)
+        public
+        view
+        returns (uint256)
+    {
+        return
+            IDebtToken(addressResolver.getAddress(stableDebtTokenName))
+                .getAggregateActualRepaymentRate(_user);
     }
 
     /************************************** Constant Functions **************************************/
