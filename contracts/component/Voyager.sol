@@ -72,7 +72,6 @@ contract Voyager is AccessControl, MessageBus {
      */
     function setMaxSecurityDeposit(address _reserve, uint256 _amount)
         external
-        onlyRole(OPERATOR)
     {
         return
             VaultManager(getVaultManagerProxyAddress()).setMaxSecurityDeposit(
