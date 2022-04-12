@@ -90,6 +90,9 @@ contract LoanManager is Proxyable, IVoyagerComponent {
             liquidityManagerStorageAddress()
         );
         lms.updateStateOnBorrow(_asset, _amount);
+
+        // todo
+        // 5. mint debt token and transfer underlying token
     }
 
     function _executeBorrow(ExecuteBorrowParams memory vars) internal {}
