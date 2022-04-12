@@ -159,7 +159,7 @@ contract StableDebtToken is
             DataTypes.Repayment storage repayment = drawDone.repayment;
             if (
                 repayment.totalPaid != 0 &&
-                block.timestamp >= drawDone.timestamp
+                block.timestamp > drawDone.timestamp
             ) {
                 aggregateActualRepayment += repayment.totalPaid.rayDiv(
                     block.timestamp - drawDone.timestamp
