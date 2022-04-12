@@ -23,6 +23,7 @@ library Errors {
     string public constant LP_IS_PAUSED = '61'; // 'Pool is paused'
     string public constant LOM_RESERVE_NOT_SUFFICIENT = '70';
     string public constant LOM_CREDIT_NOT_SUFFICIENT = '71';
+    string public constant LOM_HEALTH_RISK_BELOW_ONE = '71';
     string public constant LOM_NOT_VAULT_OWNER = '72';
     string public constant RL_LIQUIDITY_RATE_OVERFLOW = '80'; //  Liquidity rate overflows uint128
     string public constant RL_STABLE_BORROW_RATE_OVERFLOW = '81'; //  Stable borrow rate overflows uint128

@@ -5,6 +5,7 @@ import '../component/Voyager.sol';
 import '../component/infra/AddressResolver.sol';
 import '../component/shared/storage/LiquidityManagerStorage.sol';
 import '../component/shared/escrow/LiquidityDepositEscrow.sol';
+import '../libraries/types/DataTypes.sol';
 
 abstract contract IVoyagerComponent {
     Voyager public voyager;
@@ -33,11 +34,7 @@ abstract contract IVoyagerComponent {
     function getDepositAndDebt()
         public
         view
-        returns (
-            uint256,
-            uint256,
-            uint256
-        )
+        returns (DataTypes.DepositAndDebt memory)
     {
         address storageAddress = liquidityManagerStorageAddress();
         return LiquidityManagerStorage(storageAddress).getDepositAndDebt();

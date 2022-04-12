@@ -51,24 +51,42 @@ library DataTypes {
         address tokenAddress;
     }
 
-    struct VaultData {
+    struct BorrowData {
         uint256 drawDownNumber;
         uint256 totalDebt;
         mapping(uint256 => DrawDown) drawDowns;
         mapping(uint256 => Repayment) repayments;
+        uint256 lastUpdateTime;
     }
 
     struct DrawDown {
         uint256 amount;
         uint256 tenure;
-        uint256 timestamp;
+        uint40 timestamp;
+        Repayment repayment;
     }
 
     struct Repayment {
         uint256 totalPaid;
-        uint256 tenurePassed;
         // tenure => amount
         // todo wrapper this in the future
         mapping(uint256 => uint256) repayment;
+    }
+
+    // tmp struct to avoid stack too long
+
+    struct DepositAndDebt {
+        uint256 juniorDepositAmount;
+        uint256 seniorDepositAmount;
+        uint256 totalDebt;
+    }
+
+    struct HealthRiskParameter {
+        uint256 securityDeposit;
+        uint256 currentBorrowRate;
+        uint256 compoundedDebt;
+        uint256 grossAssetValue;
+        uint256 aggregateOptimalRepaymentRate;
+        uint256 aggregateActualRepaymentRate;
     }
 }

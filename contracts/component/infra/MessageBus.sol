@@ -3,8 +3,14 @@ pragma solidity ^0.8.9;
 
 import './AddressResolver.sol';
 import '../../interfaces/IMessageBus.sol';
+import '../../interfaces/IDebtToken.sol';
 import '../../interfaces/IVaultManager.sol';
 import '../../libraries/ownership/Ownable.sol';
+import '../../libraries/types/DataTypes.sol';
+//import "../../libraries/utils/Address.sol";
+import '../../libraries/helpers/Errors.sol';
+import '../liquiditymanager/LiquidityManager.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 
 /**
  * todo it might be a bad name here, it actually performs as the centralise place
@@ -19,6 +25,7 @@ contract MessageBus is IMessageBus, Ownable {
     bytes32 public constant vaultManagerProxyName = 'vaultManagerProxy';
     bytes32 public constant vaultStorageName = 'vaultStorage';
     bytes32 public constant securityDepositTokenName = 'securityDepositToken';
+    bytes32 public constant stableDebtTokenName = 'stableDebtToken';
     bytes32 public constant extCallACLProxyName = 'extCallACLProxy';
 
     AddressResolver public addressResolver;
@@ -47,6 +54,23 @@ contract MessageBus is IMessageBus, Ownable {
         return payable(liquidityManagerProxyAddress);
     }
 
+    /**
+     * @dev Returns the state and configuration of the reserve
+     * @param _asset The address of the underlying asset of the reserve
+     * @return The state of the reserve
+     **/
+    function getReserveData(address _asset)
+        external
+        view
+        returns (DataTypes.ReserveData memory)
+    {
+        require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
+        return
+            LiquidityManager(getLiquidityManagerProxyAddress()).getReserveData(
+                _asset
+            );
+    }
+
     /************************************** Vault Functions **************************************/
 
     /**
@@ -55,6 +79,18 @@ contract MessageBus is IMessageBus, Ownable {
      **/
     function getVault(address _user) external view returns (address) {
         return IVaultManager(getVaultManagerProxyAddress()).getVault(_user);
+    }
+
+    function getSecurityDeposit(address _user, address _reserve)
+        external
+        view
+        returns (uint256)
+    {
+        return
+            IVaultManager(getVaultManagerProxyAddress()).getSecurityDeposit(
+                _user,
+                _reserve
+            );
     }
 
     /**
@@ -101,6 +137,35 @@ contract MessageBus is IMessageBus, Ownable {
             vaultManagerProxyName
         );
         return payable(vaultManagerProxyAddress);
+    }
+
+    /************************************** Stable Debt Token Functions **************************************/
+
+    function getCompoundedDebt(address _user) external view returns (uint256) {
+        return
+            IERC20(addressResolver.getAddress(stableDebtTokenName)).balanceOf(
+                _user
+            );
+    }
+
+    function getAggregateOptimalRepaymentRate(address _user)
+        external
+        view
+        returns (uint256)
+    {
+        return
+            IStableDebtToken(addressResolver.getAddress(stableDebtTokenName))
+                .getAggregateOptimalRepaymentRate(_user);
+    }
+
+    function getAggregateActualRepaymentRate(address _user)
+        external
+        view
+        returns (uint256)
+    {
+        return
+            IStableDebtToken(addressResolver.getAddress(stableDebtTokenName))
+                .getAggregateActualRepaymentRate(_user);
     }
 
     /************************************** Constant Functions **************************************/

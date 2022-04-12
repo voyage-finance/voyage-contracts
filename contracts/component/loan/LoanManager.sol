@@ -4,12 +4,16 @@ pragma solidity ^0.8.9;
 import '../../libraries/proxy/Proxyable.sol';
 import '../../interfaces/IVoyagerComponent.sol';
 import '../../libraries/helpers/Errors.sol';
+import '../../libraries/math/WadRayMath.sol';
+import '../../libraries/types/DataTypes.sol';
 import '../Voyager.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 import '../../interfaces/IMessageBus.sol';
+import '../../interfaces/IHealthStrategy.sol';
 
 contract LoanManager is Proxyable, IVoyagerComponent {
     using SafeMath for uint256;
+    using WadRayMath for uint256;
 
     LiquidityDepositEscrow public liquidityDepositEscrow;
     IMessageBus public messageBus;
@@ -33,25 +37,43 @@ contract LoanManager is Proxyable, IVoyagerComponent {
         address _user,
         address _asset,
         uint256 _amount,
-        address _vault
+        address _vault,
+        uint256 _grossAssetValue
     ) external requireNotPaused {
         // 0. check if the user owns the vault
-        address vault = messageBus.getVault(_user);
-        require(vault == _vault, Errors.LOM_NOT_VAULT_OWNER);
+        require(
+            messageBus.getVault(_user) == _vault,
+            Errors.LOM_NOT_VAULT_OWNER
+        );
 
         // 1. check if pool liquidity is sufficient
-        uint256 juniorDepositAmount;
-        uint256 seniorDepositAmount;
-        uint256 totalDebt;
-        (
-            juniorDepositAmount,
-            seniorDepositAmount,
-            totalDebt
-        ) = getDepositAndDebt();
-        uint256 reserveBalance = seniorDepositAmount - totalDebt;
-        require(reserveBalance >= _amount, Errors.LOM_RESERVE_NOT_SUFFICIENT);
+        DataTypes.DepositAndDebt memory depositAndDebt = getDepositAndDebt();
+        require(
+            depositAndDebt.seniorDepositAmount - depositAndDebt.totalDebt >=
+                _amount,
+            Errors.LOM_RESERVE_NOT_SUFFICIENT
+        );
 
         // 2. check HF
+        DataTypes.ReserveData memory reserveData = messageBus.getReserveData(
+            _asset
+        );
+        IHealthStrategy healthStrategy = IHealthStrategy(
+            reserveData.healthStrategyAddress
+        );
+        DataTypes.HealthRiskParameter memory hrp;
+        hrp.securityDeposit = messageBus.getSecurityDeposit(_user, _asset);
+        hrp.currentBorrowRate = reserveData.currentBorrowRate;
+        hrp.compoundedDebt = messageBus.getCompoundedDebt(_user);
+        hrp.grossAssetValue = _grossAssetValue;
+        hrp.aggregateOptimalRepaymentRate = messageBus
+            .getAggregateOptimalRepaymentRate(_user);
+        hrp.aggregateActualRepaymentRate = messageBus
+            .getAggregateActualRepaymentRate(_user);
+
+        uint256 hr = healthStrategy.calculateHealthRisk(hrp);
+
+        require(hr > WadRayMath.ray(), Errors.LOM_HEALTH_RISK_BELOW_ONE);
 
         // 3. check credit limit
         uint256 availableCreditLimit = voyager.getAvailableCredit(
@@ -68,6 +90,9 @@ contract LoanManager is Proxyable, IVoyagerComponent {
             liquidityManagerStorageAddress()
         );
         lms.updateStateOnBorrow(_asset, _amount);
+
+        // todo
+        // 5. mint debt token and transfer underlying token
     }
 
     function _executeBorrow(ExecuteBorrowParams memory vars) internal {}

@@ -36,36 +36,20 @@ contract DefaultHealthStrategy is IHealthStrategy {
         weightedRepaymentRatio = _weightedRepaymentRatio;
     }
 
-    function getPrincipalDebt(DataTypes.DrawDown memory _drawDown)
-        internal
+    function getPrincipalDebt(uint256 _amount) internal view returns (uint256) {
+        return premiumFactor.add(WadRayMath.Ray()).rayMul(_amount);
+    }
+
+    function calculateHealthRisk(DataTypes.HealthRiskParameter memory hrp)
+        external
         view
         returns (uint256)
     {
-        return premiumFactor.add(WadRayMath.Ray()).rayMul(_drawDown.amount);
-    }
-
-    function calculateHealthRisk(
-        uint256 _securityDeposit,
-        uint256 _currentBorrowRate,
-        uint40 _lastTimestamp,
-        DataTypes.DrawDown memory _drawDown,
-        uint256 _grossAssetValue,
-        uint256 _aggregateOptimalRepaymentRate,
-        uint256 _aggregateActualRepaymentRate
-    ) external view returns (uint256) {
-        // 1. calculate principal debt
-        // 2. calculate compounded debt
-        // 3. calculate LTV ratio
-        // 4. calculate repayment ratio
-        uint256 principalDebt = getPrincipalDebt(_drawDown);
-        uint256 compoundedDebt = MathUtils
-            .calculateCompoundedInterest(_currentBorrowRate, _lastTimestamp)
-            .rayMul(principalDebt);
-        uint256 ltvRatio = _grossAssetValue.add(_securityDeposit).rayDiv(
-            compoundedDebt
+        uint256 ltvRatio = hrp.grossAssetValue.add(hrp.securityDeposit).rayDiv(
+            hrp.compoundedDebt
         );
-        uint256 repaymentRatio = _aggregateActualRepaymentRate.rayDiv(
-            _aggregateOptimalRepaymentRate
+        uint256 repaymentRatio = hrp.aggregateActualRepaymentRate.rayDiv(
+            hrp.aggregateOptimalRepaymentRate
         );
         return
             ltvRatio

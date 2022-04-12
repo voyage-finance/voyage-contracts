@@ -7,6 +7,7 @@ import './IInitializableDebtToken.sol';
 import '../component/infra/AddressResolver.sol';
 import './DebtTokenBase.sol';
 import '../interfaces/IDebtToken.sol';
+import '../libraries/types/DataTypes.sol';
 
 contract StableDebtToken is
     IInitializableDebtToken,
@@ -16,11 +17,12 @@ contract StableDebtToken is
     using WadRayMath for uint256;
 
     uint256 public constant DEBT_TOKEN_REVISION = 0x1;
+    uint256 public constant SECONDS_PER_DAY = 1 days;
 
     uint256 internal _avgStableRate;
-    mapping(address => uint40) internal _timestamps;
     mapping(address => uint256) internal _usersStableRate;
     uint40 internal _totalSupplyTimestamp;
+    mapping(address => DataTypes.BorrowData) internal _borrowData;
 
     AddressResolver internal addressResolver;
     address internal underlyingAsset;
@@ -64,17 +66,19 @@ contract StableDebtToken is
         override
         returns (uint256)
     {
-        uint256 accountBalance = super.balanceOf(_account);
+        DataTypes.BorrowData storage borrowData = _borrowData[_account];
         uint256 stableRate = _usersStableRate[_account];
-        if (accountBalance == 0) {
-            return 0;
+        uint256 cumulatedBalance;
+        for (uint256 i = 0; i < borrowData.drawDownNumber; i++) {
+            uint256 cumulatedInterest = MathUtils.calculateCompoundedInterest(
+                stableRate,
+                borrowData.drawDowns[i].timestamp
+            );
+            cumulatedBalance += borrowData.drawDowns[i].amount.rayMul(
+                cumulatedInterest
+            );
         }
-
-        uint256 cumulatedInterest = MathUtils.calculateCompoundedInterest(
-            stableRate,
-            _timestamps[_account]
-        );
-        return accountBalance.rayMul(cumulatedInterest);
+        return cumulatedBalance;
     }
 
     /**
@@ -126,5 +130,50 @@ contract StableDebtToken is
 
     function getRevision() internal pure virtual override returns (uint256) {
         return DEBT_TOKEN_REVISION;
+    }
+
+    function getAggregateOptimalRepaymentRate(address _user)
+        external
+        view
+        returns (uint256)
+    {
+        DataTypes.BorrowData storage bd = _borrowData[_user];
+        uint256 stableRate = _usersStableRate[_user];
+        uint256 aggregateOptimalRepaymentRate;
+        for (uint256 i = 0; i < bd.drawDownNumber; i++) {
+            DataTypes.DrawDown storage drawDone = bd.drawDowns[i];
+            uint256 cumulatedInterest = MathUtils.calculateCompoundedInterest(
+                stableRate,
+                drawDone.timestamp
+            );
+            uint256 cumulatedBalance = drawDone.amount.rayMul(
+                cumulatedInterest
+            );
+            aggregateOptimalRepaymentRate += cumulatedBalance.rayDiv(
+                drawDone.tenure.rayMul(SECONDS_PER_DAY * WadRayMath.ray())
+            );
+        }
+        return aggregateOptimalRepaymentRate;
+    }
+
+    function getAggregateActualRepaymentRate(address _user)
+        external
+        view
+        returns (uint256)
+    {
+        DataTypes.BorrowData storage bd = _borrowData[_user];
+        uint256 aggregateActualRepayment;
+        for (uint256 i = 0; i < bd.drawDownNumber; i++) {
+            DataTypes.DrawDown storage drawDone = bd.drawDowns[i];
+            DataTypes.Repayment storage repayment = drawDone.repayment;
+            if (
+                repayment.totalPaid != 0 && block.timestamp > drawDone.timestamp
+            ) {
+                aggregateActualRepayment += repayment.totalPaid.rayDiv(
+                    (block.timestamp - drawDone.timestamp) * WadRayMath.ray()
+                );
+            }
+        }
+        return aggregateActualRepayment;
     }
 }

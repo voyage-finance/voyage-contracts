@@ -47,8 +47,8 @@ interface IVoyageDataProvider {
 
     /**
      * @notice get the address of vault managed by this address
-     * @param the address
-     * @return the vault address. if no vault exists for this address, returns 0x0
+     * @param user address
+     * @return vaultAddress the vault address. if no vault exists for this address, returns 0x0
      **/
     function getUserVaults(address user)
         external
@@ -58,7 +58,7 @@ interface IVoyageDataProvider {
     /**
      * @notice Returns vault data for a given underlying credit asset
      * @param vaultAddress the vault contract address, returned by getVaults
-     * @param underlyingPoolAsset the address of the pool asset for which you want to get the vault state
+     * @param underlyingPool the address of the pool asset for which you want to get the vault state
      **/
     function getVaultData(address vaultAddress, address underlyingPool)
         external
@@ -81,12 +81,12 @@ interface IVoyageDataProvider {
      * @notice Returns the actual draw downs for a vault and underlying asset pool
      * @param vaultAddress vault contract address
      * @param underlyingPool address of the underlying pool asset (ERC20)
-     * @return principal amount borrowed
-     * @return the outstanding compounded balance to be repaid
-     * @return the total repaid amount from origination
-     * @return the underlying term of the draw down
-     * @return minimum repayment per second
-     * @return block timestamp at time of origination
+     * @return principal principal amount borrowed
+     * @return balance balance the outstanding compounded balance to be repaid
+     * @return amountRepaid the total repaid amount from origination
+     * @return tenure the underlying term of the draw down
+     * @return minRepaymentRate minimum repayment per second
+     * @return timestamp block timestamp at time of origination
      **/
     function getVaultDebt(address vaultAddress, address underlyingPool)
         external
@@ -107,11 +107,12 @@ interface IVoyageDataProvider {
 
     /**
      * @notice returns the vault's collateralised assets (i.e. not repaid)
+     * @param vaultAddress the vault address
      * @param underlyingPool the address of the underlying pool's ERC20 asset
-     * @param underlyingCollect address of the collateralised NFT collection
-     * @return the **current** floor price
-     * @return the gav based on the floor
-     * @return ERC721 token IDs
+     * @param underlyingCollection address of the collateralised NFT collection
+     * @return floorPrice the **current** floor price
+     * @return gav the gav based on the floor
+     * @return ids ERC721 token IDs
      **/
     function getVaultCollateral(
         address vaultAddress,
@@ -132,10 +133,10 @@ interface IVoyageDataProvider {
      * @param underlyingPool the address of the underlying pool's ERC20 asset
      * @param id the ID of the collateral asset
      * @param underlyingCollection address of the collateralised NFT collection
-     * @return the **current** value of the asset (collection floor)
-     * @return the value of the asset at purchase
-     * @return fees taken by the protocol
-     * @return fees taken by protocol affiliates
+     * @return currentValue the **current** value of the asset (collection floor)
+     * @return purchasePrice the value of the asset at purchase
+     * @return protocolFee fees taken by the protocol
+     * @return affiliateFee fees taken by protocol affiliates
      **/
     function getVaultCollateralDetail(
         address vaultAddress,
