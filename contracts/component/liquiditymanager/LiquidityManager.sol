@@ -35,24 +35,6 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
         return deployedEscrow;
     }
 
-    function getEscrowAddress() external view returns (address) {
-        return address(escrow());
-    }
-
-    function escrow() internal view override returns (LiquidityDepositEscrow) {
-        return liquidityDepositEscrow;
-    }
-
-    function getReserveNormalizedIncome(
-        address _asset,
-        ReserveLogic.Tranche _tranche
-    ) external view returns (uint256) {
-        require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
-        return
-            LiquidityManagerStorage(liquidityManagerStorageAddress())
-                .getReserveNormalizedIncome(_asset, _tranche);
-    }
-
     function deposit(
         address _asset,
         ReserveLogic.Tranche _tranche,
@@ -82,5 +64,25 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
         }
         liquidityDepositEscrow.deposit(_asset, _user, _amount);
         emit Deposit(_asset, _tranche, _user, _onBehalfOf, _amount);
+    }
+
+    /************************************** View Functions **************************************/
+
+    function getEscrowAddress() external view returns (address) {
+        return address(escrow());
+    }
+
+    function escrow() internal view override returns (LiquidityDepositEscrow) {
+        return liquidityDepositEscrow;
+    }
+
+    function getReserveNormalizedIncome(
+        address _asset,
+        ReserveLogic.Tranche _tranche
+    ) external view returns (uint256) {
+        require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
+        return
+            LiquidityManagerStorage(liquidityManagerStorageAddress())
+                .getReserveNormalizedIncome(_asset, _tranche);
     }
 }
