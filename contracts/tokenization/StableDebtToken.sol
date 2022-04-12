@@ -17,7 +17,7 @@ contract StableDebtToken is
     using WadRayMath for uint256;
 
     uint256 public constant DEBT_TOKEN_REVISION = 0x1;
-    uint256 public constant SECONDS_PER_DAY = 86400;
+    uint256 public constant SECONDS_PER_DAY = 1 days;
 
     uint256 internal _avgStableRate;
     mapping(address => uint256) internal _usersStableRate;
@@ -141,7 +141,9 @@ contract StableDebtToken is
         uint256 aggregateOptimalRepaymentRate;
         for (uint256 i = 0; i < bd.drawDownNumber; i++) {
             aggregateOptimalRepaymentRate += bd.drawDowns[i].amount.rayDiv(
-                bd.drawDowns[i].tenure.rayMul(SECONDS_PER_DAY)
+                bd.drawDowns[i].tenure.rayMul(
+                    SECONDS_PER_DAY * WadRayMath.ray()
+                )
             );
         }
         return aggregateOptimalRepaymentRate;
@@ -158,11 +160,10 @@ contract StableDebtToken is
             DataTypes.DrawDown storage drawDone = bd.drawDowns[i];
             DataTypes.Repayment storage repayment = drawDone.repayment;
             if (
-                repayment.totalPaid != 0 &&
-                block.timestamp > drawDone.timestamp
+                repayment.totalPaid != 0 && block.timestamp > drawDone.timestamp
             ) {
                 aggregateActualRepayment += repayment.totalPaid.rayDiv(
-                    block.timestamp - drawDone.timestamp
+                    (block.timestamp - drawDone.timestamp) * WadRayMath.ray()
                 );
             }
         }
