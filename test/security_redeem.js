@@ -14,7 +14,7 @@ describe('Security Redeem', function () {
 
     // deploy Voyager contract
     const Voyager = await ethers.getContractFactory('Voyager');
-    voyager = await Voyager.deploy(owner.address);
+    voyager = await Voyager.deploy();
 
     // deploy AddressResolver contract
     const AddressResolver = await ethers.getContractFactory('AddressResolver');
@@ -50,21 +50,27 @@ describe('Security Redeem', function () {
     extCallACL = await ExtCallALC.deploy(extCallACLProxy.address);
     await extCallACLProxy.setTarget(extCallACL.address);
 
+    //deploy ACLManager
+    const ACLManager = await ethers.getContractFactory('ACLManager');
+    const aclManager = await ACLManager.deploy(owner.address);
+    await aclManager.grantLiquidityManager(owner.address);
+    await aclManager.grantVaultManager(owner.address);
+    await aclManager.grantPoolManager(owner.address);
+
     // import vaultManager to AddressResolver
     const names = [
       ethers.utils.formatBytes32String('vaultManagerProxy'),
       ethers.utils.formatBytes32String('vaultStorage'),
       ethers.utils.formatBytes32String('extCallACLProxy'),
+      ethers.utils.formatBytes32String('aclManager'),
     ];
     const destinations = [
       vaultManagerProxy.address,
       vaultStorage.address,
       extCallACLProxy.address,
+      aclManager.address,
     ];
     await addressResolver.importAddresses(names, destinations);
-
-    await extCallACLProxy.transferOwnership(voyager.address);
-    await voyager.claimExtCallACLProxyOwnership();
 
     await voyager.whitelistAddress([owner.address]);
     await voyager.whitelistFunction([
@@ -72,9 +78,6 @@ describe('Security Redeem', function () {
       ethers.utils.formatBytes32String('depositSecurity'),
       ethers.utils.formatBytes32String('redeemSecurity'),
     ]);
-
-    await vaultManagerProxy.transferOwnership(voyager.address);
-    await voyager.claimVaultManagerProxyOwnership();
 
     // create vault
     await voyager.createVault();

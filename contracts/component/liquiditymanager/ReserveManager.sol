@@ -79,7 +79,7 @@ abstract contract ReserveManager is
         );
     }
 
-    function activeReserve(address _asset) external onlyProxy onlyAdmin {
+    function activeReserve(address _asset) external onlyProxy onlyAdmin{
         require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
         LiquidityManagerStorage(liquidityManagerStorageAddress()).activeReserve(
                 _asset

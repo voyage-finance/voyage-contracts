@@ -43,7 +43,7 @@ contract Voyager is MessageBus {
      **/
     function setAddressResolverAddress(address _addressResolver)
         external
-        onlyProtocolManager
+        onlyOwner
     {
         addressResolver = AddressResolver(_addressResolver);
     }

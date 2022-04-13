@@ -5,6 +5,7 @@ const LM_NAME = 'LiquidityManager';
 const LM_STORAGE_NAME = 'LiquidityManagerStorage';
 const RESERVE_LOGIC_NAME = 'ReserveLogic';
 const VALIDATION_LOGIC_NAME = 'ValidationLogic';
+const ACLMANAGER_NAME = 'ACLManager';
 
 const deployFn: DeployFunction = async (hre) => {
   const { deployments, getNamedAccounts } = hre;
@@ -19,6 +20,32 @@ const deployFn: DeployFunction = async (hre) => {
     from: owner,
     log: true,
   });
+  const AclManager = await deploy(ACLMANAGER_NAME, {
+    from: owner,
+    args: [owner],
+    log: true
+  });
+
+  await execute(
+      'ACLManager',
+      { from: owner, log: true },
+      'grantLiquidityManager',
+      owner
+  );
+
+  await execute(
+      'ACLManager',
+      { from: owner, log: true },
+      'grantVaultManager',
+      owner
+  );
+
+  await execute(
+      'ACLManager',
+      { from: owner, log: true },
+      'grantPoolManager',
+      owner
+  );
 
   const LM = await deployments.get(LM_NAME);
   const LMProxy = await deployments.get(LM_PROXY_NAME);
@@ -36,8 +63,9 @@ const deployFn: DeployFunction = async (hre) => {
     ethers.utils.formatBytes32String('liquidityManagerProxy'),
     ethers.utils.formatBytes32String('liquidityManager'),
     ethers.utils.formatBytes32String('liquidityManagerStorage'),
+    ethers.utils.formatBytes32String('aclManager'),
   ];
-  const destinations = [LMProxy.address, LM.address, LMStorage.address];
+  const destinations = [LMProxy.address, LM.address, LMStorage.address, AclManager.address];
 
   // TODO: only execute this txn when LMStorage, LMProxy or LM have changed
   await execute(
@@ -56,11 +84,6 @@ const deployFn: DeployFunction = async (hre) => {
       { from: owner },
       'transferOwnership',
       Voyager.address
-    );
-    await execute(
-      'Voyager',
-      { from: owner },
-      'claimLiquidityManagerProxyOwnership'
     );
   }
 };

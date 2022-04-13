@@ -17,12 +17,24 @@ contract ACLManager is AccessControl, IACLManager {
         _setupRole(DEFAULT_ADMIN_ROLE, _aclAdmin);
     }
 
+    function grantLiquidityManager(address _admin) external {
+        grantRole(LIQUIDITY_MANAGER_ADMIN_ROLE, _admin);
+    }
+
     function isLiquidityManager(address _admin) external view returns (bool) {
         return hasRole(LIQUIDITY_MANAGER_ADMIN_ROLE, _admin);
     }
 
+    function grantVaultManager(address _admin) external {
+        grantRole(VAULT_MANAGER_ADMIN_ROLE, _admin);
+    }
+
     function isVaultManager(address _admin) external view returns (bool) {
         return hasRole(VAULT_MANAGER_ADMIN_ROLE, _admin);
+    }
+
+    function grantPoolManager(address _admin) external {
+        grantRole(VOYAGER_ADMIN_ROLE, _admin);
     }
 
     function isProtocolManager(address _admin) external view returns (bool) {
