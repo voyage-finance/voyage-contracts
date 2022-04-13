@@ -56,7 +56,7 @@ contract Proxy is Ownable {
     }
 
     // solhint-disable no-complex-fallback
-    fallback() external payable onlyOwner {
+    fallback() external payable {
         // Mutable call setting Proxyable.messageSender as this is using call not delegatecall
         target.setMessageSender(msg.sender);
 

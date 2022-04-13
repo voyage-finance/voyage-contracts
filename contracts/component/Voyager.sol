@@ -82,10 +82,7 @@ contract Voyager is AccessControl, MessageBus {
      * @dev Remove max security deposit for _reserve
      * @param _reserve reserve address
      */
-    function removeMaxSecurityDeposit(address _reserve)
-        external
-        onlyRole(OPERATOR)
-    {
+    function removeMaxSecurityDeposit(address _reserve) external {
         return
             VaultManager(getVaultManagerProxyAddress())
                 .removeMaxSecurityDeposit(_reserve);
@@ -99,7 +96,7 @@ contract Voyager is AccessControl, MessageBus {
     function updateSecurityDepositRequirement(
         address _reserve,
         uint256 _requirement
-    ) external onlyRole(OPERATOR) {
+    ) external {
         return
             VaultManager(getVaultManagerProxyAddress())
                 .updateSecurityDepositRequirement(_reserve, _requirement);
@@ -109,10 +106,7 @@ contract Voyager is AccessControl, MessageBus {
      * @dev Remove security deposit
      * @param _reserve reserve address
      */
-    function removeSecurityDepositRequirement(address _reserve)
-        external
-        onlyRole(OPERATOR)
-    {
+    function removeSecurityDepositRequirement(address _reserve) external {
         return
             VaultManager(getVaultManagerProxyAddress())
                 .removeSecurityDepositRequirement(_reserve);
@@ -123,10 +117,7 @@ contract Voyager is AccessControl, MessageBus {
      * _vaultUser the user/owner of this vault
      * _reserve the underlying asset address e.g. TUS
      **/
-    function initVault(address _user, address _reserve)
-        external
-        onlyRole(OPERATOR)
-    {
+    function initVault(address _user, address _reserve) external {
         VaultManager vaultManager = VaultManager(getVaultManagerProxyAddress());
         vaultManager.initSecurityDepositToken(_user, _reserve);
         vaultManager.initStakingContract(_user, _reserve);

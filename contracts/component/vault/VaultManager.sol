@@ -120,6 +120,7 @@ contract VaultManager is
     function initSecurityDepositToken(address _vaultUser, address _reserve)
         external
         onlyProxy
+        onlyAdmin
     {
         address vaultAddress = _getVault(_vaultUser);
         Vault(vaultAddress).initSecurityDepositToken(_reserve);
@@ -133,6 +134,7 @@ contract VaultManager is
     function initStakingContract(address _vaultUser, address _reserve)
         external
         onlyProxy
+        onlyAdmin
     {
         address vaultAddress = _getVault(_vaultUser);
         Vault(vaultAddress).initStakingContract(_reserve);
@@ -146,26 +148,31 @@ contract VaultManager is
         maxSecurityDeposit[_reserve] = _amount;
     }
 
-    function removeMaxSecurityDeposit(address _reserve) external onlyProxy {
+    function removeMaxSecurityDeposit(address _reserve)
+        external
+        onlyProxy
+        onlyAdmin
+    {
         delete maxSecurityDeposit[_reserve];
     }
 
     function updateSecurityDepositRequirement(
         address _reserve,
         uint256 _requirement
-    ) external onlyProxy {
+    ) external onlyProxy onlyAdmin {
         securityDepositRequirement[_reserve] = _requirement;
         emit SecurityDepositRequirementSet(_reserve, _requirement);
     }
 
-    /************************************** View Functions **************************************/
-
     function removeSecurityDepositRequirement(address _reserve)
         external
         onlyProxy
+        onlyAdmin
     {
         delete securityDepositRequirement[_reserve];
     }
+
+    /************************************** View Functions **************************************/
 
     function getSecurityDepositRequirement(address _reserve)
         external
