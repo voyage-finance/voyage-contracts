@@ -140,6 +140,14 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
     {
         address vaultAddress = _getVault(_vaultUser);
         Vault(vaultAddress).initSecurityDepositToken(_reserve);
+        proxy._emit(
+            abi.encode(_reserve),
+            2,
+            keccak256('SecurityDepositTokenInited(address, address)'),
+            bytes32(abi.encodePacked(_vaultUser)),
+            0,
+            0
+        );
     }
 
     /**
@@ -154,6 +162,14 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
     {
         address vaultAddress = _getVault(_vaultUser);
         Vault(vaultAddress).initStakingContract(_reserve);
+        proxy._emit(
+            abi.encode(_reserve),
+            2,
+            keccak256('StakingContractInited(address, address)'),
+            bytes32(abi.encodePacked(_vaultUser)),
+            0,
+            0
+        );
     }
 
     function setMaxSecurityDeposit(address _reserve, uint256 _amount)
@@ -162,6 +178,14 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         onlyAdmin
     {
         maxSecurityDeposit[_reserve] = _amount;
+        proxy._emit(
+            abi.encode(_amount),
+            2,
+            keccak256('MaxSecurityDepositUpdated(address, uint256)'),
+            bytes32(abi.encodePacked(_reserve)),
+            0,
+            0
+        );
     }
 
     function removeMaxSecurityDeposit(address _reserve)
@@ -170,6 +194,14 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         onlyAdmin
     {
         delete maxSecurityDeposit[_reserve];
+        proxy._emit(
+            abi.encode(_reserve),
+            2,
+            keccak256('MaxSecurityDepositDeleted(address)'),
+            bytes32(abi.encodePacked(_reserve)),
+            0,
+            0
+        );
     }
 
     function updateSecurityDepositRequirement(
@@ -193,6 +225,14 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         onlyAdmin
     {
         delete securityDepositRequirement[_reserve];
+        proxy._emit(
+            abi.encode(_reserve),
+            2,
+            keccak256('SecurityDepositRequirementDeleted(address)'),
+            bytes32(abi.encodePacked(_reserve)),
+            0,
+            0
+        );
     }
 
     /************************************** View Functions **************************************/
