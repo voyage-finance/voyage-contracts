@@ -17,12 +17,7 @@ import '../Voyager.sol';
 import '../infra/AddressResolver.sol';
 import './VaultStorage.sol';
 
-contract VaultManager is
-    AccessControl,
-    ReentrancyGuard,
-    Proxyable,
-    IVaultManager
-{
+contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
     using SafeERC20 for ERC20;
     using WadRayMath for uint256;
     using SafeMath for uint256;
@@ -40,7 +35,7 @@ contract VaultManager is
     }
 
     modifier onlyAdmin() {
-        _requireCallerAdmin;
+        _requireCallerAdmin();
         _;
     }
 
