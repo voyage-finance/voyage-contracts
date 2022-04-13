@@ -39,6 +39,11 @@ contract VaultManager is
         voyager = _voyager;
     }
 
+    modifier onlyAdmin() {
+        _requireCallerAdmin;
+        _;
+    }
+
     /************************************** User Functions **************************************/
 
     /**
@@ -133,12 +138,11 @@ contract VaultManager is
         Vault(vaultAddress).initStakingContract(_reserve);
     }
 
-    function setMaxSecurityDeposit(
-        address _reserve,
-        uint256 _amount,
-        address _caller
-    ) external onlyProxy {
-        _requireCallerAdmin(_caller);
+    function setMaxSecurityDeposit(address _reserve, uint256 _amount)
+        external
+        onlyProxy
+        onlyAdmin
+    {
         maxSecurityDeposit[_reserve] = _amount;
     }
 
@@ -285,11 +289,11 @@ contract VaultManager is
         return VaultStorage(getVaultStorageAddress()).getVaultAddress(_user);
     }
 
-    function _requireCallerAdmin(address _caller) internal {
+    function _requireCallerAdmin() internal {
         Voyager v = Voyager(voyager);
         IACLManager aclManager = IACLManager(
             v.addressResolver().getAddress(v.getACLManagerName())
         );
-        require(aclManager.isVaultManager(_caller), 'Not vault admin');
+        require(aclManager.isVaultManager(tx.origin), 'Not vault admin');
     }
 }

@@ -70,14 +70,11 @@ contract Voyager is AccessControl, MessageBus {
      * @param _reserve reserve address
      * @param _amount max amount sponsor can deposit
      */
-    function setMaxSecurityDeposit(address _reserve, uint256 _amount)
-        external
-    {
+    function setMaxSecurityDeposit(address _reserve, uint256 _amount) external {
         return
             VaultManager(getVaultManagerProxyAddress()).setMaxSecurityDeposit(
                 _reserve,
-                _amount,
-                msg.sender
+                _amount
             );
     }
 
