@@ -59,6 +59,24 @@ abstract contract ReserveManager is
             _interestRateStrategyAddress,
             _healthStrategyAddress
         );
+        proxy._emit(
+            abi.encode(
+                _juniorDepositTokenAddress,
+                _seniorDepositTokenAddress,
+                _juniorIncomeAllocation,
+                _seniorIncomeAllocation,
+                _stableDebtAddress,
+                _interestRateStrategyAddress,
+                _healthStrategyAddress
+            ),
+            2,
+            keccak256(
+                'ReverseInited(address, address,address, uint256, uint256,address,address,address)'
+            ),
+            bytes32(abi.encodePacked(_asset)),
+            0,
+            0
+        );
     }
 
     function activeReserve(address _asset) external onlyProxy onlyAdmin {

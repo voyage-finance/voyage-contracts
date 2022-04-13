@@ -50,7 +50,16 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
             );
         }
         liquidityDepositEscrow.deposit(_asset, _user, _amount);
-        emit Deposit(_asset, _tranche, _user, _onBehalfOf, _amount);
+        proxy._emit(
+            abi.encode(_tranche, _user, _onBehalfOf, _amount),
+            2,
+            keccak256(
+                'Deposit(address, ReserveLogic.Tranche, address, address,uint256)'
+            ),
+            bytes32(abi.encodePacked(_asset)),
+            0,
+            0
+        );
     }
 
     /************************************** View Functions **************************************/
