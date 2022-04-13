@@ -60,7 +60,14 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
             _user,
             vault
         );
-        emit VaultCreated(_user, vault, len);
+        proxy._emit(
+            abi.encode(vault, len),
+            2,
+            keccak256('VaultCreated(address, address, uint256)'),
+            bytes32(abi.encodePacked(_user)),
+            0,
+            0
+        );
     }
 
     /**
@@ -78,7 +85,14 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
     ) external onlyProxy {
         address vaultAddress = _getVault(_vaultUser);
         Vault(vaultAddress).depositSecurity(_sponsor, _reserve, _amount);
-        emit SecurityDeposited(_sponsor, _vaultUser, _reserve, _amount);
+        proxy._emit(
+            abi.encode(_vaultUser, _reserve, _amount),
+            2,
+            keccak256('SecurityDeposited(address, address, address, uint256)'),
+            bytes32(abi.encodePacked(_sponsor)),
+            0,
+            0
+        );
     }
 
     /**
@@ -96,7 +110,14 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
     ) external onlyProxy {
         address vaultAddress = _getVault(_vaultUser);
         Vault(vaultAddress).redeemSecurity(_sponsor, _reserve, _amount);
-        emit SecurityRedeemed(_sponsor, _vaultUser, _reserve, _amount);
+        proxy._emit(
+            abi.encode(_vaultUser, _reserve, _amount),
+            2,
+            keccak256('SecurityRedeemed(address, address, address, uint256)'),
+            bytes32(abi.encodePacked(_sponsor)),
+            0,
+            0
+        );
     }
 
     // placeholder function
@@ -156,7 +177,14 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         uint256 _requirement
     ) external onlyProxy onlyAdmin {
         securityDepositRequirement[_reserve] = _requirement;
-        emit SecurityDepositRequirementSet(_reserve, _requirement);
+        proxy._emit(
+            abi.encode(_requirement),
+            2,
+            keccak256('SecurityDepositRequirementSet(address, uint256)'),
+            bytes32(abi.encodePacked(_reserve)),
+            0,
+            0
+        );
     }
 
     function removeSecurityDepositRequirement(address _reserve)
