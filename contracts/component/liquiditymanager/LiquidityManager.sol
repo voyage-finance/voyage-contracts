@@ -20,20 +20,7 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
         liquidityDepositEscrow = LiquidityDepositEscrow(deployEscrow());
     }
 
-    function deployEscrow() private returns (address) {
-        bytes32 salt = keccak256(abi.encodePacked(msg.sender));
-        bytes memory bytecode = type(LiquidityDepositEscrow).creationCode;
-        address deployedEscrow;
-        assembly {
-            deployedEscrow := create2(
-                0,
-                add(bytecode, 32),
-                mload(bytecode),
-                salt
-            )
-        }
-        return deployedEscrow;
-    }
+    /************************************** User Functions **************************************/
 
     function deposit(
         address _asset,
@@ -84,5 +71,22 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
         return
             LiquidityManagerStorage(liquidityManagerStorageAddress())
                 .getReserveNormalizedIncome(_asset, _tranche);
+    }
+
+    /************************************** Private Functions **************************************/
+
+    function deployEscrow() private returns (address) {
+        bytes32 salt = keccak256(abi.encodePacked(msg.sender));
+        bytes memory bytecode = type(LiquidityDepositEscrow).creationCode;
+        address deployedEscrow;
+        assembly {
+            deployedEscrow := create2(
+                0,
+                add(bytecode, 32),
+                mload(bytecode),
+                salt
+            )
+        }
+        return deployedEscrow;
     }
 }

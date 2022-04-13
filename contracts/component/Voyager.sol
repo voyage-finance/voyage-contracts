@@ -146,7 +146,7 @@ contract Voyager is MessageBus {
         address _stableDebtAddress,
         address _interestRateStrategyAddress,
         address _healthStrategyAddress
-    ) external onlyProtocolManager {
+    ) external {
         LiquidityManager(getLiquidityManagerProxyAddress()).initReserve(
             _asset,
             _juniorDepositTokenAddress,
@@ -162,14 +162,14 @@ contract Voyager is MessageBus {
     /**
      * @dev Pause the protocol
      **/
-    function pause() external onlyProtocolManager {
+    function pause() external {
         LiquidityManager(getLiquidityManagerProxyAddress()).pause();
     }
 
     /**
      * @dev UnPause the protocol
      **/
-    function unPause() external onlyProtocolManager {
+    function unPause() external {
         LiquidityManager(getLiquidityManagerProxyAddress()).unPause();
     }
 
@@ -177,10 +177,20 @@ contract Voyager is MessageBus {
      * @dev Active a reserve for borrowing
      * @param _asset The address of the reserve
      **/
-    function activeReserve(address _asset) external onlyProtocolManager {
+    function activeReserve(address _asset) external {
         LiquidityManager(getLiquidityManagerProxyAddress()).activeReserve(
             _asset
         );
+    }
+
+    function setReserveInterestRateStrategyAddress(
+        address asset,
+        address rateStrategyAddress
+    ) external onlyProtocolManager {}
+
+    function setLoanManagerToEscrow(address _loadManager) external {
+        LiquidityManager(getLiquidityManagerProxyAddress())
+            .setLoanManagerToEscrow(_loadManager);
     }
 
     /**
@@ -272,19 +282,6 @@ contract Voyager is MessageBus {
         return
             LiquidityManager(getLiquidityManagerProxyAddress())
                 .getLiquidityRate(_asset, _tranche);
-    }
-
-    function setReserveInterestRateStrategyAddress(
-        address asset,
-        address rateStrategyAddress
-    ) external onlyProtocolManager {}
-
-    function setLoanManagerToEscrow(address _loadManager)
-        external
-        onlyProtocolManager
-    {
-        LiquidityManager(getLiquidityManagerProxyAddress())
-            .setLoanManagerToEscrow(_loadManager);
     }
 
     /**
