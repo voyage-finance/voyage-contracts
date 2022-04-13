@@ -92,7 +92,9 @@ describe('Vault Creation', function () {
   it('Created Vault should have own a valid escrow contract', async function () {
     const [owner] = await ethers.getSigners();
     // create vault
-    await voyager.createVault();
+    await expect(voyager.createVault())
+      .to.emit(vaultManagerProxy, 'SenderAddress')
+      .withArgs(voyager.address);
 
     const vaultAddress = await vaultStorage.getVaultAddress(owner.address);
     const Vault = await ethers.getContractFactory('Vault');

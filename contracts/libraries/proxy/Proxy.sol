@@ -9,6 +9,8 @@ contract Proxy is Ownable {
 
     event TargetUpdated(Proxyable newTarget);
 
+    event SenderAddress(address sender);
+
     modifier onlyTarget() {
         require(Proxyable(msg.sender) == target, 'Must be proxy target');
         _;
@@ -59,6 +61,7 @@ contract Proxy is Ownable {
     fallback() external payable onlyOwner {
         // Mutable call setting Proxyable.messageSender as this is using call not delegatecall
         target.setMessageSender(msg.sender);
+        emit SenderAddress(msg.sender);
 
         assembly {
             let free_ptr := mload(0x40)
