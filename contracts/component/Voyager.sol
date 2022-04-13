@@ -1,21 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
+import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
+import '../libraries/acl/ExtCallACL.sol';
+import '../libraries/acl/ExtCallACLProxy.sol';
 import '../libraries/ownership/Ownable.sol';
 import '../libraries/types/DataTypes.sol';
 import '../libraries/logic/ReserveLogic.sol';
 import '../component/infra/AddressResolver.sol';
 import '../component/vault/VaultManager.sol';
 import '../component/vault/VaultManagerProxy.sol';
-import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
-import '../libraries/acl/ExtCallACL.sol';
-import '../libraries/acl/ExtCallACLProxy.sol';
 import '../component/liquiditymanager/LiquidityManager.sol';
+import '../interfaces/IACLManager.sol';
 import './infra/MessageBus.sol';
 
-contract Voyager is AccessControl, MessageBus {
-    bytes32 public constant OPERATOR = keccak256('OPERATOR');
-
+contract Voyager is MessageBus {
     modifier onlyWhitelisted(bytes32 func) {
         require(
             ExtCallACL(getExtCallACLProxyAddress()).isWhitelistedAddress(
@@ -30,8 +29,9 @@ contract Voyager is AccessControl, MessageBus {
         _;
     }
 
-    constructor(address _operator) public {
-        _setupRole(OPERATOR, _operator);
+    modifier onlyProtocolManager() {
+        _requireCallerAdmin();
+        _;
     }
 
     event CallResult(bool, bytes);
@@ -43,24 +43,9 @@ contract Voyager is AccessControl, MessageBus {
      **/
     function setAddressResolverAddress(address _addressResolver)
         external
-        onlyRole(OPERATOR)
+        onlyProtocolManager
     {
         addressResolver = AddressResolver(_addressResolver);
-    }
-
-    function claimVaultManagerProxyOwnership() external onlyRole(OPERATOR) {
-        address payable vaultManagerProxyAddress = getVaultManagerProxyAddress();
-        VaultManagerProxy(vaultManagerProxyAddress).claimOwnership();
-    }
-
-    function claimExtCallACLProxyOwnership() external onlyRole(OPERATOR) {
-        address payable extCallACLProxyAddress = getExtCallACLProxyAddress();
-        ExtCallACLProxy(extCallACLProxyAddress).claimOwnership();
-    }
-
-    function claimLiquidityManagerProxyOwnership() external onlyRole(OPERATOR) {
-        address payable liquidityManagerProxyAddress = getLiquidityManagerProxyAddress();
-        LiquidityManager(liquidityManagerProxyAddress).claimOwnership();
     }
 
     //todo consider merge all this setting functions, define a data struct for it
@@ -125,7 +110,7 @@ contract Voyager is AccessControl, MessageBus {
 
     function whitelistAddress(address[] calldata _address)
         external
-        onlyRole(OPERATOR)
+        onlyProtocolManager
     {
         ExtCallACL extCallACL = ExtCallACL(getExtCallACLProxyAddress());
         extCallACL.whitelistAddress(_address);
@@ -133,7 +118,7 @@ contract Voyager is AccessControl, MessageBus {
 
     function whitelistFunction(bytes32[] calldata _function)
         external
-        onlyRole(OPERATOR)
+        onlyProtocolManager
     {
         ExtCallACL extCallACL = ExtCallACL(getExtCallACLProxyAddress());
         extCallACL.whitelistFunction(_function);
@@ -161,7 +146,7 @@ contract Voyager is AccessControl, MessageBus {
         address _stableDebtAddress,
         address _interestRateStrategyAddress,
         address _healthStrategyAddress
-    ) external onlyRole(OPERATOR) {
+    ) external onlyProtocolManager {
         LiquidityManager(getLiquidityManagerProxyAddress()).initReserve(
             _asset,
             _juniorDepositTokenAddress,
@@ -177,14 +162,14 @@ contract Voyager is AccessControl, MessageBus {
     /**
      * @dev Pause the protocol
      **/
-    function pause() external onlyRole(OPERATOR) {
+    function pause() external onlyProtocolManager {
         LiquidityManager(getLiquidityManagerProxyAddress()).pause();
     }
 
     /**
      * @dev UnPause the protocol
      **/
-    function unPause() external onlyRole(OPERATOR) {
+    function unPause() external onlyProtocolManager {
         LiquidityManager(getLiquidityManagerProxyAddress()).unPause();
     }
 
@@ -192,7 +177,7 @@ contract Voyager is AccessControl, MessageBus {
      * @dev Active a reserve for borrowing
      * @param _asset The address of the reserve
      **/
-    function activeReserve(address _asset) external onlyRole(OPERATOR) {
+    function activeReserve(address _asset) external onlyProtocolManager {
         LiquidityManager(getLiquidityManagerProxyAddress()).activeReserve(
             _asset
         );
@@ -292,11 +277,11 @@ contract Voyager is AccessControl, MessageBus {
     function setReserveInterestRateStrategyAddress(
         address asset,
         address rateStrategyAddress
-    ) external onlyRole(OPERATOR) {}
+    ) external onlyProtocolManager {}
 
     function setLoanManagerToEscrow(address _loadManager)
         external
-        onlyRole(OPERATOR)
+        onlyProtocolManager
     {
         LiquidityManager(getLiquidityManagerProxyAddress())
             .setLoanManagerToEscrow(_loadManager);
@@ -466,5 +451,14 @@ contract Voyager is AccessControl, MessageBus {
         address extCallACLProxyAddress = AddressResolver(addressResolver)
             .getAddress(extCallACLProxyName);
         return payable(extCallACLProxyAddress);
+    }
+
+    /************************************** Internal Interfaces **************************************/
+
+    function _requireCallerAdmin() internal {
+        IACLManager aclManager = IACLManager(
+            addressResolver.getAddress(aclManagerName)
+        );
+        require(aclManager.isProtocolManager(tx.origin), 'Not vault admin');
     }
 }

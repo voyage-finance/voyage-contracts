@@ -5,4 +5,6 @@ interface IACLManager {
     function isLiquidityManager(address _admin) external view returns (bool);
 
     function isVaultManager(address _admin) external view returns (bool);
+
+    function isProtocolManager(address _admin) external view returns (bool);
 }
