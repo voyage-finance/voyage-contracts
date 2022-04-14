@@ -133,8 +133,18 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
 
     /************************ HouseKeeping Function ******************************/
 
+    /**
+     * Init a deployed Vault, ensure it has overlying security deposit token and corresponding staking contract
+     * _vaultUser the user/owner of this vault
+     * _reserve the underlying asset address e.g. TUS
+     **/
+    function initVault(address _user, address _reserve) external {
+        initSecurityDepositToken(_user, _reserve);
+        initStakingContract(_user, _reserve);
+    }
+
     function initSecurityDepositToken(address _vaultUser, address _reserve)
-        external
+        public
         onlyProxy
         onlyAdmin
     {
@@ -156,7 +166,7 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
      * _reserve the underlying asset address e.g. TUS
      **/
     function initStakingContract(address _vaultUser, address _reserve)
-        external
+        public
         onlyProxy
         onlyAdmin
     {
@@ -172,6 +182,11 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         );
     }
 
+    /**
+     * @dev Set max security deposit for _reserve
+     * @param _reserve reserve address
+     * @param _amount max amount sponsor can deposit
+     */
     function setMaxSecurityDeposit(address _reserve, uint256 _amount)
         external
         onlyProxy
@@ -188,6 +203,10 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         );
     }
 
+    /**
+     * @dev Remove max security deposit for _reserve
+     * @param _reserve reserve address
+     */
     function removeMaxSecurityDeposit(address _reserve)
         external
         onlyProxy
@@ -204,6 +223,11 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         );
     }
 
+    /**
+     * @dev Update the security deposit requirement
+     * @param _reserve reserve address
+     * @param _requirement expressed in Ray
+     */
     function updateSecurityDepositRequirement(
         address _reserve,
         uint256 _requirement
@@ -219,6 +243,10 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         );
     }
 
+    /**
+     * @dev Remove security deposit
+     * @param _reserve reserve address
+     */
     function removeSecurityDepositRequirement(address _reserve)
         external
         onlyProxy
@@ -364,6 +392,6 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         IACLManager aclManager = IACLManager(
             v.addressResolver().getAddress(v.getACLManagerName())
         );
-        require(aclManager.isVaultManager(tx.origin), 'Not vault admin');
+        require(aclManager.isVaultManager(messageSender), 'Not vault admin');
     }
 }

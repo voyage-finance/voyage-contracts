@@ -1,6 +1,7 @@
 import { DeployFunction } from 'hardhat-deploy/types';
 import {DefaultHealthStrategy, Tus} from '@contracts';
 import TusABI from '../artifacts/contracts/mock/Tus.sol/Tus.json';
+import LiquidityABI from '../artifacts/contracts/component/liquiditymanager/LiquidityManager.sol/LiquidityManager.json';
 
 const LM_NAME = 'LiquidityManager';
 const LM_STORAGE_NAME = 'LiquidityManagerStorage';
@@ -117,18 +118,19 @@ const deployFn: DeployFunction = async (hre) => {
     ],
   });
 
-  await execute(
-    'Voyager',
-    { from: owner, log: true },
-    'initReserve',
-    TreasureUnderSea.address,
-    JuniorDepositToken.address,
-    SeniorDepositToken.address,
-    '100000000000000000000000000',
-    '900000000000000000000000000',
-    StableDebtToken.address,
-    InterestStrategy.address, HealthStrategy.address,
-  );
+  const lmDeployment = await deployments.get('LiquidityManagerProxy');
+  const lm = new ethers.Contract(lmDeployment.address,LiquidityABI.abi,signer);
+  await lm.initReserve(
+      TreasureUnderSea.address,
+      JuniorDepositToken.address,
+      SeniorDepositToken.address,
+      '100000000000000000000000000',
+      '900000000000000000000000000',
+      StableDebtToken.address,
+      InterestStrategy.address,
+      HealthStrategy.address);
+
+  await lm.activeReserve(TreasureUnderSea.address);
 };
 
 deployFn.dependencies = [

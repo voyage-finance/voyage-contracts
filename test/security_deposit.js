@@ -2,6 +2,7 @@ const { expect } = require('chai');
 
 let voyager;
 let vaultManagerProxy;
+let vm;
 let vaultManager;
 let vaultStorage;
 let owner;
@@ -38,6 +39,7 @@ describe('Security Deposit', function () {
 
     // update VaultManagerProxy, set target contract
     vaultManagerProxy.setTarget(vaultManager.address);
+    vm = VaultManager.attach(vaultManagerProxy.address);
 
     // deploy VaultStorage contract
     const VaultStorage = await ethers.getContractFactory('VaultStorage');
@@ -102,11 +104,11 @@ describe('Security Deposit', function () {
       tus.address
     );
     expect(amountBeforeSetting).to.equal('0');
-    await voyager.setMaxSecurityDeposit(tus.address, '100000000000000000000');
+    await vm.setMaxSecurityDeposit(tus.address, '100000000000000000000');
     const amountAfterSetting = await voyager.getMaxSecurityDeposit(tus.address);
     expect(amountAfterSetting).to.equal('100000000000000000000');
 
-    await voyager.removeMaxSecurityDeposit(tus.address);
+    await vm.removeMaxSecurityDeposit(tus.address);
     expect(amountBeforeSetting).to.equal('0');
   });
 
@@ -129,10 +131,10 @@ describe('Security Deposit', function () {
       '10000000000000000000000'
     );
 
-    await voyager.setMaxSecurityDeposit(tus.address, '100000000000000000000');
+    await vm.setMaxSecurityDeposit(tus.address, '100000000000000000000');
 
     //  init vault
-    await voyager.initVault(owner.address, tus.address);
+    await vm.initVault(owner.address, tus.address);
     const stakingContract = await vault.getStakingContractAddress();
 
     const SecurityDepositEscrow = await ethers.getContractFactory(

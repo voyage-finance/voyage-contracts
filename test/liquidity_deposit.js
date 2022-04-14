@@ -24,7 +24,6 @@ describe('Reserve Deposit', function () {
     juniorDepositToken = await ethers.getContract('JuniorDepositToken');
     seniorDepositToken = await ethers.getContract('SeniorDepositToken');
 
-    await voyager.activeReserve(tus.address);
     const reserveFlags = await voyager.getReserveFlags(tus.address);
     expect(reserveFlags[0]).to.equal(true);
     expect(reserveFlags[1]).to.equal(false);

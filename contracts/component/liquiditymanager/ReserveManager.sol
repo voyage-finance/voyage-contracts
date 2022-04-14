@@ -30,14 +30,31 @@ abstract contract ReserveManager is
 
     /************************************** HouseKeeping Functions **************************************/
 
+    /**
+     * @dev Pause the protocol
+     **/
     function pause() external onlyProxy onlyAdmin {
         LiquidityManagerStorage(liquidityManagerStorageAddress()).pause();
     }
 
+    /**
+     * @dev UnPause the protocol
+     **/
     function unPause() external onlyProxy onlyAdmin {
         LiquidityManagerStorage(liquidityManagerStorageAddress()).unPause();
     }
 
+    /**
+     * @dev Initializes a reserve, activating it, assigning two deposit tokens and an interest rate strategy
+     * Only callable by protocol operator
+     * @param _asset The address of the underlying asset of the reserve
+     * @param _juniorDepositTokenAddress The address of the junior deposit token that will be assigned to the reserve
+     * @param _seniorDepositTokenAddress The address of the senior deposit token that will be assigned to the reserve
+     * @param _juniorIncomeAllocation Junior income allocation, express in RAY
+     * @param _seniorIncomeAllocation Senior income allocation, express in RAY
+     * @param _stableDebtAddress The address of the StableDebtToken that will be assigned to the reserve
+     * @param _interestRateStrategyAddress The address of the interest rate strategy contract
+     **/
     function initReserve(
         address _asset,
         address _juniorDepositTokenAddress,
@@ -79,6 +96,10 @@ abstract contract ReserveManager is
         );
     }
 
+    /**
+     * @dev Active a reserve for borrowing
+     * @param _asset The address of the reserve
+     **/
     function activeReserve(address _asset) external onlyProxy onlyAdmin {
         require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
         LiquidityManagerStorage(liquidityManagerStorageAddress()).activeReserve(
@@ -171,6 +192,9 @@ abstract contract ReserveManager is
         IACLManager aclManager = IACLManager(
             v.addressResolver().getAddress(v.getACLManagerName())
         );
-        require(aclManager.isLiquidityManager(tx.origin), 'Not vault admin');
+        require(
+            aclManager.isLiquidityManager(messageSender),
+            'Not vault admin'
+        );
     }
 }
