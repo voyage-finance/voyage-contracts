@@ -3,6 +3,7 @@ const { expect } = require('chai');
 let voyager;
 let vaultManagerProxy;
 let vaultManager;
+let vm;
 let vaultStorage;
 let owner;
 let tus;
@@ -38,6 +39,8 @@ describe('Security Redeem', function () {
 
     // update VaultManagerProxy, set target contract
     vaultManagerProxy.setTarget(vaultManager.address);
+
+    vm = VaultManager.attach(vaultManagerProxy.address);
 
     // deploy VaultStorage contract
     const VaultStorage = await ethers.getContractFactory('VaultStorage');
@@ -96,10 +99,10 @@ describe('Security Redeem', function () {
       '10000000000000000000000'
     );
 
-    await voyager.setMaxSecurityDeposit(tus.address, '100000000000000000000');
+    await vm.setMaxSecurityDeposit(tus.address, '100000000000000000000');
 
     //  init vault
-    await voyager.initVault(owner.address, tus.address);
+    await vm.initVault(owner.address, tus.address);
     const stakingContract = await vault.getStakingContractAddress();
 
     const SecurityDepositEscrow = await ethers.getContractFactory(

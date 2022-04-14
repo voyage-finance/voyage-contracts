@@ -1,7 +1,10 @@
 const { expect } = require('chai');
+const {LiquidityManager} = require("../typechain");
 
 let owner;
 let voyager;
+let liquidityManagerProxy;
+let lm;
 
 describe('Reserve Init', function () {
   beforeEach(async function () {
@@ -22,7 +25,7 @@ describe('Reserve Init', function () {
     const LiquidityManagerProxy = await ethers.getContractFactory(
       'LiquidityManagerProxy'
     );
-    const liquidityManagerProxy = await LiquidityManagerProxy.deploy();
+    liquidityManagerProxy = await LiquidityManagerProxy.deploy();
 
     // deploy LiquidityManager contract
     const LiquidityManager = await ethers.getContractFactory(
@@ -33,6 +36,7 @@ describe('Reserve Init', function () {
       voyager.address
     );
     liquidityManagerProxy.setTarget(liquidityManager.address);
+    lm = LiquidityManager.attach(liquidityManagerProxy.address);
 
     // deploy ReserveLogic library
     const ReserveLogic = await ethers.getContractFactory('ReserveLogic');
@@ -83,7 +87,7 @@ describe('Reserve Init', function () {
     // deploy mock tus contract as reserve
     const Tus = await ethers.getContractFactory('Tus');
     const tus = await Tus.deploy('1000000000000000000000');
-    await voyager.initReserve(
+    await lm.initReserve(
       tus.address,
       fakeAddress,
       fakeAddress,
@@ -108,7 +112,7 @@ describe('Reserve Init', function () {
     // deploy mock tus contract as reserve
     const Tus = await ethers.getContractFactory('Tus');
     const tus = await Tus.deploy('1000000000000000000000');
-    await voyager.initReserve(
+    await lm.initReserve(
       tus.address,
       fakeAddress,
       fakeAddress,
@@ -121,7 +125,7 @@ describe('Reserve Init', function () {
     const flags = await voyager.getReserveFlags(tus.address);
     expect(flags[0]).to.equal(false);
 
-    await voyager.activeReserve(tus.address);
+    await lm.activeReserve(tus.address);
     const newFlags = await voyager.getReserveFlags(tus.address);
     expect(newFlags[0]).to.equal(true);
   });
