@@ -7,7 +7,6 @@ const deployFn: DeployFunction = async (hre) => {
 
   await deploy('Voyager', {
     from: owner,
-    args: [owner],
     log: true,
   });
 

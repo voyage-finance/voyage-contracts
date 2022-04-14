@@ -17,6 +17,7 @@ import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
  * for querying each other among the internal components
  **/
 contract MessageBus is IMessageBus, Ownable {
+    bytes32 public constant aclManagerName = 'aclManager';
     bytes32 public constant liquidityManagerProxyName = 'liquidityManagerProxy';
     bytes32 public constant liquidityManagerName = 'liquidityManager';
     bytes32 public constant liquidityManagerStorageName =
@@ -196,5 +197,9 @@ contract MessageBus is IMessageBus, Ownable {
 
     function getExtCallACLProxyName() external view returns (bytes32) {
         return extCallACLProxyName;
+    }
+
+    function getACLManagerName() external view returns (bytes32) {
+        return aclManagerName;
     }
 }

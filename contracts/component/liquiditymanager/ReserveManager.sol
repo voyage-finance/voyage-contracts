@@ -7,10 +7,11 @@ import 'openzeppelin-solidity/contracts/utils/Address.sol';
 import '../shared/storage/LiquidityManagerStorage.sol';
 import '../infra/AddressResolver.sol';
 import '../../libraries/proxy/Proxyable.sol';
-import '../../interfaces/IDebtToken.sol';
 import '../../libraries/logic/ReserveLogic.sol';
 import '../../interfaces/IReserveManager.sol';
 import '../../interfaces/IVoyagerComponent.sol';
+import '../../interfaces/IDebtToken.sol';
+import '../../interfaces/IACLManager.sol';
 import '../shared/escrow/LiquidityDepositEscrow.sol';
 
 abstract contract ReserveManager is
@@ -22,11 +23,18 @@ abstract contract ReserveManager is
         voyager = Voyager(_voyager);
     }
 
-    function pause() external onlyProxy {
+    modifier onlyAdmin() {
+        _requireCallerAdmin();
+        _;
+    }
+
+    /************************************** HouseKeeping Functions **************************************/
+
+    function pause() external onlyProxy onlyAdmin {
         LiquidityManagerStorage(liquidityManagerStorageAddress()).pause();
     }
 
-    function unPause() external onlyProxy {
+    function unPause() external onlyProxy onlyAdmin {
         LiquidityManagerStorage(liquidityManagerStorageAddress()).unPause();
     }
 
@@ -39,7 +47,7 @@ abstract contract ReserveManager is
         address _stableDebtAddress,
         address _interestRateStrategyAddress,
         address _healthStrategyAddress
-    ) external onlyProxy {
+    ) external onlyProxy onlyAdmin {
         require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
         LiquidityManagerStorage(liquidityManagerStorageAddress()).initReserve(
             _asset,
@@ -51,18 +59,42 @@ abstract contract ReserveManager is
             _interestRateStrategyAddress,
             _healthStrategyAddress
         );
+        proxy._emit(
+            abi.encode(
+                _juniorDepositTokenAddress,
+                _seniorDepositTokenAddress,
+                _juniorIncomeAllocation,
+                _seniorIncomeAllocation,
+                _stableDebtAddress,
+                _interestRateStrategyAddress,
+                _healthStrategyAddress
+            ),
+            2,
+            keccak256(
+                'ReverseInited(address, address,address, uint256, uint256,address,address,address)'
+            ),
+            bytes32(abi.encodePacked(_asset)),
+            0,
+            0
+        );
     }
 
-    function activeReserve(address _asset) external onlyProxy {
+    function activeReserve(address _asset) external onlyProxy onlyAdmin {
         require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
         LiquidityManagerStorage(liquidityManagerStorageAddress()).activeReserve(
                 _asset
             );
     }
 
-    function setLoanManagerToEscrow(address _loadManager) external onlyProxy {
+    function setLoanManagerToEscrow(address _loadManager)
+        external
+        onlyProxy
+        onlyAdmin
+    {
         escrow().setLoadManager(_loadManager);
     }
+
+    /************************************** View Functions **************************************/
 
     function getReserveData(address _asset)
         public
@@ -130,5 +162,15 @@ abstract contract ReserveManager is
         return
             LiquidityManagerStorage(liquidityManagerStorageAddress())
                 .getSeniorLiquidityIndex(_asset);
+    }
+
+    /************************************** Private Functions **************************************/
+
+    function _requireCallerAdmin() internal {
+        Voyager v = Voyager(voyager);
+        IACLManager aclManager = IACLManager(
+            v.addressResolver().getAddress(v.getACLManagerName())
+        );
+        require(aclManager.isLiquidityManager(tx.origin), 'Not vault admin');
     }
 }

@@ -2,27 +2,6 @@
 pragma solidity ^0.8.9;
 
 interface IVaultManager {
-    event VaultCreated(address indexed user, address vault, uint256 len);
-
-    event SecurityDeposited(
-        address indexed sponsor,
-        address user,
-        address reserve,
-        uint256 amount
-    );
-
-    event SecurityRedeemed(
-        address indexed sponsor,
-        address user,
-        address reserve,
-        uint256 amount
-    );
-
-    event SecurityDepositRequirementSet(
-        address indexed reserve,
-        uint256 requirement
-    );
-
     function getMaxSecurityDeposit(address _reserve)
         external
         view

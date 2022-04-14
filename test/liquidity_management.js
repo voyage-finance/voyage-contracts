@@ -9,7 +9,7 @@ describe('Reserve Init', function () {
 
     // deploy Voyager contract
     const Voyager = await ethers.getContractFactory('Voyager');
-    voyager = await Voyager.deploy(owner.address);
+    voyager = await Voyager.deploy();
 
     // deploy AddressResolver contract
     const AddressResolver = await ethers.getContractFactory('AddressResolver');
@@ -55,20 +55,26 @@ describe('Reserve Init', function () {
       liquidityManager.address
     );
 
+    //deploy ACLManager
+    const ACLManager = await ethers.getContractFactory('ACLManager');
+    const aclManager = await ACLManager.deploy(owner.address);
+    await aclManager.grantLiquidityManager(owner.address);
+    await aclManager.grantVaultManager(owner.address);
+    await aclManager.grantPoolManager(owner.address);
+
     // import vaultManager to AddressResolver
     const names = [
       ethers.utils.formatBytes32String('liquidityManagerProxy'),
       ethers.utils.formatBytes32String('liquidityManagerStorage'),
+      ethers.utils.formatBytes32String('aclManager'),
     ];
     const destinations = [
       liquidityManagerProxy.address,
       liquidityManagerStorage.address,
+      aclManager.address,
     ];
 
     await addressResolver.importAddresses(names, destinations);
-
-    await liquidityManagerProxy.transferOwnership(voyager.address);
-    await voyager.claimLiquidityManagerProxyOwnership();
   });
 
   it('Init reserve should return correct value', async function () {

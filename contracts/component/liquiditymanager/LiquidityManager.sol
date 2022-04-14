@@ -20,38 +20,7 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
         liquidityDepositEscrow = LiquidityDepositEscrow(deployEscrow());
     }
 
-    function deployEscrow() private returns (address) {
-        bytes32 salt = keccak256(abi.encodePacked(msg.sender));
-        bytes memory bytecode = type(LiquidityDepositEscrow).creationCode;
-        address deployedEscrow;
-        assembly {
-            deployedEscrow := create2(
-                0,
-                add(bytecode, 32),
-                mload(bytecode),
-                salt
-            )
-        }
-        return deployedEscrow;
-    }
-
-    function getEscrowAddress() external view returns (address) {
-        return address(escrow());
-    }
-
-    function escrow() internal view override returns (LiquidityDepositEscrow) {
-        return liquidityDepositEscrow;
-    }
-
-    function getReserveNormalizedIncome(
-        address _asset,
-        ReserveLogic.Tranche _tranche
-    ) external view returns (uint256) {
-        require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
-        return
-            LiquidityManagerStorage(liquidityManagerStorageAddress())
-                .getReserveNormalizedIncome(_asset, _tranche);
-    }
+    /************************************** User Functions **************************************/
 
     function deposit(
         address _asset,
@@ -81,6 +50,52 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
             );
         }
         liquidityDepositEscrow.deposit(_asset, _user, _amount);
-        emit Deposit(_asset, _tranche, _user, _onBehalfOf, _amount);
+        proxy._emit(
+            abi.encode(_tranche, _user, _onBehalfOf, _amount),
+            2,
+            keccak256(
+                'Deposit(address, ReserveLogic.Tranche, address, address,uint256)'
+            ),
+            bytes32(abi.encodePacked(_asset)),
+            0,
+            0
+        );
+    }
+
+    /************************************** View Functions **************************************/
+
+    function getEscrowAddress() external view returns (address) {
+        return address(escrow());
+    }
+
+    function escrow() internal view override returns (LiquidityDepositEscrow) {
+        return liquidityDepositEscrow;
+    }
+
+    function getReserveNormalizedIncome(
+        address _asset,
+        ReserveLogic.Tranche _tranche
+    ) external view returns (uint256) {
+        require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
+        return
+            LiquidityManagerStorage(liquidityManagerStorageAddress())
+                .getReserveNormalizedIncome(_asset, _tranche);
+    }
+
+    /************************************** Private Functions **************************************/
+
+    function deployEscrow() private returns (address) {
+        bytes32 salt = keccak256(abi.encodePacked(msg.sender));
+        bytes memory bytecode = type(LiquidityDepositEscrow).creationCode;
+        address deployedEscrow;
+        assembly {
+            deployedEscrow := create2(
+                0,
+                add(bytecode, 32),
+                mload(bytecode),
+                salt
+            )
+        }
+        return deployedEscrow;
     }
 }

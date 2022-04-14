@@ -1,11 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import './Vault.sol';
-import '../../interfaces/IVaultManager.sol';
-import '../Voyager.sol';
-import '../infra/AddressResolver.sol';
-import './VaultStorage.sol';
 import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
@@ -15,15 +10,14 @@ import '../../libraries/proxy/Proxyable.sol';
 import '../../tokenization/SecurityDepositToken.sol';
 import '../../mock/Tus.sol';
 import '../../libraries/math/WadRayMath.sol';
+import './Vault.sol';
+import '../../interfaces/IVaultManager.sol';
+import '../../interfaces/IACLManager.sol';
+import '../Voyager.sol';
+import '../infra/AddressResolver.sol';
+import './VaultStorage.sol';
 
-contract VaultManager is
-    AccessControl,
-    ReentrancyGuard,
-    Proxyable,
-    IVaultManager
-{
-    bytes32 public constant VOYAGER = keccak256('VOYAGER');
-
+contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
     using SafeERC20 for ERC20;
     using WadRayMath for uint256;
     using SafeMath for uint256;
@@ -40,31 +34,248 @@ contract VaultManager is
         voyager = _voyager;
     }
 
-    function getVaultStorageAddress() private view returns (address) {
-        Voyager v = Voyager(voyager);
-        address resolver = v.getAddressResolverAddress();
-        return AddressResolver(resolver).getAddress(v.getVaultStorageName());
+    modifier onlyAdmin() {
+        _requireCallerAdmin();
+        _;
     }
 
-    function getSecurityDepositTokenAddress(address vault)
-        private
-        view
-        returns (address)
+    /************************************** User Functions **************************************/
+
+    /**
+     * @dev Create a Vault for user
+     * @param _user the address of the player
+     **/
+    function createVault(address _user)
+        external
+        onlyProxy
+        returns (address vault)
     {
-        return Vault(vault).getSecurityDepositTokenAddress();
+        bytes memory bytecode = type(Vault).creationCode;
+        bytes32 salt = keccak256(abi.encodePacked(_user));
+        assembly {
+            vault := create2(0, add(bytecode, 32), mload(bytecode), salt)
+        }
+        Vault(vault).initialize(voyager, _user);
+        uint256 len = VaultStorage(getVaultStorageAddress()).pushNewVault(
+            _user,
+            vault
+        );
+        proxy._emit(
+            abi.encode(vault, len),
+            2,
+            keccak256('VaultCreated(address, address, uint256)'),
+            bytes32(abi.encodePacked(_user)),
+            0,
+            0
+        );
     }
 
     /**
-     * @dev Get existing Vault contract address for user
-     * @param _user the address of the player
-     * @return Vault address
-     **/
-    function getVault(address _user) external view returns (address) {
-        return _getVault(_user);
+     * @dev Delegate call to Vault's depositSecurity
+     * @param _sponsor who actual deposits the reserve into the amount
+     * @param _vaultUser user address
+     * @param _reserve reserve address
+     * @param _amount amount user is willing to deposit
+     */
+    function depositSecurity(
+        address _sponsor,
+        address _vaultUser,
+        address _reserve,
+        uint256 _amount
+    ) external onlyProxy {
+        address vaultAddress = _getVault(_vaultUser);
+        Vault(vaultAddress).depositSecurity(_sponsor, _reserve, _amount);
+        proxy._emit(
+            abi.encode(_vaultUser, _reserve, _amount),
+            2,
+            keccak256('SecurityDeposited(address, address, address, uint256)'),
+            bytes32(abi.encodePacked(_sponsor)),
+            0,
+            0
+        );
     }
 
-    function _getVault(address _user) internal view returns (address) {
-        return VaultStorage(getVaultStorageAddress()).getVaultAddress(_user);
+    /**
+     * @dev  Delegate call to Vault's redeemSecurity
+     * @param _sponsor sponsor address
+     * @param _vaultUser user address
+     * @param _reserve reserve address
+     * @param _amount redeem amount
+     **/
+    function redeemSecurity(
+        address payable _sponsor,
+        address _vaultUser,
+        address _reserve,
+        uint256 _amount
+    ) external onlyProxy {
+        address vaultAddress = _getVault(_vaultUser);
+        Vault(vaultAddress).redeemSecurity(_sponsor, _reserve, _amount);
+        proxy._emit(
+            abi.encode(_vaultUser, _reserve, _amount),
+            2,
+            keccak256('SecurityRedeemed(address, address, address, uint256)'),
+            bytes32(abi.encodePacked(_sponsor)),
+            0,
+            0
+        );
+    }
+
+    // placeholder function
+    function slash(
+        address _vaultUser,
+        address _reserve,
+        address payable _to,
+        uint256 _amount
+    ) public nonReentrant onlyProxy {
+        address vaultAddress = _getVault(_vaultUser);
+        return Vault(vaultAddress).slash(_reserve, _to, _amount);
+    }
+
+    /************************ HouseKeeping Function ******************************/
+
+    function initSecurityDepositToken(address _vaultUser, address _reserve)
+        external
+        onlyProxy
+        onlyAdmin
+    {
+        address vaultAddress = _getVault(_vaultUser);
+        Vault(vaultAddress).initSecurityDepositToken(_reserve);
+        proxy._emit(
+            abi.encode(_reserve),
+            2,
+            keccak256('SecurityDepositTokenInited(address, address)'),
+            bytes32(abi.encodePacked(_vaultUser)),
+            0,
+            0
+        );
+    }
+
+    /**
+     * Init a deployed Vault, ensure it has overlying security deposit token and corresponding staking contract
+     * _vaultUser the user/owner of this vault
+     * _reserve the underlying asset address e.g. TUS
+     **/
+    function initStakingContract(address _vaultUser, address _reserve)
+        external
+        onlyProxy
+        onlyAdmin
+    {
+        address vaultAddress = _getVault(_vaultUser);
+        Vault(vaultAddress).initStakingContract(_reserve);
+        proxy._emit(
+            abi.encode(_reserve),
+            2,
+            keccak256('StakingContractInited(address, address)'),
+            bytes32(abi.encodePacked(_vaultUser)),
+            0,
+            0
+        );
+    }
+
+    function setMaxSecurityDeposit(address _reserve, uint256 _amount)
+        external
+        onlyProxy
+        onlyAdmin
+    {
+        maxSecurityDeposit[_reserve] = _amount;
+        proxy._emit(
+            abi.encode(_amount),
+            2,
+            keccak256('MaxSecurityDepositUpdated(address, uint256)'),
+            bytes32(abi.encodePacked(_reserve)),
+            0,
+            0
+        );
+    }
+
+    function removeMaxSecurityDeposit(address _reserve)
+        external
+        onlyProxy
+        onlyAdmin
+    {
+        delete maxSecurityDeposit[_reserve];
+        proxy._emit(
+            abi.encode(_reserve),
+            2,
+            keccak256('MaxSecurityDepositDeleted(address)'),
+            bytes32(abi.encodePacked(_reserve)),
+            0,
+            0
+        );
+    }
+
+    function updateSecurityDepositRequirement(
+        address _reserve,
+        uint256 _requirement
+    ) external onlyProxy onlyAdmin {
+        securityDepositRequirement[_reserve] = _requirement;
+        proxy._emit(
+            abi.encode(_requirement),
+            2,
+            keccak256('SecurityDepositRequirementSet(address, uint256)'),
+            bytes32(abi.encodePacked(_reserve)),
+            0,
+            0
+        );
+    }
+
+    function removeSecurityDepositRequirement(address _reserve)
+        external
+        onlyProxy
+        onlyAdmin
+    {
+        delete securityDepositRequirement[_reserve];
+        proxy._emit(
+            abi.encode(_reserve),
+            2,
+            keccak256('SecurityDepositRequirementDeleted(address)'),
+            bytes32(abi.encodePacked(_reserve)),
+            0,
+            0
+        );
+    }
+
+    /************************************** View Functions **************************************/
+
+    function getSecurityDepositRequirement(address _reserve)
+        external
+        view
+        returns (uint256)
+    {
+        return securityDepositRequirement[_reserve];
+    }
+
+    function getMaxSecurityDeposit(address _reserve)
+        external
+        view
+        onlyProxy
+        returns (uint256)
+    {
+        return maxSecurityDeposit[_reserve];
+    }
+
+    function underlyingBalance(
+        address _vaultUser,
+        address _reserve,
+        address _sponsor
+    ) public view returns (uint256) {
+        address vaultAddress = _getVault(_vaultUser);
+        return Vault(vaultAddress).underlyingBalance(_sponsor, _reserve);
+    }
+
+    /**
+     * @dev Get available credit
+     * @param _user user address
+     * @param _reserve reserve address
+     **/
+    function getAvailableCredit(address _user, address _reserve)
+        public
+        view
+        returns (uint256)
+    {
+        uint256 creditLimit = getCreditLimit(_user, _reserve);
+        uint256 accumulatedDebt = Vault(_getVault(_user)).getTotalDebt();
+        return creditLimit - accumulatedDebt;
     }
 
     /**
@@ -99,88 +310,27 @@ contract VaultManager is
         return _getSecurityDeposit(_user, _reserve);
     }
 
-    function _getSecurityDeposit(address _user, address _reserve)
-        internal
+    function getVaultStorageAddress() private view returns (address) {
+        Voyager v = Voyager(voyager);
+        address resolver = v.getAddressResolverAddress();
+        return AddressResolver(resolver).getAddress(v.getVaultStorageName());
+    }
+
+    function getSecurityDepositTokenAddress(address vault)
+        private
         view
-        returns (uint256)
+        returns (address)
     {
-        address vaultAddress = _getVault(_user);
-        uint256 currentSecurityDeposit = Vault(vaultAddress)
-            .getCurrentSecurityDeposit(_reserve);
-        return currentSecurityDeposit;
+        return Vault(vault).getSecurityDepositTokenAddress();
     }
 
     /**
-     * @dev Get available credit
-     * @param _user user address
-     * @param _reserve reserve address
-     **/
-    function getAvailableCredit(address _user, address _reserve)
-        public
-        view
-        returns (uint256)
-    {
-        uint256 creditLimit = getCreditLimit(_user, _reserve);
-        uint256 accumulatedDebt = Vault(_getVault(_user)).getTotalDebt();
-        return creditLimit - accumulatedDebt;
-    }
-
-    /**
-     * @dev Create a Vault for user
+     * @dev Get existing Vault contract address for user
      * @param _user the address of the player
+     * @return Vault address
      **/
-    function createVault(address _user)
-        external
-        onlyProxy
-        returns (address vault)
-    {
-        bytes memory bytecode = type(Vault).creationCode;
-        bytes32 salt = keccak256(abi.encodePacked(_user));
-        assembly {
-            vault := create2(0, add(bytecode, 32), mload(bytecode), salt)
-        }
-        Vault(vault).initialize(voyager, _user);
-        uint256 len = VaultStorage(getVaultStorageAddress()).pushNewVault(
-            _user,
-            vault
-        );
-        emit VaultCreated(_user, vault, len);
-    }
-
-    /**
-     * @dev Delegate call to Vault's depositSecurity
-     * @param _sponsor who actual deposits the reserve into the amount
-     * @param _vaultUser user address
-     * @param _reserve reserve address
-     * @param _amount amount user is willing to deposit
-     */
-    function depositSecurity(
-        address _sponsor,
-        address _vaultUser,
-        address _reserve,
-        uint256 _amount
-    ) external onlyProxy {
-        address vaultAddress = _getVault(_vaultUser);
-        Vault(vaultAddress).depositSecurity(_sponsor, _reserve, _amount);
-        emit SecurityDeposited(_sponsor, _vaultUser, _reserve, _amount);
-    }
-
-    /**
-     * @dev  Delegate call to Vault's redeemSecurity
-     * @param _sponsor sponsor address
-     * @param _vaultUser user address
-     * @param _reserve reserve address
-     * @param _amount redeem amount
-     **/
-    function redeemSecurity(
-        address payable _sponsor,
-        address _vaultUser,
-        address _reserve,
-        uint256 _amount
-    ) external onlyProxy {
-        address vaultAddress = _getVault(_vaultUser);
-        Vault(vaultAddress).redeemSecurity(_sponsor, _reserve, _amount);
-        emit SecurityRedeemed(_sponsor, _vaultUser, _reserve, _amount);
+    function getVault(address _user) external view returns (address) {
+        return _getVault(_user);
     }
 
     function eligibleAmount(
@@ -192,89 +342,28 @@ contract VaultManager is
         return Vault(vaultAddress).eligibleAmount(_reserve, _sponsor);
     }
 
-    // placeholder function
-    function slash(
-        address _vaultUser,
-        address _reserve,
-        address payable _to,
-        uint256 _amount
-    ) public nonReentrant onlyProxy {
-        address vaultAddress = _getVault(_vaultUser);
-        return Vault(vaultAddress).slash(_reserve, _to, _amount);
-    }
+    /************************************** Private Functions **************************************/
 
-    function underlyingBalance(
-        address _vaultUser,
-        address _reserve,
-        address _sponsor
-    ) public view returns (uint256) {
-        address vaultAddress = _getVault(_vaultUser);
-        return Vault(vaultAddress).underlyingBalance(_sponsor, _reserve);
-    }
-
-    function initSecurityDepositToken(address _vaultUser, address _reserve)
-        external
-        onlyProxy
-    {
-        address vaultAddress = _getVault(_vaultUser);
-        Vault(vaultAddress).initSecurityDepositToken(_reserve);
-    }
-
-    /**
-     * Init a deployed Vault, ensure it has overlying security deposit token and corresponding staking contract
-     * _vaultUser the user/owner of this vault
-     * _reserve the underlying asset address e.g. TUS
-     **/
-    function initStakingContract(address _vaultUser, address _reserve)
-        external
-        onlyProxy
-    {
-        address vaultAddress = _getVault(_vaultUser);
-        Vault(vaultAddress).initStakingContract(_reserve);
-    }
-
-    /************************ HouseKeeping Function ******************************/
-
-    function setMaxSecurityDeposit(address _reserve, uint256 _amount)
-        external
-        onlyProxy
-    {
-        maxSecurityDeposit[_reserve] = _amount;
-    }
-
-    function removeMaxSecurityDeposit(address _reserve) external onlyProxy {
-        delete maxSecurityDeposit[_reserve];
-    }
-
-    function getMaxSecurityDeposit(address _reserve)
-        external
-        view
-        onlyProxy
-        returns (uint256)
-    {
-        return maxSecurityDeposit[_reserve];
-    }
-
-    function updateSecurityDepositRequirement(
-        address _reserve,
-        uint256 _requirement
-    ) external onlyProxy {
-        securityDepositRequirement[_reserve] = _requirement;
-        emit SecurityDepositRequirementSet(_reserve, _requirement);
-    }
-
-    function removeSecurityDepositRequirement(address _reserve)
-        external
-        onlyProxy
-    {
-        delete securityDepositRequirement[_reserve];
-    }
-
-    function getSecurityDepositRequirement(address _reserve)
-        external
+    function _getSecurityDeposit(address _user, address _reserve)
+        internal
         view
         returns (uint256)
     {
-        return securityDepositRequirement[_reserve];
+        address vaultAddress = _getVault(_user);
+        uint256 currentSecurityDeposit = Vault(vaultAddress)
+            .getCurrentSecurityDeposit(_reserve);
+        return currentSecurityDeposit;
+    }
+
+    function _getVault(address _user) internal view returns (address) {
+        return VaultStorage(getVaultStorageAddress()).getVaultAddress(_user);
+    }
+
+    function _requireCallerAdmin() internal {
+        Voyager v = Voyager(voyager);
+        IACLManager aclManager = IACLManager(
+            v.addressResolver().getAddress(v.getACLManagerName())
+        );
+        require(aclManager.isVaultManager(tx.origin), 'Not vault admin');
     }
 }
