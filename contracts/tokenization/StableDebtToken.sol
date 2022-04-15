@@ -56,19 +56,19 @@ contract StableDebtToken is
         return _avgStableRate;
     }
 
-
     /**
-    * @dev Calculate the current user debt principal
-    **/
+     * @dev Calculate the current user debt principal
+     **/
     function principalOf(address _account) public view returns (uint256) {
         DataTypes.BorrowData storage borrowData = _borrowData[_account];
         uint256 principal;
-        for (uint256 i=0; i<borrowData.drawDownNumber;i++) {
+        for (uint256 i = 0; i < borrowData.drawDownNumber; i++) {
             principal += borrowData.drawDowns[i].amount;
         }
 
         return principal;
     }
+
     /**
      * @dev Calculates the current user debt balance
      * @return The accumulated debt of the user
@@ -190,10 +190,32 @@ contract StableDebtToken is
         return aggregateActualRepayment;
     }
 
+    /**
+     * @dev Calculates the increase in balance since the last user interaction
+     * @param _user The address of the user for which the
+     * @return The previous principal balance
+     * @return The new principal balance
+     * @return The balance increase
+     **/
+    function _calculateBalanceIncrease(address _user)
+        internal
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256
+        )
+    {
+        uint256 principal = principalOf(_user);
+        if (principal == 0) {
+            return (0, 0, 0);
+        }
 
-
-
-    function _calculateBalanceIncrease(address user) internal view {
-
+        uint256 newPrincipalBalance = balanceOf(_user);
+        return (
+            principal,
+            newPrincipalBalance,
+            newPrincipalBalance - principal
+        );
     }
 }
