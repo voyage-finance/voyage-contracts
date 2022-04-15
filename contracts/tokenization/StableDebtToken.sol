@@ -190,6 +190,43 @@ contract StableDebtToken is
         return aggregateActualRepayment;
     }
 
+    struct MintLocalVars {
+        uint256 previousSupply;
+        uint256 nextSupply;
+        uint256 amountInRay;
+        uint256 currentStableRate;
+        uint256 nextStableRate;
+        uint256 currentAvgStableRate;
+    }
+
+    function mint(
+        address _user,
+        uint256 _amount,
+        uint256 _rate
+    ) external {
+        (
+            ,
+            uint256 currentBalance,
+            uint256 balanceIncrease
+        ) = _calculateBalanceIncrease(_user);
+    }
+
+    function totalSupply() public view virtual override returns (uint256) {
+        return _calcTotalSupply(_avgStableRate);
+    }
+
+    function getTotalSupplyLastUpdated()
+        external
+        view
+        returns (uint40)
+    {
+        return _totalSupplyTimestamp;
+    }
+
+    function underlyingAssetAddress() external view returns (address) {
+        return underlyingAsset;
+    }
+
     /**
      * @dev Calculates the increase in balance since the last user interaction
      * @param _user The address of the user for which the
