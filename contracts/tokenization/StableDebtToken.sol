@@ -9,14 +9,25 @@ import './DebtTokenBase.sol';
 import '../interfaces/IDebtToken.sol';
 import '../libraries/types/DataTypes.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeCast.sol';
+import 'openzeppelin-solidity/contracts/utils/Context.sol';
+import '../libraries/helpers/Errors.sol';
 
 contract StableDebtToken is
+    Context,
     IInitializableDebtToken,
     IStableDebtToken,
     DebtTokenBase
 {
     using WadRayMath for uint256;
     using SafeCast for uint256;
+
+    modifier onlyLoanManager() {
+        require(
+            _msgSender() == addressResolver.getAddress('loanManager'),
+            Errors.CT_CALLER_MUST_BE_LOAN_MANAGER
+        );
+        _;
+    }
 
     uint256 public constant DEBT_TOKEN_REVISION = 0x1;
     uint256 public constant SECONDS_PER_DAY = 1 days;
@@ -214,13 +225,12 @@ contract StableDebtToken is
         uint256 currentAvgStableRate;
     }
 
-    // todo only loan manager
     function mint(
         address _user,
         uint256 _amount,
         uint256 _tenure,
         uint256 _rate
-    ) external {
+    ) external onlyLoanManager {
         MintLocalVars memory vars;
 
         (

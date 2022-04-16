@@ -17,6 +17,7 @@ library Errors {
     string public constant VL_NO_ACTIVE_RESERVE = '2'; // 'Action requires an active reserve'
     string public constant VL_RESERVE_FROZEN = '3'; // 'Action cannot be performed because the reserve is frozen'
     string public constant CT_CALLER_MUST_BE_LIQUIDITY_MANAGER_POOL = '20';
+    string public constant CT_CALLER_MUST_BE_LOAN_MANAGER = '21';
     string public constant CT_INVALID_MINT_AMOUNT = '21';
     string public constant CT_INVALID_BURN_AMOUNT = '22';
     string public constant LM_NOT_CONTRACT = '60';
