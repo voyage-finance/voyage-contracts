@@ -13,6 +13,9 @@ contract ACLManager is AccessControl, IACLManager {
     bytes32 public constant VAULT_MANAGER_ADMIN_ROLE =
         keccak256('VAULT_MANAGER_ADMIN');
 
+    bytes32 public constant LOAN_MANAGER_ADMIN_ROLE =
+        keccak256('LOAN_MANAGER_ADMIN');
+
     constructor(address _aclAdmin) {
         _setupRole(DEFAULT_ADMIN_ROLE, _aclAdmin);
     }
@@ -23,6 +26,14 @@ contract ACLManager is AccessControl, IACLManager {
 
     function isLiquidityManager(address _admin) external view returns (bool) {
         return hasRole(LIQUIDITY_MANAGER_ADMIN_ROLE, _admin);
+    }
+
+    function grantLoanManager(address _admin) external {
+        grantRole(LOAN_MANAGER_ADMIN_ROLE, _admin);
+    }
+
+    function isLoanManager(address _admin) external view returns (bool) {
+        return hasRole(LOAN_MANAGER_ADMIN_ROLE, _admin);
     }
 
     function grantVaultManager(address _admin) external {
