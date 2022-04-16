@@ -117,6 +117,7 @@ contract StableDebtToken is
                 drawDown.timestamp
             );
             drawDown.amount = drawDown.amount.rayMul(cumulatedInterest);
+            drawDown.timestamp = block.timestamp;
         }
     }
 
@@ -272,6 +273,15 @@ contract StableDebtToken is
                 )
         ).toUint128();
         _mint(_user);
+        emit Mint(
+            _user,
+            _amount,
+            currentBalance,
+            balanceIncrease,
+            vars.nextStableRate,
+            vars.currentAvgStableRate,
+            vars.nextSupply
+        );
     }
 
     function totalSupply() public view virtual override returns (uint256) {
