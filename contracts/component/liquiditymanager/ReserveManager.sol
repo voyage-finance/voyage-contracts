@@ -107,14 +107,6 @@ abstract contract ReserveManager is
             );
     }
 
-    function setLoanManagerToEscrow(address _loadManager)
-        external
-        onlyProxy
-        onlyAdmin
-    {
-        escrow().setLoadManager(_loadManager);
-    }
-
     /************************************** View Functions **************************************/
 
     function getReserveData(address _asset)

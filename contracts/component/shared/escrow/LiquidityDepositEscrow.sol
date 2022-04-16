@@ -36,6 +36,14 @@ contract LiquidityDepositEscrow is Escrow {
         _withdraw(_reserve, _user, _amount);
     }
 
+    function transfer(
+        address _reserve,
+        address payable _user,
+        uint256 _amount
+    ) public onlyLoanManager {
+        IERC20(_reserve).transfer(_user, _amount);
+    }
+
     function balanceOf(address _reserve) public view returns (uint256) {
         return IERC20(_reserve).balanceOf(address(this));
     }

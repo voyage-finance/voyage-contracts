@@ -17,8 +17,6 @@ interface IReserveManager {
 
     function activeReserve(address _asset) external;
 
-    function setLoanManagerToEscrow(address _loadManager) external;
-
     function getReserveData(address _asset)
         external
         view
