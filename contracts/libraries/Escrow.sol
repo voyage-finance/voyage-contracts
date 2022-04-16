@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import './ownership/Ownable.sol';
 import 'openzeppelin-solidity/contracts/utils/Address.sol';
 import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import './EthAddressLib.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
 
-contract Escrow is Ownable, ReentrancyGuard {
+contract Escrow is ReentrancyGuard {
     using Address for address payable;
     using SafeERC20 for ERC20;
 
@@ -83,7 +82,7 @@ contract Escrow is Ownable, ReentrancyGuard {
         address _reserve,
         address payable _user,
         uint256 _amount
-    ) internal onlyOwner {
+    ) internal {
         Deposit[] storage deposits = _depositRecords[_reserve][_user];
         uint256 eligibleAmount = 0;
         uint40 lastUpdateTime;
