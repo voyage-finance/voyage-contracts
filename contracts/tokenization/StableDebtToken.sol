@@ -8,6 +8,7 @@ import '../component/infra/AddressResolver.sol';
 import './DebtTokenBase.sol';
 import '../interfaces/IDebtToken.sol';
 import '../libraries/types/DataTypes.sol';
+import 'openzeppelin-solidity/contracts/utils/math/SafeCast.sol';
 
 contract StableDebtToken is
     IInitializableDebtToken,
@@ -15,6 +16,7 @@ contract StableDebtToken is
     DebtTokenBase
 {
     using WadRayMath for uint256;
+    using SafeCast for uint256;
 
     uint256 public constant DEBT_TOKEN_REVISION = 0x1;
     uint256 public constant SECONDS_PER_DAY = 1 days;
@@ -80,9 +82,9 @@ contract StableDebtToken is
         returns (uint256)
     {
         DataTypes.BorrowData storage borrowData = _borrowData[_account];
-        uint256 stableRate = _usersStableRate[_account];
         uint256 cumulatedBalance;
         for (uint256 i = 0; i < borrowData.drawDownNumber; i++) {
+            uint256 stableRate = borrowData.drawDowns[i].borrowRate;
             uint256 cumulatedInterest = MathUtils.calculateCompoundedInterest(
                 stableRate,
                 borrowData.drawDowns[i].timestamp
@@ -92,6 +94,19 @@ contract StableDebtToken is
             );
         }
         return cumulatedBalance;
+    }
+
+    function _mint(address _account) internal {
+        DataTypes.BorrowData storage borrowData = _borrowData[_account];
+        for (uint256 i = 0; i < borrowData.drawDownNumber; i++) {
+            DataTypes.DrawDown storage drawDown = borrowData.drawDowns[i];
+            uint256 stableRate = drawDown.borrowRate;
+            uint256 cumulatedInterest = MathUtils.calculateCompoundedInterest(
+                stableRate,
+                drawDown.timestamp
+            );
+            drawDown.amount = drawDown.amount.rayMul(cumulatedInterest);
+        }
     }
 
     /**
@@ -199,13 +214,14 @@ contract StableDebtToken is
         uint256 currentAvgStableRate;
     }
 
+    // todo only loan manager
     function mint(
         address _user,
         uint256 _amount,
+        uint256 _tenure,
         uint256 _rate
     ) external {
         MintLocalVars memory vars;
-
 
         (
             ,
@@ -220,18 +236,39 @@ contract StableDebtToken is
         vars.amountInRay = _amount.wadToRay();
         vars.currentStableRate = _usersStableRate[_user];
 
+        DataTypes.BorrowData storage bd = _borrowData[_user];
+        uint256 currentDrawDownNumber = bd.drawDownNumber;
+        bd.drawDowns[currentDrawDownNumber].amount = _amount;
+        bd.drawDowns[currentDrawDownNumber].tenure = _tenure;
+        bd.drawDowns[currentDrawDownNumber].borrowRate = _rate;
+        bd.drawDowns[currentDrawDownNumber].timestamp = uint40(block.timestamp);
+        bd.drawDownNumber++;
 
+        vars.nextStableRate = (vars.currentStableRate.rayMul(
+            currentBalance.wadToRay()
+        ) + vars.amountInRay.rayMul(_rate)).rayDiv(
+                (currentBalance + _amount).wadToRay()
+            );
+
+        _usersStableRate[_user] = vars.nextStableRate.toUint128();
+
+        _totalSupplyTimestamp = uint40(block.timestamp);
+
+        // Calculates the updated average stable rate
+        vars.currentAvgStableRate = _avgStableRate = (
+            (vars.currentAvgStableRate.rayMul(vars.previousSupply.wadToRay()) +
+                _rate.rayMul(vars.amountInRay)).rayDiv(
+                    vars.nextSupply.wadToRay()
+                )
+        ).toUint128();
+        _mint(_user);
     }
 
     function totalSupply() public view virtual override returns (uint256) {
         return _calcTotalSupply(_avgStableRate);
     }
 
-    function getTotalSupplyLastUpdated()
-        external
-        view
-        returns (uint40)
-    {
+    function getTotalSupplyLastUpdated() external view returns (uint40) {
         return _totalSupplyTimestamp;
     }
 
