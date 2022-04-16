@@ -9,6 +9,7 @@ import '../../libraries/math/WadRayMath.sol';
 import '../../libraries/types/DataTypes.sol';
 import '../../interfaces/IMessageBus.sol';
 import '../../interfaces/IHealthStrategy.sol';
+import '../../interfaces/IInitializableDebtToken.sol';
 import '../Voyager.sol';
 
 contract LoanManager is Proxyable, IVoyagerComponent {
@@ -88,6 +89,10 @@ contract LoanManager is Proxyable, IVoyagerComponent {
         lms.updateStateOnBorrow(_asset, _amount);
 
         // 5. mint debt token and transfer underlying token
+        address debtToken = voyager.addressResolver.getAddress(
+            voyager.getStableDebtTokenName()
+        );
+        IInitializableDebtToken(debtToken).mint(_user, _amount, 0);
     }
 
     function _executeBorrow(ExecuteBorrowParams memory vars) internal {}

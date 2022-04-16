@@ -202,4 +202,8 @@ contract MessageBus is IMessageBus, Ownable {
     function getACLManagerName() external view returns (bytes32) {
         return aclManagerName;
     }
+
+    function getStableDebtTokenName() external view returns (bytes32) {
+        return stableDebtTokenName;
+    }
 }

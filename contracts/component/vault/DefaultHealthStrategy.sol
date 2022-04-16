@@ -57,4 +57,20 @@ contract DefaultHealthStrategy is IHealthStrategy {
                 .add(repaymentRatio.rayMul(weightedRepaymentRatio))
                 .rayDiv(wightedLTV.add(weightedRepaymentRatio));
     }
+
+    function getPremiumFactor() external view returns (uint256) {
+        return premiumFactor;
+    }
+
+    function getLoanTenure() external view returns (uint256) {
+        return loanTenure;
+    }
+
+    function getWightedLTV() external view returns (uint256) {
+        return wightedLTV;
+    }
+
+    function getWeightedRepaymentRatio() external view returns (uint256) {
+        return weightedRepaymentRatio;
+    }
 }
