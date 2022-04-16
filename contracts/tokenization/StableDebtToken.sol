@@ -117,7 +117,7 @@ contract StableDebtToken is
                 drawDown.timestamp
             );
             drawDown.amount = drawDown.amount.rayMul(cumulatedInterest);
-            drawDown.timestamp = block.timestamp;
+            drawDown.timestamp = uint40(block.timestamp);
         }
     }
 

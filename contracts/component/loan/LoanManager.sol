@@ -16,7 +16,6 @@ contract LoanManager is Proxyable, IVoyagerComponent {
     using WadRayMath for uint256;
 
     LiquidityDepositEscrow public liquidityDepositEscrow;
-    IMessageBus public messageBus;
 
     constructor(
         address payable _proxy,
@@ -42,7 +41,7 @@ contract LoanManager is Proxyable, IVoyagerComponent {
     ) external requireNotPaused {
         // 0. check if the user owns the vault
         require(
-            messageBus.getVault(_user) == _vault,
+            voyager.getVault(_user) == _vault,
             Errors.LOM_NOT_VAULT_OWNER
         );
 
@@ -55,20 +54,20 @@ contract LoanManager is Proxyable, IVoyagerComponent {
         );
 
         // 2. check HF
-        DataTypes.ReserveData memory reserveData = messageBus.getReserveData(
+        DataTypes.ReserveData memory reserveData = voyager.getReserveData(
             _asset
         );
         IHealthStrategy healthStrategy = IHealthStrategy(
             reserveData.healthStrategyAddress
         );
         DataTypes.HealthRiskParameter memory hrp;
-        hrp.securityDeposit = messageBus.getSecurityDeposit(_user, _asset);
+        hrp.securityDeposit = voyager.getSecurityDeposit(_user, _asset);
         hrp.currentBorrowRate = reserveData.currentBorrowRate;
-        hrp.compoundedDebt = messageBus.getCompoundedDebt(_user);
+        hrp.compoundedDebt = voyager.getCompoundedDebt(_user);
         hrp.grossAssetValue = _grossAssetValue;
-        hrp.aggregateOptimalRepaymentRate = messageBus
+        hrp.aggregateOptimalRepaymentRate = voyager
             .getAggregateOptimalRepaymentRate(_user);
-        hrp.aggregateActualRepaymentRate = messageBus
+        hrp.aggregateActualRepaymentRate = voyager
             .getAggregateActualRepaymentRate(_user);
 
         uint256 hr = healthStrategy.calculateHealthRisk(hrp);
@@ -91,7 +90,6 @@ contract LoanManager is Proxyable, IVoyagerComponent {
         );
         lms.updateStateOnBorrow(_asset, _amount);
 
-        // todo
         // 5. mint debt token and transfer underlying token
     }
 
