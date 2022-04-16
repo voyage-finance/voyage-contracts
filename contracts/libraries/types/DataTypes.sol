@@ -63,6 +63,7 @@ library DataTypes {
         uint256 amount;
         uint256 tenure;
         uint40 timestamp;
+        uint256 borrowRate;
         Repayment repayment;
     }
 

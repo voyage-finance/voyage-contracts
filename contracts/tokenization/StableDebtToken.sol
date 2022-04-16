@@ -204,11 +204,23 @@ contract StableDebtToken is
         uint256 _amount,
         uint256 _rate
     ) external {
+        MintLocalVars memory vars;
+
+
         (
             ,
             uint256 currentBalance,
             uint256 balanceIncrease
         ) = _calculateBalanceIncrease(_user);
+
+        vars.previousSupply = totalSupply();
+        vars.currentAvgStableRate = _avgStableRate;
+        vars.nextSupply = _totalSupply = vars.previousSupply + _amount;
+
+        vars.amountInRay = _amount.wadToRay();
+        vars.currentStableRate = _usersStableRate[_user];
+
+
     }
 
     function totalSupply() public view virtual override returns (uint256) {
