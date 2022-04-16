@@ -10,6 +10,7 @@ import '../../libraries/types/DataTypes.sol';
 import '../../interfaces/IMessageBus.sol';
 import '../../interfaces/IHealthStrategy.sol';
 import '../../interfaces/IInitializableDebtToken.sol';
+import '../../interfaces/IVault.sol';
 import '../Voyager.sol';
 
 contract LoanManager is Proxyable, IVoyagerComponent {
@@ -37,7 +38,7 @@ contract LoanManager is Proxyable, IVoyagerComponent {
         address _user,
         address _asset,
         uint256 _amount,
-        address _vault,
+        address payable _vault,
         uint256 _grossAssetValue
     ) external requireNotPaused {
         // 0. check if the user owns the vault
@@ -89,6 +90,7 @@ contract LoanManager is Proxyable, IVoyagerComponent {
         lms.updateStateOnBorrow(_asset, _amount);
 
         // 5. increase vault debt
+        IVault(_vault).increaseTotalDebt(_amount);
 
         // 6. mint debt token and transfer underlying token
         address debtToken = voyager.addressResolver().getAddress(
