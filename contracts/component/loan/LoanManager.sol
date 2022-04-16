@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
+import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 import '../../libraries/proxy/Proxyable.sol';
 import '../../interfaces/IVoyagerComponent.sol';
 import '../../libraries/helpers/Errors.sol';
 import '../../libraries/math/WadRayMath.sol';
 import '../../libraries/types/DataTypes.sol';
-import '../Voyager.sol';
-import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 import '../../interfaces/IMessageBus.sol';
 import '../../interfaces/IHealthStrategy.sol';
+import '../Voyager.sol';
 
 contract LoanManager is Proxyable, IVoyagerComponent {
     using SafeMath for uint256;
@@ -40,10 +40,7 @@ contract LoanManager is Proxyable, IVoyagerComponent {
         uint256 _grossAssetValue
     ) external requireNotPaused {
         // 0. check if the user owns the vault
-        require(
-            voyager.getVault(_user) == _vault,
-            Errors.LOM_NOT_VAULT_OWNER
-        );
+        require(voyager.getVault(_user) == _vault, Errors.LOM_NOT_VAULT_OWNER);
 
         // 1. check if pool liquidity is sufficient
         DataTypes.DepositAndDebt memory depositAndDebt = getDepositAndDebt();

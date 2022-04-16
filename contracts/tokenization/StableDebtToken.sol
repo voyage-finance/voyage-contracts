@@ -3,7 +3,6 @@ pragma solidity ^0.8.9;
 
 import '../libraries/math/WadRayMath.sol';
 import '../libraries/math/MathUtils.sol';
-import './IInitializableDebtToken.sol';
 import '../component/infra/AddressResolver.sol';
 import './DebtTokenBase.sol';
 import '../interfaces/IDebtToken.sol';
@@ -11,6 +10,7 @@ import '../libraries/types/DataTypes.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeCast.sol';
 import 'openzeppelin-solidity/contracts/utils/Context.sol';
 import '../libraries/helpers/Errors.sol';
+import '../interfaces/IInitializableDebtToken.sol';
 
 contract StableDebtToken is
     Context,
