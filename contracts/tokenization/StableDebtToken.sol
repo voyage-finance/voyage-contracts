@@ -231,7 +231,7 @@ contract StableDebtToken is
         uint256 _amount,
         uint256 _tenure,
         uint256 _rate
-    ) external onlyLoanManager {
+    ) external override onlyLoanManager {
         MintLocalVars memory vars;
 
         (

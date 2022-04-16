@@ -66,12 +66,13 @@ abstract contract IInitializableDebtToken {
         return !initializing && getRevision() <= lastInitializedRevision;
     }
 
+    // todo return value
     function mint(
         address _user,
         uint256 _amount,
         uint256 _tenure,
         uint256 _rate
-    ) external;
+    ) external virtual;
 
     /**
      * @dev Returns true if and only if the function is running in the constructor
