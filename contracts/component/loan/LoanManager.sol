@@ -88,7 +88,9 @@ contract LoanManager is Proxyable, IVoyagerComponent {
         );
         lms.updateStateOnBorrow(_asset, _amount);
 
-        // 5. mint debt token and transfer underlying token
+        // 5. increase vault debt
+
+        // 6. mint debt token and transfer underlying token
         address debtToken = voyager.addressResolver().getAddress(
             voyager.getStableDebtTokenName()
         );
@@ -99,7 +101,7 @@ contract LoanManager is Proxyable, IVoyagerComponent {
             reserveData.currentBorrowRate
         );
 
-        liquidityDepositEscrow.transfer(_asset, _user, _amount);
+        liquidityDepositEscrow.transfer(_asset, _vault, _amount);
     }
 
     function _executeBorrow(ExecuteBorrowParams memory vars) internal {}
