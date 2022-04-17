@@ -120,6 +120,12 @@ abstract contract ReserveManager is
                 .getReserveData(_asset);
     }
 
+    function getReserveList() external view returns (address[] memory) {
+        return
+            LiquidityManagerStorage(liquidityManagerStorageAddress())
+                .getReserveList();
+    }
+
     function getConfiguration(address _asset)
         public
         view

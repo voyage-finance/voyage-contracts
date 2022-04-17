@@ -22,6 +22,8 @@ interface IReserveManager {
         view
         returns (DataTypes.ReserveData memory);
 
+    function getReserveList() external view returns (address[] memory);
+
     function getConfiguration(address _asset)
         external
         view
