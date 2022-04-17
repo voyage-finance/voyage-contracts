@@ -6,17 +6,19 @@ import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 import '../../Voyager.sol';
 import '../../../interfaces/IACLManager.sol';
+import '../../infra/AddressResolver.sol';
 
 contract LiquidityDepositEscrow is Escrow {
     Voyager private voyager;
+    bool private initialized;
 
     modifier onlyLiquidityManager() {
-        _requireCallerLiquidityManager();
+        _requireCallerLiquidityManagerContract();
         _;
     }
 
     modifier onlyLoanManager() {
-        _requireCallerLiquidityManager();
+        _requireCallerLoanManagerContract();
         _;
     }
 
@@ -26,6 +28,13 @@ contract LiquidityDepositEscrow is Escrow {
         uint256 _amount
     ) public payable nonReentrant onlyLiquidityManager {
         _deposit(_reserve, _user, _amount);
+    }
+
+    function init(address _voyager) external {
+        if (!initialized) {
+            voyager = Voyager(_voyager);
+            initialized = true;
+        }
     }
 
     function withdraw(
@@ -50,22 +59,23 @@ contract LiquidityDepositEscrow is Escrow {
 
     /************************************** Private Functions **************************************/
 
-    function _requireCallerLiquidityManager() internal {
-        Voyager v = Voyager(voyager);
-        IACLManager aclManager = IACLManager(
-            v.addressResolver().getAddress(v.getACLManagerName())
-        );
-        require(
-            aclManager.isLiquidityManager(msg.sender),
-            'Not liquidity manager'
-        );
+    function _requireCallerLiquidityManagerContract() internal {
+        //        Voyager v = Voyager(voyager);
+        AddressResolver addressResolver = voyager.addressResolver();
+        //        IACLManager aclManager = IACLManager(
+        //            v.addressResolver().getAddress(v.getACLManagerName())
+        //        );
+        //        require(
+        //            aclManager.isLiquidityManagerContract(msg.sender),
+        //            'Not liquidity manager contract'
+        //        );
     }
 
-    function _requireCallerLoanManager() internal {
-        Voyager v = Voyager(voyager);
-        IACLManager aclManager = IACLManager(
-            v.addressResolver().getAddress(v.getACLManagerName())
-        );
-        require(aclManager.isLoanManager(msg.sender), 'Not liquidity manager');
+    function _requireCallerLoanManagerContract() internal {
+        //        Voyager v = Voyager(voyager);
+        //        IACLManager aclManager = IACLManager(
+        //            v.addressResolver().getAddress(v.getACLManagerName())
+        //        );
+        //        require(aclManager.isLoanManagerContract(msg.sender), 'Not liquidity manager contract');
     }
 }
