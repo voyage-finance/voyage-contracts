@@ -30,8 +30,10 @@ contract LiquidityManagerProxy is Proxy {
     function getReserveList()
         external
         view
-        returns (DataTypes.FungibleTokenData memory)
-    {}
+        returns (address[] memory)
+    {
+        return IReserveManager(address(target)).getReserveList();
+    }
 
     function getConfiguration(address _reserve)
         external
