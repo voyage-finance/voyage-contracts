@@ -17,6 +17,7 @@ import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
  * for querying each other among the internal components
  **/
 contract MessageBus is IMessageBus, Ownable {
+    // todo to remove
     bytes32 public constant aclManagerName = 'aclManager';
     bytes32 public constant liquidityManagerProxyName = 'liquidityManagerProxy';
     bytes32 public constant liquidityManagerName = 'liquidityManager';

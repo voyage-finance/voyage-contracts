@@ -3,6 +3,7 @@ pragma solidity ^0.8.9;
 
 import '../libraries/types/DataTypes.sol';
 import '../interfaces/IAddressResolver.sol';
+import '../interfaces/ILiquidityManager.sol';
 
 contract VoyageProtocolDataProvider {
     IAddressResolver public addressResolver;
@@ -16,6 +17,7 @@ contract VoyageProtocolDataProvider {
         view
         returns (DataTypes.FungibleTokenData[] memory tokens)
     {
+        ILiquidityManager(addressResolver.getLiquidityManagerProxy());
         DataTypes.FungibleTokenData[]
             memory reserves = new DataTypes.FungibleTokenData[](1);
         return reserves;

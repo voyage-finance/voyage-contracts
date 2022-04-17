@@ -147,6 +147,14 @@ contract LiquidityManagerStorage is State {
         return _reserves[_asset];
     }
 
+    function getReserveList() public view returns (address[] memory) {
+        address[] memory reserveList = new address[](_reservesCount);
+        for (uint256 i = 0; i < _reservesCount; i++) {
+            reserveList[i] = _reserveList[i];
+        }
+        return reserveList;
+    }
+
     function getConfiguration(address _asset)
         public
         view
