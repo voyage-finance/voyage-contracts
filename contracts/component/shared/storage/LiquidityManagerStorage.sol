@@ -15,6 +15,12 @@ contract LiquidityManagerStorage is State {
 
     mapping(address => DataTypes.ReserveData) internal _reserves;
 
+    // List of reserves as a map (reserveId => reserve)
+    mapping(uint256 => address) internal _reserveList;
+
+    // Maximum number of active reserves there have been in the protocol. It is the upper bound of the reserves list
+    uint16 internal _reservesCount;
+
     bool internal _paused;
     uint256 public juniorDepositAmount;
     uint256 public seniorDepositAmount;
@@ -41,6 +47,9 @@ contract LiquidityManagerStorage is State {
             _interestRateStrategyAddress,
             _healthStrategyAddress
         );
+
+        _reserveList[_reservesCount] = _asset;
+        _reservesCount++;
     }
 
     function updateStateOnDeposit(
