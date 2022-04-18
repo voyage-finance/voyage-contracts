@@ -62,9 +62,7 @@ contract LiquidityDepositEscrow is Escrow {
     function _requireCallerLiquidityManagerContract() internal {
         Voyager v = Voyager(voyager);
         IACLManager aclManager = IACLManager(
-            voyager.addressResolver().getAddress(
-                v.getACLManagerName()
-            )
+            voyager.addressResolver().getAddress(v.getACLManagerName())
         );
         require(
             aclManager.isLiquidityManagerContract(msg.sender),
