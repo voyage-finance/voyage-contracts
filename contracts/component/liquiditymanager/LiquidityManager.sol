@@ -18,6 +18,7 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
         ReserveManager(_proxy, _voyager)
     {
         liquidityDepositEscrow = LiquidityDepositEscrow(deployEscrow());
+        liquidityDepositEscrow.init(_voyager);
     }
 
     /************************************** User Functions **************************************/

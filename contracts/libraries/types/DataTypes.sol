@@ -56,13 +56,13 @@ library DataTypes {
         uint256 totalDebt;
         mapping(uint256 => DrawDown) drawDowns;
         mapping(uint256 => Repayment) repayments;
-        uint256 lastUpdateTime;
     }
 
     struct DrawDown {
         uint256 amount;
         uint256 tenure;
         uint40 timestamp;
+        uint256 borrowRate;
         Repayment repayment;
     }
 

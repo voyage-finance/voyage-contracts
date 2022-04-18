@@ -5,6 +5,18 @@ import '../../interfaces/IAddressResolver.sol';
 import '../../libraries/ownership/Ownable.sol';
 
 contract AddressResolver is IAddressResolver, Ownable {
+    bytes32 public constant aclManagerName = 'aclManager';
+    bytes32 public constant liquidityManagerProxyName = 'liquidityManagerProxy';
+    bytes32 public constant liquidityManagerName = 'liquidityManager';
+    bytes32 public constant liquidityManagerStorageName =
+        'liquidityManagerStorage';
+    bytes32 public constant loanManagerName = 'loanManager';
+    bytes32 public constant vaultManagerProxyName = 'vaultManagerProxy';
+    bytes32 public constant vaultStorageName = 'vaultStorage';
+    bytes32 public constant securityDepositTokenName = 'securityDepositToken';
+    bytes32 public constant stableDebtTokenName = 'stableDebtToken';
+    bytes32 public constant extCallACLProxyName = 'extCallACLProxy';
+
     mapping(bytes32 => address) public repository;
 
     function importAddresses(
@@ -22,6 +34,10 @@ contract AddressResolver is IAddressResolver, Ownable {
             repository[name] = destination;
             emit AddressImported(name, destination);
         }
+    }
+
+    function getLiquidityManagerProxy() external view returns (address) {
+        return repository[liquidityManagerProxyName];
     }
 
     function getAddress(bytes32 name) external view returns (address) {

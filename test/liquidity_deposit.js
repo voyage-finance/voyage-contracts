@@ -4,6 +4,8 @@ const { ethers, deployments, getNamedAccounts } = require('hardhat');
 
 let owner;
 let voyager;
+let liquidityManager;
+let liquidityManagerProxy;
 let tus;
 let escrowContract;
 let juniorDepositToken;
@@ -15,12 +17,19 @@ describe('Reserve Deposit', function () {
     await deployments.fixture([
       'AddressResolver',
       'Voyager',
+      'LiquidityManagerProxy',
       'LiquidityManager',
       'LiquidityManagerStorage',
       'Tokenization',
     ]);
+    const addressResolver = await ethers.getContract('AddressResolver');
+
     voyager = await ethers.getContract('Voyager');
+    await voyager.setAddressResolverAddress(addressResolver.address);
+
     tus = await ethers.getContract('Tus');
+    liquidityManager = await ethers.getContract('LiquidityManager');
+    liquidityManagerProxy = await ethers.getContract('LiquidityManagerProxy');
     juniorDepositToken = await ethers.getContract('JuniorDepositToken');
     seniorDepositToken = await ethers.getContract('SeniorDepositToken');
 
@@ -31,6 +40,22 @@ describe('Reserve Deposit', function () {
 
     escrowContract = await voyager.getLiquidityManagerEscrowContractAddress();
     await tus.increaseAllowance(escrowContract, '100000000000000000000');
+
+    // deploy ACLManager
+    const ACLManager = await ethers.getContractFactory('ACLManager');
+    const aclManager = await ACLManager.deploy(owner);
+    await aclManager.grantLiquidityManager(owner);
+    await aclManager.grantLiquidityManagerContract(liquidityManager.address);
+
+    // import vaultManager to AddressResolver
+    const names = [
+      ethers.utils.formatBytes32String('aclManager'),
+    ];
+    const destinations = [
+      aclManager.address,
+    ];
+    await addressResolver.importAddresses(names, destinations);
+
   });
 
   it('Deposit junior liquidity should return correct value', async function () {

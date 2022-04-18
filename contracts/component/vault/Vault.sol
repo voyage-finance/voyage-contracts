@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
 import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
 import './SecurityDepositEscrow.sol';
 import '../infra/AddressResolver.sol';
@@ -10,9 +9,11 @@ import '../staking/StakingRewards.sol';
 import '../../tokenization/SecurityDepositToken.sol';
 import '../../tokenization/StableDebtToken.sol';
 import '../../libraries/math/WadRayMath.sol';
+import '../../interfaces/IVault.sol';
 import './VaultManager.sol';
+import '../../interfaces/IACLManager.sol';
 
-contract Vault is AccessControl, ReentrancyGuard {
+contract Vault is ReentrancyGuard, IVault {
     using WadRayMath for uint256;
     bytes32 public constant BORROWER = keccak256('BORROWER');
 
@@ -28,6 +29,11 @@ contract Vault is AccessControl, ReentrancyGuard {
 
     modifier onlyFactory() {
         require(msg.sender == factory, 'only factory error');
+        _;
+    }
+
+    modifier onlyLoanManager() {
+        _requireCallerLoanManager();
         _;
     }
 
@@ -55,7 +61,6 @@ contract Vault is AccessControl, ReentrancyGuard {
     function initialize(address _voyager, address borrower) external {
         require(msg.sender == factory, 'Voyager Vault: FORBIDDEN'); // sufficient check
         voyager = _voyager;
-        _setupRole(BORROWER, borrower);
     }
 
     function getVaultManagerProxyAddress() private returns (address) {
@@ -210,6 +215,10 @@ contract Vault is AccessControl, ReentrancyGuard {
         return securityDepositEscrow.eligibleAmount(_reserve, _sponsor);
     }
 
+    function increaseTotalDebt(uint256 _amount) external onlyLoanManager {
+        totalDebt += _amount;
+    }
+
     // placeholder function
     function slash(
         address _reserve,
@@ -238,5 +247,13 @@ contract Vault is AccessControl, ReentrancyGuard {
     function getVersion() external view returns (string memory) {
         string memory version = 'Vault 0.0.1';
         return version;
+    }
+
+    function _requireCallerLoanManager() internal {
+        Voyager v = Voyager(voyager);
+        IACLManager aclManager = IACLManager(
+            v.addressResolver().getAddress(v.getACLManagerName())
+        );
+        require(aclManager.isLoanManager(msg.sender), 'Not liquidity manager');
     }
 }

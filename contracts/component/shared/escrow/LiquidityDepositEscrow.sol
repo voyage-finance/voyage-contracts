@@ -4,31 +4,80 @@ pragma solidity ^0.8.9;
 import '../../../libraries/Escrow.sol';
 import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
+import '../../Voyager.sol';
+import '../../../interfaces/IACLManager.sol';
+import '../../infra/AddressResolver.sol';
 
-contract LiquidityDepositEscrow is Escrow, AccessControl {
-    bytes32 public constant LoanManager = keccak256('LoanManager');
+contract LiquidityDepositEscrow is Escrow {
+    Voyager private voyager;
+    bool private initialized;
+
+    modifier onlyLiquidityManager() {
+        _requireCallerLiquidityManagerContract();
+        _;
+    }
+
+    modifier onlyLoanManager() {
+        _requireCallerLoanManagerContract();
+        _;
+    }
 
     function deposit(
         address _reserve,
         address _user,
         uint256 _amount
-    ) public payable nonReentrant onlyOwner {
+    ) public payable nonReentrant onlyLiquidityManager {
         _deposit(_reserve, _user, _amount);
+    }
+
+    function init(address _voyager) external {
+        if (!initialized) {
+            voyager = Voyager(_voyager);
+            initialized = true;
+        }
     }
 
     function withdraw(
         address _reserve,
         address payable _user,
         uint256 _amount
-    ) public onlyOwner {
+    ) public onlyLiquidityManager {
         _withdraw(_reserve, _user, _amount);
+    }
+
+    function transfer(
+        address _reserve,
+        address payable _user,
+        uint256 _amount
+    ) public onlyLoanManager {
+        IERC20(_reserve).transfer(_user, _amount);
     }
 
     function balanceOf(address _reserve) public view returns (uint256) {
         return IERC20(_reserve).balanceOf(address(this));
     }
 
-    function setLoadManager(address _loanManager) public onlyOwner {
-        _setupRole(LoanManager, _loanManager);
+    /************************************** Private Functions **************************************/
+
+    function _requireCallerLiquidityManagerContract() internal {
+        Voyager v = Voyager(voyager);
+        IACLManager aclManager = IACLManager(
+            voyager.addressResolver().getAddress(v.getACLManagerName())
+        );
+        require(
+            aclManager.isLiquidityManagerContract(msg.sender),
+            'Not liquidity manager contract'
+        );
+    }
+
+    function _requireCallerLoanManagerContract() internal {
+        Voyager v = Voyager(voyager);
+        IACLManager aclManager = IACLManager(
+            v.addressResolver().getAddress(v.getACLManagerName())
+        );
+        require(
+            aclManager.isLoanManagerContract(msg.sender),
+            'Not liquidity manager contract'
+        );
     }
 }

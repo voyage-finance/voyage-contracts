@@ -12,5 +12,20 @@ interface IACLManager {
 
     function grantPoolManager(address _admin) external;
 
+    function grantLoanManager(address _admin) external;
+
+    function isLoanManager(address _admin) external view returns (bool);
+
     function isProtocolManager(address _admin) external view returns (bool);
+
+    function grantLiquidityManagerContract(address _admin) external;
+
+    function isLiquidityManagerContract(address _admin)
+        external
+        view
+        returns (bool);
+
+    function grantLoanManagerContract(address _admin) external;
+
+    function isLoanManagerContract(address _admin) external view returns (bool);
 }

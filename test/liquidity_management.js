@@ -5,6 +5,7 @@ let owner;
 let voyager;
 let liquidityManagerProxy;
 let lm;
+let voyageProtocolDataProvider;
 
 describe('Reserve Init', function () {
   beforeEach(async function () {
@@ -79,6 +80,9 @@ describe('Reserve Init', function () {
     ];
 
     await addressResolver.importAddresses(names, destinations);
+
+    const VoyageProtocolDataProvider = await ethers.getContractFactory('VoyageProtocolDataProvider');
+    voyageProtocolDataProvider = await VoyageProtocolDataProvider.deploy(addressResolver.address);
   });
 
   it('Init reserve should return correct value', async function () {
@@ -104,6 +108,11 @@ describe('Reserve Init', function () {
     // 0 represents junior
     const juniorLiquidityRate = await voyager.liquidityRate(tus.address, '0');
     expect(juniorLiquidityRate).to.equal('0');
+
+    const poolTokens = await voyageProtocolDataProvider.getPoolTokens();
+    expect(poolTokens.length).to.equal(1);
+    expect(poolTokens[0].symbol).to.equal('TUS');
+    expect(poolTokens[0].tokenAddress).to.equal(tus.address);
   });
 
   it('Active reserve should return correct value', async function () {
