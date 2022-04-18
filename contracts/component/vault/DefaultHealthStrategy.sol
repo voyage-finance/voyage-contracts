@@ -18,8 +18,8 @@ contract DefaultHealthStrategy is IHealthStrategy {
     // Tenure for a given draw down
     uint256 internal immutable loanTenure;
 
-    // Wight of LTV in HF computation
-    uint256 internal immutable wightedLTV;
+    // Weight of LTV in HF computation
+    uint256 internal immutable weightedLTV;
 
     // Wight of RR(Repayment Ratio) in HF computation
     uint256 internal immutable weightedRepaymentRatio;
@@ -27,12 +27,12 @@ contract DefaultHealthStrategy is IHealthStrategy {
     constructor(
         uint256 _premiumFactor,
         uint256 _loanTenure,
-        uint256 _wightedLTV,
+        uint256 _weightedLTV,
         uint256 _weightedRepaymentRatio
     ) public {
         premiumFactor = _premiumFactor;
         loanTenure = _loanTenure;
-        wightedLTV = _wightedLTV;
+        weightedLTV = _weightedLTV;
         weightedRepaymentRatio = _weightedRepaymentRatio;
     }
 
@@ -53,9 +53,9 @@ contract DefaultHealthStrategy is IHealthStrategy {
         );
         return
             ltvRatio
-                .rayMul(wightedLTV)
+                .rayMul(weightedLTV)
                 .add(repaymentRatio.rayMul(weightedRepaymentRatio))
-                .rayDiv(wightedLTV.add(weightedRepaymentRatio));
+                .rayDiv(weightedLTV.add(weightedRepaymentRatio));
     }
 
     function getPremiumFactor() external view returns (uint256) {
@@ -66,8 +66,8 @@ contract DefaultHealthStrategy is IHealthStrategy {
         return loanTenure;
     }
 
-    function getWightedLTV() external view returns (uint256) {
-        return wightedLTV;
+    function getWeightedLTV() external view returns (uint256) {
+        return weightedLTV;
     }
 
     function getWeightedRepaymentRatio() external view returns (uint256) {

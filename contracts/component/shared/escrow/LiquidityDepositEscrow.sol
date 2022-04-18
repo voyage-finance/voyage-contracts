@@ -60,22 +60,26 @@ contract LiquidityDepositEscrow is Escrow {
     /************************************** Private Functions **************************************/
 
     function _requireCallerLiquidityManagerContract() internal {
-        //        Voyager v = Voyager(voyager);
-        AddressResolver addressResolver = voyager.addressResolver();
-        //        IACLManager aclManager = IACLManager(
-        //            v.addressResolver().getAddress(v.getACLManagerName())
-        //        );
-        //        require(
-        //            aclManager.isLiquidityManagerContract(msg.sender),
-        //            'Not liquidity manager contract'
-        //        );
+        Voyager v = Voyager(voyager);
+        IACLManager aclManager = IACLManager(
+            voyager.addressResolver().getAddress(
+                v.getACLManagerName()
+            )
+        );
+        require(
+            aclManager.isLiquidityManagerContract(msg.sender),
+            'Not liquidity manager contract'
+        );
     }
 
     function _requireCallerLoanManagerContract() internal {
-        //        Voyager v = Voyager(voyager);
-        //        IACLManager aclManager = IACLManager(
-        //            v.addressResolver().getAddress(v.getACLManagerName())
-        //        );
-        //        require(aclManager.isLoanManagerContract(msg.sender), 'Not liquidity manager contract');
+        Voyager v = Voyager(voyager);
+        IACLManager aclManager = IACLManager(
+            v.addressResolver().getAddress(v.getACLManagerName())
+        );
+        require(
+            aclManager.isLoanManagerContract(msg.sender),
+            'Not liquidity manager contract'
+        );
     }
 }

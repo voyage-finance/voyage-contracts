@@ -8,7 +8,7 @@ interface IHealthStrategy {
 
     function getLoanTenure() external view returns (uint256);
 
-    function getWightedLTV() external view returns (uint256);
+    function getWeightedLTV() external view returns (uint256);
 
     function getWeightedRepaymentRatio() external view returns (uint256);
 
