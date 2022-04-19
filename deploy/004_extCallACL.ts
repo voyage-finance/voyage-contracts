@@ -1,26 +1,32 @@
 import { DeployFunction } from 'hardhat-deploy/types';
 
+const ExtCallACL = 'ExtCallACL';
+const ExtCallACLProxy = 'ExtCallACLProxy';
+
 const deployFn: DeployFunction = async (hre) => {
   const { deployments, getNamedAccounts } = hre;
   const { deploy, execute } = deployments;
   const { owner } = await getNamedAccounts();
 
-  await deploy('Voyager', {
+  const ExtCallAclProxy = await deploy(ExtCallACLProxy, {
     from: owner,
     log: true,
   });
 
-  const AddressResolver = await deployments.get('AddressResolver');
+  const ExtCallAcl = await deploy(ExtCallACL, {
+    from: owner,
+    args: [ExtCallAclProxy.address],
+    log: true,
+  });
 
   await execute(
-    'Voyager',
+    'ExtCallACLProxy',
     { from: owner, log: true },
-    'setAddressResolverAddress',
-    AddressResolver.address
+    'setTarget',
+    ExtCallAcl.address
   );
 };
 
-deployFn.dependencies = ['AddressResolver'];
-deployFn.tags = ['Voyager'];
+deployFn.tags = ['ExtCallAcl'];
 
 export default deployFn;

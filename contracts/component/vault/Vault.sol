@@ -17,9 +17,9 @@ contract Vault is ReentrancyGuard, IVault {
     using WadRayMath for uint256;
     bytes32 public constant BORROWER = keccak256('BORROWER');
 
-    address public factory;
     address public voyager;
     address[] public players;
+    bool public initialized;
     SecurityDepositEscrow public securityDepositEscrow;
     SecurityDepositToken public securityDepositToken;
     StableDebtToken public stableDebtToken;
@@ -27,40 +27,25 @@ contract Vault is ReentrancyGuard, IVault {
 
     uint256 public totalDebt;
 
-    modifier onlyFactory() {
-        require(msg.sender == factory, 'only factory error');
-        _;
-    }
-
     modifier onlyLoanManager() {
         _requireCallerLoanManager();
         _;
     }
 
-    constructor() public {
-        factory = msg.sender;
-        securityDepositEscrow = SecurityDepositEscrow(deployEscrow());
+    modifier onlyVaultManager() {
+        _requireVaultManager();
+        _;
     }
 
-    function deployEscrow() private returns (address) {
-        bytes32 salt = keccak256(abi.encodePacked(msg.sender));
-        bytes memory bytecode = type(SecurityDepositEscrow).creationCode;
-        address deployedEscrow;
-        assembly {
-            deployedEscrow := create2(
-                0,
-                add(bytecode, 32),
-                mload(bytecode),
-                salt
-            )
+    function initialize(
+        address _voyager,
+        SecurityDepositEscrow _securityDepositEscrow
+    ) external {
+        if (!initialized) {
+            voyager = _voyager;
+            securityDepositEscrow = _securityDepositEscrow;
+            initialized = true;
         }
-        return deployedEscrow;
-    }
-
-    // called once by the factory at time of deployment
-    function initialize(address _voyager, address borrower) external {
-        require(msg.sender == factory, 'Voyager Vault: FORBIDDEN'); // sufficient check
-        voyager = _voyager;
     }
 
     function getVaultManagerProxyAddress() private returns (address) {
@@ -72,7 +57,10 @@ contract Vault is ReentrancyGuard, IVault {
             );
     }
 
-    function initSecurityDepositToken(address _reserve) external onlyFactory {
+    function initSecurityDepositToken(address _reserve)
+        external
+        onlyVaultManager
+    {
         require(
             address(securityDepositToken) == address(0),
             'Vault: security deposit token has been initialized'
@@ -86,7 +74,7 @@ contract Vault is ReentrancyGuard, IVault {
         );
     }
 
-    function initStakingContract(address _reserve) external onlyFactory {
+    function initStakingContract(address _reserve) external onlyVaultManager {
         require(
             address(stakingContract) == address(0),
             'Vault: staking contract has been initialized'
@@ -111,7 +99,7 @@ contract Vault is ReentrancyGuard, IVault {
         address _sponsor,
         address _reserve,
         uint256 _amount
-    ) external payable nonReentrant onlyFactory {
+    ) external payable nonReentrant onlyVaultManager {
         // check max security deposit amount for this _reserve
         uint256 maxAllowedAmount = Voyager(voyager).getMaxSecurityDeposit(
             _reserve
@@ -132,7 +120,7 @@ contract Vault is ReentrancyGuard, IVault {
      * @param _reserve underlying asset address
      **/
     function getCurrentSecurityDeposit(address _reserve)
-        public
+        external
         view
         returns (uint256)
     {
@@ -150,7 +138,7 @@ contract Vault is ReentrancyGuard, IVault {
     /**
      * @dev Get total debt of the vault
      **/
-    function getTotalDebt() public view returns (uint256) {
+    function getTotalDebt() external view returns (uint256) {
         return totalDebt;
     }
 
@@ -164,7 +152,7 @@ contract Vault is ReentrancyGuard, IVault {
         view
         returns (uint256)
     {
-        uint256 securityRequirement = VaultManager(factory)
+        uint256 securityRequirement = VaultManager(_getVaultManagerAddress())
             .getSecurityDepositRequirement(_reserve);
         return
             securityDepositToken.balanceOf(_sponsor) -
@@ -181,7 +169,7 @@ contract Vault is ReentrancyGuard, IVault {
         address payable _sponsor,
         address _reserve,
         uint256 _amount
-    ) external payable nonReentrant onlyFactory {
+    ) external payable nonReentrant onlyVaultManager {
         require(
             _amount <= getUnusedDeposits(_sponsor, _reserve),
             'Vault: cannot redeem more than unused deposits'
@@ -189,13 +177,21 @@ contract Vault is ReentrancyGuard, IVault {
         securityDepositEscrow.withdraw(
             _reserve,
             _sponsor,
-            underlyingBalance(_sponsor, _reserve)
+            _underlyingBalance(_sponsor, _reserve)
         );
         securityDepositToken.burnOnRedeem(_sponsor, _amount);
     }
 
     function underlyingBalance(address _sponsor, address _reserve)
-        public
+        external
+        view
+        returns (uint256)
+    {
+        return _underlyingBalance(_sponsor, _reserve);
+    }
+
+    function _underlyingBalance(address _sponsor, address _reserve)
+        internal
         view
         returns (uint256)
     {
@@ -208,7 +204,7 @@ contract Vault is ReentrancyGuard, IVault {
     }
 
     function eligibleAmount(address _reserve, address _sponsor)
-        public
+        external
         view
         returns (uint256)
     {
@@ -224,7 +220,7 @@ contract Vault is ReentrancyGuard, IVault {
         address _reserve,
         address payable _to,
         uint256 _amount
-    ) public nonReentrant onlyFactory {
+    ) external nonReentrant onlyVaultManager {
         securityDepositEscrow.slash(_reserve, _to, _amount);
     }
 
@@ -255,5 +251,21 @@ contract Vault is ReentrancyGuard, IVault {
             v.addressResolver().getAddress(v.getACLManagerName())
         );
         require(aclManager.isLoanManager(msg.sender), 'Not liquidity manager');
+    }
+
+    function _requireVaultManager() internal {
+        Voyager v = Voyager(voyager);
+        IACLManager aclManager = IACLManager(
+            v.addressResolver().getAddress(v.getACLManagerName())
+        );
+        require(
+            aclManager.isVaultManagerContract(msg.sender),
+            'Not liquidity manager'
+        );
+    }
+
+    function _getVaultManagerAddress() internal view returns (address) {
+        Voyager v = Voyager(voyager);
+        return v.addressResolver().getAddress(v.getVaultManagerName());
     }
 }

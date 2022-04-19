@@ -10,6 +10,9 @@ let tus;
 let escrowContract;
 let juniorDepositToken;
 let seniorDepositToken;
+let stableDebtToken;
+let defaultReserveInterestRateStrategy;
+let healthStrategyAddress;
 
 describe('Reserve Deposit', function () {
   beforeEach(async function () {
@@ -17,10 +20,12 @@ describe('Reserve Deposit', function () {
     await deployments.fixture([
       'AddressResolver',
       'Voyager',
+      'ACLManager',
       'LiquidityManagerProxy',
       'LiquidityManager',
       'LiquidityManagerStorage',
       'Tokenization',
+      'SetAddressResolver'
     ]);
     const addressResolver = await ethers.getContract('AddressResolver');
 
@@ -32,6 +37,30 @@ describe('Reserve Deposit', function () {
     liquidityManagerProxy = await ethers.getContract('LiquidityManagerProxy');
     juniorDepositToken = await ethers.getContract('JuniorDepositToken');
     seniorDepositToken = await ethers.getContract('SeniorDepositToken');
+    stableDebtToken = await ethers.getContract('StableDebtToken');
+    defaultReserveInterestRateStrategy = await ethers.getContract('DefaultReserveInterestRateStrategy');
+    healthStrategyAddress = await ethers.getContract('DefaultHealthStrategy');
+
+    const isDeployed = await liquidityManager.deployed();
+    console.log('liquidityManager deployed address: ', isDeployed.address)
+
+    const LM = await ethers.getContractFactory("LiquidityManager");
+    const lm = await LM.attach(liquidityManagerProxy.address);
+    const proxyTarget = await liquidityManagerProxy.target()
+    console.log('lm proxy target: ', proxyTarget);
+    console.log('lm address: ', liquidityManager.address);
+    await lm.initReserve(
+        tus.address,
+        juniorDepositToken.address,
+        seniorDepositToken.address,
+        '100000000000000000000000000',
+        '900000000000000000000000000',
+        stableDebtToken.address,
+        defaultReserveInterestRateStrategy.address,
+        healthStrategyAddress.address
+    );
+    console.log('successfully init reserve')
+    await lm.activeReserve(tus.address);
 
     const reserveFlags = await voyager.getReserveFlags(tus.address);
     expect(reserveFlags[0]).to.equal(true);
@@ -41,21 +70,9 @@ describe('Reserve Deposit', function () {
     escrowContract = await voyager.getLiquidityManagerEscrowContractAddress();
     await tus.increaseAllowance(escrowContract, '100000000000000000000');
 
-    // deploy ACLManager
-    const ACLManager = await ethers.getContractFactory('ACLManager');
-    const aclManager = await ACLManager.deploy(owner);
+    const aclManager = await ethers.getContract('ACLManager')
     await aclManager.grantLiquidityManager(owner);
     await aclManager.grantLiquidityManagerContract(liquidityManager.address);
-
-    // import vaultManager to AddressResolver
-    const names = [
-      ethers.utils.formatBytes32String('aclManager'),
-    ];
-    const destinations = [
-      aclManager.address,
-    ];
-    await addressResolver.importAddresses(names, destinations);
-
   });
 
   it('Deposit junior liquidity should return correct value', async function () {

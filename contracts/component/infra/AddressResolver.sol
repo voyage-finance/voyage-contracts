@@ -40,6 +40,10 @@ contract AddressResolver is IAddressResolver, Ownable {
         return repository[liquidityManagerProxyName];
     }
 
+    function getVaultStorage() external view returns (address) {
+        return repository[vaultStorageName];
+    }
+
     function getAddress(bytes32 name) external view returns (address) {
         return repository[name];
     }

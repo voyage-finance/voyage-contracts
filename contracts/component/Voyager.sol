@@ -207,25 +207,6 @@ contract Voyager is MessageBus {
     }
 
     /**
-     * @dev Get underlying balance of security deposit token
-     * @param _vaultUser _vaultUser the user address that has be sponsored
-     * @param _reserve address of reserve
-     * @param _sponsor sponsor address
-     **/
-    function underlyingBalance(
-        address _vaultUser,
-        address _reserve,
-        address _sponsor
-    ) external view returns (uint256) {
-        return
-            VaultManager(getVaultManagerProxyAddress()).underlyingBalance(
-                _vaultUser,
-                _reserve,
-                _sponsor
-            );
-    }
-
-    /**
      * @dev Redeem specific amount of security deposit to user owned Vault
      * @param _vaultUser the user address that has be sponsored
      * @param _reserve address of reserve

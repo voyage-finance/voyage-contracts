@@ -17,4 +17,6 @@ interface IAddressResolver {
         returns (address);
 
     function getLiquidityManagerProxy() external view returns (address);
+
+    function getVaultStorage() external view returns (address);
 }

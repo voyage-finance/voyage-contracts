@@ -2,6 +2,9 @@ import { DeployFunction } from 'hardhat-deploy/types';
 
 const LM_PROXY_NAME = 'LiquidityManagerProxy';
 const LM_NAME = 'LiquidityManager';
+const RESERVE_LOGIC_NAME = 'ReserveLogic';
+const VALIDATION_LOGIC_NAME = 'ValidationLogic';
+const LM_STORAGE_NAME = 'LiquidityManagerStorage';
 
 const deployFn: DeployFunction = async (hre) => {
   const { deployments, getNamedAccounts } = hre;
@@ -21,12 +24,31 @@ const deployFn: DeployFunction = async (hre) => {
     log: true,
   });
 
+  const ReserveLogic = await deploy(RESERVE_LOGIC_NAME, {
+    from: owner,
+    log: true,
+  });
+  const ValidationLogic = await deploy(VALIDATION_LOGIC_NAME, {
+    from: owner,
+    log: true,
+  });
+
+  await deploy(LM_STORAGE_NAME, {
+    from: owner,
+    args: [LiquidityManager.address],
+    libraries: {
+      ReserveLogic: ReserveLogic.address,
+      ValidationLogic: ValidationLogic.address,
+    },
+    log: true,
+  });
+
   const isOwner = await read(LM_PROXY_NAME, { from: owner }, 'isOwner');
 
   if (isOwner) {
     await execute(
       LM_PROXY_NAME,
-      { from: owner },
+      { from: owner, log: true },
       'setTarget',
       LiquidityManager.address
     );

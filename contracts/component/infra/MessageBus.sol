@@ -11,6 +11,8 @@ import '../../libraries/types/DataTypes.sol';
 import '../../libraries/helpers/Errors.sol';
 import '../liquiditymanager/LiquidityManager.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
+import '../vault/VaultManager.sol';
+import '../vault/VaultManagerProxy.sol';
 
 /**
  * todo it might be a bad name here, it actually performs as the centralise place
@@ -25,6 +27,7 @@ contract MessageBus is IMessageBus, Ownable {
         'liquidityManagerStorage';
     bytes32 public constant loanManagerName = 'loanManager';
     bytes32 public constant vaultManagerProxyName = 'vaultManagerProxy';
+    bytes32 public constant vaultManagerName = 'vaultManager';
     bytes32 public constant vaultStorageName = 'vaultStorage';
     bytes32 public constant securityDepositTokenName = 'securityDepositToken';
     bytes32 public constant stableDebtTokenName = 'stableDebtToken';
@@ -80,7 +83,7 @@ contract MessageBus is IMessageBus, Ownable {
      * @param _user The owner of the vault
      **/
     function getVault(address _user) external view returns (address) {
-        return IVaultManager(getVaultManagerProxyAddress()).getVault(_user);
+        return VaultManagerProxy(getVaultManagerProxyAddress()).getVault(_user);
     }
 
     function getSecurityDeposit(address _user, address _reserve)
@@ -174,6 +177,10 @@ contract MessageBus is IMessageBus, Ownable {
 
     function getVaultManagerProxyName() external view returns (bytes32) {
         return vaultManagerProxyName;
+    }
+
+    function getVaultManagerName() external view returns (bytes32) {
+        return vaultManagerName;
     }
 
     function getVaultStorageName() external view returns (bytes32) {
