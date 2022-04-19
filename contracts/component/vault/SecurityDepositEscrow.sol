@@ -4,7 +4,18 @@ pragma solidity ^0.8.9;
 import '../../libraries/Escrow.sol';
 import '../../libraries/ownership/Ownable.sol';
 
-contract SecurityDepositEscrow is Escrow, Ownable {
+contract SecurityDepositEscrow is Escrow {
+    address public vault;
+
+    modifier onlyOwner() {
+        require(msg.sender == vault, 'Not vault');
+        _;
+    }
+
+    constructor(address _vault) {
+        vault = _vault;
+    }
+
     function getVersion() external view returns (string memory) {
         string memory version = 'SecurityDepositEscrow 0.0.1';
         return version;

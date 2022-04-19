@@ -23,13 +23,7 @@ interface IVaultManager {
         address _sponsor
     ) external view returns (uint256);
 
-    function underlyingBalance(
-        address _vaultUser,
-        address _reserve,
-        address _sponsor
-    ) external view returns (uint256);
-
-    function createVault(address _user) external returns (address vault);
+    function createVault(address _user) external returns (address);
 
     function getVault(address _user) external view returns (address);
 

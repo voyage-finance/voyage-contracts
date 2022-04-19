@@ -3,6 +3,7 @@ pragma solidity ^0.8.9;
 
 import './Proxy.sol';
 import '../ownership/Ownable.sol';
+import 'hardhat/console.sol';
 
 abstract contract Proxyable is Ownable {
     /* The proxy this contract exists behind. */

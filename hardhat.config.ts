@@ -48,6 +48,7 @@ const config: HardhatUserConfig = {
       url: 'https://api.avax-test.network/ext/bc/C/rpc',
       chainId: 43113,
       accounts: [DEPLOYER_PRIVATE_KEY],
+      gas: 8000000,
     },
   },
   namedAccounts: {
@@ -58,15 +59,39 @@ const config: HardhatUserConfig = {
     compilers: [
       {
         version: '0.6.12',
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 2000
+          }
+        }
       },
       {
         version: '0.6.6',
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 2000
+          }
+        }
       },
       {
         version: '0.8.4',
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 2000
+          }
+        }
       },
       {
         version: '0.8.9',
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 2000
+          }
+        }
       },
     ],
   },

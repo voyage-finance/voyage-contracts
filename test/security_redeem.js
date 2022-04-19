@@ -30,11 +30,17 @@ describe('Security Redeem', function () {
     );
     vaultManagerProxy = await VaultManagerProxy.deploy();
 
+    // deploy VaultFactory contract
+    const VaultFactory = await ethers.getContractFactory('VaultFactory');
+    const vaultFactory = await VaultFactory.deploy();
+
     // deploy VaultManager contract
     const VaultManager = await ethers.getContractFactory('VaultManager');
     vaultManager = await VaultManager.deploy(
       vaultManagerProxy.address,
-      voyager.address
+      addressResolver.address,
+      voyager.address,
+      vaultFactory.address
     );
 
     // update VaultManagerProxy, set target contract
@@ -59,16 +65,19 @@ describe('Security Redeem', function () {
     await aclManager.grantLiquidityManager(owner.address);
     await aclManager.grantVaultManager(owner.address);
     await aclManager.grantPoolManager(owner.address);
+    await aclManager.grantVaultManagerContract(vaultManager.address);
 
     // import vaultManager to AddressResolver
     const names = [
       ethers.utils.formatBytes32String('vaultManagerProxy'),
+      ethers.utils.formatBytes32String('vaultManager'),
       ethers.utils.formatBytes32String('vaultStorage'),
       ethers.utils.formatBytes32String('extCallACLProxy'),
       ethers.utils.formatBytes32String('aclManager'),
     ];
     const destinations = [
       vaultManagerProxy.address,
+      vaultManager.address,
       vaultStorage.address,
       extCallACLProxy.address,
       aclManager.address,
@@ -144,12 +153,6 @@ describe('Security Redeem', function () {
       tus.address,
       owner.address
     );
-    const underlyingBalance = await voyager.underlyingBalance(
-      owner.address,
-      tus.address,
-      owner.address
-    );
-    expect(underlyingBalance).to.equal('10000000000000000000');
     expect(eligibleAmount).to.equal('0');
     await expect(
       voyager.redeemSecurity(owner.address, tus.address, '1000000000000000000')
@@ -168,12 +171,6 @@ describe('Security Redeem', function () {
       owner.address
     );
     expect(eligibleAmount).to.equal('10000000000000000000');
-    const underlyingBalance = await voyager.underlyingBalance(
-      owner.address,
-      tus.address,
-      owner.address
-    );
-    expect(underlyingBalance).to.equal('10000000000000000000');
     await voyager.redeemSecurity(
       owner.address,
       tus.address,
@@ -206,12 +203,5 @@ describe('Security Redeem', function () {
       owner.address
     );
     expect(eligibleAmount).to.equal('10000000000000000000');
-
-    const underlyingBalance = await voyager.underlyingBalance(
-      owner.address,
-      tus.address,
-      owner.address
-    );
-    expect(underlyingBalance).to.equal('9000000000000000000');
   });
 });

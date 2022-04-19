@@ -28,4 +28,11 @@ interface IACLManager {
     function grantLoanManagerContract(address _admin) external;
 
     function isLoanManagerContract(address _admin) external view returns (bool);
+
+    function grantVaultManagerContract(address _admin) external;
+
+    function isVaultManagerContract(address _admin)
+        external
+        view
+        returns (bool);
 }

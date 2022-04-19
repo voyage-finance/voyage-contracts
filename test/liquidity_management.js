@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const {LiquidityManager} = require("../typechain");
+const { LiquidityManager } = require('../typechain');
 
 let owner;
 let voyager;
@@ -81,8 +81,12 @@ describe('Reserve Init', function () {
 
     await addressResolver.importAddresses(names, destinations);
 
-    const VoyageProtocolDataProvider = await ethers.getContractFactory('VoyageProtocolDataProvider');
-    voyageProtocolDataProvider = await VoyageProtocolDataProvider.deploy(addressResolver.address);
+    const VoyageProtocolDataProvider = await ethers.getContractFactory(
+      'VoyageProtocolDataProvider'
+    );
+    voyageProtocolDataProvider = await VoyageProtocolDataProvider.deploy(
+      addressResolver.address
+    );
   });
 
   it('Init reserve should return correct value', async function () {

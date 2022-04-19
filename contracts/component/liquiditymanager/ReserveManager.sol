@@ -187,9 +187,9 @@ abstract contract ReserveManager is
 
     function _requireCallerAdmin() internal {
         Voyager v = Voyager(voyager);
-        IACLManager aclManager = IACLManager(
-            v.addressResolver().getAddress(v.getACLManagerName())
-        );
+        AddressResolver addressResolver = v.addressResolver();
+        address aclAddress = addressResolver.getAddress(v.getACLManagerName());
+        IACLManager aclManager = IACLManager(aclAddress);
         require(
             aclManager.isLiquidityManager(messageSender),
             'Not vault admin'

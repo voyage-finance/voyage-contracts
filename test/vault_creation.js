@@ -18,6 +18,10 @@ describe('Vault Creation', function () {
     const AddressResolver = await ethers.getContractFactory('AddressResolver');
     const addressResolver = await AddressResolver.deploy();
 
+    // deploy VaultFactory contract
+    const VaultFactory = await ethers.getContractFactory('VaultFactory');
+    const vaultFactory = await VaultFactory.deploy();
+
     // set AddressResolver address to Voyager
     await voyager.setAddressResolverAddress(addressResolver.address);
 
@@ -31,7 +35,9 @@ describe('Vault Creation', function () {
     const VaultManager = await ethers.getContractFactory('VaultManager');
     vaultManager = await VaultManager.deploy(
       vaultManagerProxy.address,
-      voyager.address
+      addressResolver.address,
+      voyager.address,
+      vaultFactory.address
     );
 
     // update VaultManagerProxy, set target contract
@@ -54,10 +60,12 @@ describe('Vault Creation', function () {
     await aclManager.grantLiquidityManager(owner.address);
     await aclManager.grantVaultManager(owner.address);
     await aclManager.grantPoolManager(owner.address);
+    await aclManager.grantVaultManagerContract(vaultManager.address);
 
     // import vaultManager to AddressResolver
     const names = [
       ethers.utils.formatBytes32String('vaultManagerProxy'),
+      ethers.utils.formatBytes32String('vaultManager'),
       ethers.utils.formatBytes32String('vaultStorage'),
       ethers.utils.formatBytes32String('extCallACLProxy'),
       ethers.utils.formatBytes32String('aclManager'),
@@ -65,6 +73,7 @@ describe('Vault Creation', function () {
 
     const destinations = [
       vaultManagerProxy.address,
+      vaultManager.address,
       vaultStorage.address,
       extCallACLProxy.address,
       aclManager.address,
@@ -78,7 +87,6 @@ describe('Vault Creation', function () {
       ethers.utils.formatBytes32String('depositSecurity'),
       ethers.utils.formatBytes32String('redeemSecurity'),
     ]);
-
   });
 
   it('New user should have zero address vault', async function () {
@@ -90,10 +98,9 @@ describe('Vault Creation', function () {
   it('Create Vault should return a valid vault contract', async function () {
     // create vault
     await voyager.createVault();
-    const vaultAddress = await vaultStorage.getVaultAddress(owner.address);
+    const vaultAddress = await voyager.getVault(owner.address);
     const Vault = await ethers.getContractFactory('Vault');
     const vault = Vault.attach(vaultAddress);
-    expect(await vault.getVersion()).to.equal('Vault 0.0.1');
   });
 
   it('Created Vault should have own a valid escrow contract', async function () {
