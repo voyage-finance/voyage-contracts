@@ -1,15 +1,23 @@
 const { expect } = require('chai');
+const {deployments, ethers} = require("hardhat");
 
 let addressResolver;
 let tus;
 
 describe('Initialize Deposit Token', function () {
   beforeEach(async function () {
-    const AddressResolver = await ethers.getContractFactory('AddressResolver');
-    addressResolver = await AddressResolver.deploy();
-
-    const Tus = await ethers.getContractFactory('Tus');
-    tus = await Tus.deploy('1000000000000000000000');
+    await deployments.fixture([
+      'AddressResolver',
+      'Voyager',
+      'ACLManager',
+      'LiquidityManagerProxy',
+      'LiquidityManager',
+      'LiquidityManagerStorage',
+      'Tokenization',
+      'SetAddressResolver'
+    ]);
+    addressResolver = await ethers.getContract('AddressResolver');
+    tus = await ethers.getContract('Tus');
   });
 
   it('Initialize junior token should return correct value', async function () {
