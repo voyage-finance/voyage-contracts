@@ -160,20 +160,20 @@ describe('Security Deposit', function () {
       tus.address,
       '10000000000000000000'
     );
-    // const depositAmountAfter = await securityDepositEscrow.getDepositAmount(
-    //   tus.address
-    // );
-    // expect(depositAmountAfter).to.equal('10000000000000000000');
-    //
-    // const SecurityDepositToken = await ethers.getContractFactory(
-    //   'SecurityDepositToken'
-    // );
-    // const securityDepositToken = SecurityDepositToken.attach(
-    //   await vault.getSecurityDepositTokenAddress()
-    // );
-    // const balanceOfSponsor = await securityDepositToken.balanceOf(
-    //   owner.address
-    // );
-    // expect(balanceOfSponsor).to.equal('10000000000000000000');
+    const depositAmountAfter = await securityDepositEscrow.getDepositAmount(
+      tus.address
+    );
+    expect(depositAmountAfter).to.equal('10000000000000000000');
+
+    const SecurityDepositToken = await ethers.getContractFactory(
+      'SecurityDepositToken'
+    );
+    const securityDepositToken = SecurityDepositToken.attach(
+      await vault.getSecurityDepositTokenAddress()
+    );
+    const balanceOfSponsor = await securityDepositToken.balanceOf(
+      owner.address
+    );
+    expect(balanceOfSponsor).to.equal('10000000000000000000');
   });
 });
