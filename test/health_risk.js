@@ -15,7 +15,24 @@ describe('Health Strategy', function () {
     });
 
     it('Calculate health risk should return correct value', async function () {
-        const param = {
+        // 1. 0 debt should return 0 risk
+        const param0 = {
+            // 100
+            securityDeposit: '100000000000000000000000000000',
+            // 10%
+            currentBorrowRate: '100000000000000000000000000',
+            // 1000
+            compoundedDebt: '0',
+            grossAssetValue: '0',
+            // 100
+            aggregateOptimalRepaymentRate: '0',
+            aggregateActualRepaymentRate: '0'
+        }
+        const riskInRay0 = await healthStrategy.calculateHealthRisk(param0);
+        expect(riskInRay0).to.equal(BigNumber.from(0));
+
+        // 2 risk is 1
+        const param1 = {
             // 100
             securityDeposit: '100000000000000000000000000000',
             // 10%
@@ -27,13 +44,9 @@ describe('Health Strategy', function () {
             aggregateOptimalRepaymentRate: '100000000000000000000000000000',
             aggregateActualRepaymentRate: '100000000000000000000000000000'
         }
-        const riskInRay = await healthStrategy.calculateHealthRisk(param);
-        console.log(riskInRay.toString());
-        // 100000000000000000000000000
+        const riskInRay1 = await healthStrategy.calculateHealthRisk(param1);
         const rayNum = BigNumber.from(RAY);
-        const risk = riskInRay.div(rayNum);
-        console.log(risk.toString());
-
+        expect(riskInRay1).to.equal(rayNum);
     });
 
 })
