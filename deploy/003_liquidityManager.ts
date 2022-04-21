@@ -18,18 +18,21 @@ const deployFn: DeployFunction = async (hre) => {
     LMProxy = await deploy(LM_PROXY_NAME, { from: owner, log: true });
   }
 
-  const LiquidityManager = await deploy(LM_NAME, {
-    from: owner,
-    args: [LMProxy.address, Voyager.address],
-    log: true,
-  });
-
   const ReserveLogic = await deploy(RESERVE_LOGIC_NAME, {
     from: owner,
     log: true,
   });
   const ValidationLogic = await deploy(VALIDATION_LOGIC_NAME, {
     from: owner,
+    log: true,
+  });
+
+  const LiquidityManager = await deploy(LM_NAME, {
+    from: owner,
+    args: [LMProxy.address, Voyager.address],
+    libraries: {
+      ReserveLogic: ReserveLogic.address,
+    },
     log: true,
   });
 

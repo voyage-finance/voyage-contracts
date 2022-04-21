@@ -254,4 +254,8 @@ library ReserveLogic {
         reserve.seniorLastUpdateTimestamp = uint40(block.timestamp);
         return newSeniorLiquidityIndex;
     }
+
+    function trancheToBytes32(Tranche tranche) public view returns (bytes32) {
+        return bytes32(uint256(tranche));
+    }
 }

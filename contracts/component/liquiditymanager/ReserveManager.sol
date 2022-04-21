@@ -76,23 +76,15 @@ abstract contract ReserveManager is
             _interestRateStrategyAddress,
             _healthStrategyAddress
         );
-        proxy._emit(
-            abi.encode(
-                _juniorDepositTokenAddress,
-                _seniorDepositTokenAddress,
-                _juniorIncomeAllocation,
-                _seniorIncomeAllocation,
-                _stableDebtAddress,
-                _interestRateStrategyAddress,
-                _healthStrategyAddress
-            ),
-            2,
-            keccak256(
-                'ReverseInited(address, address,address, uint256, uint256,address,address,address)'
-            ),
-            bytes32(abi.encodePacked(_asset)),
-            0,
-            0
+        emitReserveInitialized(
+            _asset,
+            _juniorDepositTokenAddress,
+            _seniorDepositTokenAddress,
+            _juniorIncomeAllocation,
+            _seniorIncomeAllocation,
+            _stableDebtAddress,
+            _interestRateStrategyAddress,
+            _healthStrategyAddress
         );
     }
 
@@ -193,6 +185,55 @@ abstract contract ReserveManager is
         require(
             aclManager.isLiquidityManager(messageSender),
             'Not vault admin'
+        );
+    }
+
+    /******************************************** Events *******************************************/
+
+    function addressToBytes32(address input) internal pure returns (bytes32) {
+        return bytes32(uint256(uint160(input)));
+    }
+
+    event ReserveInitialized(
+        address indexed _asset,
+        address _juniorDepositTokenAddress,
+        address _seniorDepositTokenAddress,
+        uint256 _juniorIncomeAllocation,
+        uint256 _seniorIncomeAllocation,
+        address _stableDebtAddress,
+        address _interestRateStrategyAddress,
+        address _healthStrategyAddress
+    );
+    bytes32 internal constant RESERVE_INITIALIZED_SIG =
+        keccak256(
+            'ReserveInitialized(address,address,address,uint256,uint256,address,address,address)'
+        );
+
+    function emitReserveInitialized(
+        address _asset,
+        address _juniorDepositTokenAddress,
+        address _seniorDepositTokenAddress,
+        uint256 _juniorIncomeAllocation,
+        uint256 _seniorIncomeAllocation,
+        address _stableDebtAddress,
+        address _interestRateStrategyAddress,
+        address _healthStrategyAddress
+    ) internal {
+        proxy._emit(
+            abi.encode(
+                _juniorDepositTokenAddress,
+                _seniorDepositTokenAddress,
+                _juniorIncomeAllocation,
+                _seniorIncomeAllocation,
+                _stableDebtAddress,
+                _interestRateStrategyAddress,
+                _healthStrategyAddress
+            ),
+            2,
+            RESERVE_INITIALIZED_SIG,
+            addressToBytes32(_asset),
+            0,
+            0
         );
     }
 }
