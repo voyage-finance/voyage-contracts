@@ -11,6 +11,7 @@ import '../component/infra/AddressResolver.sol';
 import '../component/vault/VaultManager.sol';
 import '../component/vault/VaultManagerProxy.sol';
 import '../component/liquiditymanager/LiquidityManager.sol';
+import '../component/loan/LoanManager.sol';
 import '../interfaces/IACLManager.sol';
 import './infra/MessageBus.sol';
 
@@ -172,7 +173,21 @@ contract Voyager is MessageBus {
 
     /************************************** Loan Manager Interfaces **************************************/
 
-    function borrow() external onlyWhitelisted('borrow') {}
+    // todo remove _grossAssetValue
+    function borrow(
+        address _asset,
+        uint256 _amount,
+        address payable _vault,
+        uint256 _grossAssetValue
+    ) external onlyWhitelisted('borrow') {
+        LoanManager(addressResolver.getLoanManagerProxy()).borrow(
+            msg.sender,
+            _asset,
+            _amount,
+            _vault,
+            _grossAssetValue
+        );
+    }
 
     /************************************** Vault Manager Interfaces **************************************/
 
