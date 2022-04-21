@@ -51,16 +51,7 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
             );
         }
         liquidityDepositEscrow.deposit(_asset, _user, _amount);
-        proxy._emit(
-            abi.encode(_tranche, _user, _onBehalfOf, _amount),
-            2,
-            keccak256(
-                'Deposit(address, ReserveLogic.Tranche, address, address,uint256)'
-            ),
-            bytes32(abi.encodePacked(_asset)),
-            0,
-            0
-        );
+        emitDeposit(_asset, _user, _tranche, _amount);
     }
 
     /************************************** View Functions **************************************/
@@ -98,5 +89,39 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
             )
         }
         return deployedEscrow;
+    }
+
+    /******************************************** Events *******************************************/
+
+    function trancheToBytes32(ReserveLogic.Tranche tranche)
+        public
+        returns (bytes32)
+    {
+        return ReserveLogic.trancheToBytes32(tranche);
+    }
+
+    event Deposit(
+        address indexed asset,
+        address indexed user,
+        uint8 indexed tranche,
+        uint256 amount
+    );
+    bytes32 internal constant DEPOSIT_SIG =
+        keccak256('Deposit(address,address,uint8,uint256)');
+
+    function emitDeposit(
+        address asset,
+        address user,
+        ReserveLogic.Tranche tranche,
+        uint256 amount
+    ) internal {
+        proxy._emit(
+            abi.encode(amount),
+            4,
+            DEPOSIT_SIG,
+            addressToBytes32(asset),
+            addressToBytes32(user),
+            trancheToBytes32(tranche)
+        );
     }
 }
