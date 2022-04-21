@@ -170,6 +170,10 @@ contract Voyager is MessageBus {
                 .getEscrowAddress();
     }
 
+    /************************************** Loan Manager Interfaces **************************************/
+
+    function borrow() external onlyWhitelisted('borrow') {}
+
     /************************************** Vault Manager Interfaces **************************************/
 
     /**

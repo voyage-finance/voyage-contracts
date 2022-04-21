@@ -10,6 +10,7 @@ contract AddressResolver is IAddressResolver, Ownable {
     bytes32 public constant liquidityManagerName = 'liquidityManager';
     bytes32 public constant liquidityManagerStorageName =
         'liquidityManagerStorage';
+    bytes32 public constant loanManagerProxyName = 'loanManagerProxy';
     bytes32 public constant loanManagerName = 'loanManager';
     bytes32 public constant vaultManagerProxyName = 'vaultManagerProxy';
     bytes32 public constant vaultStorageName = 'vaultStorage';
@@ -38,6 +39,10 @@ contract AddressResolver is IAddressResolver, Ownable {
 
     function getLiquidityManagerProxy() external view returns (address) {
         return repository[liquidityManagerProxyName];
+    }
+
+    function getLoanManagerProxy() external view returns (address) {
+        return repository[loanManagerProxyName];
     }
 
     function getVaultStorage() external view returns (address) {
