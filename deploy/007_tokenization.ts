@@ -1,7 +1,6 @@
 import { DeployFunction } from 'hardhat-deploy/types';
 import { DefaultHealthStrategy, Tus } from '@contracts';
 import TusABI from '../artifacts/contracts/mock/Tus.sol/Tus.json';
-import LiquidityABI from '../artifacts/contracts/component/liquiditymanager/LiquidityManager.sol/LiquidityManager.json';
 
 const LM_NAME = 'LiquidityManager';
 const LM_STORAGE_NAME = 'LiquidityManagerStorage';
