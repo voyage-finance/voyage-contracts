@@ -181,7 +181,6 @@ contract Voyager is MessageBus {
         address payable _vault,
         uint256 _grossAssetValue
     ) external onlyWhitelisted('borrow') {
-
         LoanManager(addressResolver.getLoanManagerProxy()).borrow(
             msg.sender,
             _asset,
