@@ -91,28 +91,24 @@ describe('Security Redeem', function () {
       ethers.utils.formatBytes32String('redeemSecurity'),
     ]);
 
+      // deploy mock tus contract
+      const Tus = await ethers.getContractFactory('Tus');
+      tus = await Tus.deploy('1000000000000000000000');
+
+
     // create vault
-    await voyager.createVault();
+    await voyager.createVault(tus.address);
 
     const vaultAddress = await vaultStorage.getVaultAddress(owner.address);
     const Vault = await ethers.getContractFactory('Vault');
     const vault = Vault.attach(vaultAddress);
     const securityDepositEscrowAddress =
       await vault.getSecurityDepositEscrowAddress();
-
-    // deploy mock tus contract
-    const Tus = await ethers.getContractFactory('Tus');
-    tus = await Tus.deploy('1000000000000000000000');
     await tus.increaseAllowance(
-      securityDepositEscrowAddress,
-      '10000000000000000000000'
+        securityDepositEscrowAddress,
+        '10000000000000000000000'
     );
-
     await vm.setMaxSecurityDeposit(tus.address, '100000000000000000000');
-
-    //  init vault
-    await vm.initVault(owner.address, tus.address);
-    const stakingContract = await vault.getStakingContractAddress();
 
     const SecurityDepositEscrow = await ethers.getContractFactory(
       'SecurityDepositEscrow'

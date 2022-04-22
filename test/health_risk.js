@@ -17,7 +17,7 @@ describe('Health Strategy', function () {
     it('Calculate health risk should return correct value', async function () {
         const rayNum = BigNumber.from(RAY);
 
-        // 1. risk == 0
+        // 1. risk == 1 (initial status)
         const param0 = {
             // 100
             securityDeposit: '100000000000000000000000000000',
@@ -29,7 +29,7 @@ describe('Health Strategy', function () {
             aggregateActualRepaymentRate: '0'
         }
         const riskInRay0 = await healthStrategy.calculateHealthRisk(param0);
-        expect(riskInRay0).to.equal(BigNumber.from(0));
+        expect(riskInRay0).to.equal(rayNum);
 
         // 2. risk == 1
         const param1 = {

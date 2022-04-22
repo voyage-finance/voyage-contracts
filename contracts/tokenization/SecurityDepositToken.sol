@@ -6,6 +6,7 @@ import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
 import '../libraries/math/WadRayMath.sol';
 import '../component/vault/Vault.sol';
+import 'hardhat/console.sol';
 
 contract SecurityDepositToken is ERC20, AccessControl {
     using WadRayMath for uint256;
@@ -37,6 +38,7 @@ contract SecurityDepositToken is ERC20, AccessControl {
         external
         onlyRole(VAULT)
     {
+        console.log('before _mint');
         _mint(account, amount);
         emit MintOnDeposit(account, amount);
     }

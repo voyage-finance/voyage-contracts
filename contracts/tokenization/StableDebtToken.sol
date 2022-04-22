@@ -11,6 +11,7 @@ import 'openzeppelin-solidity/contracts/utils/math/SafeCast.sol';
 import 'openzeppelin-solidity/contracts/utils/Context.sol';
 import '../libraries/helpers/Errors.sol';
 import '../interfaces/IInitializableDebtToken.sol';
+import 'hardhat/console.sol';
 
 contract StableDebtToken is
     Context,
@@ -23,7 +24,7 @@ contract StableDebtToken is
 
     modifier onlyLoanManager() {
         require(
-            _msgSender() == addressResolver.getAddress('loanManager'),
+            _msgSender() == addressResolver.getLoanManager(),
             Errors.CT_CALLER_MUST_BE_LOAN_MANAGER
         );
         _;
@@ -45,6 +46,7 @@ contract StableDebtToken is
         uint8 _debtTokenDecimals,
         string memory _debtTokenName,
         string memory _debtTokenSymbol,
+        address _addressResolver,
         bytes calldata _params
     ) external initializer {
         _setName(_debtTokenName);
@@ -52,6 +54,7 @@ contract StableDebtToken is
         _setDecimals(_debtTokenDecimals);
 
         underlyingAsset = _underlyingAsset;
+        addressResolver = AddressResolver(_addressResolver);
 
         emit Initialized(
             underlyingAsset,

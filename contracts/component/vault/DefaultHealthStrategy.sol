@@ -6,10 +6,13 @@ import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 import '../../libraries/math/WadRayMath.sol';
 import '../../libraries/math/MathUtils.sol';
 import '../../libraries/types/DataTypes.sol';
+import 'hardhat/console.sol';
 
 contract DefaultHealthStrategy is IHealthStrategy {
     using WadRayMath for uint256;
     using SafeMath for uint256;
+
+    uint256 internal constant RAY = 1e27;
 
     // A number >= 1 by which loan amount is multiplied. Riskier assets will attract
     // a higher PF, effectively increasing the expected repayment rate. Expressed in ray
@@ -45,8 +48,10 @@ contract DefaultHealthStrategy is IHealthStrategy {
         view
         returns (uint256)
     {
+        console.log('in calculateHealthRisk: ', hrp.compoundedDebt);
+
         if (hrp.compoundedDebt == 0) {
-            return 0;
+            return RAY;
         }
         uint256 ltvRatio = hrp.grossAssetValue.add(hrp.securityDeposit).rayDiv(
             hrp.compoundedDebt

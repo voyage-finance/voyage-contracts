@@ -14,6 +14,7 @@ import '../component/liquiditymanager/LiquidityManager.sol';
 import '../component/loan/LoanManager.sol';
 import '../interfaces/IACLManager.sol';
 import './infra/MessageBus.sol';
+import 'hardhat/console.sol';
 
 contract Voyager is MessageBus {
     modifier onlyWhitelisted(bytes32 func) {
@@ -196,14 +197,14 @@ contract Voyager is MessageBus {
      * a SecurityDepositEscrow contract which the fund will be held in
      × @return address of Vault
      **/
-    function createVault()
+    function createVault(address _reserve)
         external
         onlyWhitelisted('createVault')
         returns (address)
     {
         address vaultManagerProxy = getVaultManagerProxyAddress();
         VaultManager vaultManager = VaultManager(vaultManagerProxy);
-        return vaultManager.createVault(msg.sender);
+        return vaultManager.createVault(msg.sender, _reserve);
     }
 
     /**
@@ -270,7 +271,7 @@ contract Voyager is MessageBus {
         returns (uint256)
     {
         return
-            VaultManager(getVaultManagerProxyAddress()).getCreditLimit(
+            VaultManagerProxy(getVaultManagerProxyAddress()).getCreditLimit(
                 _user,
                 _reserve
             );
@@ -287,7 +288,7 @@ contract Voyager is MessageBus {
         returns (uint256)
     {
         return
-            VaultManager(getVaultManagerProxyAddress()).getAvailableCredit(
+            VaultManagerProxy(getVaultManagerProxyAddress()).getAvailableCredit(
                 _user,
                 _reserve
             );

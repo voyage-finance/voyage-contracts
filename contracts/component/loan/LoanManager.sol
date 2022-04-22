@@ -12,20 +12,14 @@ import '../../interfaces/IHealthStrategy.sol';
 import '../../interfaces/IInitializableDebtToken.sol';
 import '../../interfaces/IVault.sol';
 import '../Voyager.sol';
+import 'hardhat/console.sol';
 
 contract LoanManager is Proxyable, IVoyagerComponent {
     using SafeMath for uint256;
     using WadRayMath for uint256;
 
-    LiquidityDepositEscrow public liquidityDepositEscrow;
-
-    constructor(
-        address payable _proxy,
-        address _voyager,
-        address _escrow
-    ) Proxyable(_proxy) {
+    constructor(address payable _proxy, address _voyager) Proxyable(_proxy) {
         voyager = Voyager(_voyager);
-        liquidityDepositEscrow = LiquidityDepositEscrow(_escrow);
     }
 
     struct ExecuteBorrowParams {
@@ -71,13 +65,14 @@ contract LoanManager is Proxyable, IVoyagerComponent {
 
         uint256 hr = healthStrategy.calculateHealthRisk(hrp);
 
-        require(hr > WadRayMath.ray(), Errors.LOM_HEALTH_RISK_BELOW_ONE);
+        require(hr >= WadRayMath.ray(), Errors.LOM_HEALTH_RISK_BELOW_ONE);
 
         // 3. check credit limit
         uint256 availableCreditLimit = voyager.getAvailableCredit(
             _user,
             _asset
         );
+
         require(
             availableCreditLimit >= _amount,
             Errors.LOM_CREDIT_NOT_SUFFICIENT
@@ -93,22 +88,23 @@ contract LoanManager is Proxyable, IVoyagerComponent {
         IVault(_vault).increaseTotalDebt(_amount);
 
         // 6. mint debt token and transfer underlying token
-        address debtToken = voyager.addressResolver().getAddress(
-            voyager.getStableDebtTokenName()
-        );
+        address debtToken = voyager.addressResolver().getStableDebtToken();
+        console.log(debtToken);
         IInitializableDebtToken(debtToken).mint(
             _user,
             _amount,
             healthStrategy.getLoanTenure(),
             reserveData.currentBorrowRate
         );
-
-        liquidityDepositEscrow.transfer(_asset, _vault, _amount);
+        escrow().transfer(_asset, _vault, _amount);
     }
 
     function _executeBorrow(ExecuteBorrowParams memory vars) internal {}
 
     function escrow() internal view override returns (LiquidityDepositEscrow) {
-        return liquidityDepositEscrow;
+        return
+            LiquidityDepositEscrow(
+                voyager.addressResolver().getLiquidityDepositEscrow()
+            );
     }
 }

@@ -34,6 +34,24 @@ contract VaultManagerProxy is Proxy {
         return IVaultManager(address(target)).getCreditLimit(_user, _reserve);
     }
 
+    function getAvailableCredit(address _user, address _reserve)
+        public
+        view
+        returns (uint256)
+    {
+        return
+            IVaultManager(address(target)).getAvailableCredit(_user, _reserve);
+    }
+
+    function getSecurityDeposit(address _user, address _reserve)
+        public
+        view
+        returns (uint256)
+    {
+        return
+            IVaultManager(address(target)).getSecurityDeposit(_user, _reserve);
+    }
+
     function eligibleAmount(
         address _vaultUser,
         address _reserve,

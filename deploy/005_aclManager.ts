@@ -8,6 +8,7 @@ const deployFn: DeployFunction = async (hre) => {
   const { owner } = await getNamedAccounts();
 
   const VaultManager = await deployments.get('VaultManager');
+  const LiquidityManager = await deployments.get('LiquidityManager');
 
   await deploy(ACLMANAGER_NAME, {
     from: owner,
@@ -37,14 +38,28 @@ const deployFn: DeployFunction = async (hre) => {
   );
 
   await execute(
+      'ACLManager',
+      { from: owner, log: true },
+      'grantLoanManager',
+      owner
+  );
+
+  await execute(
     'ACLManager',
     { from: owner, log: true },
     'grantVaultManagerContract',
     VaultManager.address
   );
+
+  await execute(
+      'ACLManager',
+      { from: owner, log: true },
+      'grantLiquidityManagerContract',
+      LiquidityManager.address
+  );
 };
 
 deployFn.tags = ['ACLManager'];
-deployFn.dependencies = ['VaultManager'];
+deployFn.dependencies = ['VaultManager', 'LiquidityManager'];
 
 export default deployFn;

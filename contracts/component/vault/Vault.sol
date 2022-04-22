@@ -12,6 +12,7 @@ import '../../libraries/math/WadRayMath.sol';
 import '../../interfaces/IVault.sol';
 import './VaultManager.sol';
 import '../../interfaces/IACLManager.sol';
+import 'hardhat/console.sol';
 
 contract Vault is ReentrancyGuard, IVault {
     using WadRayMath for uint256;
@@ -34,6 +35,11 @@ contract Vault is ReentrancyGuard, IVault {
 
     modifier onlyVaultManager() {
         _requireVaultManager();
+        _;
+    }
+
+    modifier onlyVaultManagerContract() {
+        _requireCallerLoanManagerContract();
         _;
     }
 
@@ -104,9 +110,12 @@ contract Vault is ReentrancyGuard, IVault {
         uint256 maxAllowedAmount = Voyager(voyager).getMaxSecurityDeposit(
             _reserve
         );
+        console.log('max allowed amount', maxAllowedAmount);
         uint256 depositedAmount = securityDepositEscrow.getDepositAmount(
             _reserve
         );
+        console.log('deposited amount', depositedAmount);
+        console.log('_amount', _amount);
         require(
             depositedAmount + _amount < maxAllowedAmount,
             'Vault: deposit amount exceed'
@@ -211,7 +220,10 @@ contract Vault is ReentrancyGuard, IVault {
         return securityDepositEscrow.eligibleAmount(_reserve, _sponsor);
     }
 
-    function increaseTotalDebt(uint256 _amount) external onlyLoanManager {
+    function increaseTotalDebt(uint256 _amount)
+        external
+        onlyVaultManagerContract
+    {
         totalDebt += _amount;
     }
 
@@ -250,7 +262,21 @@ contract Vault is ReentrancyGuard, IVault {
         IACLManager aclManager = IACLManager(
             v.addressResolver().getAddress(v.getACLManagerName())
         );
-        require(aclManager.isLoanManager(msg.sender), 'Not liquidity manager');
+        require(
+            aclManager.isLoanManager(msg.sender),
+            'Not loan manager contract'
+        );
+    }
+
+    function _requireCallerLoanManagerContract() internal {
+        Voyager v = Voyager(voyager);
+        IACLManager aclManager = IACLManager(
+            v.addressResolver().getAddress(v.getACLManagerName())
+        );
+        require(
+            aclManager.isLoanManagerContract(msg.sender),
+            'Not loan manager'
+        );
     }
 
     function _requireVaultManager() internal {
@@ -260,7 +286,7 @@ contract Vault is ReentrancyGuard, IVault {
         );
         require(
             aclManager.isVaultManagerContract(msg.sender),
-            'Not liquidity manager'
+            'Not vault manager contract'
         );
     }
 

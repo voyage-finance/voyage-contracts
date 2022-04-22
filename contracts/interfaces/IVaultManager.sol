@@ -23,11 +23,18 @@ interface IVaultManager {
         address _sponsor
     ) external view returns (uint256);
 
-    function createVault(address _user) external returns (address);
+    function createVault(address _user, address _reserve)
+        external
+        returns (address);
 
     function getVault(address _user) external view returns (address);
 
     function getSecurityDeposit(address _user, address _reserve)
+        external
+        view
+        returns (uint256);
+
+    function getAvailableCredit(address _user, address _reserve)
         external
         view
         returns (uint256);
