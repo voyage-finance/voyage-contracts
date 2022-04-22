@@ -46,12 +46,17 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
      * @dev Create a Vault for user
      * @param _user the address of the player
      **/
-    function createVault(address _user) external onlyProxy returns (address) {
+    function createVault(address _user, address _reserve)
+        external
+        onlyProxy
+        returns (address)
+    {
         address vault = VaultFactory(vaultFactory).createVault(_user);
         SecurityDepositEscrow securityDepositEscrow = new SecurityDepositEscrow(
             vault
         );
         IVault(vault).initialize(voyager, securityDepositEscrow);
+        IVault(vault).initSecurityDepositToken(_reserve);
         uint256 len = VaultStorage(getVaultStorageAddress()).pushNewVault(
             _user,
             vault
@@ -81,7 +86,9 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         uint256 _amount
     ) external onlyProxy {
         address vaultAddress = _getVault(_vaultUser);
+        console.log(vaultAddress);
         IVault(vaultAddress).depositSecurity(_sponsor, _reserve, _amount);
+        IVault(vaultAddress).initStakingContract(_reserve);
         _emit(
             _sponsor,
             _vaultUser,
@@ -145,17 +152,6 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
     }
 
     /************************ HouseKeeping Function ******************************/
-
-    /**
-     * Init a deployed Vault, ensure it has overlying security deposit token and corresponding staking contract
-     * _vaultUser the user/owner of this vault
-     * _reserve the underlying asset address e.g. TUS
-     **/
-    function initVault(address _user, address _reserve) external {
-        address vaultAddress = _getVault(_user);
-        IVault(vaultAddress).initSecurityDepositToken(_reserve);
-        IVault(vaultAddress).initStakingContract(_reserve);
-    }
 
     /**
      * @dev Set max security deposit for _reserve
@@ -222,6 +218,7 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         onlyProxy
         returns (uint256)
     {
+        console.log('in getMaxSecurityDeposit');
         return maxSecurityDeposit[_reserve];
     }
 
@@ -231,7 +228,7 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
      * @param _reserve reserve address
      **/
     function getAvailableCredit(address _user, address _reserve)
-        public
+        external
         view
         returns (uint256)
     {

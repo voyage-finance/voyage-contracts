@@ -1,8 +1,6 @@
 import { DeployFunction } from 'hardhat-deploy/types';
 import { ethers } from 'hardhat';
 
-const ACLMANAGER_NAME = 'ACLManager';
-
 const deployFn: DeployFunction = async (hre) => {
   const { deployments, getNamedAccounts } = hre;
   const { deploy, execute } = deployments;

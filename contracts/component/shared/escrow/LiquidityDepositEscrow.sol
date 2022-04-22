@@ -77,7 +77,7 @@ contract LiquidityDepositEscrow is Escrow {
         );
         require(
             aclManager.isLoanManagerContract(msg.sender),
-            'Not liquidity manager contract'
+            'Not loan manager contract'
         );
     }
 }

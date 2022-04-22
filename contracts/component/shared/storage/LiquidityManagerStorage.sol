@@ -62,8 +62,10 @@ contract LiquidityManagerStorage is State {
         reserve.updateState(_tranche);
         if (ReserveLogic.Tranche.JUNIOR == _tranche) {
             reserve.updateInterestRates(_asset, _amount, 0, 0, 0);
+            juniorDepositAmount += _amount;
         } else {
             reserve.updateInterestRates(_asset, 0, 0, _amount, 0);
+            seniorDepositAmount += _amount;
         }
     }
 
@@ -72,8 +74,8 @@ contract LiquidityManagerStorage is State {
         onlyAssociatedContract
     {
         DataTypes.ReserveData storage reserve = _reserves[_asset];
-        reserve.updateState(ReserveLogic.Tranche.SENIOR);
-        reserve.updateInterestRates(_asset, 0, 0, 0, _amount);
+        //        reserve.updateState(ReserveLogic.Tranche.SENIOR);
+        //        reserve.updateInterestRates(_asset, 0, 0, 0, _amount);
     }
 
     function activeReserve(address _asset) public onlyAssociatedContract {

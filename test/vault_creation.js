@@ -5,6 +5,7 @@ let vaultManagerProxy;
 let vaultManager;
 let vaultStorage;
 let owner;
+let tus;
 
 describe('Vault Creation', function () {
   beforeEach(async function () {
@@ -87,6 +88,10 @@ describe('Vault Creation', function () {
       ethers.utils.formatBytes32String('depositSecurity'),
       ethers.utils.formatBytes32String('redeemSecurity'),
     ]);
+
+    // deploy mock tus contract
+    const Tus = await ethers.getContractFactory('Tus');
+    tus = await Tus.deploy('1000000000000000000000');
   });
 
   it('New user should have zero address vault', async function () {
@@ -97,7 +102,7 @@ describe('Vault Creation', function () {
 
   it('Create Vault should return a valid vault contract', async function () {
     // create vault
-    await voyager.createVault();
+    await voyager.createVault(tus.address);
     const vaultAddress = await voyager.getVault(owner.address);
     const Vault = await ethers.getContractFactory('Vault');
     const vault = Vault.attach(vaultAddress);
@@ -106,7 +111,7 @@ describe('Vault Creation', function () {
   it('Created Vault should have own a valid escrow contract', async function () {
     const [owner] = await ethers.getSigners();
     // create vault
-    await voyager.createVault();
+    await voyager.createVault(tus.address);
 
     const vaultAddress = await vaultStorage.getVaultAddress(owner.address);
     const Vault = await ethers.getContractFactory('Vault');

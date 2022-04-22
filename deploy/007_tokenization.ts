@@ -1,6 +1,7 @@
 import { DeployFunction } from 'hardhat-deploy/types';
 import { DefaultHealthStrategy, Tus } from '@contracts';
 import TusABI from '../artifacts/contracts/mock/Tus.sol/Tus.json';
+import {ethers} from "hardhat";
 
 const LM_NAME = 'LiquidityManager';
 const LM_STORAGE_NAME = 'LiquidityManagerStorage';
@@ -38,13 +39,13 @@ const deployFn: DeployFunction = async (hre) => {
       signer
     ) as Tus;
   }
+  const AddressResolver = await deployments.get('AddressResolver');
   const tusInitArgs = await Promise.all([
     TreasureUnderSea.address,
     TreasureUnderSea.decimals(),
     TreasureUnderSea.name(),
     TreasureUnderSea.symbol(),
   ]);
-  const AddressResolver = await deployments.get('AddressResolver');
   const JuniorDepositToken = await deploy(JR_TOKEN_NAME, {
     from: owner,
     log: true,
@@ -86,12 +87,13 @@ const deployFn: DeployFunction = async (hre) => {
       { from: owner, log: true },
       'initialize',
       ...tusInitArgs,
-      ethers.utils.formatBytes32String('')
+        AddressResolver.address,
+        ethers.utils.formatBytes32String('')
     );
   }
 
   const WadRayMath = await deploy(WRM_NAME, { from: owner, log: true });
-  const InterestStrategy = await deploy(INTEREST_STRATEGY_NAME, {
+  await deploy(INTEREST_STRATEGY_NAME, {
     from: owner,
     log: true,
     libraries: { WadRayMath: WadRayMath.address },
@@ -104,7 +106,7 @@ const deployFn: DeployFunction = async (hre) => {
     ],
   });
 
-  const HealthStrategy = await deploy(HEALTH_STRATEGY_ADDRESS, {
+  await deploy(HEALTH_STRATEGY_ADDRESS, {
     from: owner,
     log: true,
     libraries: { WadRayMath: WadRayMath.address },
@@ -116,6 +118,24 @@ const deployFn: DeployFunction = async (hre) => {
       '8000000000000000000000000000',
     ],
   });
+
+  const names = [
+    ethers.utils.formatBytes32String('stableDebtToken'),
+    ethers.utils.formatBytes32String('juniorDepositToken'),
+    ethers.utils.formatBytes32String('seniorDepositToken'),
+  ];
+  const destinations = [
+    StableDebtToken.address,
+    JuniorDepositToken.address,
+      SeniorDepositToken.address
+  ];
+  await execute(
+      'AddressResolver',
+      { from: owner, log: true },
+      'importAddresses',
+      names,
+      destinations
+  );
 };
 
 deployFn.dependencies = [
