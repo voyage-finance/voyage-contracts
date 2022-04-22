@@ -189,7 +189,8 @@ contract StableDebtToken is
                 stableRate,
                 drawDone.timestamp
             );
-            uint256 remainingBalance = drawDone.amount - drawDone.repayment.totalPaid;
+            uint256 remainingBalance = drawDone.amount -
+                drawDone.repayment.totalPaid;
             uint256 cumulatedBalance = remainingBalance.rayMul(
                 cumulatedInterest
             );
