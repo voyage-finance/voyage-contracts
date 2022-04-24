@@ -54,7 +54,7 @@ const config: HardhatUserConfig = {
       url: 'https://vethtest.staging.voyage.finance/',
       chainId: 666,
       accounts: [DEPLOYER_PRIVATE_KEY],
-      gas: 10000000,
+      gas: 20000000,
     }
   },
   namedAccounts: {
