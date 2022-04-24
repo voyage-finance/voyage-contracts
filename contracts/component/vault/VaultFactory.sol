@@ -3,15 +3,11 @@ pragma solidity ^0.8.9;
 
 import './Vault.sol';
 import '../../interfaces/IVaultFactory.sol';
+import 'openzeppelin-solidity/contracts/utils/Create2.sol';
 
 contract VaultFactory is IVaultFactory {
-    function createVault(address _user) external returns (address) {
+    function createVault(bytes32 salt) external returns (address) {
         bytes memory bytecode = type(Vault).creationCode;
-        bytes32 salt = keccak256(abi.encodePacked(_user));
-        address vault;
-        assembly {
-            vault := create2(0, add(bytecode, 32), mload(bytecode), salt)
-        }
-        return vault;
+        return Create2.deploy(0, salt, type(Vault).creationCode);
     }
 }

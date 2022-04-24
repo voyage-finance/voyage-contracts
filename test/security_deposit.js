@@ -1,4 +1,5 @@
 const { expect } = require('chai');
+const {ethers} = require("hardhat");
 
 let voyager;
 let vaultManagerProxy;
@@ -120,7 +121,8 @@ describe('Security Deposit', function () {
   it('Security deposit should return correct value', async function () {
     const [owner] = await ethers.getSigners();
     // create vault
-    await voyager.createVault(tus.address);
+    const salt = ethers.utils.formatBytes32String((Math.random() + 1).toString(36).substring(7))
+    await voyager.createVault(tus.address,salt);
 
     const vaultAddress = await vaultStorage.getVaultAddress(owner.address);
     const Vault = await ethers.getContractFactory('Vault');

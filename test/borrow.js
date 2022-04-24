@@ -62,7 +62,8 @@ describe('Borrow', function () {
 
     it('Borrow with no sufficient reserve should revert', async function () {
         // create an empty vault
-        await voyager.createVault(tus.address);
+        const salt = ethers.utils.formatBytes32String((Math.random() + 1).toString(36).substring(7))
+        await voyager.createVault(tus.address, salt);
         const vaultAddr = await voyager.getVault(owner);
         await expect( voyager.borrow(tus.address, '10000', vaultAddr, 0)).to.be.revertedWith('70');
     });
@@ -89,7 +90,8 @@ describe('Borrow', function () {
         await vm.updateSecurityDepositRequirement(tus.address, "100000000000000000000000000") // 0.1
 
         // create an empty vault
-        await voyager.createVault(tus.address);
+        const salt = ethers.utils.formatBytes32String((Math.random() + 1).toString(36).substring(7))
+        await voyager.createVault(tus.address, salt);
         const vaultAddr = await voyager.getVault(owner);
         console.log('vault address: ', vaultAddr);
         await expect( voyager.borrow(tus.address, '100', vaultAddr, 0)).to.be.revertedWith('71');
@@ -120,7 +122,8 @@ describe('Borrow', function () {
         await vm.updateSecurityDepositRequirement(tus.address, "100000000000000000000000000") // 0.1
 
         // create an empty vault
-        await voyager.createVault(tus.address);
+        const salt = ethers.utils.formatBytes32String((Math.random() + 1).toString(36).substring(7))
+        await voyager.createVault(tus.address, salt);
         const vaultAddr = await voyager.getVault(owner);
 
         // get security deposit escrow address
