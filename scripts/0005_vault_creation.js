@@ -22,7 +22,7 @@ async function main() {
     console.log(random);
 
     const salt = ethers.utils.formatBytes32String(random);
-    await voyager.createVault('0xf93C5273BA454B40aE2ED316fdF3357dfC3bDAfa',salt);
+    await voyager.createVault('0xf93C5273BA454B40aE2ED316fdF3357dfC3bDAfa', treasureUnderSea,salt);
 
     const VaultManagerProxy = await hre.ethers.getContractFactory('VaultManagerProxy');
     const vaultManagerProxy = await VaultManagerProxy.attach(deployedVMP.address);
