@@ -52,6 +52,7 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         returns (address)
     {
         address vault = VaultFactory(vaultFactory).createVault(_user);
+        require(vault != address(0), 'deploy vault failed');
         SecurityDepositEscrow securityDepositEscrow = new SecurityDepositEscrow(
             vault
         );
