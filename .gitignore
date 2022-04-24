@@ -65,7 +65,7 @@ cache
 artifacts
 .idea
 # check in test and mainnet deployments
-/deployments/localhost
+/deployments/local
 /deployments/hardhat
 
 # yarn zero-install

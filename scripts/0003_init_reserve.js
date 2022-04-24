@@ -1,15 +1,25 @@
+require('dotenv').config();
 const hre = require("hardhat");
+const deployedReserveLogic = require('../deployments/' + process.env.HARDHAT_NETWORK + '/ReserveLogic.json');
+const deployedLMP = require('../deployments/'+ process.env.HARDHAT_NETWORK + '/LiquidityManagerProxy.json');
+const deployedTus = require('../deployments/' + process.env.HARDHAT_NETWORK + '/Tus.json');
+const deployedJuniorDepositToken = require('../deployments/' + process.env.HARDHAT_NETWORK + '/JuniorDepositToken.json');
+const deployedSeniorDepositToken = require('../deployments/' + process.env.HARDHAT_NETWORK + '/SeniorDepositToken.json');
+const deployedStableDebtToken = require('../deployments/' + process.env.HARDHAT_NETWORK + '/StableDebtToken.json');
+const deployedInterestedStrategy = require('../deployments/' + process.env.HARDHAT_NETWORK + '/DefaultReserveInterestRateStrategy.json');
+const deployedHealthStrategy = require('../deployments/' + process.env.HARDHAT_NETWORK + '/DefaultHealthStrategy.json');
+const {ethers} = require("hardhat");
 
 async function main() {
-    const liquidityManagerProxy = '0x4198D31691492C5454E48143F5DB579b4cfC78Eb';
-    const LiquidityManager = await hre.ethers.getContractFactory('LiquidityManager');
+    const liquidityManagerProxy = deployedLMP.address;
+    const LiquidityManager = await ethers.getContractFactory("LiquidityManager", { libraries: { ReserveLogic: deployedReserveLogic.address } });
     const liquidityManager = LiquidityManager.attach(liquidityManagerProxy);
-    const treasureUnderSea = '0x52483caCB11441BFa6f886D8e9E516a1dA26181F';
-    const juniorDepositToken = '0x2A59f15C3DD4b8769d0edE79269f4a1CD6E52C6B';
-    const seniorDepositToken = '0xb53A29Df9703c797D5F278dE20ef30a82e34ABD0';
-    const stableDebtToken = '0x66D951f5f80756D683dD917C636304465a37c222';
-    const interestStrategy = '0x58C80B14b45Babf49108fF57A30817C187681c22';
-    const healthStrategy = '0xB4A18837c31A45B0d787f9c71f5b418E830EC4a4';
+    const treasureUnderSea = deployedTus.address;
+    const juniorDepositToken = deployedJuniorDepositToken.address;
+    const seniorDepositToken = deployedSeniorDepositToken.address;
+    const stableDebtToken = deployedStableDebtToken.address;
+    const interestStrategy = deployedInterestedStrategy.address;
+    const healthStrategy = deployedHealthStrategy.address;
 
     await liquidityManager.initReserve(
        treasureUnderSea,
