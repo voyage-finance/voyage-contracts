@@ -4,6 +4,8 @@ const deployedVoyager = require('../deployments/' + process.env.HARDHAT_NETWORK 
 const deployedTus = require('../deployments/' + process.env.HARDHAT_NETWORK + '/Tus.json');
 const deployedVMP = require('../deployments/' + process.env.HARDHAT_NETWORK + '/VaultManagerProxy.json');
 const deployedVMS = require('../deployments/' + process.env.HARDHAT_NETWORK + '/VaultStorage.json');
+const {ethers} = require("hardhat");
+const crypto = require('crypto');
 
 async function main() {
     const owner = process.env.OWNER;
@@ -16,7 +18,11 @@ async function main() {
     const treasureUnderSea = deployedTus.address;
     const Voyager = await hre.ethers.getContractFactory('Voyager');
     const voyager = await Voyager.attach(voyagerAddress);
-    await voyager.createVault(owner);
+    const random = crypto.randomUUID().substring(7);
+    console.log(random);
+
+    const salt = ethers.utils.formatBytes32String(random);
+    await voyager.createVault(owner,salt);
 
     const VaultManagerProxy = await hre.ethers.getContractFactory('VaultManagerProxy');
     const vaultManagerProxy = await VaultManagerProxy.attach(deployedVMP.address);
