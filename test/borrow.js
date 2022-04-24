@@ -94,6 +94,7 @@ describe('Borrow', function () {
         await voyager.createVault(tus.address, salt);
         const vaultAddr = await voyager.getVault(owner);
         console.log('vault address: ', vaultAddr);
+        await voyager.initVault(vaultAddr, tus.address);
         await expect( voyager.borrow(tus.address, '100', vaultAddr, 0)).to.be.revertedWith('71');
     });
 
@@ -125,6 +126,7 @@ describe('Borrow', function () {
         const salt = ethers.utils.formatBytes32String((Math.random() + 1).toString(36).substring(7))
         await voyager.createVault(tus.address, salt);
         const vaultAddr = await voyager.getVault(owner);
+        await voyager.initVault(vaultAddr, tus.address);
 
         // get security deposit escrow address
         const Vault = await ethers.getContractFactory('Vault');

@@ -115,11 +115,10 @@ describe('Vault Creation', function () {
     // create vault
     const salt = ethers.utils.formatBytes32String((Math.random() + 1).toString(36).substring(7))
     await voyager.createVault(tus.address, salt);
-
     const vaultAddress = await vaultStorage.getVaultAddress(owner.address);
+    await voyager.initVault(vaultAddress, tus.address);
     const Vault = await ethers.getContractFactory('Vault');
     const vault = Vault.attach(vaultAddress);
-
     const SecurityDepositEscrow = await ethers.getContractFactory(
       'SecurityDepositEscrow'
     );

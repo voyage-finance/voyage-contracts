@@ -207,6 +207,12 @@ contract Voyager is MessageBus {
         return vaultManager.createVault(msg.sender, _reserve, _salt);
     }
 
+    function initVault(address _vault, address _reserve) external {
+        address vaultManagerProxy = getVaultManagerProxyAddress();
+        VaultManager vaultManager = VaultManager(vaultManagerProxy);
+        vaultManager.initVault(_vault, _reserve);
+    }
+
     /**
      * @dev Deposit specific amount of security deposit to user owned Vault
      * @param _vaultUser the user address that will be sponsored

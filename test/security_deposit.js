@@ -119,16 +119,18 @@ describe('Security Deposit', function () {
   });
 
   it('Security deposit should return correct value', async function () {
+    console.log('aaaa');
     const [owner] = await ethers.getSigners();
     // create vault
     const salt = ethers.utils.formatBytes32String((Math.random() + 1).toString(36).substring(7))
     await voyager.createVault(tus.address,salt);
-
-    const vaultAddress = await vaultStorage.getVaultAddress(owner.address);
+    const vaultAddr = await voyager.getVault(owner.address);
+    await voyager.initVault(vaultAddr, tus.address);
     const Vault = await ethers.getContractFactory('Vault');
-    const vault = Vault.attach(vaultAddress);
+    const vault = await Vault.attach(vaultAddr);
     const securityDepositEscrowAddress =
       await vault.getSecurityDepositEscrowAddress();
+    console.log('escrow: ', securityDepositEscrowAddress);
     await tus.increaseAllowance(
       securityDepositEscrowAddress,
       '10000000000000000000000'
@@ -138,7 +140,7 @@ describe('Security Deposit', function () {
     const SecurityDepositEscrow = await ethers.getContractFactory(
       'SecurityDepositEscrow'
     );
-    const securityDepositEscrow = SecurityDepositEscrow.attach(
+    const securityDepositEscrow = await SecurityDepositEscrow.attach(
       securityDepositEscrowAddress
     );
     const depositAmount = await securityDepositEscrow.getDepositAmount(

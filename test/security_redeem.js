@@ -104,6 +104,8 @@ describe('Security Redeem', function () {
     const vaultAddress = await vaultStorage.getVaultAddress(owner.address);
     const Vault = await ethers.getContractFactory('Vault');
     const vault = Vault.attach(vaultAddress);
+    const vaultAddr = await voyager.getVault(owner.address);
+    await voyager.initVault(vaultAddr, tus.address);
     const securityDepositEscrowAddress =
       await vault.getSecurityDepositEscrowAddress();
     await tus.increaseAllowance(

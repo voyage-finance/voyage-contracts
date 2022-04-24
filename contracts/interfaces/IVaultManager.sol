@@ -29,6 +29,8 @@ interface IVaultManager {
         bytes32 _vault
     ) external returns (address);
 
+    function initVault(address _vault, address _reserve) external;
+
     function getVault(address _user) external view returns (address);
 
     function getSecurityDeposit(address _user, address _reserve)

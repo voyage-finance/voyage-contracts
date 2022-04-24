@@ -52,11 +52,6 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
     ) external onlyProxy returns (address) {
         address vault = VaultFactory(vaultFactory).createVault(_salt);
         require(vault != address(0), 'deploy vault failed');
-        SecurityDepositEscrow securityDepositEscrow = new SecurityDepositEscrow(
-            vault
-        );
-        IVault(vault).initialize(voyager, securityDepositEscrow);
-        IVault(vault).initSecurityDepositToken(_reserve);
         uint256 len = VaultStorage(getVaultStorageAddress()).pushNewVault(
             _user,
             vault
@@ -70,6 +65,14 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
             0
         );
         return vault;
+    }
+
+    function initVault(address _vault, address _reserve) external onlyProxy {
+        SecurityDepositEscrow securityDepositEscrow = new SecurityDepositEscrow(
+            _vault
+        );
+        IVault(_vault).initialize(voyager, securityDepositEscrow);
+        IVault(_vault).initSecurityDepositToken(_reserve);
     }
 
     /**
