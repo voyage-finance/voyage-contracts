@@ -99,7 +99,7 @@ describe('Security Redeem', function () {
 
     // create vault
     const salt = ethers.utils.formatBytes32String((Math.random() + 1).toString(36).substring(7))
-    await voyager.createVault(tus.address, salt);
+    await voyager.createVault(owner.address, tus.address, salt);
 
     const vaultAddress = await vaultStorage.getVaultAddress(owner.address);
     const Vault = await ethers.getContractFactory('Vault');

@@ -104,7 +104,7 @@ describe('Vault Creation', function () {
   it('Create Vault should return a valid vault contract', async function () {
     // create vault
     const salt = ethers.utils.formatBytes32String((Math.random() + 1).toString(36).substring(7))
-    await voyager.createVault(tus.address, salt);
+    await voyager.createVault(owner.address, tus.address, salt);
     const vaultAddress = await voyager.getVault(owner.address);
     const Vault = await ethers.getContractFactory('Vault');
     const vault = Vault.attach(vaultAddress);
@@ -114,7 +114,7 @@ describe('Vault Creation', function () {
     const [owner] = await ethers.getSigners();
     // create vault
     const salt = ethers.utils.formatBytes32String((Math.random() + 1).toString(36).substring(7))
-    await voyager.createVault(tus.address, salt);
+    await voyager.createVault(owner.address, tus.address, salt);
     const vaultAddress = await vaultStorage.getVaultAddress(owner.address);
     await voyager.initVault(vaultAddress, tus.address);
     const Vault = await ethers.getContractFactory('Vault');

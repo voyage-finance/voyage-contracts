@@ -123,7 +123,7 @@ describe('Security Deposit', function () {
     const [owner] = await ethers.getSigners();
     // create vault
     const salt = ethers.utils.formatBytes32String((Math.random() + 1).toString(36).substring(7))
-    await voyager.createVault(tus.address,salt);
+    await voyager.createVault(owner.address, tus.address, salt);
     const vaultAddr = await voyager.getVault(owner.address);
     await voyager.initVault(vaultAddr, tus.address);
     const Vault = await ethers.getContractFactory('Vault');

@@ -62,8 +62,8 @@ describe('Borrow', function () {
 
     it('Borrow with no sufficient reserve should revert', async function () {
         // create an empty vault
-        const salt = ethers.utils.formatBytes32String((Math.random() + 1).toString(36).substring(7))
-        await voyager.createVault(tus.address, salt);
+        const salt = ethers.utils.formatBytes32String((Math.random() + 1).toString(36).substring(7));
+        await voyager.createVault(owner, tus.address, salt);
         const vaultAddr = await voyager.getVault(owner);
         await expect( voyager.borrow(tus.address, '10000', vaultAddr, 0)).to.be.revertedWith('70');
     });
@@ -91,7 +91,7 @@ describe('Borrow', function () {
 
         // create an empty vault
         const salt = ethers.utils.formatBytes32String((Math.random() + 1).toString(36).substring(7))
-        await voyager.createVault(tus.address, salt);
+        await voyager.createVault(owner, tus.address, salt);
         const vaultAddr = await voyager.getVault(owner);
         console.log('vault address: ', vaultAddr);
         await voyager.initVault(vaultAddr, tus.address);
@@ -124,7 +124,7 @@ describe('Borrow', function () {
 
         // create an empty vault
         const salt = ethers.utils.formatBytes32String((Math.random() + 1).toString(36).substring(7))
-        await voyager.createVault(tus.address, salt);
+        await voyager.createVault(owner, tus.address, salt);
         const vaultAddr = await voyager.getVault(owner);
         await voyager.initVault(vaultAddr, tus.address);
 
