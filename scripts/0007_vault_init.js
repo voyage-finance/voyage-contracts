@@ -18,27 +18,12 @@ async function main() {
     const treasureUnderSea = deployedTus.address;
     const Voyager = await hre.ethers.getContractFactory('Voyager');
     const voyager = await Voyager.attach(voyagerAddress);
-    const random = crypto.randomUUID().substring(7);
-    console.log(random);
-
-    const salt = ethers.utils.formatBytes32String(random);
-    await voyager.createVault(owner, treasureUnderSea,salt);
 
     const VaultManagerProxy = await hre.ethers.getContractFactory('VaultManagerProxy');
     const vaultManagerProxy = await VaultManagerProxy.attach(deployedVMP.address);
     const vaultAddress = await vaultManagerProxy.getVault(owner);
     console.log('vault created, address is: ', vaultAddress);
-
-    const VaultStorage = await hre.ethers.getContractFactory('VaultStorage');
-    const vaultStorageAddress = deployedVMS.address;
-    const vaultStorage = await VaultStorage.attach(vaultStorageAddress);
-    const vaultA = await vaultStorage.getAllVaults();
-    console.log(vaultA);
-
-    const Vault = await ethers.getContractFactory('Vault');
     await voyager.initVault(vaultAddress, treasureUnderSea);
-    const escrowAddress = await Vault.attach(vaultAddress).getSecurityDepositEscrowAddress();
-    console.log('vault escrow address: ', escrowAddress);
 
 }
 

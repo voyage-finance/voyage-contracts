@@ -49,7 +49,8 @@ describe('Borrow', function () {
         ]);
         const escrowContract = await voyager.getLiquidityManagerEscrowContractAddress();
         console.log('escrow contract address: ', escrowContract);
-        await tus.increaseAllowance(escrowContract, "100000000");
+        // 1000
+        await tus.increaseAllowance(escrowContract, "1000000000000000000000");
 
         const vaultManagerProxy = await ethers.getContract('VaultManagerProxy');
         const VaultManager = await ethers.getContractFactory('VaultManager');
@@ -57,7 +58,7 @@ describe('Borrow', function () {
     });
 
     it('Borrow with wrong vault address should revert', async function () {
-        await expect( voyager.borrow(tus.address, '10000', voyager.address, 0)).to.be.revertedWith('72');
+        await expect( voyager.borrow(tus.address, '10000', voyager.address, 0)).to.be.revertedWith('73');
     });
 
     it('Borrow with no sufficient reserve should revert', async function () {
@@ -116,9 +117,10 @@ describe('Borrow', function () {
             defaultReserveInterestRateStrategy.address,
             healthStrategyAddress.address
         );
-        const depositAmount = "10000";
+        // 100
+        const depositAmount = "100000000000000000000";
         await lm.activeReserve(tus.address);
-        vm.setMaxSecurityDeposit(tus.address, '10000');
+        vm.setMaxSecurityDeposit(tus.address, '1000000000000000000000');
         await voyager.deposit(tus.address, 1, depositAmount, owner);
         await vm.updateSecurityDepositRequirement(tus.address, "100000000000000000000000000") // 0.1
 
@@ -131,17 +133,20 @@ describe('Borrow', function () {
         // get security deposit escrow address
         const Vault = await ethers.getContractFactory('Vault');
         const escrowAddress = await Vault.attach(vaultAddr).getSecurityDepositEscrowAddress();
-        await tus.increaseAllowance(escrowAddress, "100000000");
+        await tus.increaseAllowance(escrowAddress, "1000000000000000000000");
 
-        await voyager.depositSecurity(owner, tus.address, '1000');
-        await voyager.borrow(tus.address, '100', vaultAddr, 0)
+        await voyager.depositSecurity(owner, tus.address, '100000000000000000000');
+        await voyager.borrow(tus.address, '10000000000000000000', vaultAddr, 0)
 
         const StableDebtToken = await ethers.getContractFactory('StableDebtToken');
         const debtToken =  await StableDebtToken.attach(stableDebtToken.address);
         const debtBalance = await debtToken.balanceOf(owner);
-        await expect(debtBalance).to.equal(BigNumber.from('100'));
+        await expect(debtBalance).to.equal(BigNumber.from('10000000000000000000'));
         const vaultBalance = await tus.balanceOf(vaultAddr);
-        await expect(vaultBalance).to.equal(BigNumber.from('100'));
+        await expect(vaultBalance).to.equal(BigNumber.from('10000000000000000000'));
+
+        await voyager.borrow(tus.address, '10000000000000000000', vaultAddr, '0')
+
     });
 
 

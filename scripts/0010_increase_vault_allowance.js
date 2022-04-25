@@ -3,6 +3,7 @@ const deployedExtCallACL = require('../deployments/' + process.env.HARDHAT_NETWO
 const deployedVoyager = require('../deployments/' + process.env.HARDHAT_NETWORK + '/Voyager.json');
 const deployedTus = require('../deployments/' + process.env.HARDHAT_NETWORK + '/Tus.json');
 const deployedVMP = require('../deployments/' + process.env.HARDHAT_NETWORK + '/VaultManagerProxy.json');
+const {ethers} = require("hardhat");
 
 async function main() {
     const owner = process.env.OWNER;
@@ -11,14 +12,19 @@ async function main() {
     const Voyager = await hre.ethers.getContractFactory('Voyager');
     const voyager = Voyager.attach(voyagerAddress);
 
-    const escrowContract = await voyager.getLiquidityManagerEscrowContractAddress();
-    console.log('liquidity escrow contract address: ', escrowContract);
+    const VaultManagerProxy = await hre.ethers.getContractFactory('VaultManagerProxy');
+    const vaultManagerProxy = await VaultManagerProxy.attach(deployedVMP.address);
+    const vaultAddress = await vaultManagerProxy.getVault(owner);
+    console.log('vault created, address is: ', vaultAddress);
+
+    const Vault = await ethers.getContractFactory('Vault');
+    const escrowAddress = await Vault.attach(vaultAddress).getSecurityDepositEscrowAddress();
+    console.log('vault escrow address: ', escrowAddress);
 
     const Tus = await hre.ethers.getContractFactory('Tus');
     const tus = await Tus.attach(treasureUnderSea);
-    await tus.increaseAllowance(escrowContract, '1000000000000');
-    await voyager.deposit(treasureUnderSea, '1', '10000', owner);
-
+    // 100
+    await tus.increaseAllowance(escrowAddress, '100000000000000000000');
 }
 
 main()

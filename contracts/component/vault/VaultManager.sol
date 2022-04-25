@@ -91,7 +91,6 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         address vaultAddress = _getVault(_vaultUser);
         console.log(vaultAddress);
         IVault(vaultAddress).depositSecurity(_sponsor, _reserve, _amount);
-        IVault(vaultAddress).initStakingContract(_reserve);
         _emit(
             _sponsor,
             _vaultUser,
