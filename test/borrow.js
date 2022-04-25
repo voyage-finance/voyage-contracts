@@ -146,8 +146,6 @@ describe('Borrow', function () {
         await expect(vaultBalance).to.equal(BigNumber.from('10000000000000000000'));
 
         await voyager.borrow(tus.address, '10000000000000000000', vaultAddr, '0')
-        const debtBalance2 = await debtToken.balanceOf(owner);
-        console.log('debt balance: ', debtBalance2);
 
     });
 
