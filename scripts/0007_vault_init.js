@@ -23,11 +23,7 @@ async function main() {
     const vaultManagerProxy = await VaultManagerProxy.attach(deployedVMP.address);
     const vaultAddress = await vaultManagerProxy.getVault(owner);
     console.log('vault created, address is: ', vaultAddress);
-
-    const Vault = await ethers.getContractFactory('Vault');
     await voyager.initVault(vaultAddress, treasureUnderSea);
-    const escrowAddress = await Vault.attach(vaultAddress).getSecurityDepositEscrowAddress();
-    console.log('vault escrow address: ', escrowAddress);
 
 }
 
