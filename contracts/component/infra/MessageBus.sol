@@ -91,10 +91,8 @@ contract MessageBus is IMessageBus, Ownable {
         view
         returns (uint256)
     {
-        console.log(getVaultManagerProxyAddress());
         uint256 amt = VaultManagerProxy(getVaultManagerProxyAddress())
             .getSecurityDeposit(_user, _reserve);
-        console.log(amt);
         return amt;
     }
 

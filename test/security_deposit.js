@@ -119,7 +119,6 @@ describe('Security Deposit', function () {
   });
 
   it('Security deposit should return correct value', async function () {
-    console.log('aaaa');
     const [owner] = await ethers.getSigners();
     // create vault
     const salt = ethers.utils.formatBytes32String((Math.random() + 1).toString(36).substring(7))
@@ -130,7 +129,6 @@ describe('Security Deposit', function () {
     const vault = await Vault.attach(vaultAddr);
     const securityDepositEscrowAddress =
       await vault.getSecurityDepositEscrowAddress();
-    console.log('escrow: ', securityDepositEscrowAddress);
     await tus.increaseAllowance(
       securityDepositEscrowAddress,
       '10000000000000000000000'

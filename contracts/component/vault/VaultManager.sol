@@ -89,7 +89,6 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         uint256 _amount
     ) external onlyProxy {
         address vaultAddress = _getVault(_vaultUser);
-        console.log(vaultAddress);
         IVault(vaultAddress).depositSecurity(_sponsor, _reserve, _amount);
         _emit(
             _sponsor,
@@ -220,7 +219,6 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         onlyProxy
         returns (uint256)
     {
-        console.log('in getMaxSecurityDeposit');
         return maxSecurityDeposit[_reserve];
     }
 

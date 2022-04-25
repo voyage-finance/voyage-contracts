@@ -41,15 +41,12 @@ describe("Reserve Deposit", function() {
     defaultReserveInterestRateStrategy = await ethers.getContract("DefaultReserveInterestRateStrategy");
     healthStrategyAddress = await ethers.getContract("DefaultHealthStrategy");
 
-    const isDeployed = await liquidityManager.deployed();
-    console.log("liquidityManager deployed address: ", isDeployed.address);
+    await liquidityManager.deployed();
 
     const reserveLogic = await ethers.getContract("ReserveLogic");
     const LM = await ethers.getContractFactory("LiquidityManager", { libraries: { ReserveLogic: reserveLogic.address } });
     const lm = await LM.attach(liquidityManagerProxy.address);
     const proxyTarget = await liquidityManagerProxy.target();
-    console.log("lm proxy target: ", proxyTarget);
-    console.log("lm address: ", liquidityManager.address);
     await lm.initReserve(
       tus.address,
       juniorDepositToken.address,
@@ -60,7 +57,6 @@ describe("Reserve Deposit", function() {
       defaultReserveInterestRateStrategy.address,
       healthStrategyAddress.address
     );
-    console.log("successfully init reserve");
     await lm.activeReserve(tus.address);
 
     const reserveFlags = await voyager.getReserveFlags(tus.address);

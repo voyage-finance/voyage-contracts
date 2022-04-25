@@ -48,8 +48,6 @@ contract DefaultHealthStrategy is IHealthStrategy {
         view
         returns (uint256)
     {
-        console.log('in calculateHealthRisk: ', hrp.compoundedDebt);
-
         if (hrp.compoundedDebt == 0) {
             return RAY;
         }

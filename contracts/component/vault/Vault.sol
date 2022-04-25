@@ -110,12 +110,9 @@ contract Vault is ReentrancyGuard, IVault {
         uint256 maxAllowedAmount = Voyager(voyager).getMaxSecurityDeposit(
             _reserve
         );
-        console.log('max allowed amount', maxAllowedAmount);
         uint256 depositedAmount = securityDepositEscrow.getDepositAmount(
             _reserve
         );
-        console.log('deposited amount', depositedAmount);
-        console.log('_amount', _amount);
         require(
             depositedAmount + _amount < maxAllowedAmount,
             'Vault: deposit amount exceed'

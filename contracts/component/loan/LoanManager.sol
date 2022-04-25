@@ -89,7 +89,6 @@ contract LoanManager is Proxyable, IVoyagerComponent {
 
         // 6. mint debt token and transfer underlying token
         address debtToken = voyager.addressResolver().getStableDebtToken();
-        console.log(debtToken);
         IInitializableDebtToken(debtToken).mint(
             _user,
             _amount,

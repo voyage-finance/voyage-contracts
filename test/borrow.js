@@ -48,7 +48,6 @@ describe('Borrow', function () {
             ethers.utils.formatBytes32String('borrow'),
         ]);
         const escrowContract = await voyager.getLiquidityManagerEscrowContractAddress();
-        console.log('escrow contract address: ', escrowContract);
         // 1000
         await tus.increaseAllowance(escrowContract, "1000000000000000000000");
 
@@ -94,7 +93,6 @@ describe('Borrow', function () {
         const salt = ethers.utils.formatBytes32String((Math.random() + 1).toString(36).substring(7))
         await voyager.createVault(owner, tus.address, salt);
         const vaultAddr = await voyager.getVault(owner);
-        console.log('vault address: ', vaultAddr);
         await voyager.initVault(vaultAddr, tus.address);
         await expect( voyager.borrow(tus.address, '100', vaultAddr, 0)).to.be.revertedWith('71');
     });
