@@ -2,5 +2,5 @@
 pragma solidity ^0.8.9;
 
 interface IVaultFactory {
-    function createVault(address _user) external returns (address);
+    function createVault(bytes32 _salt) external returns (address);
 }

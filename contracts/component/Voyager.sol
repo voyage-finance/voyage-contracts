@@ -197,14 +197,20 @@ contract Voyager is MessageBus {
      * a SecurityDepositEscrow contract which the fund will be held in
      × @return address of Vault
      **/
-    function createVault(address _reserve)
-        external
-        onlyWhitelisted('createVault')
-        returns (address)
-    {
+    function createVault(
+        address _to,
+        address _reserve,
+        bytes32 _salt
+    ) external onlyWhitelisted('createVault') returns (address) {
         address vaultManagerProxy = getVaultManagerProxyAddress();
         VaultManager vaultManager = VaultManager(vaultManagerProxy);
-        return vaultManager.createVault(msg.sender, _reserve);
+        return vaultManager.createVault(_to, _reserve, _salt);
+    }
+
+    function initVault(address _vault, address _reserve) external {
+        address vaultManagerProxy = getVaultManagerProxyAddress();
+        VaultManager vaultManager = VaultManager(vaultManagerProxy);
+        vaultManager.initVault(_vault, _reserve);
     }
 
     /**

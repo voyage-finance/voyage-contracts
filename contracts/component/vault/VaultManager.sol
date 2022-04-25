@@ -10,7 +10,6 @@ import '../../interfaces/IVaultFactory.sol';
 import '../../interfaces/IVault.sol';
 import '../../interfaces/IACLManager.sol';
 import './VaultStorage.sol';
-import './Vault.sol';
 import './VaultFactory.sol';
 
 contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
@@ -46,17 +45,13 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
      * @dev Create a Vault for user
      * @param _user the address of the player
      **/
-    function createVault(address _user, address _reserve)
-        external
-        onlyProxy
-        returns (address)
-    {
-        address vault = VaultFactory(vaultFactory).createVault(_user);
-        SecurityDepositEscrow securityDepositEscrow = new SecurityDepositEscrow(
-            vault
-        );
-        IVault(vault).initialize(voyager, securityDepositEscrow);
-        IVault(vault).initSecurityDepositToken(_reserve);
+    function createVault(
+        address _user,
+        address _reserve,
+        bytes32 _salt
+    ) external onlyProxy returns (address) {
+        address vault = VaultFactory(vaultFactory).createVault(_salt);
+        require(vault != address(0), 'deploy vault failed');
         uint256 len = VaultStorage(getVaultStorageAddress()).pushNewVault(
             _user,
             vault
@@ -70,6 +65,14 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
             0
         );
         return vault;
+    }
+
+    function initVault(address _vault, address _reserve) external onlyProxy {
+        SecurityDepositEscrow securityDepositEscrow = new SecurityDepositEscrow(
+            _vault
+        );
+        IVault(_vault).initialize(voyager, securityDepositEscrow);
+        IVault(_vault).initSecurityDepositToken(_reserve);
     }
 
     /**

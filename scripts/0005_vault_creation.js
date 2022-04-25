@@ -1,15 +1,45 @@
 const hre = require("hardhat");
+const deployedExtCallACL = require('../deployments/' + process.env.HARDHAT_NETWORK + '/ExtCallACL.json');
+const deployedVoyager = require('../deployments/' + process.env.HARDHAT_NETWORK + '/Voyager.json');
+const deployedTus = require('../deployments/' + process.env.HARDHAT_NETWORK + '/Tus.json');
+const deployedVMP = require('../deployments/' + process.env.HARDHAT_NETWORK + '/VaultManagerProxy.json');
+const deployedVMS = require('../deployments/' + process.env.HARDHAT_NETWORK + '/VaultStorage.json');
+const {ethers} = require("hardhat");
+const crypto = require('crypto');
 
 async function main() {
+    const owner = process.env.OWNER;
+    const voyagerAddress = deployedVoyager.address;
     const ExtCallACL = await hre.ethers.getContractFactory('ExtCallACL');
-    const extCallACL = await ExtCallACL.attach('0x6Ff04Dcf9b406B9fCC52A0c76125D4B131EDF978');
-    const isWhiteList = await extCallACL.isWhitelistedAddress('0x4C616d9377Fa8d928385F0b11Ab16D4bf0f2d544');
-    console.log(isWhiteList);
-    const voyagerAddress = '0x5e22A3f21751f57536a3Def11B9Ec95bA54E0536';
-    const Voyager = await hre.ethers.getContractFactory('Voyager');
-    const voyager = Voyager.attach(voyagerAddress);
+    const extCallACL = await ExtCallACL.attach(deployedExtCallACL.address);
+    const isWhiteList = await extCallACL.isWhitelistedAddress(owner);
+    console.log('address is whitelist: ', isWhiteList);
 
-    await voyager.createVault();
+    const treasureUnderSea = deployedTus.address;
+    const Voyager = await hre.ethers.getContractFactory('Voyager');
+    const voyager = await Voyager.attach(voyagerAddress);
+    const random = crypto.randomUUID().substring(7);
+    console.log(random);
+
+    const salt = ethers.utils.formatBytes32String(random);
+    await voyager.createVault(owner, treasureUnderSea,salt);
+
+    const VaultManagerProxy = await hre.ethers.getContractFactory('VaultManagerProxy');
+    const vaultManagerProxy = await VaultManagerProxy.attach(deployedVMP.address);
+    const vaultAddress = await vaultManagerProxy.getVault(owner);
+    console.log('vault created, address is: ', vaultAddress);
+
+    const VaultStorage = await hre.ethers.getContractFactory('VaultStorage');
+    const vaultStorageAddress = deployedVMS.address;
+    const vaultStorage = await VaultStorage.attach(vaultStorageAddress);
+    const vaultA = await vaultStorage.getAllVaults();
+    console.log(vaultA);
+
+    const Vault = await ethers.getContractFactory('Vault');
+    await voyager.initVault(vaultAddress, treasureUnderSea);
+    const escrowAddress = await Vault.attach(vaultAddress).getSecurityDepositEscrowAddress();
+    console.log('vault escrow address: ', escrowAddress);
+
 }
 
 main()

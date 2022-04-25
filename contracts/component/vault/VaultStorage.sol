@@ -23,6 +23,7 @@ contract VaultStorage is State {
         returns (uint256)
     {
         allVaults.push(vault);
+        require(getVault[_player] == address(0), 'vault exists');
         getVault[_player] = vault;
         return allVaults.length;
     }

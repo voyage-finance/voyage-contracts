@@ -50,6 +50,12 @@ const config: HardhatUserConfig = {
       accounts: [DEPLOYER_PRIVATE_KEY],
       gas: 8000000,
     },
+    voyage: {
+      url: 'https://vethtest.staging.voyage.finance/',
+      chainId: 666,
+      accounts: [DEPLOYER_PRIVATE_KEY],
+      gas: 20000000,
+    }
   },
   namedAccounts: {
     // deployer/owner signer can now be accessed as accounts[0]
