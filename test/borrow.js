@@ -58,7 +58,7 @@ describe('Borrow', function () {
     });
 
     it('Borrow with wrong vault address should revert', async function () {
-        await expect( voyager.borrow(tus.address, '10000', voyager.address, 0)).to.be.revertedWith('72');
+        await expect( voyager.borrow(tus.address, '10000', voyager.address, 0)).to.be.revertedWith('73');
     });
 
     it('Borrow with no sufficient reserve should revert', async function () {

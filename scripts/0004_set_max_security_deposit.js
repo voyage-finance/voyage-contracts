@@ -10,7 +10,7 @@ async function main() {
 
     const VaultManager= await hre.ethers.getContractFactory('VaultManager');
     const vm = await VaultManager.attach(deployedVMP.address);
-    await vm.updateSecurityDepositRequirement(treasureUnderSea, '100000000000000000000000000');
+    await vm.setMaxSecurityDeposit(treasureUnderSea, '100000000000000000000000000')
 }
 
 main()
