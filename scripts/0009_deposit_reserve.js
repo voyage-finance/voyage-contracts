@@ -16,8 +16,8 @@ async function main() {
 
     const Tus = await hre.ethers.getContractFactory('Tus');
     const tus = await Tus.attach(treasureUnderSea);
-    await tus.increaseAllowance(escrowContract, '10000000000000000000');
-    await voyager.deposit(treasureUnderSea, '1', '10000000000000000000', owner);
+    await tus.increaseAllowance(escrowContract, '500000000000000000000');
+    await voyager.deposit(treasureUnderSea, '1', '500000000000000000000', owner);
 
 }
 

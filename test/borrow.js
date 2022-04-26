@@ -57,7 +57,7 @@ describe('Borrow', function () {
     });
 
     it('Borrow with wrong vault address should revert', async function () {
-        await expect( voyager.borrow(tus.address, '10000', voyager.address, 0)).to.be.revertedWith('73');
+        await expect( voyager.borrow(tus.address, '10000000000000000000', voyager.address, 0)).to.be.revertedWith('73');
     });
 
     it('Borrow with no sufficient reserve should revert', async function () {
@@ -65,7 +65,7 @@ describe('Borrow', function () {
         const salt = ethers.utils.formatBytes32String((Math.random() + 1).toString(36).substring(7));
         await voyager.createVault(owner, tus.address, salt);
         const vaultAddr = await voyager.getVault(owner);
-        await expect( voyager.borrow(tus.address, '10000', vaultAddr, 0)).to.be.revertedWith('70');
+        await expect( voyager.borrow(tus.address, '10000000000000000000', vaultAddr, 0)).to.be.revertedWith('70');
     });
 
     it('Insufficient credit limit should revert', async function () {
@@ -83,7 +83,7 @@ describe('Borrow', function () {
             defaultReserveInterestRateStrategy.address,
             healthStrategyAddress.address
         );
-        const depositAmount = "10000";
+        const depositAmount = "100000000000000000000";
         await lm.activeReserve(tus.address);
         await voyager.deposit(tus.address, 1, depositAmount, owner)
 
@@ -94,7 +94,7 @@ describe('Borrow', function () {
         await voyager.createVault(owner, tus.address, salt);
         const vaultAddr = await voyager.getVault(owner);
         await voyager.initVault(vaultAddr, tus.address);
-        await expect( voyager.borrow(tus.address, '100', vaultAddr, 0)).to.be.revertedWith('71');
+        await expect( voyager.borrow(tus.address, '10000000000000000000', vaultAddr, 0)).to.be.revertedWith('71');
     });
 
     it('Sufficient credit limit should return correct value', async function () {
@@ -142,9 +142,15 @@ describe('Borrow', function () {
         await expect(debtBalance).to.equal(BigNumber.from('10000000000000000000'));
         const vaultBalance = await tus.balanceOf(vaultAddr);
         await expect(vaultBalance).to.equal(BigNumber.from('10000000000000000000'));
-
+        const creditLimit = await voyager.getCreditLimit(owner, tus.address);
+        const availableCredit = await voyager.getAvailableCredit(owner, tus.address);
+        console.log('credit limit: ', creditLimit.toString());
+        console.log('available credit: ', availableCredit.toString());
         await voyager.borrow(tus.address, '10000000000000000000', vaultAddr, '0')
-
+        const vaultBalance2 = await tus.balanceOf(vaultAddr);
+        console.log('vault balance: ', vaultBalance2.toString());
+        console.log('credit limit: ', creditLimit.toString());
+        console.log('available credit: ', availableCredit.toString());
     });
 
 

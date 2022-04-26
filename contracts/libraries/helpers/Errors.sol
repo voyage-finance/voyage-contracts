@@ -26,6 +26,7 @@ library Errors {
     string public constant LOM_CREDIT_NOT_SUFFICIENT = '71';
     string public constant LOM_HEALTH_RISK_BELOW_ONE = '72';
     string public constant LOM_NOT_VAULT_OWNER = '73';
+    string public constant LOM_INVALID_AMOUNT = '74';
     string public constant RL_LIQUIDITY_RATE_OVERFLOW = '80'; //  Liquidity rate overflows uint128
     string public constant RL_STABLE_BORROW_RATE_OVERFLOW = '81'; //  Stable borrow rate overflows uint128
 }

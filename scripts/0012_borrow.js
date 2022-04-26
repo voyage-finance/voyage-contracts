@@ -15,7 +15,7 @@ async function main() {
     const voyagerAddress = deployedVoyager.address;
     const Voyager = await hre.ethers.getContractFactory('Voyager');
     const voyager = await Voyager.attach(voyagerAddress);
-    await voyager.borrow(treasureUnderSea, '100000000000000000', vaultAddress, '0');
+    await voyager.borrow(treasureUnderSea, '10000000000000000000', vaultAddress, '0');
 
 }
 
