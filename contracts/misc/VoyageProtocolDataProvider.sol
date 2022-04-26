@@ -5,12 +5,17 @@ import '../libraries/types/DataTypes.sol';
 import '../interfaces/IAddressResolver.sol';
 import '../interfaces/IReserveManager.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/extensions/IERC20Metadata.sol';
+import '../libraries/types/DataTypes.sol';
 
 contract VoyageProtocolDataProvider {
     IAddressResolver public addressResolver;
 
     constructor(IAddressResolver _addressResolver) {
         addressResolver = _addressResolver;
+    }
+
+    function getPoolConfiguration() external view {
+        DataTypes.PoolConfiguration memory poolConfiguration;
     }
 
     function getPoolTokens()

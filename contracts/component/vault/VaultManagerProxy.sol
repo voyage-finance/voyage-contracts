@@ -15,6 +15,14 @@ contract VaultManagerProxy is Proxy {
         return IVaultManager(address(target)).getMaxSecurityDeposit(_reserve);
     }
 
+    function getMinSecurityDeposit(address _reserve)
+        public
+        view
+        returns (uint256)
+    {
+        return IVaultManager(address(target)).getMinSecurityDeposit(_reserve);
+    }
+
     function getSecurityDepositRequirement(address _reserve)
         public
         view

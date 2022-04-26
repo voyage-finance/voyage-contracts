@@ -19,7 +19,9 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
     IAddressResolver public addressResolver;
     address public voyager;
     address public vaultFactory;
+    // todo move this config
     mapping(address => uint256) public maxSecurityDeposit;
+    mapping(address => uint256) public minSecurityDeposit;
     // reserve address => requirement expressed in ray
     mapping(address => uint256) public securityDepositRequirement;
 
@@ -220,6 +222,15 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         returns (uint256)
     {
         return maxSecurityDeposit[_reserve];
+    }
+
+    function getMinSecurityDeposit(address _reserve)
+        external
+        view
+        onlyProxy
+        returns (uint256)
+    {
+        return minSecurityDeposit[_reserve];
     }
 
     /**
