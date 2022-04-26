@@ -89,4 +89,25 @@ library DataTypes {
         uint256 aggregateOptimalRepaymentRate;
         uint256 aggregateActualRepaymentRate;
     }
+
+    struct PoolConfiguration {
+        uint256 securityRequirement;
+        uint256 minSecurity;
+        uint256 maxSecurity;
+        uint256 loanTenure;
+        uint256 optimalTrancheRatio;
+        uint256 optimalIncomeRatio;
+        bool isActive;
+    }
+
+    struct PoolData {
+        uint256 totalLiquidity;
+        uint256 juniorLiquidity;
+        uint256 seniorLiquidity;
+        uint256 juniorLiquidityRate;
+        uint256 seniorLiquidityRate;
+        uint256 totalDebt;
+        uint256 borrowRate;
+        uint256 trancheRatio;
+    }
 }
