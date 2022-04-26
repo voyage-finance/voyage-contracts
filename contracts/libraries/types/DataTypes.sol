@@ -32,6 +32,8 @@ library DataTypes {
         address stableDebtAddress;
         uint40 juniorLastUpdateTimestamp;
         uint40 seniorLastUpdateTimestamp;
+        uint256 optimalTrancheRatio;
+        uint256 optimalIncomeRatio;
     }
 
     struct ReserveConfigurationMap {

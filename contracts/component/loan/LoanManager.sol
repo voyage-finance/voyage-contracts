@@ -35,6 +35,7 @@ contract LoanManager is Proxyable, IVoyagerComponent {
         address payable _vault,
         uint256 _grossAssetValue
     ) external requireNotPaused {
+        // todo use min security deposit
         require(_amount >= 1e19, Errors.LOM_INVALID_AMOUNT);
         // 0. check if the user owns the vault
         require(voyager.getVault(_user) == _vault, Errors.LOM_NOT_VAULT_OWNER);

@@ -301,6 +301,10 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         return _getVault(_user);
     }
 
+    function getAllVaults() external view returns (address[] memory) {
+        return VaultStorage(getVaultStorageAddress()).getAllVaults();
+    }
+
     function eligibleAmount(
         address _vaultUser,
         address _reserve,
