@@ -23,18 +23,10 @@ interface IVoyageDataProvider {
             uint256 trancheRatio
         );
 
-    function getPoolConfiguration(address underlyingAsset)
+    function getPoolConfiguration(address _reserve)
         external
         view
-        returns (
-            uint256 securityRequirement,
-            uint256 minSecurity,
-            uint256 maxSecurity,
-            uint256 loanTenure,
-            uint256 optimalTrancheRatio,
-            uint256 optimalIncomeRatio,
-            bool isActive
-        );
+        returns (DataTypes.PoolConfiguration memory);
 
     function userPoolData(address underlyingAsset, address user)
         external

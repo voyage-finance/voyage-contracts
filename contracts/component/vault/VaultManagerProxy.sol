@@ -3,20 +3,29 @@ pragma solidity ^0.8.9;
 
 import '../../libraries/proxy/Proxy.sol';
 import '../../interfaces/IVaultManager.sol';
+import '../../interfaces/IVaultManagerProxy.sol';
 
-contract VaultManagerProxy is Proxy {
+contract VaultManagerProxy is Proxy, IVaultManagerProxy {
     /************************** Immutable static call for target contract **************************/
 
     function getMaxSecurityDeposit(address _reserve)
-        public
+        external
         view
         returns (uint256)
     {
         return IVaultManager(address(target)).getMaxSecurityDeposit(_reserve);
     }
 
+    function getMinSecurityDeposit(address _reserve)
+        external
+        view
+        returns (uint256)
+    {
+        return IVaultManager(address(target)).getMinSecurityDeposit(_reserve);
+    }
+
     function getSecurityDepositRequirement(address _reserve)
-        public
+        external
         view
         returns (uint256)
     {
@@ -27,7 +36,7 @@ contract VaultManagerProxy is Proxy {
     }
 
     function getCreditLimit(address _user, address _reserve)
-        public
+        external
         view
         returns (uint256)
     {
@@ -35,7 +44,7 @@ contract VaultManagerProxy is Proxy {
     }
 
     function getAvailableCredit(address _user, address _reserve)
-        public
+        external
         view
         returns (uint256)
     {
@@ -44,7 +53,7 @@ contract VaultManagerProxy is Proxy {
     }
 
     function getSecurityDeposit(address _user, address _reserve)
-        public
+        external
         view
         returns (uint256)
     {
@@ -67,5 +76,9 @@ contract VaultManagerProxy is Proxy {
 
     function getVault(address _user) external view returns (address) {
         return IVaultManager(address(target)).getVault(_user);
+    }
+
+    function getAllVaults() external view returns (address[] memory) {
+        return IVaultManager(address(target)).getAllVaults();
     }
 }

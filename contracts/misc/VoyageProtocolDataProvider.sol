@@ -5,12 +5,56 @@ import '../libraries/types/DataTypes.sol';
 import '../interfaces/IAddressResolver.sol';
 import '../interfaces/IReserveManager.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/extensions/IERC20Metadata.sol';
+import '../libraries/types/DataTypes.sol';
+import '../interfaces/IVaultManager.sol';
+import '../interfaces/IHealthStrategy.sol';
+import '../interfaces/IVaultManagerProxy.sol';
 
 contract VoyageProtocolDataProvider {
     IAddressResolver public addressResolver;
 
     constructor(IAddressResolver _addressResolver) {
         addressResolver = _addressResolver;
+    }
+
+    function getPoolConfiguration(address _reserve)
+        external
+        view
+        returns (DataTypes.PoolConfiguration memory)
+    {
+        DataTypes.PoolConfiguration memory poolConfiguration;
+        IVaultManager vm = IVaultManager(
+            addressResolver.getVaultManagerProxy()
+        );
+        IReserveManager rm = IReserveManager(
+            addressResolver.getLiquidityManagerProxy()
+        );
+        DataTypes.ReserveData memory reserve = rm.getReserveData(_reserve);
+        address healthStrategyAddr = reserve.healthStrategyAddress;
+        require(healthStrategyAddr != address(0), 'invalid health strategy');
+        IHealthStrategy hs = IHealthStrategy(healthStrategyAddr);
+        poolConfiguration.securityRequirement = vm
+            .getSecurityDepositRequirement(_reserve);
+        poolConfiguration.minSecurity = vm.getMinSecurityDeposit(_reserve);
+        poolConfiguration.maxSecurity = vm.getMaxSecurityDeposit(_reserve);
+        poolConfiguration.loanTenure = hs.getLoanTenure();
+        poolConfiguration.optimalIncomeRatio = reserve.optimalIncomeRatio;
+        poolConfiguration.optimalTrancheRatio = reserve.optimalTrancheRatio;
+        return poolConfiguration;
+    }
+
+    function getAllVaults() external view returns (address[] memory) {
+        IVaultManagerProxy vmp = IVaultManagerProxy(
+            addressResolver.getVaultManagerProxy()
+        );
+        return vmp.getAllVaults();
+    }
+
+    function getUserVault(address _user) external view returns (address) {
+        IVaultManagerProxy vmp = IVaultManagerProxy(
+            addressResolver.getVaultManagerProxy()
+        );
+        return vmp.getVault(_user);
     }
 
     function getPoolTokens()
@@ -29,9 +73,6 @@ contract VoyageProtocolDataProvider {
 
         for (uint256 i = 0; i < reserveList.length; i++) {
             address reserveAddress = reserveList[i];
-            //        DataTypes.ReserveData memory reserveData = IReserveManager(
-            //                addressResolver.getLiquidityManagerProxy()
-            //            ).getReserveData(reserveAddress);
             reserves[i] = DataTypes.FungibleTokenData({
                 symbol: IERC20Metadata(reserveAddress).symbol(),
                 tokenAddress: reserveAddress
