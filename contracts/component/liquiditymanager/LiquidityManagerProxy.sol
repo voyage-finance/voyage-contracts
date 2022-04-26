@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 import '../../libraries/proxy/Proxy.sol';
 import '../../interfaces/IReserveManager.sol';
 import '../../interfaces/ILiquidityManager.sol';
+import '../../interfaces/IVoyagerComponent.sol';
 import '../../libraries/logic/ReserveLogic.sol';
 
 contract LiquidityManagerProxy is Proxy {
@@ -25,6 +26,14 @@ contract LiquidityManagerProxy is Proxy {
         returns (DataTypes.ReserveData memory)
     {
         return IReserveManager(address(target)).getReserveData(_reserve);
+    }
+
+    function getLiquidityAndDebt(address _reserve)
+        external
+        view
+        returns (DataTypes.DepositAndDebt memory)
+    {
+        return IVoyagerComponent(address(target)).getDepositAndDebt();
     }
 
     function getReserveList() external view returns (address[] memory) {
