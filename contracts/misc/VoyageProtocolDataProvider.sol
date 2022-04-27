@@ -43,6 +43,28 @@ contract VoyageProtocolDataProvider {
         return poolConfiguration;
     }
 
+    function getPoolData(address underlyingAsset)
+    external
+    view
+    returns (
+        uint256 totalLiquidity,
+        uint256 juniorLiquidity,
+        uint256 seniorLiquidity,
+        uint256 juniorLiquidityRate,
+        uint256 seniorLiquidityRate,
+        uint256 totalDebt,
+        uint256 borrowRate,
+        uint256 trancheRatio
+    )
+    {
+        IReserveManager rm = IReserveManager(
+            addressResolver.getLiquidityManagerProxy()
+        );
+        DataTypes.ReserveData memory reserve = rm.getReserveData(underlyingAsset);
+
+        return (0, reserve.currentJuniorIncomeAllocation, reserve.currentSeniorIncomeAllocation, reserve.currentOverallLiquidityRate, reserve.currentOverallLiquidityRate, reserve.totalBorrows, 0, 0);
+    }
+
     function getAllVaults() external view returns (address[] memory) {
         IVaultManagerProxy vmp = IVaultManagerProxy(
             addressResolver.getVaultManagerProxy()

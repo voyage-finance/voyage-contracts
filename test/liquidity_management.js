@@ -7,7 +7,7 @@ let lm;
 let voyageProtocolDataProvider;
 
 describe("Reserve Init", function() {
-  beforeEach(async function() {
+  beforeEach(async function () {
     [owner] = await ethers.getSigners();
 
     // deploy Voyager contract
@@ -93,7 +93,7 @@ describe("Reserve Init", function() {
     );
   });
 
-  it("Init reserve should return correct value", async function() {
+  it("Init reserve should return correct value", async function () {
     const ray = "1000000000000000000000000000";
     const fakeAddress = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
     // deploy mock tus contract as reserve
@@ -123,7 +123,7 @@ describe("Reserve Init", function() {
     expect(poolTokens[0].tokenAddress).to.equal(tus.address);
   });
 
-  it("Active reserve should return correct value", async function() {
+  it("Active reserve should return correct value", async function () {
     const fakeAddress = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
     // deploy mock tus contract as reserve
     const Tus = await ethers.getContractFactory("Tus");
@@ -144,5 +144,40 @@ describe("Reserve Init", function() {
     await lm.activeReserve(tus.address);
     const newFlags = await voyager.getReserveFlags(tus.address);
     expect(newFlags[0]).to.equal(true);
+  });
+
+  it("Active reserve should return pool data", async function () {
+    const ray = "1000000000000000000000000000";
+    const fakeAddress = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
+    // deploy mock tus contract as reserve
+    const Tus = await ethers.getContractFactory("Tus");
+    const tus = await Tus.deploy("1000000000000000000000");
+    await expect(lm.initReserve(
+      tus.address,
+      fakeAddress,
+      fakeAddress,
+      "400000000000000000000000000",
+      "600000000000000000000000000",
+      fakeAddress,
+      fakeAddress,
+      fakeAddress
+    )).to.emit(lm, 'ReserveInitialized');
+    const reserveState = await voyager.getReserveData(tus.address);
+    expect(reserveState.juniorLiquidityIndex).to.equal(ray);
+    expect(reserveState.seniorLiquidityIndex).to.equal(ray);
+
+    // 0 represents junior
+    const juniorLiquidityRate = await voyager.liquidityRate(tus.address, "0");
+    expect(juniorLiquidityRate).to.equal("0");
+
+    const poolData = await voyageProtocolDataProvider.getPoolData(lm.address);
+    console.log("poolData.totalLiquidity", poolData.totalLiquidity);
+    console.log("poolData.juniorLiquidity", poolData.juniorLiquidity);
+    console.log("poolData.seniorLiquidity", poolData.seniorLiquidity);
+    console.log("poolData.juniorLiquidityRate", poolData.juniorLiquidityRate);
+    console.log("poolData.seniorLiquidityRate", poolData.seniorLiquidityRate);
+    console.log("poolData.totalDebt", poolData.totalDebt);
+    console.log("poolData.borrowRate", poolData.borrowRate);
+    console.log("poolData.trancheRatio", poolData.trancheRatio);
   });
 });
