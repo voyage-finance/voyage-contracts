@@ -129,4 +129,27 @@ contract VoyageProtocolDataProvider {
 
         return reserves;
     }
+
+    function getVaultData(
+        address _user,
+        address _reserve,
+        address _sponsor
+    ) external view returns (DataTypes.VaultData memory) {
+        DataTypes.VaultData memory vaultData;
+        IVaultManagerProxy vmp = IVaultManagerProxy(
+            addressResolver.getVaultManagerProxy()
+        );
+        vaultData.borrowRate = 0;
+        vaultData.totalDebt = 0;
+        vaultData.totalSecurityDeposit = vmp.getSecurityDeposit(
+            _user,
+            _reserve
+        );
+        vaultData.withdrawableSecurityDeposit = vmp.eligibleAmount(
+            _user,
+            _reserve,
+            _sponsor
+        );
+        return vaultData;
+    }
 }

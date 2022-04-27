@@ -112,4 +112,18 @@ library DataTypes {
         uint256 borrowRate;
         uint256 trancheRatio;
     }
+
+    struct VaultData {
+        uint256 borrowRate;
+        uint256 totalDebt;
+        uint256 totalSecurityDeposit;
+        uint256 withdrawableSecurityDeposit;
+        uint256 creditLimit;
+        uint256 spendableBalance;
+        uint256 gav;
+        uint256 ltv;
+        uint256 optimalAggregateRepaymentRate;
+        uint256 actualAggregateRepaymentRate;
+        uint256 healthFactor;
+    }
 }

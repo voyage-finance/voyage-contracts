@@ -70,6 +70,7 @@ contract Escrow is ReentrancyGuard {
                 eligibleAmount += deposits[i].amount;
             }
         }
+        // todo check borrow amount
         return eligibleAmount;
     }
 
@@ -101,7 +102,7 @@ contract Escrow is ReentrancyGuard {
             eligibleAmount >= _amount,
             'Do not have enough amount to withdraw'
         );
-
+        // todo check borrow amount
         // if there is any amount left from eligible amount, push it back
         if (eligibleAmount > _amount) {
             uint256 leftAmount = eligibleAmount - _amount;
