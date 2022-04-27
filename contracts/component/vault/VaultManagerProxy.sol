@@ -81,4 +81,8 @@ contract VaultManagerProxy is Proxy, IVaultManagerProxy {
     function getAllVaults() external view returns (address[] memory) {
         return IVaultManager(address(target)).getAllVaults();
     }
+
+    function getGav(address _user) external view returns (uint256) {
+        return IVaultManager(address(target)).getGav(_user);
+    }
 }

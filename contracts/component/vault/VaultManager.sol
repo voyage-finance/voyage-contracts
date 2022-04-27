@@ -314,6 +314,10 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         return IVault(vaultAddress).eligibleAmount(_reserve, _sponsor);
     }
 
+    function getGav(address _user) external view returns (uint256) {
+        return IVault(_getVault(_user)).getGav();
+    }
+
     /************************************** Private Functions **************************************/
 
     function _getSecurityDeposit(address _user, address _reserve)

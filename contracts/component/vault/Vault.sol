@@ -182,6 +182,10 @@ contract Vault is ReentrancyGuard, IVault {
         return totalDebt;
     }
 
+    function getGav() external view returns (uint256) {
+        return gav;
+    }
+
     /**
      * @dev Get unused deposits
      * @param _sponsor sponsor address

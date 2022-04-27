@@ -40,6 +40,8 @@ interface IVaultManager {
 
     function getAllVaults() external view returns (address[] memory);
 
+    function getGav(address _user) external view returns (uint256);
+
     function getSecurityDeposit(address _user, address _reserve)
         external
         view
