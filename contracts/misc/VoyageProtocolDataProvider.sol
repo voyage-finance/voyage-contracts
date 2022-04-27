@@ -150,6 +150,8 @@ contract VoyageProtocolDataProvider {
             _reserve,
             _sponsor
         );
+        vaultData.creditLimit = vmp.getCreditLimit(_user, _reserve);
+        vaultData.spendableBalance = vmp.getAvailableCredit(_user, _reserve);
         return vaultData;
     }
 }
