@@ -9,6 +9,8 @@ import '../libraries/types/DataTypes.sol';
 import '../interfaces/IVaultManager.sol';
 import '../interfaces/IHealthStrategy.sol';
 import '../interfaces/IVaultManagerProxy.sol';
+import '../interfaces/ILiquidityManagerProxy.sol';
+import '../component/liquiditymanager/LiquidityManager.sol';
 
 contract VoyageProtocolDataProvider {
     IAddressResolver public addressResolver;
@@ -44,25 +46,45 @@ contract VoyageProtocolDataProvider {
     }
 
     function getPoolData(address underlyingAsset)
-    external
-    view
-    returns (
-        uint256 totalLiquidity,
-        uint256 juniorLiquidity,
-        uint256 seniorLiquidity,
-        uint256 juniorLiquidityRate,
-        uint256 seniorLiquidityRate,
-        uint256 totalDebt,
-        uint256 borrowRate,
-        uint256 trancheRatio
-    )
+        external
+        view
+        returns (
+            uint256 totalLiquidity,
+            uint256 juniorLiquidity,
+            uint256 seniorLiquidity,
+            uint256 juniorLiquidityRate,
+            uint256 seniorLiquidityRate,
+            uint256 totalDebt,
+            uint256 borrowRate,
+            uint256 trancheRatio
+        )
     {
         IReserveManager rm = IReserveManager(
             addressResolver.getLiquidityManagerProxy()
         );
-        DataTypes.ReserveData memory reserve = rm.getReserveData(underlyingAsset);
-
-        return (0, reserve.currentJuniorIncomeAllocation, reserve.currentSeniorIncomeAllocation, reserve.currentOverallLiquidityRate, reserve.currentOverallLiquidityRate, reserve.totalBorrows, 0, 0);
+        DataTypes.ReserveData memory reserve = rm.getReserveData(
+            underlyingAsset
+        );
+        ILiquidityManagerProxy lmp = ILiquidityManagerProxy(
+            addressResolver.getVaultManagerProxy()
+        );
+        uint256 _juniorLiquidity = lmp
+            .getLiquidityAndDebt(underlyingAsset)
+            .juniorDepositAmount;
+        uint256 _seniorLiquidity = lmp
+            .getLiquidityAndDebt(underlyingAsset)
+            .seniorDepositAmount;
+        uint256 _totalLiquidity = juniorLiquidity + seniorLiquidity;
+        return (
+            _totalLiquidity,
+            _juniorLiquidity,
+            _seniorLiquidity,
+            0,
+            0,
+            reserve.totalBorrows,
+            reserve.currentBorrowRate,
+            0
+        );
     }
 
     function getAllVaults() external view returns (address[] memory) {
