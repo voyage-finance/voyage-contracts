@@ -38,10 +38,10 @@ const deployFn: DeployFunction = async (hre) => {
   );
 
   await execute(
-      'ACLManager',
-      { from: owner, log: true },
-      'grantLoanManager',
-      owner
+    'ACLManager',
+    { from: owner, log: true },
+    'grantLoanManager',
+    owner
   );
 
   await execute(
@@ -52,10 +52,10 @@ const deployFn: DeployFunction = async (hre) => {
   );
 
   await execute(
-      'ACLManager',
-      { from: owner, log: true },
-      'grantLiquidityManagerContract',
-      LiquidityManager.address
+    'ACLManager',
+    { from: owner, log: true },
+    'grantLiquidityManagerContract',
+    LiquidityManager.address
   );
 };
 

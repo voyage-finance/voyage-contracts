@@ -1,7 +1,7 @@
 import { DeployFunction } from 'hardhat-deploy/types';
 import { DefaultHealthStrategy, Tus } from '@contracts';
 import TusABI from '../artifacts/contracts/mock/Tus.sol/Tus.json';
-import {ethers} from "hardhat";
+import { ethers } from 'hardhat';
 
 const LOAN_MANAGER_NAME = 'LoanManager';
 const LOAN_MANAGER_PROXY_NAME = 'LoanManagerProxy';
@@ -30,10 +30,10 @@ const deployFn: DeployFunction = async (hre) => {
   });
 
   await execute(
-      'LoanManagerProxy',
-      { from: owner, log: true },
-      'setTarget',
-      LoanManager.address
+    'LoanManagerProxy',
+    { from: owner, log: true },
+    'setTarget',
+    LoanManager.address
   );
 
   const names = [
@@ -42,32 +42,31 @@ const deployFn: DeployFunction = async (hre) => {
     ethers.utils.formatBytes32String('liquidityDepositEscrow'),
   ];
   const destinations = [
-      LoanManager.address,
-      LoanManagerProxy.address,
-      escrowAddress
+    LoanManager.address,
+    LoanManagerProxy.address,
+    escrowAddress,
   ];
   await execute(
-      'AddressResolver',
-      { from: owner, log: true },
-      'importAddresses',
-      names,
-      destinations
+    'AddressResolver',
+    { from: owner, log: true },
+    'importAddresses',
+    names,
+    destinations
   );
 
   await execute(
-      LM_STORAGE_NAME,
-      { from: owner, log: true },
-      'setAssociatedContract',
-      LoanManager.address
+    LM_STORAGE_NAME,
+    { from: owner, log: true },
+    'setAssociatedContract',
+    LoanManager.address
   );
 
   await execute(
-      'ACLManager',
-      { from: owner, log: true },
-      'grantLoanManagerContract',
-      LoanManager.address
+    'ACLManager',
+    { from: owner, log: true },
+    'grantLoanManagerContract',
+    LoanManager.address
   );
-
 };
 
 deployFn.dependencies = [

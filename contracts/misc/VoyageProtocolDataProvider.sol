@@ -11,6 +11,7 @@ import '../interfaces/IHealthStrategy.sol';
 import '../interfaces/IVaultManagerProxy.sol';
 import '../interfaces/ILiquidityManagerProxy.sol';
 import '../component/liquiditymanager/LiquidityManager.sol';
+import 'hardhat/console.sol';
 
 contract VoyageProtocolDataProvider {
     IAddressResolver public addressResolver;
@@ -59,21 +60,30 @@ contract VoyageProtocolDataProvider {
             uint256 trancheRatio
         )
     {
+        console.log(
+            'liquidity manager proxy: ',
+            addressResolver.getLiquidityManagerProxy()
+        );
         IReserveManager rm = IReserveManager(
             addressResolver.getLiquidityManagerProxy()
         );
         DataTypes.ReserveData memory reserve = rm.getReserveData(
             underlyingAsset
         );
-        ILiquidityManagerProxy lmp = ILiquidityManagerProxy(
-            addressResolver.getVaultManagerProxy()
+        console.log(
+            'vault manager proxy: ',
+            addressResolver.getLiquidityManagerProxy()
         );
-        uint256 _juniorLiquidity = lmp
-            .getLiquidityAndDebt(underlyingAsset)
-            .juniorDepositAmount;
-        uint256 _seniorLiquidity = lmp
-            .getLiquidityAndDebt(underlyingAsset)
-            .seniorDepositAmount;
+        ILiquidityManagerProxy lmp = ILiquidityManagerProxy(
+            addressResolver.getLiquidityManagerProxy()
+        );
+        console.log('lmp');
+        DataTypes.DepositAndDebt memory depositAndDebt = lmp
+            .getLiquidityAndDebt(underlyingAsset);
+        uint256 _juniorLiquidity = depositAndDebt.juniorDepositAmount;
+        uint256 _seniorLiquidity = depositAndDebt.seniorDepositAmount;
+        console.log('junior liquidity: ', _juniorLiquidity);
+        console.log('senior liquidity: ', _seniorLiquidity);
         uint256 _totalLiquidity = juniorLiquidity + seniorLiquidity;
         return (
             _totalLiquidity,

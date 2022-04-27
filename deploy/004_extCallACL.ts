@@ -25,7 +25,6 @@ const deployFn: DeployFunction = async (hre) => {
     'setTarget',
     ExtCallAcl.address
   );
-
 };
 
 deployFn.tags = ['ExtCallAcl'];

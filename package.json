@@ -16,9 +16,7 @@
     "node": "hardhat node --hostname 0.0.0.0 --no-deploy",
     "node:deploy": "hardhat node --hostname 0.0.0.0",
     "test": "hardhat test",
-    "format": "hardhat format",
-    "format-test": "prettier --write test",
-    "format-deploy": "prettier --write deploy"
+    "format": "hardhat format && prettier --write test && prettier --write deploy"
   },
   "author": "",
   "license": "MIT",
