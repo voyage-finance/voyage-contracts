@@ -7,6 +7,7 @@ import '../interfaces/IReserveManager.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 import '../libraries/types/DataTypes.sol';
 import '../libraries/logic/ReserveLogic.sol';
+import '../libraries/math/WadRayMath.sol';
 import '../interfaces/IVaultManager.sol';
 import '../interfaces/IHealthStrategy.sol';
 import '../interfaces/IVaultManagerProxy.sol';
@@ -16,6 +17,7 @@ import 'hardhat/console.sol';
 
 contract VoyageProtocolDataProvider {
     using SafeMath for uint256;
+    using WadRayMath for uint256;
 
     IAddressResolver public addressResolver;
 
@@ -82,7 +84,9 @@ contract VoyageProtocolDataProvider {
         );
         poolData.totalDebt = reserve.totalBorrows;
         poolData.borrowRate = reserve.currentBorrowRate;
-        poolData.trancheRatio = reserve.optimalTrancheRatio;
+        poolData.trancheRatio = depositAndDebt.juniorDepositAmount.rayDiv(
+            depositAndDebt.seniorDepositAmount
+        );
 
         return poolData;
     }
