@@ -95,13 +95,6 @@ describe('Data Provider', function () {
     );
     const dp = await DataProvider.attach(voyageProtocolDataProvider.address);
     const poolData = await dp.getPoolData(tus.address);
-    console.log('poolData.totalLiquidity', poolData.totalLiquidity);
-    console.log('poolData.juniorLiquidity', poolData.juniorLiquidity);
-    console.log('poolData.seniorLiquidity', poolData.seniorLiquidity);
-    console.log('poolData.juniorLiquidityRate', poolData.juniorLiquidityRate);
-    console.log('poolData.seniorLiquidityRate', poolData.seniorLiquidityRate);
-    console.log('poolData.totalDebt', poolData.totalDebt);
-    console.log('poolData.borrowRate', poolData.borrowRate);
-    console.log('poolData.trancheRatio', poolData.trancheRatio);
+    expect(poolData.seniorLiquidity).to.equal(depositAmount);
   });
 });
