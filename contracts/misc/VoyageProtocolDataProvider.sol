@@ -6,6 +6,7 @@ import '../interfaces/IAddressResolver.sol';
 import '../interfaces/IReserveManager.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 import '../libraries/types/DataTypes.sol';
+import '../libraries/logic/ReserveLogic.sol';
 import '../interfaces/IVaultManager.sol';
 import '../interfaces/IHealthStrategy.sol';
 import '../interfaces/IVaultManagerProxy.sol';
@@ -14,6 +15,8 @@ import '../component/liquiditymanager/LiquidityManager.sol';
 import 'hardhat/console.sol';
 
 contract VoyageProtocolDataProvider {
+    using SafeMath for uint256;
+
     IAddressResolver public addressResolver;
 
     constructor(IAddressResolver _addressResolver) {
@@ -49,52 +52,39 @@ contract VoyageProtocolDataProvider {
     function getPoolData(address underlyingAsset)
         external
         view
-        returns (
-            uint256 totalLiquidity,
-            uint256 juniorLiquidity,
-            uint256 seniorLiquidity,
-            uint256 juniorLiquidityRate,
-            uint256 seniorLiquidityRate,
-            uint256 totalDebt,
-            uint256 borrowRate,
-            uint256 trancheRatio
-        )
+        returns (DataTypes.PoolData memory)
     {
-        console.log(
-            'liquidity manager proxy: ',
-            addressResolver.getLiquidityManagerProxy()
-        );
         IReserveManager rm = IReserveManager(
             addressResolver.getLiquidityManagerProxy()
         );
         DataTypes.ReserveData memory reserve = rm.getReserveData(
             underlyingAsset
         );
-        console.log(
-            'vault manager proxy: ',
-            addressResolver.getLiquidityManagerProxy()
-        );
         ILiquidityManagerProxy lmp = ILiquidityManagerProxy(
             addressResolver.getLiquidityManagerProxy()
         );
-        console.log('lmp');
         DataTypes.DepositAndDebt memory depositAndDebt = lmp
             .getLiquidityAndDebt(underlyingAsset);
-        uint256 _juniorLiquidity = depositAndDebt.juniorDepositAmount;
-        uint256 _seniorLiquidity = depositAndDebt.seniorDepositAmount;
-        console.log('junior liquidity: ', _juniorLiquidity);
-        console.log('senior liquidity: ', _seniorLiquidity);
-        uint256 _totalLiquidity = juniorLiquidity + seniorLiquidity;
-        return (
-            _totalLiquidity,
-            _juniorLiquidity,
-            _seniorLiquidity,
-            0,
-            0,
-            reserve.totalBorrows,
-            reserve.currentBorrowRate,
-            0
+
+        DataTypes.PoolData memory poolData;
+        poolData.juniorLiquidity = depositAndDebt.juniorDepositAmount;
+        poolData.seniorLiquidity = depositAndDebt.seniorDepositAmount;
+        poolData.totalLiquidity = depositAndDebt.seniorDepositAmount.add(
+            depositAndDebt.juniorDepositAmount
         );
+        poolData.juniorLiquidityRate = lmp.getLiquidityRate(
+            underlyingAsset,
+            ReserveLogic.Tranche.JUNIOR
+        );
+        poolData.seniorLiquidityRate = lmp.getLiquidityRate(
+            underlyingAsset,
+            ReserveLogic.Tranche.SENIOR
+        );
+        poolData.totalDebt = reserve.totalBorrows;
+        poolData.borrowRate = reserve.currentBorrowRate;
+        poolData.trancheRatio = reserve.optimalTrancheRatio;
+
+        return poolData;
     }
 
     function getAllVaults() external view returns (address[] memory) {
