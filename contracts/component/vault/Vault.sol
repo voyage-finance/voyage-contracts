@@ -27,6 +27,8 @@ contract Vault is ReentrancyGuard, IVault {
     StakingRewards public stakingContract;
 
     uint256 public totalDebt;
+    // todo oracle
+    uint256 public gav;
 
     modifier onlyLoanManager() {
         _requireCallerLoanManager();
@@ -52,15 +54,6 @@ contract Vault is ReentrancyGuard, IVault {
             securityDepositEscrow = _securityDepositEscrow;
             initialized = true;
         }
-    }
-
-    function getVaultManagerProxyAddress() private returns (address) {
-        Voyager voyager = Voyager(voyager);
-        address addressResolver = voyager.getAddressResolverAddress();
-        return
-            AddressResolver(addressResolver).getAddress(
-                voyager.getVaultManagerProxyName()
-            );
     }
 
     function initSecurityDepositToken(address _reserve)
@@ -122,6 +115,47 @@ contract Vault is ReentrancyGuard, IVault {
     }
 
     /**
+     * @dev Redeem underlying reserve
+     * @param _sponsor sponsor address
+     * @param _reserve reserve address
+     * @param _amount redeem amount
+     **/
+    function redeemSecurity(
+        address payable _sponsor,
+        address _reserve,
+        uint256 _amount
+    ) external payable nonReentrant onlyVaultManager {
+        require(
+            _amount <= getUnusedDeposits(_sponsor, _reserve),
+            'Vault: cannot redeem more than unused deposits'
+        );
+        securityDepositEscrow.withdraw(
+            _reserve,
+            _sponsor,
+            _underlyingBalance(_sponsor, _reserve)
+        );
+        securityDepositToken.burnOnRedeem(_sponsor, _amount);
+    }
+
+    function increaseTotalDebt(uint256 _amount)
+        external
+        onlyVaultManagerContract
+    {
+        totalDebt += _amount;
+    }
+
+    // placeholder function
+    function slash(
+        address _reserve,
+        address payable _to,
+        uint256 _amount
+    ) external nonReentrant onlyVaultManager {
+        securityDepositEscrow.slash(_reserve, _to, _amount);
+    }
+
+    /************************************** View Functions **************************************/
+
+    /**
      * @dev get current security amount
      * @param _reserve underlying asset address
      **/
@@ -165,29 +199,6 @@ contract Vault is ReentrancyGuard, IVault {
             totalDebt.wadToRay().rayMul(securityRequirement);
     }
 
-    /**
-     * @dev Redeem underlying reserve
-     * @param _sponsor sponsor address
-     * @param _reserve reserve address
-     * @param _amount redeem amount
-     **/
-    function redeemSecurity(
-        address payable _sponsor,
-        address _reserve,
-        uint256 _amount
-    ) external payable nonReentrant onlyVaultManager {
-        require(
-            _amount <= getUnusedDeposits(_sponsor, _reserve),
-            'Vault: cannot redeem more than unused deposits'
-        );
-        securityDepositEscrow.withdraw(
-            _reserve,
-            _sponsor,
-            _underlyingBalance(_sponsor, _reserve)
-        );
-        securityDepositToken.burnOnRedeem(_sponsor, _amount);
-    }
-
     function underlyingBalance(address _sponsor, address _reserve)
         external
         view
@@ -196,41 +207,12 @@ contract Vault is ReentrancyGuard, IVault {
         return _underlyingBalance(_sponsor, _reserve);
     }
 
-    function _underlyingBalance(address _sponsor, address _reserve)
-        internal
-        view
-        returns (uint256)
-    {
-        uint256 amountToRedeemInRay = securityDepositToken
-            .balanceOf(_sponsor)
-            .wadToRay()
-            .rayDiv(securityDepositToken.totalSupply().wadToRay())
-            .rayMul(getActualSecurityDeposit(_reserve).wadToRay());
-        return amountToRedeemInRay.rayToWad();
-    }
-
     function eligibleAmount(address _reserve, address _sponsor)
         external
         view
         returns (uint256)
     {
         return securityDepositEscrow.eligibleAmount(_reserve, _sponsor);
-    }
-
-    function increaseTotalDebt(uint256 _amount)
-        external
-        onlyVaultManagerContract
-    {
-        totalDebt += _amount;
-    }
-
-    // placeholder function
-    function slash(
-        address _reserve,
-        address payable _to,
-        uint256 _amount
-    ) external nonReentrant onlyVaultManager {
-        securityDepositEscrow.slash(_reserve, _to, _amount);
     }
 
     function getSecurityDepositTokenAddress() external view returns (address) {
@@ -253,6 +235,8 @@ contract Vault is ReentrancyGuard, IVault {
         string memory version = 'Vault 0.0.1';
         return version;
     }
+
+    /************************************** Internal Functions **************************************/
 
     function _requireCallerLoanManager() internal {
         Voyager v = Voyager(voyager);
@@ -290,5 +274,27 @@ contract Vault is ReentrancyGuard, IVault {
     function _getVaultManagerAddress() internal view returns (address) {
         Voyager v = Voyager(voyager);
         return v.addressResolver().getAddress(v.getVaultManagerName());
+    }
+
+    function _underlyingBalance(address _sponsor, address _reserve)
+        internal
+        view
+        returns (uint256)
+    {
+        uint256 amountToRedeemInRay = securityDepositToken
+            .balanceOf(_sponsor)
+            .wadToRay()
+            .rayDiv(securityDepositToken.totalSupply().wadToRay())
+            .rayMul(getActualSecurityDeposit(_reserve).wadToRay());
+        return amountToRedeemInRay.rayToWad();
+    }
+
+    function getVaultManagerProxyAddress() private returns (address) {
+        Voyager voyager = Voyager(voyager);
+        address addressResolver = voyager.getAddressResolverAddress();
+        return
+            AddressResolver(addressResolver).getAddress(
+                voyager.getVaultManagerProxyName()
+            );
     }
 }
