@@ -5,7 +5,7 @@ import '../libraries/math/WadRayMath.sol';
 import '../libraries/math/MathUtils.sol';
 import '../component/infra/AddressResolver.sol';
 import './DebtTokenBase.sol';
-import '../interfaces/IDebtToken.sol';
+import '../interfaces/IStableDebtToken.sol';
 import '../libraries/types/DataTypes.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeCast.sol';
 import 'openzeppelin-solidity/contracts/utils/Context.sol';

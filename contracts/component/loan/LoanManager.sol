@@ -92,15 +92,13 @@ contract LoanManager is Proxyable, IVoyagerComponent {
         // 6. mint debt token and transfer underlying token
         address debtToken = voyager.addressResolver().getStableDebtToken();
         IInitializableDebtToken(debtToken).mint(
-            _user,
+            _vault,
             _amount,
             healthStrategy.getLoanTenure(),
             reserveData.currentBorrowRate
         );
         escrow().transfer(_asset, _vault, _amount);
     }
-
-    function _executeBorrow(ExecuteBorrowParams memory vars) internal {}
 
     function escrow() internal view override returns (LiquidityDepositEscrow) {
         return
