@@ -12,7 +12,9 @@ import '../interfaces/IVaultManager.sol';
 import '../interfaces/IHealthStrategy.sol';
 import '../interfaces/IVaultManagerProxy.sol';
 import '../interfaces/ILiquidityManagerProxy.sol';
+import '../interfaces/IStableDebtToken.sol';
 import '../component/liquiditymanager/LiquidityManager.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 import 'hardhat/console.sol';
 
 contract VoyageProtocolDataProvider {
@@ -139,8 +141,11 @@ contract VoyageProtocolDataProvider {
         IVaultManagerProxy vmp = IVaultManagerProxy(
             addressResolver.getVaultManagerProxy()
         );
-        vaultData.borrowRate = 0;
-        vaultData.totalDebt = 0;
+        vaultData.borrowRate = IStableDebtToken(
+            addressResolver.getStableDebtToken()
+        ).getAverageStableRate();
+        vaultData.totalDebt = IERC20(addressResolver.getStableDebtToken())
+            .balanceOf(_user);
         vaultData.totalSecurityDeposit = vmp.getSecurityDeposit(
             _user,
             _reserve
@@ -150,8 +155,28 @@ contract VoyageProtocolDataProvider {
             _reserve,
             _sponsor
         );
+        vaultData.gav = vmp.getGav(_user);
+        vaultData.totalSecurityDeposit = vmp.getSecurityDeposit(
+            _user,
+            _reserve
+        );
         vaultData.creditLimit = vmp.getCreditLimit(_user, _reserve);
         vaultData.spendableBalance = vmp.getAvailableCredit(_user, _reserve);
+        vaultData.ltv = vaultData
+            .gav
+            .add(vaultData.totalSecurityDeposit)
+            .rayDiv(vaultData.totalDebt);
+        DataTypes.HealthRiskParameter memory hrp;
+        hrp.securityDeposit = vaultData.totalSecurityDeposit;
+        hrp.currentBorrowRate = vaultData.borrowRate;
+        hrp.compoundedDebt = vaultData.totalDebt;
+        hrp.grossAssetValue = vaultData.gav;
+        //        hrp.aggregateOptimalRepaymentRate = voyager
+        //        .getAggregateOptimalRepaymentRate(_user);
+        //        hrp.aggregateActualRepaymentRate = voyager
+        //        .getAggregateActualRepaymentRate(_user);
+        //
+        //        uint256 hr = healthStrategy.calculateHealthRisk(hrp);
         return vaultData;
     }
 }

@@ -6,7 +6,7 @@ import '../math/WadRayMath.sol';
 import '../math/MathUtils.sol';
 import '../types/DataTypes.sol';
 import '../helpers/Errors.sol';
-import '../../interfaces/IDebtToken.sol';
+import '../../interfaces/IStableDebtToken.sol';
 import '../../component/liquiditymanager/DefaultReserveInterestRateStrategy.sol';
 
 /**

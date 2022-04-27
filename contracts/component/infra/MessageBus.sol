@@ -3,11 +3,10 @@ pragma solidity ^0.8.9;
 
 import './AddressResolver.sol';
 import '../../interfaces/IMessageBus.sol';
-import '../../interfaces/IDebtToken.sol';
+import '../../interfaces/IStableDebtToken.sol';
 import '../../interfaces/IVaultManager.sol';
 import '../../libraries/ownership/Ownable.sol';
 import '../../libraries/types/DataTypes.sol';
-//import "../../libraries/utils/Address.sol";
 import '../../libraries/helpers/Errors.sol';
 import '../liquiditymanager/LiquidityManager.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
