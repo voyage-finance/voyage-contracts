@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const {deployments, ethers} = require("hardhat");
+const { deployments, ethers } = require('hardhat');
 
 let addressResolver;
 let tus;
@@ -14,7 +14,7 @@ describe('Initialize Deposit Token', function () {
       'LiquidityManager',
       'LiquidityManagerStorage',
       'Tokenization',
-      'SetAddressResolver'
+      'SetAddressResolver',
     ]);
     addressResolver = await ethers.getContract('AddressResolver');
     tus = await ethers.getContract('Tus');

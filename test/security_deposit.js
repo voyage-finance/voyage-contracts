@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const {ethers} = require("hardhat");
+const { ethers } = require('hardhat');
 
 let voyager;
 let vaultManagerProxy;
@@ -91,9 +91,9 @@ describe('Security Deposit', function () {
       ethers.utils.formatBytes32String('depositSecurity'),
       ethers.utils.formatBytes32String('redeemSecurity'),
     ]);
-      // deploy mock tus contract
-      const Tus = await ethers.getContractFactory('Tus');
-      tus = await Tus.deploy('1000000000000000000000');
+    // deploy mock tus contract
+    const Tus = await ethers.getContractFactory('Tus');
+    tus = await Tus.deploy('1000000000000000000000');
   });
 
   it('Non Voyager call VaultManager should throw error', async function () {
@@ -121,7 +121,9 @@ describe('Security Deposit', function () {
   it('Security deposit should return correct value', async function () {
     const [owner] = await ethers.getSigners();
     // create vault
-    const salt = ethers.utils.formatBytes32String((Math.random() + 1).toString(36).substring(7))
+    const salt = ethers.utils.formatBytes32String(
+      (Math.random() + 1).toString(36).substring(7)
+    );
     await voyager.createVault(owner.address, tus.address, salt);
     const vaultAddr = await voyager.getVault(owner.address);
     await voyager.initVault(vaultAddr, tus.address);

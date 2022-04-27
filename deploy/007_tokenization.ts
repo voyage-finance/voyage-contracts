@@ -1,7 +1,7 @@
 import { DeployFunction } from 'hardhat-deploy/types';
 import { DefaultHealthStrategy, Tus } from '@contracts';
 import TusABI from '../artifacts/contracts/mock/Tus.sol/Tus.json';
-import {ethers} from "hardhat";
+import { ethers } from 'hardhat';
 
 const LM_NAME = 'LiquidityManager';
 const LM_STORAGE_NAME = 'LiquidityManagerStorage';
@@ -87,8 +87,8 @@ const deployFn: DeployFunction = async (hre) => {
       { from: owner, log: true },
       'initialize',
       ...tusInitArgs,
-        AddressResolver.address,
-        ethers.utils.formatBytes32String('')
+      AddressResolver.address,
+      ethers.utils.formatBytes32String('')
     );
   }
 
@@ -127,14 +127,14 @@ const deployFn: DeployFunction = async (hre) => {
   const destinations = [
     StableDebtToken.address,
     JuniorDepositToken.address,
-      SeniorDepositToken.address
+    SeniorDepositToken.address,
   ];
   await execute(
-      'AddressResolver',
-      { from: owner, log: true },
-      'importAddresses',
-      names,
-      destinations
+    'AddressResolver',
+    { from: owner, log: true },
+    'importAddresses',
+    names,
+    destinations
   );
 };
 

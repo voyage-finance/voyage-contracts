@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const {ethers} = require("hardhat");
+const { ethers } = require('hardhat');
 
 let voyager;
 let vaultManagerProxy;
@@ -92,13 +92,14 @@ describe('Security Redeem', function () {
       ethers.utils.formatBytes32String('redeemSecurity'),
     ]);
 
-      // deploy mock tus contract
-      const Tus = await ethers.getContractFactory('Tus');
-      tus = await Tus.deploy('1000000000000000000000');
-
+    // deploy mock tus contract
+    const Tus = await ethers.getContractFactory('Tus');
+    tus = await Tus.deploy('1000000000000000000000');
 
     // create vault
-    const salt = ethers.utils.formatBytes32String((Math.random() + 1).toString(36).substring(7))
+    const salt = ethers.utils.formatBytes32String(
+      (Math.random() + 1).toString(36).substring(7)
+    );
     await voyager.createVault(owner.address, tus.address, salt);
 
     const vaultAddress = await vaultStorage.getVaultAddress(owner.address);
@@ -109,8 +110,8 @@ describe('Security Redeem', function () {
     const securityDepositEscrowAddress =
       await vault.getSecurityDepositEscrowAddress();
     await tus.increaseAllowance(
-        securityDepositEscrowAddress,
-        '10000000000000000000000'
+      securityDepositEscrowAddress,
+      '10000000000000000000000'
     );
     await vm.setMaxSecurityDeposit(tus.address, '100000000000000000000');
 

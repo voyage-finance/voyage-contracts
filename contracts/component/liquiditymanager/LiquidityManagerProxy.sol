@@ -4,10 +4,12 @@ pragma solidity ^0.8.9;
 import '../../libraries/proxy/Proxy.sol';
 import '../../interfaces/IReserveManager.sol';
 import '../../interfaces/ILiquidityManager.sol';
+import '../../interfaces/ILiquidityManagerProxy.sol';
 import '../../interfaces/IVoyagerComponent.sol';
 import '../../libraries/logic/ReserveLogic.sol';
+import 'hardhat/console.sol';
 
-contract LiquidityManagerProxy is Proxy {
+contract LiquidityManagerProxy is Proxy, ILiquidityManagerProxy {
     function getLiquidityRate(address _reserve, ReserveLogic.Tranche _tranche)
         external
         view
@@ -33,6 +35,7 @@ contract LiquidityManagerProxy is Proxy {
         view
         returns (DataTypes.DepositAndDebt memory)
     {
+        console.log('in getLiquidityAndDebt');
         return IVoyagerComponent(address(target)).getDepositAndDebt();
     }
 

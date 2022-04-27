@@ -6,11 +6,19 @@ import '../interfaces/IAddressResolver.sol';
 import '../interfaces/IReserveManager.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 import '../libraries/types/DataTypes.sol';
+import '../libraries/logic/ReserveLogic.sol';
+import '../libraries/math/WadRayMath.sol';
 import '../interfaces/IVaultManager.sol';
 import '../interfaces/IHealthStrategy.sol';
 import '../interfaces/IVaultManagerProxy.sol';
+import '../interfaces/ILiquidityManagerProxy.sol';
+import '../component/liquiditymanager/LiquidityManager.sol';
+import 'hardhat/console.sol';
 
 contract VoyageProtocolDataProvider {
+    using SafeMath for uint256;
+    using WadRayMath for uint256;
+
     IAddressResolver public addressResolver;
 
     constructor(IAddressResolver _addressResolver) {
@@ -41,6 +49,46 @@ contract VoyageProtocolDataProvider {
         poolConfiguration.optimalIncomeRatio = reserve.optimalIncomeRatio;
         poolConfiguration.optimalTrancheRatio = reserve.optimalTrancheRatio;
         return poolConfiguration;
+    }
+
+    function getPoolData(address underlyingAsset)
+        external
+        view
+        returns (DataTypes.PoolData memory)
+    {
+        IReserveManager rm = IReserveManager(
+            addressResolver.getLiquidityManagerProxy()
+        );
+        DataTypes.ReserveData memory reserve = rm.getReserveData(
+            underlyingAsset
+        );
+        ILiquidityManagerProxy lmp = ILiquidityManagerProxy(
+            addressResolver.getLiquidityManagerProxy()
+        );
+        DataTypes.DepositAndDebt memory depositAndDebt = lmp
+            .getLiquidityAndDebt(underlyingAsset);
+
+        DataTypes.PoolData memory poolData;
+        poolData.juniorLiquidity = depositAndDebt.juniorDepositAmount;
+        poolData.seniorLiquidity = depositAndDebt.seniorDepositAmount;
+        poolData.totalLiquidity = depositAndDebt.seniorDepositAmount.add(
+            depositAndDebt.juniorDepositAmount
+        );
+        poolData.juniorLiquidityRate = lmp.getLiquidityRate(
+            underlyingAsset,
+            ReserveLogic.Tranche.JUNIOR
+        );
+        poolData.seniorLiquidityRate = lmp.getLiquidityRate(
+            underlyingAsset,
+            ReserveLogic.Tranche.SENIOR
+        );
+        poolData.totalDebt = reserve.totalBorrows;
+        poolData.borrowRate = reserve.currentBorrowRate;
+        poolData.trancheRatio = depositAndDebt.juniorDepositAmount.rayDiv(
+            depositAndDebt.seniorDepositAmount
+        );
+
+        return poolData;
     }
 
     function getAllVaults() external view returns (address[] memory) {
