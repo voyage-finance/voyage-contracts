@@ -35,7 +35,7 @@ contract SecurityDepositEscrow is Escrow {
         address _user,
         uint256 _amount
     ) public payable nonReentrant onlyOwner {
-        _deposit(_reserve, _user, _amount);
+        _deposit(_reserve, _user, _amount, _amount);
     }
 
     function withdraw(

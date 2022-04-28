@@ -16,7 +16,12 @@ contract Escrow is ReentrancyGuard {
         uint40 depositTime;
     }
 
-    event Deposited(address indexed payee, address token, uint256 amount);
+    event Deposited(
+        address indexed payee,
+        address token,
+        uint256 amount,
+        uint256 recordAmount
+    );
     event Withdrawn(address indexed payee, address token, uint256 amount);
 
     // reserve address => amount
@@ -30,12 +35,14 @@ contract Escrow is ReentrancyGuard {
      * @dev Stores the sent amount as credit to be withdrawn.
      * @param _reserve the asset address
      * @param _user user address who deposit to this escrow
-     * @param _amount token amount
+     * @param _amount token amount need to transfer
+     * @param _recordAmount token amount that will be recored
      */
     function _deposit(
         address _reserve,
         address _user,
-        uint256 _amount
+        uint256 _amount,
+        uint256 _recordAmount
     ) internal {
         if (_reserve != EthAddressLib.ethAddress()) {
             require(
@@ -49,10 +56,13 @@ contract Escrow is ReentrancyGuard {
                 'The amount and the value sent to deposit do not match'
             );
         }
-        _deposits[_reserve] += _amount;
-        Deposit memory deposit = Deposit(_amount, uint40(block.timestamp));
+        _deposits[_reserve] += _recordAmount;
+        Deposit memory deposit = Deposit(
+            _recordAmount,
+            uint40(block.timestamp)
+        );
         _depositRecords[_reserve][_user].push(deposit);
-        emit Deposited(_user, _reserve, _amount);
+        emit Deposited(_user, _reserve, _amount, _recordAmount);
     }
 
     function eligibleAmount(address _reserve, address _user)

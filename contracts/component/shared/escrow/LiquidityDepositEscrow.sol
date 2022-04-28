@@ -25,9 +25,10 @@ contract LiquidityDepositEscrow is Escrow {
     function deposit(
         address _reserve,
         address _user,
-        uint256 _amount
+        uint256 _amount,
+        uint256 _recordAmount
     ) public payable nonReentrant onlyLiquidityManager {
-        _deposit(_reserve, _user, _amount);
+        _deposit(_reserve, _user, _amount, _recordAmount);
     }
 
     function init(address _voyager) external {
