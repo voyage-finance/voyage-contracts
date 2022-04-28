@@ -132,7 +132,38 @@ contract VoyageProtocolDataProvider {
         return reserves;
     }
 
-    //    function getPoolData(address _reserve, address _user) {}
+    function getUserPoolData(address _reserve, address _user)
+        external
+        view
+        returns (DataTypes.UserPoolData memory)
+    {
+        ILiquidityManagerProxy lmp = ILiquidityManagerProxy(
+            addressResolver.getLiquidityManagerProxy()
+        );
+        DataTypes.UserPoolData memory userPoolData;
+        userPoolData.juniorTrancheBalance = lmp.balance(
+            _reserve,
+            _user,
+            ReserveLogic.Tranche.JUNIOR
+        );
+        userPoolData.seniorTrancheBalance = lmp.balance(
+            _reserve,
+            _user,
+            ReserveLogic.Tranche.SENIOR
+        );
+        userPoolData.withdrawableJuniorTrancheBalance = lmp.withdrawAbleAmount(
+            _reserve,
+            _user,
+            ReserveLogic.Tranche.JUNIOR
+        );
+        userPoolData.withdrawableSeniorTrancheBalance = lmp.withdrawAbleAmount(
+            _reserve,
+            _user,
+            ReserveLogic.Tranche.SENIOR
+        );
+
+        return userPoolData;
+    }
 
     function getVaultData(
         address _user,

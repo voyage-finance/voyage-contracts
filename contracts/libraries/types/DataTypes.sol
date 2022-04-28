@@ -126,4 +126,11 @@ library DataTypes {
         uint256 actualAggregateRepaymentRate;
         uint256 healthFactor;
     }
+
+    struct UserPoolData {
+        uint256 juniorTrancheBalance;
+        uint256 withdrawableJuniorTrancheBalance;
+        uint256 seniorTrancheBalance;
+        uint256 withdrawableSeniorTrancheBalance;
+    }
 }
