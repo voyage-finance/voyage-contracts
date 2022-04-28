@@ -29,6 +29,12 @@ docker run -d -it --rm --name hh-voyage -p 8545:8545 596511190950.dkr.ecr.us-wes
 docker run -d -it --rm --name hh-voyage -p 8545:8545 596511190950.dkr.ecr.us-west-2.amazonaws.com/voyage-core-contracts:latest 'node'
 ```
 
+## Run scripts
+
+```shell
+yarn hardhat --network localhost run scripts/<SCRIPT>
+```
+
 ## Specification
 
 ### Voyager
