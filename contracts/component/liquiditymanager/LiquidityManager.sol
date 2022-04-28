@@ -58,12 +58,33 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
             uint256 liquidityIndex = getSeniorLiquidityIndex(_asset);
 
             sdt.mint(_onBehalfOf, _amount, liquidityIndex);
+            scaledBalance = sdt.scaledBalanceOf(_onBehalfOf).rayDiv(
+                liquidityIndex
+            );
         }
-        liquidityDepositEscrow.deposit(_asset, _user, _amount, scaledBalance);
+        liquidityDepositEscrow.deposit(
+            _asset,
+            _tranche,
+            _user,
+            _amount,
+            scaledBalance
+        );
         emitDeposit(_asset, _user, _tranche, _amount);
     }
 
     /************************************** View Functions **************************************/
+
+    function withdrawAbleAmount(
+        address _reserve,
+        address _user,
+        ReserveLogic.Tranche _tranche
+    ) external view {
+        uint256 scaledBalance = liquidityDepositEscrow.eligibleAmount(
+            _reserve,
+            _user,
+            _tranche
+        );
+    }
 
     function getEscrowAddress() external view returns (address) {
         return address(escrow());

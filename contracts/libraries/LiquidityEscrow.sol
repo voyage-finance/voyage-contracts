@@ -6,8 +6,9 @@ import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import './EthAddressLib.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
+import './logic/ReserveLogic.sol';
 
-contract Escrow is ReentrancyGuard {
+contract LiquidityEscrow is ReentrancyGuard {
     using Address for address payable;
     using SafeERC20 for ERC20;
 
@@ -26,8 +27,12 @@ contract Escrow is ReentrancyGuard {
 
     // reserve address => amount
     mapping(address => uint256) private _deposits;
-    // reserve address => user address => deposit record
-    mapping(address => mapping(address => Deposit[])) private _depositRecords;
+    // reserve address => user address => junior deposit record
+    mapping(address => mapping(address => Deposit[]))
+        private _juniorDepositRecords;
+    // reserve address => user address => senior deposit record
+    mapping(address => mapping(address => Deposit[]))
+        private _seniorDepositRecords;
 
     uint40 private _lockupTimeInSeconds = 7 days;
 
@@ -40,6 +45,7 @@ contract Escrow is ReentrancyGuard {
      */
     function _deposit(
         address _reserve,
+        ReserveLogic.Tranche _tranche,
         address _user,
         uint256 _amount,
         uint256 _recordAmount
@@ -61,27 +67,25 @@ contract Escrow is ReentrancyGuard {
             _recordAmount,
             uint40(block.timestamp)
         );
-        _depositRecords[_reserve][_user].push(deposit);
+        if (ReserveLogic.Tranche.JUNIOR == _tranche) {
+            _juniorDepositRecords[_reserve][_user].push(deposit);
+        } else {
+            _seniorDepositRecords[_reserve][_user].push(deposit);
+        }
         emit Deposited(_user, _reserve, _amount, _recordAmount);
     }
 
-    function eligibleAmount(address _reserve, address _user)
-        public
-        view
-        returns (uint256)
-    {
-        Deposit[] storage deposits = _depositRecords[_reserve][_user];
-        uint256 eligibleAmount = 0;
-        for (uint256 i = 0; i < deposits.length; i++) {
-            if (
-                uint40(block.timestamp) - deposits[i].depositTime >
-                _lockupTimeInSeconds
-            ) {
-                eligibleAmount += deposits[i].amount;
-            }
-        }
-        // todo check borrow amount for security deposit
-        return eligibleAmount;
+    function eligibleAmount(
+        address _reserve,
+        address _user,
+        ReserveLogic.Tranche _tranche
+    ) public view returns (uint256) {
+        (uint256 eligibleAmt, uint40 lastUpdateTime) = _eligibleAmount(
+            _reserve,
+            _user,
+            _tranche
+        );
+        return eligibleAmt;
     }
 
     /**
@@ -91,35 +95,30 @@ contract Escrow is ReentrancyGuard {
      */
     function _withdraw(
         address _reserve,
+        ReserveLogic.Tranche _tranche,
         address payable _user,
         uint256 _amount
     ) internal {
-        Deposit[] storage deposits = _depositRecords[_reserve][_user];
-        uint256 eligibleAmount = 0;
-        uint40 lastUpdateTime;
-        for (uint256 i = 0; i < deposits.length; i++) {
-            if (
-                uint40(block.timestamp) - deposits[i].depositTime >
-                _lockupTimeInSeconds
-            ) {
-                eligibleAmount += deposits[i].amount;
-                lastUpdateTime = deposits[i].depositTime;
-                delete deposits[i];
-            }
-        }
+        (uint256 eligibleAmount, uint40 lastUpdateTime) = _eligibleAmount(
+            _reserve,
+            _user,
+            _tranche
+        );
 
         require(
             eligibleAmount >= _amount,
             'Do not have enough amount to withdraw'
         );
-        // todo check borrow amount
         // if there is any amount left from eligible amount, push it back
         if (eligibleAmount > _amount) {
             uint256 leftAmount = eligibleAmount - _amount;
             Deposit memory leftDeposit = Deposit(leftAmount, lastUpdateTime);
-            _depositRecords[_reserve][_user].push(leftDeposit);
+            if (ReserveLogic.Tranche.JUNIOR == _tranche) {
+                _juniorDepositRecords[_reserve][_user].push(leftDeposit);
+            } else {
+                _seniorDepositRecords[_reserve][_user].push(leftDeposit);
+            }
         }
-
         _deposits[_reserve] -= _amount;
         transferToUser(_reserve, _user, _amount);
         emit Withdrawn(_user, _reserve, _amount);
@@ -137,15 +136,21 @@ contract Escrow is ReentrancyGuard {
     /**
      * @dev get all records of deposit.
      * @param _reserve the address of the reserve where the transfer is happening
+     * @param _tranche the tranche of the reserve
      * @param _user the address of the user receiving the transfer
      * @return deposit records
      **/
-    function getDepositRecords(address _reserve, address _user)
-        public
-        view
-        returns (Deposit[] memory)
-    {
-        Deposit[] storage deposits = _depositRecords[_reserve][_user];
+    function getDepositRecords(
+        address _reserve,
+        ReserveLogic.Tranche _tranche,
+        address _user
+    ) public view returns (Deposit[] memory) {
+        Deposit[] storage deposits;
+        if (ReserveLogic.Tranche.JUNIOR == _tranche) {
+            deposits = _juniorDepositRecords[_reserve][_user];
+        } else {
+            deposits = _juniorDepositRecords[_reserve][_user];
+        }
         return deposits;
     }
 
@@ -167,5 +172,30 @@ contract Escrow is ReentrancyGuard {
             (bool result, ) = _user.call{value: _amount}('');
             require(result, 'Transfer of ETH failed');
         }
+    }
+
+    function _eligibleAmount(
+        address _reserve,
+        address _user,
+        ReserveLogic.Tranche _tranche
+    ) internal view returns (uint256, uint40) {
+        Deposit[] storage deposits;
+        uint40 lastUpdateTime;
+        if (ReserveLogic.Tranche.JUNIOR == _tranche) {
+            deposits = _juniorDepositRecords[_reserve][_user];
+        } else {
+            deposits = _juniorDepositRecords[_reserve][_user];
+        }
+        uint256 eligibleAmount = 0;
+        for (uint256 i = 0; i < deposits.length; i++) {
+            if (
+                uint40(block.timestamp) - deposits[i].depositTime >
+                _lockupTimeInSeconds
+            ) {
+                eligibleAmount += deposits[i].amount;
+                lastUpdateTime = deposits[i].depositTime;
+            }
+        }
+        return (eligibleAmount, lastUpdateTime);
     }
 }

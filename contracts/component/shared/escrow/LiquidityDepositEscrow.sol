@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import '../../../libraries/Escrow.sol';
+import '../../../libraries/LiquidityEscrow.sol';
 import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 import '../../Voyager.sol';
 import '../../../interfaces/IACLManager.sol';
 import '../../infra/AddressResolver.sol';
 
-contract LiquidityDepositEscrow is Escrow {
+contract LiquidityDepositEscrow is LiquidityEscrow {
     Voyager private voyager;
     bool private initialized;
 
@@ -24,11 +24,12 @@ contract LiquidityDepositEscrow is Escrow {
 
     function deposit(
         address _reserve,
+        ReserveLogic.Tranche _tranche,
         address _user,
         uint256 _amount,
         uint256 _recordAmount
     ) public payable nonReentrant onlyLiquidityManager {
-        _deposit(_reserve, _user, _amount, _recordAmount);
+        _deposit(_reserve, _tranche, _user, _amount, _recordAmount);
     }
 
     function init(address _voyager) external {
@@ -40,10 +41,11 @@ contract LiquidityDepositEscrow is Escrow {
 
     function withdraw(
         address _reserve,
+        ReserveLogic.Tranche _tranche,
         address payable _user,
         uint256 _amount
     ) public onlyLiquidityManager {
-        _withdraw(_reserve, _user, _amount);
+        _withdraw(_reserve, _tranche, _user, _amount);
     }
 
     function transfer(
