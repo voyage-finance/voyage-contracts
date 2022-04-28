@@ -78,12 +78,17 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
         address _reserve,
         address _user,
         ReserveLogic.Tranche _tranche
-    ) external view {
+    ) external view returns (uint256) {
         uint256 scaledBalance = liquidityDepositEscrow.eligibleAmount(
             _reserve,
             _user,
             _tranche
         );
+        return
+            scaledBalance.rayMul(
+                LiquidityManagerStorage(liquidityManagerStorageAddress())
+                    .getReserveNormalizedIncome(_reserve, _tranche)
+            );
     }
 
     function getEscrowAddress() external view returns (address) {
