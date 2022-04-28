@@ -1,41 +1,42 @@
 require('dotenv').config();
-const hre = require("hardhat");
-const deployedReserveLogic = require('../deployments/' + process.env.HARDHAT_NETWORK + '/ReserveLogic.json');
-const deployedLMP = require('../deployments/'+ process.env.HARDHAT_NETWORK + '/LiquidityManagerProxy.json');
-const deployedTus = require('../deployments/' + process.env.HARDHAT_NETWORK + '/Tus.json');
-const deployedJuniorDepositToken = require('../deployments/' + process.env.HARDHAT_NETWORK + '/JuniorDepositToken.json');
-const deployedSeniorDepositToken = require('../deployments/' + process.env.HARDHAT_NETWORK + '/SeniorDepositToken.json');
-const deployedStableDebtToken = require('../deployments/' + process.env.HARDHAT_NETWORK + '/StableDebtToken.json');
-const deployedInterestedStrategy = require('../deployments/' + process.env.HARDHAT_NETWORK + '/DefaultReserveInterestRateStrategy.json');
-const deployedHealthStrategy = require('../deployments/' + process.env.HARDHAT_NETWORK + '/DefaultHealthStrategy.json');
-const {ethers} = require("hardhat");
+const hre = require('hardhat');
+const { ethers } = hre;
+
+const getAddress = (contract) =>
+  hre.deployments.get(contract).then(({ address }) => address);
 
 async function main() {
-    const liquidityManagerProxy = deployedLMP.address;
-    const LiquidityManager = await ethers.getContractFactory("LiquidityManager", { libraries: { ReserveLogic: deployedReserveLogic.address } });
-    const liquidityManager = LiquidityManager.attach(liquidityManagerProxy);
-    const treasureUnderSea = deployedTus.address;
-    const juniorDepositToken = deployedJuniorDepositToken.address;
-    const seniorDepositToken = deployedSeniorDepositToken.address;
-    const stableDebtToken = deployedStableDebtToken.address;
-    const interestStrategy = deployedInterestedStrategy.address;
-    const healthStrategy = deployedHealthStrategy.address;
+  const reserveLogic = await getAddress('ReserveLogic');
+  const liquidityManagerProxy = await getAddress('LiquidityManagerProxy');
+  const LiquidityManager = await ethers
+    .getContractFactory('LiquidityManager', {
+      libraries: { ReserveLogic: reserveLogic },
+    })
+    .then((contract) => contract.attach(liquidityManagerProxy));
+  const treasureUnderSea = await getAddress('Tus');
+  const juniorDepositToken = await getAddress('JuniorDepositToken');
+  const seniorDepositToken = await getAddress('SeniorDepositToken');
+  const stableDebtToken = await getAddress('StableDebtToken');
+  const interestStrategy = await getAddress(
+    'DefaultReserveInterestRateStrategy'
+  );
+  const healthStrategy = await getAddress('DefaultHealthStrategy');
 
-    await liquidityManager.initReserve(
-       treasureUnderSea,
-        juniorDepositToken,
-        seniorDepositToken,
-        '100000000000000000000000000',
-        '900000000000000000000000000',
-        stableDebtToken,
-        interestStrategy,
-        healthStrategy
-    );
+  await LiquidityManager.initReserve(
+    treasureUnderSea,
+    juniorDepositToken,
+    seniorDepositToken,
+    '100000000000000000000000000',
+    '900000000000000000000000000',
+    stableDebtToken,
+    interestStrategy,
+    healthStrategy
+  );
 }
 
 main()
-    .then(() => process.exit(0))
-    .catch((error) => {
-        console.error(error);
-        process.exit(1);
-    });
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
