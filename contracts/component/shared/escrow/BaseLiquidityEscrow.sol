@@ -4,11 +4,11 @@ pragma solidity ^0.8.9;
 import 'openzeppelin-solidity/contracts/utils/Address.sol';
 import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
-import './EthAddressLib.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
-import './logic/ReserveLogic.sol';
+import '../../../libraries/logic/ReserveLogic.sol';
+import '../../../libraries/EthAddressLib.sol';
 
-contract LiquidityEscrow is ReentrancyGuard {
+contract BaseLiquidityEscrow is ReentrancyGuard {
     using Address for address payable;
     using SafeERC20 for ERC20;
 

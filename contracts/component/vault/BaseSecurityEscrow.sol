@@ -4,10 +4,10 @@ pragma solidity ^0.8.9;
 import 'openzeppelin-solidity/contracts/utils/Address.sol';
 import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
-import './EthAddressLib.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
+import '../../libraries/EthAddressLib.sol';
 
-contract Escrow is ReentrancyGuard {
+contract BaseSecurityEscrow is ReentrancyGuard {
     using Address for address payable;
     using SafeERC20 for ERC20;
 
@@ -16,12 +16,7 @@ contract Escrow is ReentrancyGuard {
         uint40 depositTime;
     }
 
-    event Deposited(
-        address indexed payee,
-        address token,
-        uint256 amount,
-        uint256 recordAmount
-    );
+    event Deposited(address indexed payee, address token, uint256 amount);
     event Withdrawn(address indexed payee, address token, uint256 amount);
 
     // reserve address => amount
@@ -36,13 +31,11 @@ contract Escrow is ReentrancyGuard {
      * @param _reserve the asset address
      * @param _user user address who deposit to this escrow
      * @param _amount token amount need to transfer
-     * @param _recordAmount token amount that will be recored
      */
     function _deposit(
         address _reserve,
         address _user,
-        uint256 _amount,
-        uint256 _recordAmount
+        uint256 _amount
     ) internal {
         if (_reserve != EthAddressLib.ethAddress()) {
             require(
@@ -56,13 +49,10 @@ contract Escrow is ReentrancyGuard {
                 'The amount and the value sent to deposit do not match'
             );
         }
-        _deposits[_reserve] += _recordAmount;
-        Deposit memory deposit = Deposit(
-            _recordAmount,
-            uint40(block.timestamp)
-        );
+        _deposits[_reserve] += _amount;
+        Deposit memory deposit = Deposit(_amount, uint40(block.timestamp));
         _depositRecords[_reserve][_user].push(deposit);
-        emit Deposited(_user, _reserve, _amount, _recordAmount);
+        emit Deposited(_user, _reserve, _amount);
     }
 
     function eligibleAmount(address _reserve, address _user)

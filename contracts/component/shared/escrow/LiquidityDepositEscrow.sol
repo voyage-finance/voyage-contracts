@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import '../../../libraries/LiquidityEscrow.sol';
+import './BaseLiquidityEscrow.sol';
 import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 import '../../Voyager.sol';
 import '../../../interfaces/IACLManager.sol';
 import '../../infra/AddressResolver.sol';
 
-contract LiquidityDepositEscrow is LiquidityEscrow {
+contract LiquidityDepositEscrow is BaseLiquidityEscrow {
     Voyager private voyager;
     bool private initialized;
 
