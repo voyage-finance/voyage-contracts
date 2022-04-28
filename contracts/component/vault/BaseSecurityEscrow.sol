@@ -4,10 +4,10 @@ pragma solidity ^0.8.9;
 import 'openzeppelin-solidity/contracts/utils/Address.sol';
 import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
-import './EthAddressLib.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
+import '../../libraries/EthAddressLib.sol';
 
-contract Escrow is ReentrancyGuard {
+contract BaseSecurityEscrow is ReentrancyGuard {
     using Address for address payable;
     using SafeERC20 for ERC20;
 
@@ -30,7 +30,7 @@ contract Escrow is ReentrancyGuard {
      * @dev Stores the sent amount as credit to be withdrawn.
      * @param _reserve the asset address
      * @param _user user address who deposit to this escrow
-     * @param _amount token amount
+     * @param _amount token amount need to transfer
      */
     function _deposit(
         address _reserve,
@@ -70,7 +70,7 @@ contract Escrow is ReentrancyGuard {
                 eligibleAmount += deposits[i].amount;
             }
         }
-        // todo check borrow amount
+        // todo check borrow amount for security deposit
         return eligibleAmount;
     }
 

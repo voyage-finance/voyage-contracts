@@ -10,7 +10,7 @@ import '../libraries/logic/ReserveLogic.sol';
 import '../component/infra/AddressResolver.sol';
 import '../component/vault/VaultManager.sol';
 import '../component/vault/VaultManagerProxy.sol';
-import '../component/liquiditymanager/LiquidityManager.sol';
+import '../component/liquidity/LiquidityManager.sol';
 import '../component/loan/LoanManager.sol';
 import '../interfaces/IACLManager.sol';
 import './infra/MessageBus.sol';

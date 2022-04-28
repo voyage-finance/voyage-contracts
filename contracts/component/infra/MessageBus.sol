@@ -8,7 +8,7 @@ import '../../interfaces/IVaultManager.sol';
 import '../../libraries/ownership/Ownable.sol';
 import '../../libraries/types/DataTypes.sol';
 import '../../libraries/helpers/Errors.sol';
-import '../liquiditymanager/LiquidityManager.sol';
+import '../liquidity/LiquidityManager.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 import '../vault/VaultManager.sol';
 import '../vault/VaultManagerProxy.sol';

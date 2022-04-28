@@ -22,6 +22,8 @@ contract LiquidityManagerStorage is State {
     uint16 internal _reservesCount;
 
     bool internal _paused;
+
+    // todo fix me: move to _reserves
     uint256 public juniorDepositAmount;
     uint256 public seniorDepositAmount;
     uint256 public totalDebt;

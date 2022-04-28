@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 import './ReserveManager.sol';
 import '../../libraries/helpers/Errors.sol';
 import '../../libraries/logic/ReserveLogic.sol';
+import '../../libraries/math/WadRayMath.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
 import '../shared/escrow/LiquidityDepositEscrow.sol';
 import '../../interfaces/IReserveManager.sol';
@@ -12,6 +13,8 @@ import '../../tokenization/JuniorDepositToken.sol';
 import '../../tokenization/SeniorDepositToken.sol';
 
 contract LiquidityManager is ReserveManager, ILiquidityManager {
+    using WadRayMath for uint256;
+
     LiquidityDepositEscrow public liquidityDepositEscrow;
 
     constructor(address payable _proxy, address _voyager)
@@ -37,24 +40,73 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
 
         lms.updateStateOnDeposit(_asset, _tranche, _amount);
 
+        uint256 scaledBalance;
+
         if (ReserveLogic.Tranche.JUNIOR == _tranche) {
-            JuniorDepositToken(reserve.juniorDepositTokenAddress).mint(
-                _onBehalfOf,
-                _amount,
-                getJuniorLiquidityIndex(_asset)
+            JuniorDepositToken jdt = JuniorDepositToken(
+                reserve.juniorDepositTokenAddress
+            );
+            uint256 liquidityIndex = getJuniorLiquidityIndex(_asset);
+            jdt.mint(_onBehalfOf, _amount, liquidityIndex);
+            scaledBalance = jdt.scaledBalanceOf(_onBehalfOf).rayDiv(
+                liquidityIndex
             );
         } else {
-            SeniorDepositToken(reserve.seniorDepositTokenAddress).mint(
-                _onBehalfOf,
-                _amount,
-                getSeniorLiquidityIndex(_asset)
+            SeniorDepositToken sdt = SeniorDepositToken(
+                reserve.seniorDepositTokenAddress
+            );
+            uint256 liquidityIndex = getSeniorLiquidityIndex(_asset);
+
+            sdt.mint(_onBehalfOf, _amount, liquidityIndex);
+            scaledBalance = sdt.scaledBalanceOf(_onBehalfOf).rayDiv(
+                liquidityIndex
             );
         }
-        liquidityDepositEscrow.deposit(_asset, _user, _amount);
+        liquidityDepositEscrow.deposit(
+            _asset,
+            _tranche,
+            _user,
+            _amount,
+            scaledBalance
+        );
         emitDeposit(_asset, _user, _tranche, _amount);
     }
 
     /************************************** View Functions **************************************/
+
+    function withdrawAbleAmount(
+        address _reserve,
+        address _user,
+        ReserveLogic.Tranche _tranche
+    ) external view returns (uint256) {
+        uint256 scaledBalance = liquidityDepositEscrow.eligibleAmount(
+            _reserve,
+            _user,
+            _tranche
+        );
+        return
+            scaledBalance.rayMul(
+                LiquidityManagerStorage(liquidityManagerStorageAddress())
+                    .getReserveNormalizedIncome(_reserve, _tranche)
+            );
+    }
+
+    function balance(
+        address _reserve,
+        address _user,
+        ReserveLogic.Tranche _tranche
+    ) external view returns (uint256) {
+        uint256 scaledBalance = liquidityDepositEscrow.overallAmount(
+            _reserve,
+            _user,
+            _tranche
+        );
+        return
+            scaledBalance.rayMul(
+                LiquidityManagerStorage(liquidityManagerStorageAddress())
+                    .getReserveNormalizedIncome(_reserve, _tranche)
+            );
+    }
 
     function getEscrowAddress() external view returns (address) {
         return address(escrow());

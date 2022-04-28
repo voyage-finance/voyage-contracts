@@ -13,7 +13,7 @@ import '../interfaces/IHealthStrategy.sol';
 import '../interfaces/IVaultManagerProxy.sol';
 import '../interfaces/ILiquidityManagerProxy.sol';
 import '../interfaces/IStableDebtToken.sol';
-import '../component/liquiditymanager/LiquidityManager.sol';
+import '../component/liquidity/LiquidityManager.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 import 'hardhat/console.sol';
 
@@ -130,6 +130,39 @@ contract VoyageProtocolDataProvider {
         }
 
         return reserves;
+    }
+
+    function getUserPoolData(address _reserve, address _user)
+        external
+        view
+        returns (DataTypes.UserPoolData memory)
+    {
+        ILiquidityManagerProxy lmp = ILiquidityManagerProxy(
+            addressResolver.getLiquidityManagerProxy()
+        );
+        DataTypes.UserPoolData memory userPoolData;
+        userPoolData.juniorTrancheBalance = lmp.balance(
+            _reserve,
+            _user,
+            ReserveLogic.Tranche.JUNIOR
+        );
+        userPoolData.seniorTrancheBalance = lmp.balance(
+            _reserve,
+            _user,
+            ReserveLogic.Tranche.SENIOR
+        );
+        userPoolData.withdrawableJuniorTrancheBalance = lmp.withdrawAbleAmount(
+            _reserve,
+            _user,
+            ReserveLogic.Tranche.JUNIOR
+        );
+        userPoolData.withdrawableSeniorTrancheBalance = lmp.withdrawAbleAmount(
+            _reserve,
+            _user,
+            ReserveLogic.Tranche.SENIOR
+        );
+
+        return userPoolData;
     }
 
     function getVaultData(
