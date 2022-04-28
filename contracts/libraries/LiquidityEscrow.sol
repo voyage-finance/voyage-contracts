@@ -88,6 +88,14 @@ contract LiquidityEscrow is ReentrancyGuard {
         return eligibleAmt;
     }
 
+    function overallAmount(
+        address _reserve,
+        address _user,
+        ReserveLogic.Tranche _tranche
+    ) public view returns (uint256) {
+        return _overallAmount(_reserve, _user, _tranche);
+    }
+
     /**
      * @dev Withdraw accumulated balance for a payee, only beyond _lockupTimeInSeconds
      * @param _reserve the asset address
@@ -184,7 +192,7 @@ contract LiquidityEscrow is ReentrancyGuard {
         if (ReserveLogic.Tranche.JUNIOR == _tranche) {
             deposits = _juniorDepositRecords[_reserve][_user];
         } else {
-            deposits = _juniorDepositRecords[_reserve][_user];
+            deposits = _seniorDepositRecords[_reserve][_user];
         }
         uint256 eligibleAmount = 0;
         for (uint256 i = 0; i < deposits.length; i++) {
@@ -197,5 +205,23 @@ contract LiquidityEscrow is ReentrancyGuard {
             }
         }
         return (eligibleAmount, lastUpdateTime);
+    }
+
+    function _overallAmount(
+        address _reserve,
+        address _user,
+        ReserveLogic.Tranche _tranche
+    ) internal view returns (uint256) {
+        Deposit[] storage deposits;
+        if (ReserveLogic.Tranche.JUNIOR == _tranche) {
+            deposits = _juniorDepositRecords[_reserve][_user];
+        } else {
+            deposits = _seniorDepositRecords[_reserve][_user];
+        }
+        uint256 overallAmount = 0;
+        for (uint256 i = 0; i < deposits.length; i++) {
+            overallAmount += deposits[i].amount;
+        }
+        return overallAmount;
     }
 }
