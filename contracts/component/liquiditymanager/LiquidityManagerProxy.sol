@@ -74,6 +74,32 @@ contract LiquidityManagerProxy is Proxy, ILiquidityManagerProxy {
             );
     }
 
+    function withdrawAbleAmount(
+        address _reserve,
+        address _user,
+        ReserveLogic.Tranche _tranche
+    ) external view returns (uint256) {
+        return
+            ILiquidityManager(address(target)).withdrawAbleAmount(
+                _reserve,
+                _user,
+                _tranche
+            );
+    }
+
+    function balance(
+        address _reserve,
+        address _user,
+        ReserveLogic.Tranche _tranche
+    ) external view returns (uint256) {
+        return
+            ILiquidityManager(address(target)).balance(
+                _reserve,
+                _user,
+                _tranche
+            );
+    }
+
     function getEscrowAddress() external view returns (address) {
         return ILiquidityManager(address(target)).getEscrowAddress();
     }

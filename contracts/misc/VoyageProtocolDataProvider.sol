@@ -132,6 +132,8 @@ contract VoyageProtocolDataProvider {
         return reserves;
     }
 
+    //    function getPoolData(address _reserve, address _user) {}
+
     function getVaultData(
         address _user,
         address _reserve,

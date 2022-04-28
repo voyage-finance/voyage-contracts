@@ -91,6 +91,23 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
             );
     }
 
+    function balance(
+        address _reserve,
+        address _user,
+        ReserveLogic.Tranche _tranche
+    ) external view returns (uint256) {
+        uint256 scaledBalance = liquidityDepositEscrow.overallAmount(
+            _reserve,
+            _user,
+            _tranche
+        );
+        return
+            scaledBalance.rayMul(
+                LiquidityManagerStorage(liquidityManagerStorageAddress())
+                    .getReserveNormalizedIncome(_reserve, _tranche)
+            );
+    }
+
     function getEscrowAddress() external view returns (address) {
         return address(escrow());
     }
