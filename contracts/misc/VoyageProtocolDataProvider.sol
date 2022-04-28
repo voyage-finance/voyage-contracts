@@ -13,7 +13,7 @@ import '../interfaces/IHealthStrategy.sol';
 import '../interfaces/IVaultManagerProxy.sol';
 import '../interfaces/ILiquidityManagerProxy.sol';
 import '../interfaces/IStableDebtToken.sol';
-import '../component/liquiditymanager/LiquidityManager.sol';
+import '../component/liquidity/LiquidityManager.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 import 'hardhat/console.sol';
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import '../../contracts/component/liquiditymanager/LiquidityManagerProxy.sol';
+import '../../contracts/component/liquidity/LiquidityManagerProxy.sol';
 import '../libraries/helpers/Errors.sol';
 import './IInitializableDepositToken.sol';
 import '../interfaces/ILiquidityManagerProxy.sol';

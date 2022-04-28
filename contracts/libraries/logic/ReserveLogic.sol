@@ -7,7 +7,7 @@ import '../math/MathUtils.sol';
 import '../types/DataTypes.sol';
 import '../helpers/Errors.sol';
 import '../../interfaces/IStableDebtToken.sol';
-import '../../component/liquiditymanager/DefaultReserveInterestRateStrategy.sol';
+import '../../component/liquidity/DefaultReserveInterestRateStrategy.sol';
 
 /**
  * @title ReserveLogic library
