@@ -31,8 +31,16 @@ docker run -d -it --rm --name hh-voyage -p 8545:8545 596511190950.dkr.ecr.us-wes
 
 ## Run scripts
 
+There is a runner that helps run scripts automatically with nice logs.
+
 ```shell
-yarn hardhat --network localhost run scripts/<SCRIPT>
+yarn scripts
+```
+
+If you need to run these scripts against a network that is not `localhost`, ensure to set your private key by executing:
+
+```shell
+DEPLOYER_PRIVATE_KEY=<0xsecret> yarn scripts
 ```
 
 ## Specification

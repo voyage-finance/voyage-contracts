@@ -1,24 +1,22 @@
 require('dotenv').config();
-const hre = require("hardhat");
-const deployedLMP = require('../deployments/' + process.env.HARDHAT_NETWORK + '/LiquidityManagerProxy.json');
-const {ethers} = require("hardhat");
-const deployedReserveLogic = require('../deployments/' + process.env.HARDHAT_NETWORK + '/ReserveLogic.json');
-const deployedTus = require('../deployments/' + process.env.HARDHAT_NETWORK + '/Tus.json');
+const hre = require('hardhat');
+const { deployments, ethers } = hre;
 
 async function main() {
-    const liquidityManagerProxy = deployedLMP.address;
-    const LiquidityManager = await ethers.getContractFactory("LiquidityManager", { libraries: { ReserveLogic: deployedReserveLogic.address } });
-    const liquidityManager = LiquidityManager.attach(liquidityManagerProxy);
-    const treasureUnderSea = deployedTus.address;
+  const { address: tus } = await deployments.get('Tus');
+  const { address: lmp } = await deployments.get('LiquidityManagerProxy');
+  const { address: reserveLogic } = await deployments.get('ReserveLogic');
+  const LiquidityManager = await ethers.getContractFactory('LiquidityManager', {
+    libraries: { ReserveLogic: reserveLogic },
+  });
+  const liquidityManager = LiquidityManager.attach(lmp);
 
-    await liquidityManager.activeReserve(
-       treasureUnderSea,
-    );
+  await liquidityManager.activeReserve(tus);
 }
 
 main()
-    .then(() => process.exit(0))
-    .catch((error) => {
-        console.error(error);
-        process.exit(1);
-    });
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
