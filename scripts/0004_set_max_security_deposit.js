@@ -1,21 +1,22 @@
 require('dotenv').config();
-const hre = require("hardhat");
-const {ethers} = require("hardhat");
-const deployedVMP = require('../deployments/' + process.env.HARDHAT_NETWORK + '/VaultManagerProxy.json');
-const deployedTus = require('../deployments/' + process.env.HARDHAT_NETWORK + '/Tus.json');
+const hre = require('hardhat');
 
+const { deployments, ethers } = hre;
 
 async function main() {
-    const treasureUnderSea = deployedTus.address;
-
-    const VaultManager= await hre.ethers.getContractFactory('VaultManager');
-    const vm = await VaultManager.attach(deployedVMP.address);
-    await vm.setMaxSecurityDeposit(treasureUnderSea, '100000000000000000000000000')
+  const { address: treasureUnderSea } = await deployments.get('Tus');
+  const { address: vmp } = await deployments.get('VaultManagerProxy');
+  const VaultManager = await ethers.getContractFactory('VaultManager');
+  const vm = await VaultManager.attach(vmp);
+  await vm.setMaxSecurityDeposit(
+    treasureUnderSea,
+    '100000000000000000000000000'
+  );
 }
 
 main()
-    .then(() => process.exit(0))
-    .catch((error) => {
-        console.error(error);
-        process.exit(1);
-    });
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
