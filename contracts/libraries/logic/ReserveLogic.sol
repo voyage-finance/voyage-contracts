@@ -8,6 +8,7 @@ import '../types/DataTypes.sol';
 import '../helpers/Errors.sol';
 import '../../interfaces/IStableDebtToken.sol';
 import '../../component/liquidity/DefaultReserveInterestRateStrategy.sol';
+import 'hardhat/console.sol';
 
 /**
  * @title ReserveLogic library
@@ -86,6 +87,7 @@ library ReserveLogic {
 
     function updateInterestRates(
         DataTypes.ReserveData storage _reserve,
+        address _escrow,
         address _reserveAddress,
         uint256 _juniorLiquidityAdded,
         uint256 _juniorLiquidityTaken,
@@ -98,13 +100,17 @@ library ReserveLogic {
         uint256 liquidityAdded = _juniorLiquidityAdded.add(
             _seniorLiquidityAdded
         );
+        console.log('liquidity added: ', liquidityAdded);
         uint256 liquidityTaken = _juniorLiquidityTaken.add(
             _seniorLiquidityTaken
         );
+        console.log('liquidity taken: ', liquidityTaken);
 
         (vars.totalStableDebt, vars.avgStableRate) = IStableDebtToken(
             _reserve.stableDebtAddress
         ).getTotalSupplyAndAvgRate();
+        console.log('total stable debt: ', vars.totalStableDebt);
+        console.log('average stable rate: ', vars.avgStableRate);
 
         (
             vars.newLiquidityRate,
@@ -112,13 +118,14 @@ library ReserveLogic {
         ) = IReserveInterestRateStrategy(_reserve.interestRateStrategyAddress)
             .calculateInterestRates(
                 _reserveAddress,
-                _reserve.juniorDepositTokenAddress,
-                _reserve.seniorDepositTokenAddress,
+                _escrow,
                 liquidityAdded,
                 liquidityTaken,
                 _reserve.totalBorrows,
                 vars.avgStableRate
             );
+        console.log('new liquidity rate: ', vars.newLiquidityRate);
+        console.log('new stable rate: ', vars.newStableRate);
         require(
             vars.newLiquidityRate <= type(uint128).max,
             Errors.RL_LIQUIDITY_RATE_OVERFLOW

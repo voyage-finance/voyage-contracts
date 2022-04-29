@@ -31,4 +31,8 @@ interface IAddressResolver {
     function getStableDebtToken() external view returns (address);
 
     function getVaultStorage() external view returns (address);
+
+    function getJuniorDepositToken() external view returns (address);
+
+    function getSeniorDepositToken() external view returns (address);
 }

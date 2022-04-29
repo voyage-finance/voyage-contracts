@@ -17,6 +17,8 @@ contract AddressResolver is IAddressResolver, Ownable {
     bytes32 public constant vaultManagerProxyName = 'vaultManagerProxy';
     bytes32 public constant vaultManagerName = 'vaultManager';
     bytes32 public constant vaultStorageName = 'vaultStorage';
+    bytes32 public constant juniorDepositTokenName = 'juniorDepositToken';
+    bytes32 public constant seniorDepositTokenName = 'seniorDepositToken';
     bytes32 public constant securityDepositTokenName = 'securityDepositToken';
     bytes32 public constant stableDebtTokenName = 'stableDebtToken';
     bytes32 public constant extCallACLProxyName = 'extCallACLProxy';
@@ -66,6 +68,14 @@ contract AddressResolver is IAddressResolver, Ownable {
 
     function getVaultStorage() external view returns (address) {
         return repository[vaultStorageName];
+    }
+
+    function getJuniorDepositToken() external view returns (address) {
+        return repository[juniorDepositTokenName];
+    }
+
+    function getSeniorDepositToken() external view returns (address) {
+        return repository[seniorDepositTokenName];
     }
 
     function getStableDebtToken() external view returns (address) {

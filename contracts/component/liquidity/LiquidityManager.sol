@@ -38,7 +38,12 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
         );
         DataTypes.ReserveData memory reserve = getReserveData(_asset);
 
-        lms.updateStateOnDeposit(_asset, _tranche, _amount);
+        lms.updateStateOnDeposit(
+            _asset,
+            _tranche,
+            _amount,
+            address(liquidityDepositEscrow)
+        );
 
         uint256 scaledBalance;
 
@@ -89,6 +94,11 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
                 LiquidityManagerStorage(liquidityManagerStorageAddress())
                     .getReserveNormalizedIncome(_reserve, _tranche)
             );
+    }
+
+    function totalDepositAndDebt() external {
+        AddressResolver addressResolver = voyager.addressResolver();
+        addressResolver.getStableDebtToken();
     }
 
     function balance(

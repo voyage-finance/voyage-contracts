@@ -36,7 +36,7 @@ contract LiquidityManagerProxy is Proxy, ILiquidityManagerProxy {
         returns (DataTypes.DepositAndDebt memory)
     {
         console.log('in getLiquidityAndDebt');
-        return IVoyagerComponent(address(target)).getDepositAndDebt();
+        return IVoyagerComponent(address(target)).getDepositAndDebt(_reserve);
     }
 
     function getReserveList() external view returns (address[] memory) {

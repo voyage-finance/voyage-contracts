@@ -31,13 +31,14 @@ abstract contract IVoyagerComponent {
         return LiquidityManagerStorage(storageAddress).paused();
     }
 
-    function getDepositAndDebt()
+    function getDepositAndDebt(address _reserve)
         public
         view
         returns (DataTypes.DepositAndDebt memory)
     {
         address storageAddress = liquidityManagerStorageAddress();
-        return LiquidityManagerStorage(storageAddress).getDepositAndDebt();
+        return
+            LiquidityManagerStorage(storageAddress).getDepositAndDebt(_reserve);
     }
 
     function escrow() internal view virtual returns (LiquidityDepositEscrow);

@@ -23,11 +23,6 @@ contract LiquidityManagerStorage is State {
 
     bool internal _paused;
 
-    // todo fix me: move to _reserves
-    uint256 public juniorDepositAmount;
-    uint256 public seniorDepositAmount;
-    uint256 public totalDebt;
-
     constructor(address _liquidityManager) State(_liquidityManager) {}
 
     function initReserve(
@@ -57,27 +52,29 @@ contract LiquidityManagerStorage is State {
     function updateStateOnDeposit(
         address _asset,
         ReserveLogic.Tranche _tranche,
-        uint256 _amount
+        uint256 _amount,
+        address _escrow
     ) public onlyAssociatedContract {
         DataTypes.ReserveData storage reserve = _reserves[_asset];
         ValidationLogic.validateDeposit(reserve, _amount);
         reserve.updateState(_tranche);
         if (ReserveLogic.Tranche.JUNIOR == _tranche) {
-            reserve.updateInterestRates(_asset, _amount, 0, 0, 0);
-            juniorDepositAmount += _amount;
+            reserve.updateInterestRates(_asset, _escrow, _amount, 0, 0, 0);
+            reserve.juniorDepositAmount += _amount;
         } else {
-            reserve.updateInterestRates(_asset, 0, 0, _amount, 0);
-            seniorDepositAmount += _amount;
+            reserve.updateInterestRates(_asset, _escrow, 0, 0, _amount, 0);
+            reserve.seniorDepositAmount += _amount;
         }
     }
 
-    function updateStateOnBorrow(address _asset, uint256 _amount)
-        public
-        onlyAssociatedContract
-    {
+    function updateStateOnBorrow(
+        address _asset,
+        uint256 _amount,
+        address _escrow
+    ) public onlyAssociatedContract {
         DataTypes.ReserveData storage reserve = _reserves[_asset];
-        //        reserve.updateState(ReserveLogic.Tranche.SENIOR);
-        //        reserve.updateInterestRates(_asset, 0, 0, 0, _amount);
+        reserve.updateState(ReserveLogic.Tranche.SENIOR);
+        reserve.updateInterestRates(_asset, _escrow, 0, 0, 0, _amount);
     }
 
     function activeReserve(address _asset) public onlyAssociatedContract {
@@ -93,38 +90,6 @@ contract LiquidityManagerStorage is State {
 
     function unPause() public onlyAssociatedContract {
         _paused = false;
-    }
-
-    function increaseJuniorDeposit(uint256 _amount)
-        public
-        onlyAssociatedContract
-    {
-        juniorDepositAmount += _amount;
-    }
-
-    function increaseSeniorDeposit(uint256 _amount)
-        public
-        onlyAssociatedContract
-    {
-        seniorDepositAmount += _amount;
-    }
-
-    function decreaseJuniorDeposit(uint256 _amount)
-        public
-        onlyAssociatedContract
-    {
-        juniorDepositAmount -= _amount;
-    }
-
-    function decreaseSeniorDeposit(uint256 _amount)
-        public
-        onlyAssociatedContract
-    {
-        seniorDepositAmount -= _amount;
-    }
-
-    function increaseTotalDebt(uint256 _amount) public onlyAssociatedContract {
-        totalDebt += _amount;
     }
 
     /*********************************************** View functions ***********************************************/
@@ -206,15 +171,16 @@ contract LiquidityManagerStorage is State {
         return _paused;
     }
 
-    function getDepositAndDebt()
+    function getDepositAndDebt(address _reserve)
         public
         view
         returns (DataTypes.DepositAndDebt memory)
     {
+        DataTypes.ReserveData storage reserve = _reserves[_reserve];
         DataTypes.DepositAndDebt memory res;
-        res.juniorDepositAmount = juniorDepositAmount;
-        res.seniorDepositAmount = seniorDepositAmount;
-        res.totalDebt = totalDebt;
+        res.juniorDepositAmount = reserve.juniorDepositAmount;
+        res.seniorDepositAmount = reserve.seniorDepositAmount;
+        res.totalDebt = reserve.totalBorrows;
         return res;
     }
 }
