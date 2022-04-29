@@ -100,17 +100,13 @@ library ReserveLogic {
         uint256 liquidityAdded = _juniorLiquidityAdded.add(
             _seniorLiquidityAdded
         );
-        console.log('liquidity added: ', liquidityAdded);
         uint256 liquidityTaken = _juniorLiquidityTaken.add(
             _seniorLiquidityTaken
         );
-        console.log('liquidity taken: ', liquidityTaken);
 
         (vars.totalStableDebt, vars.avgStableRate) = IStableDebtToken(
             _reserve.stableDebtAddress
         ).getTotalSupplyAndAvgRate();
-        console.log('total stable debt: ', vars.totalStableDebt);
-        console.log('average stable rate: ', vars.avgStableRate);
 
         (
             vars.newLiquidityRate,
@@ -124,8 +120,6 @@ library ReserveLogic {
                 _reserve.totalBorrows,
                 vars.avgStableRate
             );
-        console.log('new liquidity rate: ', vars.newLiquidityRate);
-        console.log('new stable rate: ', vars.newStableRate);
         require(
             vars.newLiquidityRate <= type(uint128).max,
             Errors.RL_LIQUIDITY_RATE_OVERFLOW

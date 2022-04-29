@@ -62,11 +62,9 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
         uint256 averageBorrowRate
     ) external view returns (uint256, uint256) {
         uint256 availableLiquidity = IERC20(reserve).balanceOf(liquidityEscrow);
-        console.log('availableLiquidity: ', availableLiquidity);
         availableLiquidity = availableLiquidity.add(liquidityAdded).sub(
             liquidityTaken
         );
-        console.log('availableLiquidity: ', availableLiquidity);
         return
             calculateInterestRates(
                 reserve,
@@ -91,19 +89,14 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
         uint256 averageBorrowRate
     ) public view returns (uint256, uint256) {
         CalcInterestRatesLocalVars memory vars;
-        console.log('in');
 
         vars.totalDebt = totalStableDebt;
         vars.currentStableBorrowRate = baseBorrowRate;
         vars.currentLiquidityRate = 0;
 
-        console.log('availableLiquidity: ', availableLiquidity);
-        console.log('total debt: ', vars.totalDebt);
-
         vars.utilizationRate = vars.totalDebt == 0
             ? 0
             : vars.totalDebt.rayDiv(availableLiquidity.add(vars.totalDebt));
-        console.log('utilization rate: ', vars.utilizationRate);
 
         if (vars.utilizationRate > OPTIMAL_UTILIZATION_RATE) {
             vars.currentStableBorrowRate = vars
