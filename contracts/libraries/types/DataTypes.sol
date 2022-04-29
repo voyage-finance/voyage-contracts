@@ -19,6 +19,8 @@ library DataTypes {
         uint256 currentJuniorIncomeAllocation;
         uint256 juniorLiquidityIndex;
         uint256 seniorLiquidityIndex;
+        uint256 juniorDepositAmount;
+        uint256 seniorDepositAmount;
         uint256 totalBorrows;
         uint256 currentBorrowRate;
         // Expressed in ray

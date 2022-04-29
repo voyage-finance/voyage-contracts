@@ -41,7 +41,9 @@ contract LoanManager is Proxyable, IVoyagerComponent {
         require(voyager.getVault(_user) == _vault, Errors.LOM_NOT_VAULT_OWNER);
 
         // 1. check if pool liquidity is sufficient
-        DataTypes.DepositAndDebt memory depositAndDebt = getDepositAndDebt();
+        DataTypes.DepositAndDebt memory depositAndDebt = getDepositAndDebt(
+            _asset
+        );
         require(
             depositAndDebt.seniorDepositAmount - depositAndDebt.totalDebt >=
                 _amount,
@@ -84,7 +86,8 @@ contract LoanManager is Proxyable, IVoyagerComponent {
         LiquidityManagerStorage lms = LiquidityManagerStorage(
             liquidityManagerStorageAddress()
         );
-        lms.updateStateOnBorrow(_asset, _amount);
+
+        lms.updateStateOnBorrow(_asset, _amount, address(escrow()));
 
         // 5. increase vault debt
         IVault(_vault).increaseTotalDebt(_amount);

@@ -36,44 +36,7 @@ contract BaseLiquidityEscrow is ReentrancyGuard {
 
     uint40 private _lockupTimeInSeconds = 7 days;
 
-    /**
-     * @dev Stores the sent amount as credit to be withdrawn.
-     * @param _reserve the asset address
-     * @param _user user address who deposit to this escrow
-     * @param _amount token amount need to transfer
-     * @param _recordAmount token amount that will be recored
-     */
-    function _deposit(
-        address _reserve,
-        ReserveLogic.Tranche _tranche,
-        address _user,
-        uint256 _amount,
-        uint256 _recordAmount
-    ) internal {
-        if (_reserve != EthAddressLib.ethAddress()) {
-            require(
-                msg.value == 0,
-                'User is sending ETH along with the ERC20 transfer.'
-            );
-            ERC20(_reserve).safeTransferFrom(_user, address(this), _amount);
-        } else {
-            require(
-                msg.value == _amount,
-                'The amount and the value sent to deposit do not match'
-            );
-        }
-        _deposits[_reserve] += _recordAmount;
-        Deposit memory deposit = Deposit(
-            _recordAmount,
-            uint40(block.timestamp)
-        );
-        if (ReserveLogic.Tranche.JUNIOR == _tranche) {
-            _juniorDepositRecords[_reserve][_user].push(deposit);
-        } else {
-            _seniorDepositRecords[_reserve][_user].push(deposit);
-        }
-        emit Deposited(_user, _reserve, _amount, _recordAmount);
-    }
+    /*********************************************** View functions ***********************************************/
 
     function eligibleAmount(
         address _reserve,
@@ -94,6 +57,100 @@ contract BaseLiquidityEscrow is ReentrancyGuard {
         ReserveLogic.Tranche _tranche
     ) public view returns (uint256) {
         return _overallAmount(_reserve, _user, _tranche);
+    }
+
+    /**
+     * @dev get accumulated amount of deposit.
+     * @param _reserve the address of the reserve where the transfer is happening
+     * @return accumulated deposit amount
+     **/
+    function getDepositAmount(address _reserve) public view returns (uint256) {
+        return _deposits[_reserve];
+    }
+
+    /**
+     * @dev get all records of deposit.
+     * @param _reserve the address of the reserve where the transfer is happening
+     * @param _tranche the tranche of the reserve
+     * @param _user the address of the user receiving the transfer
+     * @return deposit records
+     **/
+    function getDepositRecords(
+        address _reserve,
+        ReserveLogic.Tranche _tranche,
+        address _user
+    ) public view returns (Deposit[] memory) {
+        Deposit[] storage deposits;
+        if (ReserveLogic.Tranche.JUNIOR == _tranche) {
+            deposits = _juniorDepositRecords[_reserve][_user];
+        } else {
+            deposits = _juniorDepositRecords[_reserve][_user];
+        }
+        return deposits;
+    }
+
+    function _overallAmount(
+        address _reserve,
+        address _user,
+        ReserveLogic.Tranche _tranche
+    ) public view returns (uint256) {
+        Deposit[] storage deposits;
+        if (ReserveLogic.Tranche.JUNIOR == _tranche) {
+            deposits = _juniorDepositRecords[_reserve][_user];
+        } else {
+            deposits = _seniorDepositRecords[_reserve][_user];
+        }
+        uint256 overallAmount = 0;
+        for (uint256 i = 0; i < deposits.length; i++) {
+            overallAmount += deposits[i].amount;
+        }
+        return overallAmount;
+    }
+
+    function _eligibleAmount(
+        address _reserve,
+        address _user,
+        ReserveLogic.Tranche _tranche
+    ) public view returns (uint256, uint40) {
+        Deposit[] storage deposits;
+        uint40 lastUpdateTime;
+        if (ReserveLogic.Tranche.JUNIOR == _tranche) {
+            deposits = _juniorDepositRecords[_reserve][_user];
+        } else {
+            deposits = _seniorDepositRecords[_reserve][_user];
+        }
+        uint256 eligibleAmount = 0;
+        for (uint256 i = 0; i < deposits.length; i++) {
+            if (
+                uint40(block.timestamp) - deposits[i].depositTime >
+                _lockupTimeInSeconds
+            ) {
+                eligibleAmount += deposits[i].amount;
+                lastUpdateTime = deposits[i].depositTime;
+            }
+        }
+        return (eligibleAmount, lastUpdateTime);
+    }
+
+    /*********************************************** Internal functions ***********************************************/
+    /**
+     * @dev transfers to the user a specific amount from the reserve.
+     * @param _reserve the address of the reserve where the transfer is happening
+     * @param _user the address of the user receiving the transfer
+     * @param _amount the amount being transferred
+     **/
+    function transferToUser(
+        address _reserve,
+        address payable _user,
+        uint256 _amount
+    ) internal {
+        if (_reserve != EthAddressLib.ethAddress()) {
+            ERC20(_reserve).safeTransfer(_user, _amount);
+        } else {
+            //solium-disable-next-line
+            (bool result, ) = _user.call{value: _amount}('');
+            require(result, 'Transfer of ETH failed');
+        }
     }
 
     /**
@@ -133,95 +190,41 @@ contract BaseLiquidityEscrow is ReentrancyGuard {
     }
 
     /**
-     * @dev get accumulated amount of deposit.
-     * @param _reserve the address of the reserve where the transfer is happening
-     * @return accumulated deposit amount
-     **/
-    function getDepositAmount(address _reserve) public view returns (uint256) {
-        return _deposits[_reserve];
-    }
-
-    /**
-     * @dev get all records of deposit.
-     * @param _reserve the address of the reserve where the transfer is happening
-     * @param _tranche the tranche of the reserve
-     * @param _user the address of the user receiving the transfer
-     * @return deposit records
-     **/
-    function getDepositRecords(
+     * @dev Stores the sent amount as credit to be withdrawn.
+     * @param _reserve the asset address
+     * @param _user user address who deposit to this escrow
+     * @param _amount token amount need to transfer
+     * @param _recordAmount token amount that will be recored
+     */
+    function _deposit(
         address _reserve,
         ReserveLogic.Tranche _tranche,
-        address _user
-    ) public view returns (Deposit[] memory) {
-        Deposit[] storage deposits;
-        if (ReserveLogic.Tranche.JUNIOR == _tranche) {
-            deposits = _juniorDepositRecords[_reserve][_user];
-        } else {
-            deposits = _juniorDepositRecords[_reserve][_user];
-        }
-        return deposits;
-    }
-
-    /**
-     * @dev transfers to the user a specific amount from the reserve.
-     * @param _reserve the address of the reserve where the transfer is happening
-     * @param _user the address of the user receiving the transfer
-     * @param _amount the amount being transferred
-     **/
-    function transferToUser(
-        address _reserve,
-        address payable _user,
-        uint256 _amount
+        address _user,
+        uint256 _amount,
+        uint256 _recordAmount
     ) internal {
         if (_reserve != EthAddressLib.ethAddress()) {
-            ERC20(_reserve).safeTransfer(_user, _amount);
+            require(
+                msg.value == 0,
+                'User is sending ETH along with the ERC20 transfer.'
+            );
+            ERC20(_reserve).safeTransferFrom(_user, address(this), _amount);
         } else {
-            //solium-disable-next-line
-            (bool result, ) = _user.call{value: _amount}('');
-            require(result, 'Transfer of ETH failed');
+            require(
+                msg.value == _amount,
+                'The amount and the value sent to deposit do not match'
+            );
         }
-    }
-
-    function _eligibleAmount(
-        address _reserve,
-        address _user,
-        ReserveLogic.Tranche _tranche
-    ) internal view returns (uint256, uint40) {
-        Deposit[] storage deposits;
-        uint40 lastUpdateTime;
+        _deposits[_reserve] += _recordAmount;
+        Deposit memory deposit = Deposit(
+            _recordAmount,
+            uint40(block.timestamp)
+        );
         if (ReserveLogic.Tranche.JUNIOR == _tranche) {
-            deposits = _juniorDepositRecords[_reserve][_user];
+            _juniorDepositRecords[_reserve][_user].push(deposit);
         } else {
-            deposits = _seniorDepositRecords[_reserve][_user];
+            _seniorDepositRecords[_reserve][_user].push(deposit);
         }
-        uint256 eligibleAmount = 0;
-        for (uint256 i = 0; i < deposits.length; i++) {
-            if (
-                uint40(block.timestamp) - deposits[i].depositTime >
-                _lockupTimeInSeconds
-            ) {
-                eligibleAmount += deposits[i].amount;
-                lastUpdateTime = deposits[i].depositTime;
-            }
-        }
-        return (eligibleAmount, lastUpdateTime);
-    }
-
-    function _overallAmount(
-        address _reserve,
-        address _user,
-        ReserveLogic.Tranche _tranche
-    ) internal view returns (uint256) {
-        Deposit[] storage deposits;
-        if (ReserveLogic.Tranche.JUNIOR == _tranche) {
-            deposits = _juniorDepositRecords[_reserve][_user];
-        } else {
-            deposits = _seniorDepositRecords[_reserve][_user];
-        }
-        uint256 overallAmount = 0;
-        for (uint256 i = 0; i < deposits.length; i++) {
-            overallAmount += deposits[i].amount;
-        }
-        return overallAmount;
+        emit Deposited(_user, _reserve, _amount, _recordAmount);
     }
 }

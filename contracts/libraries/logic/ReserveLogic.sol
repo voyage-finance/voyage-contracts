@@ -8,6 +8,7 @@ import '../types/DataTypes.sol';
 import '../helpers/Errors.sol';
 import '../../interfaces/IStableDebtToken.sol';
 import '../../component/liquidity/DefaultReserveInterestRateStrategy.sol';
+import 'hardhat/console.sol';
 
 /**
  * @title ReserveLogic library
@@ -86,6 +87,7 @@ library ReserveLogic {
 
     function updateInterestRates(
         DataTypes.ReserveData storage _reserve,
+        address _escrow,
         address _reserveAddress,
         uint256 _juniorLiquidityAdded,
         uint256 _juniorLiquidityTaken,
@@ -112,8 +114,7 @@ library ReserveLogic {
         ) = IReserveInterestRateStrategy(_reserve.interestRateStrategyAddress)
             .calculateInterestRates(
                 _reserveAddress,
-                _reserve.juniorDepositTokenAddress,
-                _reserve.seniorDepositTokenAddress,
+                _escrow,
                 liquidityAdded,
                 liquidityTaken,
                 _reserve.totalBorrows,
