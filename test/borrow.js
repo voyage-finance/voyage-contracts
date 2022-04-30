@@ -98,7 +98,7 @@ describe('Borrow', function () {
     await lm.activeReserve(tus.address);
     await voyager.deposit(tus.address, 1, depositAmount, owner);
 
-    await vm.updateSecurityDepositRequirement(
+    await vm.setSecurityDepositRequirement(
       tus.address,
       '100000000000000000000000000'
     ); // 0.1
@@ -141,7 +141,7 @@ describe('Borrow', function () {
     // todo
     vm.setMaxSecurityDeposit(tus.address, '1000000000000000000000');
     await voyager.deposit(tus.address, 1, depositAmount, owner);
-    await vm.updateSecurityDepositRequirement(
+    await vm.setSecurityDepositRequirement(
       tus.address,
       '100000000000000000000000000'
     ); // 0.1

@@ -37,7 +37,7 @@ contract VaultStorage is State {
         vaultConfig[_reserve].maxSecurityDeposit = _amount;
     }
 
-    function updateSecurityDepositRequirement(
+    function setSecurityDepositRequirement(
         address _reserve,
         uint256 _requirement
     ) external onlyAssociatedContract {

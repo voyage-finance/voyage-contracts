@@ -43,4 +43,11 @@ interface IVaultManager {
         external
         view
         returns (uint256);
+
+    function setSecurityDepositRequirement(
+        address _reserve,
+        uint256 _requirement
+    ) external;
+
+    function setMaxSecurityDeposit(address _reserve, uint256 _amount) external;
 }

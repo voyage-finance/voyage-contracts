@@ -157,14 +157,14 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
      * @param _reserve reserve address
      * @param _requirement expressed in Ray
      */
-    function updateSecurityDepositRequirement(
+    function setSecurityDepositRequirement(
         address _reserve,
         uint256 _requirement
     ) external onlyProxy onlyAdmin {
-        VaultStorage(getVaultStorageAddress()).updateSecurityDepositRequirement(
-                _reserve,
-                _requirement
-            );
+        VaultStorage(getVaultStorageAddress()).setSecurityDepositRequirement(
+            _reserve,
+            _requirement
+        );
     }
 
     /************************************** View Functions **************************************/
