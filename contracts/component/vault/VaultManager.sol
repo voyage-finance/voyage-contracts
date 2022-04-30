@@ -153,6 +153,22 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
     }
 
     /**
+     * @dev Set min security deposit for _reserve
+     * @param _reserve reserve address
+     * @param _amount min amount sponsor can deposit
+     */
+    function setMinSecurityDeposit(address _reserve, uint256 _amount)
+        external
+        onlyProxy
+        onlyAdmin
+    {
+        VaultStorage(getVaultStorageAddress()).setMinSecurityDeposit(
+            _reserve,
+            _amount
+        );
+    }
+
+    /**
      * @dev Update the security deposit requirement
      * @param _reserve reserve address
      * @param _requirement expressed in Ray
