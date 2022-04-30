@@ -70,6 +70,7 @@ describe('Security Deposit', function () {
 
     // import vaultManager to AddressResolver
     const names = [
+      ethers.utils.formatBytes32String('voyager'),
       ethers.utils.formatBytes32String('vaultManagerProxy'),
       ethers.utils.formatBytes32String('vaultStorage'),
       ethers.utils.formatBytes32String('extCallACLProxy'),
@@ -77,6 +78,7 @@ describe('Security Deposit', function () {
     ];
 
     const destinations = [
+      voyager.address,
       vaultManagerProxy.address,
       vaultStorage.address,
       extCallACLProxy.address,
@@ -105,17 +107,11 @@ describe('Security Deposit', function () {
   });
 
   it('Security deposit setup should return correct value', async function () {
-    const [owner] = await ethers.getSigners();
-    const amountBeforeSetting = await voyager.getMaxSecurityDeposit(
-      tus.address
-    );
-    expect(amountBeforeSetting).to.equal('0');
     await vm.setMaxSecurityDeposit(tus.address, '100000000000000000000');
-    const amountAfterSetting = await voyager.getMaxSecurityDeposit(tus.address);
-    expect(amountAfterSetting).to.equal('100000000000000000000');
-
-    await vm.removeMaxSecurityDeposit(tus.address);
-    expect(amountBeforeSetting).to.equal('0');
+    const amountAfterSetting = await voyager.getVaultConfig(tus.address);
+    expect(amountAfterSetting.maxSecurityDeposit.toString()).to.equal(
+      '100000000000000000000'
+    );
   });
 
   it('Security deposit should return correct value', async function () {

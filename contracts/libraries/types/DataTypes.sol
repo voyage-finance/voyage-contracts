@@ -50,6 +50,12 @@ library DataTypes {
         uint256 data;
     }
 
+    struct VaultConfig {
+        uint256 minSecurityDeposit;
+        uint256 maxSecurityDeposit;
+        uint256 securityDepositRequirement;
+    }
+
     struct FungibleTokenData {
         string symbol;
         address tokenAddress;

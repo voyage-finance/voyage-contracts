@@ -6,6 +6,7 @@ const deployFn: DeployFunction = async (hre) => {
   const { deploy, execute } = deployments;
   const { owner } = await getNamedAccounts();
 
+  const Voyager = await deployments.get('Voyager');
   let LMProxy = await deployments.get('LiquidityManagerProxy');
   let LM = await deployments.get('LiquidityManager');
   let LMStorage = await deployments.get('LiquidityManagerStorage');
@@ -16,6 +17,7 @@ const deployFn: DeployFunction = async (hre) => {
   let VaultStorage = await deployments.get('VaultStorage');
 
   const names = [
+    ethers.utils.formatBytes32String('voyager'),
     ethers.utils.formatBytes32String('liquidityManagerProxy'),
     ethers.utils.formatBytes32String('liquidityManager'),
     ethers.utils.formatBytes32String('liquidityManagerStorage'),
@@ -26,6 +28,7 @@ const deployFn: DeployFunction = async (hre) => {
     ethers.utils.formatBytes32String('vaultStorage'),
   ];
   const destinations = [
+    Voyager.address,
     LMProxy.address,
     LM.address,
     LMStorage.address,
@@ -46,6 +49,7 @@ const deployFn: DeployFunction = async (hre) => {
 
 deployFn.tags = ['SetAddressResolver'];
 deployFn.dependencies = [
+  'Voyager',
   'AddressResolver',
   'VaultManager',
   'LiquidityManager',

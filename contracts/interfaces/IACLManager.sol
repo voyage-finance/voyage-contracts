@@ -35,4 +35,8 @@ interface IACLManager {
         external
         view
         returns (bool);
+
+    function grantVaultConfigurator(address _amin) external;
+
+    function isVaultConfigurator(address _admin) external view returns (bool);
 }

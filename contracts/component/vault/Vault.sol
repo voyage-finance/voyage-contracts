@@ -10,6 +10,7 @@ import '../../tokenization/SecurityDepositToken.sol';
 import '../../tokenization/StableDebtToken.sol';
 import '../../libraries/math/WadRayMath.sol';
 import '../../interfaces/IVault.sol';
+import '../../interfaces/IVaultManagerProxy.sol';
 import './VaultManager.sol';
 import '../../interfaces/IACLManager.sol';
 import 'hardhat/console.sol';
@@ -99,10 +100,13 @@ contract Vault is ReentrancyGuard, IVault {
         address _reserve,
         uint256 _amount
     ) external payable nonReentrant onlyVaultManager {
+        address vmp = Voyager(voyager).addressResolver().getVaultManagerProxy();
+        IVaultManagerProxy vaultManagerProxy = IVaultManagerProxy(vmp);
+        DataTypes.VaultConfig memory vaultConfig = vaultManagerProxy
+            .getVaultConfig(_reserve);
+
         // check max security deposit amount for this _reserve
-        uint256 maxAllowedAmount = Voyager(voyager).getMaxSecurityDeposit(
-            _reserve
-        );
+        uint256 maxAllowedAmount = vaultConfig.maxSecurityDeposit;
         uint256 depositedAmount = securityDepositEscrow.getDepositAmount(
             _reserve
         );
@@ -110,6 +114,11 @@ contract Vault is ReentrancyGuard, IVault {
             depositedAmount + _amount < maxAllowedAmount,
             'Vault: deposit amount exceed'
         );
+
+        // check min security deposit amount for this _reserve
+        uint256 minAllowedAmount = vaultConfig.minSecurityDeposit;
+        require(minAllowedAmount <= _amount, 'Vault: deposit too small');
+
         securityDepositEscrow.deposit(_reserve, _sponsor, _amount);
         securityDepositToken.mintOnDeposit(_sponsor, _amount);
     }
@@ -196,8 +205,12 @@ contract Vault is ReentrancyGuard, IVault {
         view
         returns (uint256)
     {
-        uint256 securityRequirement = VaultManager(_getVaultManagerAddress())
-            .getSecurityDepositRequirement(_reserve);
+        address vmp = Voyager(voyager).addressResolver().getVaultManagerProxy();
+        IVaultManagerProxy vaultManagerProxy = IVaultManagerProxy(vmp);
+        DataTypes.VaultConfig memory vaultConfig = vaultManagerProxy
+            .getVaultConfig(_reserve);
+
+        uint256 securityRequirement = vaultConfig.securityDepositRequirement;
         return
             securityDepositToken.balanceOf(_sponsor) -
             totalDebt.wadToRay().rayMul(securityRequirement);
@@ -296,9 +309,6 @@ contract Vault is ReentrancyGuard, IVault {
     function getVaultManagerProxyAddress() private returns (address) {
         Voyager voyager = Voyager(voyager);
         address addressResolver = voyager.getAddressResolverAddress();
-        return
-            AddressResolver(addressResolver).getAddress(
-                voyager.getVaultManagerProxyName()
-            );
+        return AddressResolver(addressResolver).getVaultManagerProxy();
     }
 }

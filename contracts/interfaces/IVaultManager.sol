@@ -1,21 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
+import '../libraries/types/DataTypes.sol';
+
 interface IVaultManager {
-    function getMaxSecurityDeposit(address _reserve)
+    function getVaultConfig(address _reserve)
         external
         view
-        returns (uint256);
-
-    function getMinSecurityDeposit(address _reserve)
-        external
-        view
-        returns (uint256);
-
-    function getSecurityDepositRequirement(address _reserve)
-        external
-        view
-        returns (uint256);
+        returns (DataTypes.VaultConfig memory);
 
     function getCreditLimit(address _user, address _reserve)
         external

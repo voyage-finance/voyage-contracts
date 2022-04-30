@@ -16,6 +16,8 @@ interface IAddressResolver {
         view
         returns (address);
 
+    function getVoyage() external view returns (address);
+
     function getLiquidityManagerProxy() external view returns (address);
 
     function getLiquidityDepositEscrow() external view returns (address);
