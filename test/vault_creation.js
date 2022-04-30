@@ -66,6 +66,7 @@ describe('Vault Creation', function () {
 
     // import vaultManager to AddressResolver
     const names = [
+      ethers.utils.formatBytes32String('voyager'),
       ethers.utils.formatBytes32String('vaultManagerProxy'),
       ethers.utils.formatBytes32String('vaultManager'),
       ethers.utils.formatBytes32String('vaultStorage'),
@@ -74,6 +75,7 @@ describe('Vault Creation', function () {
     ];
 
     const destinations = [
+      voyager.address,
       vaultManagerProxy.address,
       vaultManager.address,
       vaultStorage.address,

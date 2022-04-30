@@ -43,10 +43,10 @@ contract VoyageProtocolDataProvider {
         address healthStrategyAddr = reserve.healthStrategyAddress;
         require(healthStrategyAddr != address(0), 'invalid health strategy');
         IHealthStrategy hs = IHealthStrategy(healthStrategyAddr);
-        poolConfiguration.securityRequirement = vm
-            .getSecurityDepositRequirement(_reserve);
-        poolConfiguration.minSecurity = vm.getMinSecurityDeposit(_reserve);
-        poolConfiguration.maxSecurity = vm.getMaxSecurityDeposit(_reserve);
+        DataTypes.VaultConfig memory vc = vm.getVaultConfig(_reserve);
+        poolConfiguration.securityRequirement = vc.securityDepositRequirement;
+        poolConfiguration.minSecurity = vc.minSecurityDeposit;
+        poolConfiguration.maxSecurity = vc.maxSecurityDeposit;
         poolConfiguration.loanTenure = hs.getLoanTenure();
         poolConfiguration.optimalIncomeRatio = reserve.optimalIncomeRatio;
         poolConfiguration.optimalTrancheRatio = reserve.optimalTrancheRatio;

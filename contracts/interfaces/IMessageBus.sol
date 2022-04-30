@@ -8,16 +8,6 @@ interface IMessageBus {
 
     function getVault(address _user) external view returns (address);
 
-    function getMaxSecurityDeposit(address _reserve)
-        external
-        view
-        returns (uint256);
-
-    function getSecurityDepositRequirement(address _reserve)
-        external
-        view
-        returns (uint256);
-
     function getReserveData(address _asset)
         external
         view

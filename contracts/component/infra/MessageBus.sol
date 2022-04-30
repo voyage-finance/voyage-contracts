@@ -20,7 +20,6 @@ import '../vault/VaultManagerProxy.sol';
 contract MessageBus is IMessageBus, Ownable {
     // todo to remove
     bytes32 public constant aclManagerName = 'aclManager';
-    bytes32 public constant liquidityManagerProxyName = 'liquidityManagerProxy';
     bytes32 public constant liquidityManagerName = 'liquidityManager';
     bytes32 public constant liquidityManagerStorageName =
         'liquidityManagerStorage';
@@ -52,9 +51,8 @@ contract MessageBus is IMessageBus, Ownable {
         view
         returns (address payable)
     {
-        address liquidityManagerProxyAddress = addressResolver.getAddress(
-            liquidityManagerProxyName
-        );
+        address liquidityManagerProxyAddress = addressResolver
+            .getLiquidityManagerProxy();
         return payable(liquidityManagerProxyAddress);
     }
 
@@ -77,6 +75,18 @@ contract MessageBus is IMessageBus, Ownable {
 
     /************************************** Vault Functions **************************************/
 
+    function getVaultConfig(address _reserve)
+        external
+        view
+        returns (DataTypes.VaultConfig memory)
+    {
+        require(Address.isContract(_reserve), Errors.LM_NOT_CONTRACT);
+        return
+            VaultManagerProxy(getVaultManagerProxyAddress()).getVaultConfig(
+                _reserve
+            );
+    }
+
     /**
      * @dev Get vault address
      * @param _user The owner of the vault
@@ -96,37 +106,6 @@ contract MessageBus is IMessageBus, Ownable {
     }
 
     /**
-     * @dev Get max security deposit for _reserve
-     * @param _reserve reserve address
-     * @return max deposit amount
-     */
-    function getMaxSecurityDeposit(address _reserve)
-        external
-        view
-        returns (uint256)
-    {
-        return
-            IVaultManager(getVaultManagerProxyAddress()).getMaxSecurityDeposit(
-                _reserve
-            );
-    }
-
-    /**
-     * @dev Get current security deposit requirement
-     * @param _reserve reserve address
-     * @return requirement, expressed in Ray
-     **/
-    function getSecurityDepositRequirement(address _reserve)
-        external
-        view
-        returns (uint256)
-    {
-        return
-            IVaultManager(getVaultManagerProxyAddress())
-                .getSecurityDepositRequirement(_reserve);
-    }
-
-    /**
      * @dev Get VaultManagerProxy contract address
      * @return address of the VaultManager
      **/
@@ -135,9 +114,8 @@ contract MessageBus is IMessageBus, Ownable {
         view
         returns (address payable)
     {
-        address vaultManagerProxyAddress = addressResolver.getAddress(
-            vaultManagerProxyName
-        );
+        address vaultManagerProxyAddress = addressResolver
+            .getVaultManagerProxy();
         return payable(vaultManagerProxyAddress);
     }
 
@@ -172,20 +150,12 @@ contract MessageBus is IMessageBus, Ownable {
 
     /************************************** Constant Functions **************************************/
 
-    function getVaultManagerProxyName() external view returns (bytes32) {
-        return vaultManagerProxyName;
-    }
-
     function getVaultManagerName() external view returns (bytes32) {
         return vaultManagerName;
     }
 
     function getVaultStorageName() external view returns (bytes32) {
         return vaultStorageName;
-    }
-
-    function getLiquidityManagerProxyName() external view returns (bytes32) {
-        return liquidityManagerProxyName;
     }
 
     function getLiquidityManagerStorageName() external view returns (bytes32) {

@@ -8,31 +8,12 @@ import '../../interfaces/IVaultManagerProxy.sol';
 contract VaultManagerProxy is Proxy, IVaultManagerProxy {
     /************************** Immutable static call for target contract **************************/
 
-    function getMaxSecurityDeposit(address _reserve)
+    function getVaultConfig(address _reserve)
         external
         view
-        returns (uint256)
+        returns (DataTypes.VaultConfig memory)
     {
-        return IVaultManager(address(target)).getMaxSecurityDeposit(_reserve);
-    }
-
-    function getMinSecurityDeposit(address _reserve)
-        external
-        view
-        returns (uint256)
-    {
-        return IVaultManager(address(target)).getMinSecurityDeposit(_reserve);
-    }
-
-    function getSecurityDepositRequirement(address _reserve)
-        external
-        view
-        returns (uint256)
-    {
-        return
-            IVaultManager(address(target)).getSecurityDepositRequirement(
-                _reserve
-            );
+        return IVaultManager(address(target)).getVaultConfig(_reserve);
     }
 
     function getCreditLimit(address _user, address _reserve)

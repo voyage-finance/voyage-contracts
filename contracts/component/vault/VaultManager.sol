@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
+
 import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
 import '../../libraries/proxy/Proxyable.sol';
@@ -17,13 +18,7 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
     using SafeMath for uint256;
 
     IAddressResolver public addressResolver;
-    address public voyager;
     address public vaultFactory;
-    // todo move this config
-    mapping(address => uint256) public maxSecurityDeposit;
-    mapping(address => uint256) public minSecurityDeposit;
-    // reserve address => requirement expressed in ray
-    mapping(address => uint256) public securityDepositRequirement;
 
     constructor(
         address payable _proxy,
@@ -32,7 +27,6 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         address _vaultFactory
     ) public Proxyable(_proxy) {
         addressResolver = IAddressResolver(_addressResolver);
-        voyager = _voyager;
         vaultFactory = _vaultFactory;
     }
 
@@ -73,7 +67,10 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         SecurityDepositEscrow securityDepositEscrow = new SecurityDepositEscrow(
             _vault
         );
-        IVault(_vault).initialize(voyager, securityDepositEscrow);
+        IVault(_vault).initialize(
+            addressResolver.getVoyage(),
+            securityDepositEscrow
+        );
         IVault(_vault).initSecurityDepositToken(_reserve);
     }
 
@@ -126,23 +123,6 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         );
     }
 
-    function _emit(
-        address _sponsor,
-        address _vaultUser,
-        address _reserve,
-        uint256 _amount,
-        bytes32 _topic
-    ) internal {
-        proxy._emit(
-            abi.encode(_vaultUser, _reserve, _amount),
-            2,
-            _topic,
-            bytes32(abi.encodePacked(_sponsor)),
-            0,
-            0
-        );
-    }
-
     // placeholder function
     function slash(
         address _vaultUser,
@@ -166,19 +146,26 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         onlyProxy
         onlyAdmin
     {
-        maxSecurityDeposit[_reserve] = _amount;
+        VaultStorage(getVaultStorageAddress()).setMaxSecurityDeposit(
+            _reserve,
+            _amount
+        );
     }
 
     /**
-     * @dev Remove max security deposit for _reserve
+     * @dev Set min security deposit for _reserve
      * @param _reserve reserve address
+     * @param _amount min amount sponsor can deposit
      */
-    function removeMaxSecurityDeposit(address _reserve)
+    function setMinSecurityDeposit(address _reserve, uint256 _amount)
         external
         onlyProxy
         onlyAdmin
     {
-        delete maxSecurityDeposit[_reserve];
+        VaultStorage(getVaultStorageAddress()).setMinSecurityDeposit(
+            _reserve,
+            _amount
+        );
     }
 
     /**
@@ -186,51 +173,25 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
      * @param _reserve reserve address
      * @param _requirement expressed in Ray
      */
-    function updateSecurityDepositRequirement(
+    function setSecurityDepositRequirement(
         address _reserve,
         uint256 _requirement
     ) external onlyProxy onlyAdmin {
-        securityDepositRequirement[_reserve] = _requirement;
-    }
-
-    /**
-     * @dev Remove security deposit
-     * @param _reserve reserve address
-     */
-    function removeSecurityDepositRequirement(address _reserve)
-        external
-        onlyProxy
-        onlyAdmin
-    {
-        delete securityDepositRequirement[_reserve];
+        VaultStorage(getVaultStorageAddress()).setSecurityDepositRequirement(
+            _reserve,
+            _requirement
+        );
     }
 
     /************************************** View Functions **************************************/
 
-    function getSecurityDepositRequirement(address _reserve)
-        external
-        view
-        returns (uint256)
-    {
-        return securityDepositRequirement[_reserve];
-    }
-
-    function getMaxSecurityDeposit(address _reserve)
+    function getVaultConfig(address _reserve)
         external
         view
         onlyProxy
-        returns (uint256)
+        returns (DataTypes.VaultConfig memory)
     {
-        return maxSecurityDeposit[_reserve];
-    }
-
-    function getMinSecurityDeposit(address _reserve)
-        external
-        view
-        onlyProxy
-        returns (uint256)
-    {
-        return minSecurityDeposit[_reserve];
+        return VaultStorage(getVaultStorageAddress()).getVaultConfig(_reserve);
     }
 
     /**
@@ -259,9 +220,9 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         returns (uint256)
     {
         uint256 currentSecurityDeposit = _getSecurityDeposit(_user, _reserve);
-        uint256 securityDepositRequirement = securityDepositRequirement[
-            _reserve
-        ];
+        DataTypes.VaultConfig memory vc = VaultStorage(getVaultStorageAddress())
+            .getVaultConfig(_reserve);
+        uint256 securityDepositRequirement = vc.securityDepositRequirement;
         require(
             securityDepositRequirement != 0,
             'security deposit requirement cannot be 0'
@@ -340,5 +301,22 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
             addressResolver.getAddress('aclManager')
         );
         require(aclManager.isVaultManager(messageSender), 'Not vault admin');
+    }
+
+    function _emit(
+        address _sponsor,
+        address _vaultUser,
+        address _reserve,
+        uint256 _amount,
+        bytes32 _topic
+    ) internal {
+        proxy._emit(
+            abi.encode(_vaultUser, _reserve, _amount),
+            2,
+            _topic,
+            bytes32(abi.encodePacked(_sponsor)),
+            0,
+            0
+        );
     }
 }

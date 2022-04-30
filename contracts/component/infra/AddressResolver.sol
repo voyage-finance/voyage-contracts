@@ -5,6 +5,7 @@ import '../../interfaces/IAddressResolver.sol';
 import '../../libraries/ownership/Ownable.sol';
 
 contract AddressResolver is IAddressResolver, Ownable {
+    bytes32 public constant voyageName = 'voyager';
     bytes32 public constant aclManagerName = 'aclManager';
     bytes32 public constant liquidityManagerProxyName = 'liquidityManagerProxy';
     bytes32 public constant liquidityManagerName = 'liquidityManager';
@@ -40,6 +41,10 @@ contract AddressResolver is IAddressResolver, Ownable {
             repository[name] = destination;
             emit AddressImported(name, destination);
         }
+    }
+
+    function getVoyage() external view returns (address) {
+        return repository[voyageName];
     }
 
     function getLiquidityManagerProxy() external view returns (address) {
