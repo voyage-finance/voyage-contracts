@@ -15,6 +15,8 @@ contract VaultStorage is State {
     // player address => vault address
     mapping(address => address) public getVault;
 
+    mapping(address => DataTypes.VaultConfig) public vaultConfig;
+
     constructor(address _vaultManager) State(_vaultManager) {}
 
     function pushNewVault(address _player, address vault)
@@ -26,6 +28,20 @@ contract VaultStorage is State {
         require(getVault[_player] == address(0), 'vault exists');
         getVault[_player] = vault;
         return allVaults.length;
+    }
+
+    function setMaxSecurityDeposit(address _reserve, uint256 _amount)
+        external
+        onlyAssociatedContract
+    {
+        vaultConfig[_reserve].maxSecurityDeposit = _amount;
+    }
+
+    function updateSecurityDepositRequirement(
+        address _reserve,
+        uint256 _requirement
+    ) external onlyAssociatedContract {
+        vaultConfig[_reserve].securityDepositRequirement = _requirement;
     }
 
     /**
@@ -41,5 +57,13 @@ contract VaultStorage is State {
      **/
     function getAllVaults() external view returns (address[] memory) {
         return allVaults;
+    }
+
+    function getVaultConfig(address _reserve)
+        external
+        view
+        returns (DataTypes.VaultConfig memory)
+    {
+        return vaultConfig[_reserve];
     }
 }

@@ -19,7 +19,6 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
 
     IAddressResolver public addressResolver;
     address public vaultFactory;
-    mapping(address => DataTypes.VaultConfig) public vaultConfig;
 
     constructor(
         address payable _proxy,
@@ -147,7 +146,10 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         onlyProxy
         onlyAdmin
     {
-        vaultConfig[_reserve].maxSecurityDeposit = _amount;
+        VaultStorage(getVaultStorageAddress()).setMaxSecurityDeposit(
+            _reserve,
+            _amount
+        );
     }
 
     /**
@@ -159,7 +161,10 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         address _reserve,
         uint256 _requirement
     ) external onlyProxy onlyAdmin {
-        vaultConfig[_reserve].securityDepositRequirement = _requirement;
+        VaultStorage(getVaultStorageAddress()).updateSecurityDepositRequirement(
+                _reserve,
+                _requirement
+            );
     }
 
     /************************************** View Functions **************************************/
@@ -170,7 +175,7 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         onlyProxy
         returns (DataTypes.VaultConfig memory)
     {
-        return vaultConfig[_reserve];
+        return VaultStorage(getVaultStorageAddress()).getVaultConfig(_reserve);
     }
 
     /**
@@ -199,8 +204,9 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         returns (uint256)
     {
         uint256 currentSecurityDeposit = _getSecurityDeposit(_user, _reserve);
-        uint256 securityDepositRequirement = vaultConfig[_reserve]
-            .securityDepositRequirement;
+        DataTypes.VaultConfig memory vc = VaultStorage(getVaultStorageAddress())
+            .getVaultConfig(_reserve);
+        uint256 securityDepositRequirement = vc.securityDepositRequirement;
         require(
             securityDepositRequirement != 0,
             'security deposit requirement cannot be 0'
