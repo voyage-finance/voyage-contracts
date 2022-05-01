@@ -135,8 +135,8 @@ contract Vault is ReentrancyGuard, IVault {
         uint256 _amount
     ) external payable nonReentrant onlyVaultManager {
         require(
-            _amount <= getUnusedDeposits(_sponsor, _reserve),
-            'Vault: cannot redeem more than unused deposits'
+            _amount <= _getWithdrawableDeposit(_sponsor, _reserve),
+            'Vault: cannot redeem more than withdrawable deposit amount'
         );
         securityDepositEscrow.withdraw(
             _reserve,
@@ -195,25 +195,12 @@ contract Vault is ReentrancyGuard, IVault {
         return gav;
     }
 
-    /**
-     * @dev Get unused deposits
-     * @param _sponsor sponsor address
-     * @param _reserve reserve address
-     **/
-    function getUnusedDeposits(address _sponsor, address _reserve)
-        public
+    function getWithdrawableDeposit(address _sponsor, address _reserve)
+        external
         view
         returns (uint256)
     {
-        address vmp = Voyager(voyager).addressResolver().getVaultManagerProxy();
-        IVaultManagerProxy vaultManagerProxy = IVaultManagerProxy(vmp);
-        DataTypes.VaultConfig memory vaultConfig = vaultManagerProxy
-            .getVaultConfig(_reserve);
-
-        uint256 securityRequirement = vaultConfig.securityDepositRequirement;
-        return
-            securityDepositToken.balanceOf(_sponsor) -
-            totalDebt.wadToRay().rayMul(securityRequirement);
+        return _getWithdrawableDeposit(_sponsor, _reserve);
     }
 
     function underlyingBalance(address _sponsor, address _reserve)
@@ -222,14 +209,6 @@ contract Vault is ReentrancyGuard, IVault {
         returns (uint256)
     {
         return _underlyingBalance(_sponsor, _reserve);
-    }
-
-    function eligibleAmount(address _reserve, address _sponsor)
-        external
-        view
-        returns (uint256)
-    {
-        return securityDepositEscrow.eligibleAmount(_reserve, _sponsor);
     }
 
     function getSecurityDepositTokenAddress() external view returns (address) {
@@ -310,5 +289,45 @@ contract Vault is ReentrancyGuard, IVault {
         Voyager voyager = Voyager(voyager);
         address addressResolver = voyager.getAddressResolverAddress();
         return AddressResolver(addressResolver).getVaultManagerProxy();
+    }
+
+    function _getUnusedDeposits(address _sponsor, address _reserve)
+        internal
+        view
+        returns (uint256)
+    {
+        address vmp = Voyager(voyager).addressResolver().getVaultManagerProxy();
+        IVaultManagerProxy vaultManagerProxy = IVaultManagerProxy(vmp);
+        DataTypes.VaultConfig memory vaultConfig = vaultManagerProxy
+            .getVaultConfig(_reserve);
+
+        uint256 securityRequirement = vaultConfig.securityDepositRequirement;
+        console.log('sdt balance: ', securityDepositToken.balanceOf(_sponsor));
+        return
+            securityDepositToken.balanceOf(_sponsor) -
+            totalDebt.wadToRay().rayMul(securityRequirement);
+    }
+
+    function _eligibleAmount(address _reserve, address _sponsor)
+        internal
+        view
+        returns (uint256)
+    {
+        return securityDepositEscrow.eligibleAmount(_reserve, _sponsor);
+    }
+
+    function _getWithdrawableDeposit(address _sponsor, address _reserve)
+        internal
+        view
+        returns (uint256)
+    {
+        uint256 withdrawableAmount = _getUnusedDeposits(_sponsor, _reserve);
+        uint256 eligibleAmount = _eligibleAmount(_reserve, _sponsor);
+        console.log('unused deposit: ', withdrawableAmount);
+        console.log('eligible deposit: ', eligibleAmount);
+        if (eligibleAmount < withdrawableAmount) {
+            withdrawableAmount = eligibleAmount;
+        }
+        return withdrawableAmount;
     }
 }

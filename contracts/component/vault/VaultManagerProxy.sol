@@ -42,13 +42,13 @@ contract VaultManagerProxy is Proxy, IVaultManagerProxy {
             IVaultManager(address(target)).getSecurityDeposit(_user, _reserve);
     }
 
-    function eligibleAmount(
+    function getWithdrawableDeposit(
         address _vaultUser,
         address _reserve,
         address _sponsor
     ) external view returns (uint256) {
         return
-            IVaultManager(address(target)).eligibleAmount(
+            IVaultManager(address(target)).getWithdrawableDeposit(
                 _vaultUser,
                 _reserve,
                 _sponsor

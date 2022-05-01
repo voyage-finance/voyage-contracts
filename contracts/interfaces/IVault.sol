@@ -35,11 +35,6 @@ interface IVault {
 
     function initSecurityDepositToken(address _reserve) external;
 
-    function eligibleAmount(address _reserve, address _sponsor)
-        external
-        view
-        returns (uint256);
-
     function underlyingBalance(address _sponsor, address _reserve)
         external
         view
@@ -50,6 +45,11 @@ interface IVault {
     function getGav() external view returns (uint256);
 
     function getCurrentSecurityDeposit(address _reserve)
+        external
+        view
+        returns (uint256);
+
+    function getWithdrawableDeposit(address _sponsor, address _reserve)
         external
         view
         returns (uint256);

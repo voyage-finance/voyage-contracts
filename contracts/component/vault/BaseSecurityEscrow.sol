@@ -6,6 +6,7 @@ import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
 import '../../libraries/EthAddressLib.sol';
+import 'hardhat/console.sol';
 
 contract BaseSecurityEscrow is ReentrancyGuard {
     using Address for address payable;
@@ -63,6 +64,7 @@ contract BaseSecurityEscrow is ReentrancyGuard {
         Deposit[] storage deposits = _depositRecords[_reserve][_user];
         uint256 eligibleAmount = 0;
         for (uint256 i = 0; i < deposits.length; i++) {
+            console.log('iteration', i);
             if (
                 uint40(block.timestamp) - deposits[i].depositTime >
                 _lockupTimeInSeconds
@@ -70,7 +72,6 @@ contract BaseSecurityEscrow is ReentrancyGuard {
                 eligibleAmount += deposits[i].amount;
             }
         }
-        // todo check borrow amount for security deposit
         return eligibleAmount;
     }
 
