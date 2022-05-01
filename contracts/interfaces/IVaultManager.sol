@@ -14,7 +14,7 @@ interface IVaultManager {
         view
         returns (uint256);
 
-    function eligibleAmount(
+    function getWithdrawableDeposit(
         address _vaultUser,
         address _reserve,
         address _sponsor

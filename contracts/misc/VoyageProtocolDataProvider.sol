@@ -187,7 +187,7 @@ contract VoyageProtocolDataProvider {
             _user,
             _reserve
         );
-        vaultData.withdrawableSecurityDeposit = vmp.eligibleAmount(
+        vaultData.withdrawableSecurityDeposit = vmp.getWithdrawableDeposit(
             _user,
             _reserve,
             _sponsor

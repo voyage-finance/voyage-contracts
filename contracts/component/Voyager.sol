@@ -300,19 +300,14 @@ contract Voyager is MessageBus {
             );
     }
 
-    /**
-     * @dev Eligible amount that can be withdraw, calculated by deposit records without considering slash
-     * @param _vaultUser user address
-     * @param _reserve reserve address
-     * @param _sponsor sponsor address
-     **/
+    // deprecated
     function eligibleAmount(
         address _vaultUser,
         address _reserve,
         address _sponsor
     ) external view returns (uint256) {
         return
-            VaultManager(getVaultManagerProxyAddress()).eligibleAmount(
+            VaultManager(getVaultManagerProxyAddress()).getWithdrawableDeposit(
                 _vaultUser,
                 _reserve,
                 _sponsor
