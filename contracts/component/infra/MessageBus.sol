@@ -20,16 +20,6 @@ import '../vault/VaultManagerProxy.sol';
 contract MessageBus is IMessageBus, Ownable {
     // todo to remove
     bytes32 public constant aclManagerName = 'aclManager';
-    bytes32 public constant liquidityManagerName = 'liquidityManager';
-    bytes32 public constant liquidityManagerStorageName =
-        'liquidityManagerStorage';
-    bytes32 public constant loanManagerName = 'loanManager';
-    bytes32 public constant vaultManagerProxyName = 'vaultManagerProxy';
-    bytes32 public constant vaultManagerName = 'vaultManager';
-    bytes32 public constant vaultStorageName = 'vaultStorage';
-    bytes32 public constant securityDepositTokenName = 'securityDepositToken';
-    bytes32 public constant stableDebtTokenName = 'stableDebtToken';
-    bytes32 public constant extCallACLProxyName = 'extCallACLProxy';
 
     AddressResolver public addressResolver;
 
@@ -122,10 +112,7 @@ contract MessageBus is IMessageBus, Ownable {
     /************************************** Stable Debt Token Functions **************************************/
 
     function getCompoundedDebt(address _user) external view returns (uint256) {
-        return
-            IERC20(addressResolver.getAddress(stableDebtTokenName)).balanceOf(
-                _user
-            );
+        return IERC20(addressResolver.getStableDebtToken()).balanceOf(_user);
     }
 
     function getAggregateOptimalRepaymentRate(address _user)
@@ -134,7 +121,7 @@ contract MessageBus is IMessageBus, Ownable {
         returns (uint256)
     {
         return
-            IStableDebtToken(addressResolver.getAddress(stableDebtTokenName))
+            IStableDebtToken(addressResolver.getStableDebtToken())
                 .getAggregateOptimalRepaymentRate(_user);
     }
 
@@ -144,41 +131,7 @@ contract MessageBus is IMessageBus, Ownable {
         returns (uint256)
     {
         return
-            IStableDebtToken(addressResolver.getAddress(stableDebtTokenName))
+            IStableDebtToken(addressResolver.getStableDebtToken())
                 .getAggregateActualRepaymentRate(_user);
-    }
-
-    /************************************** Constant Functions **************************************/
-
-    function getVaultManagerName() external view returns (bytes32) {
-        return vaultManagerName;
-    }
-
-    function getVaultStorageName() external view returns (bytes32) {
-        return vaultStorageName;
-    }
-
-    function getLiquidityManagerStorageName() external view returns (bytes32) {
-        return liquidityManagerStorageName;
-    }
-
-    function getLoanManagerName() external view returns (bytes32) {
-        return loanManagerName;
-    }
-
-    function getSecurityDepositTokenName() external view returns (bytes32) {
-        return securityDepositTokenName;
-    }
-
-    function getExtCallACLProxyName() external view returns (bytes32) {
-        return extCallACLProxyName;
-    }
-
-    function getACLManagerName() external view returns (bytes32) {
-        return aclManagerName;
-    }
-
-    function getStableDebtTokenName() external view returns (bytes32) {
-        return stableDebtTokenName;
     }
 }

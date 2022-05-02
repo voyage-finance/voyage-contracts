@@ -180,7 +180,7 @@ abstract contract ReserveManager is
     function _requireCallerAdmin() internal {
         Voyager v = Voyager(voyager);
         AddressResolver addressResolver = v.addressResolver();
-        address aclAddress = addressResolver.getAddress(v.getACLManagerName());
+        address aclAddress = addressResolver.getAclManager();
         IACLManager aclManager = IACLManager(aclAddress);
         require(
             aclManager.isLiquidityManager(messageSender),

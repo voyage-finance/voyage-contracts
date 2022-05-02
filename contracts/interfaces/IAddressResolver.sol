@@ -20,6 +20,8 @@ interface IAddressResolver {
 
     function getLiquidityManagerProxy() external view returns (address);
 
+    function getLiquidityManagerStorage() external view returns (address);
+
     function getLiquidityDepositEscrow() external view returns (address);
 
     function getLoanManagerProxy() external view returns (address);
@@ -31,6 +33,10 @@ interface IAddressResolver {
     function getVaultManager() external view returns (address);
 
     function getStableDebtToken() external view returns (address);
+
+    function getExtCallProxyName() external view returns (address);
+
+    function getAclManager() external view returns (address);
 
     function getVaultStorage() external view returns (address);
 

@@ -65,7 +65,7 @@ contract LiquidityDepositEscrow is BaseLiquidityEscrow {
     function _requireCallerLiquidityManagerContract() internal {
         Voyager v = Voyager(voyager);
         IACLManager aclManager = IACLManager(
-            voyager.addressResolver().getAddress(v.getACLManagerName())
+            voyager.addressResolver().getAclManager()
         );
         require(
             aclManager.isLiquidityManagerContract(msg.sender),
@@ -76,7 +76,7 @@ contract LiquidityDepositEscrow is BaseLiquidityEscrow {
     function _requireCallerLoanManagerContract() internal {
         Voyager v = Voyager(voyager);
         IACLManager aclManager = IACLManager(
-            v.addressResolver().getAddress(v.getACLManagerName())
+            v.addressResolver().getAclManager()
         );
         require(
             aclManager.isLoanManagerContract(msg.sender),

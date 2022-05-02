@@ -321,16 +321,14 @@ contract Voyager is MessageBus {
      **/
     function getExtCallACLProxyAddress() public view returns (address payable) {
         address extCallACLProxyAddress = AddressResolver(addressResolver)
-            .getAddress(extCallACLProxyName);
+            .getExtCallProxyName();
         return payable(extCallACLProxyAddress);
     }
 
     /************************************** Internal Interfaces **************************************/
 
     function _requireCallerAdmin() internal {
-        IACLManager aclManager = IACLManager(
-            addressResolver.getAddress(aclManagerName)
-        );
+        IACLManager aclManager = IACLManager(addressResolver.getAclManager());
         require(aclManager.isProtocolManager(tx.origin), 'Not vault admin');
     }
 }

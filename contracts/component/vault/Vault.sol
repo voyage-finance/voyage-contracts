@@ -237,7 +237,7 @@ contract Vault is ReentrancyGuard, IVault {
     function _requireCallerLoanManager() internal {
         Voyager v = Voyager(voyager);
         IACLManager aclManager = IACLManager(
-            v.addressResolver().getAddress(v.getACLManagerName())
+            v.addressResolver().getAclManager()
         );
         require(
             aclManager.isLoanManager(msg.sender),
@@ -248,7 +248,7 @@ contract Vault is ReentrancyGuard, IVault {
     function _requireCallerLoanManagerContract() internal {
         Voyager v = Voyager(voyager);
         IACLManager aclManager = IACLManager(
-            v.addressResolver().getAddress(v.getACLManagerName())
+            v.addressResolver().getAclManager()
         );
         require(
             aclManager.isLoanManagerContract(msg.sender),
@@ -259,7 +259,7 @@ contract Vault is ReentrancyGuard, IVault {
     function _requireVaultManager() internal {
         Voyager v = Voyager(voyager);
         IACLManager aclManager = IACLManager(
-            v.addressResolver().getAddress(v.getACLManagerName())
+            v.addressResolver().getAclManager()
         );
         require(
             aclManager.isVaultManagerContract(msg.sender),
@@ -269,7 +269,7 @@ contract Vault is ReentrancyGuard, IVault {
 
     function _getVaultManagerAddress() internal view returns (address) {
         Voyager v = Voyager(voyager);
-        return v.addressResolver().getAddress(v.getVaultManagerName());
+        return v.addressResolver().getVaultManager();
     }
 
     function _underlyingBalance(address _sponsor, address _reserve)

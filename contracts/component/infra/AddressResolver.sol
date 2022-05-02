@@ -51,6 +51,10 @@ contract AddressResolver is IAddressResolver, Ownable {
         return repository[liquidityManagerProxyName];
     }
 
+    function getLiquidityManagerStorage() external view returns (address) {
+        return repository[liquidityManagerStorageName];
+    }
+
     function getLiquidityDepositEscrow() external view returns (address) {
         return repository[liquidityDepositEscrowName];
     }
@@ -85,6 +89,14 @@ contract AddressResolver is IAddressResolver, Ownable {
 
     function getStableDebtToken() external view returns (address) {
         return repository[stableDebtTokenName];
+    }
+
+    function getExtCallProxyName() external view returns (address) {
+        return repository[extCallACLProxyName];
+    }
+
+    function getAclManager() external view returns (address) {
+        return repository[aclManagerName];
     }
 
     function getAddress(bytes32 name) external view returns (address) {
