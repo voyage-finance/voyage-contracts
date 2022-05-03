@@ -17,9 +17,8 @@ abstract contract IVoyagerComponent {
 
     function liquidityManagerStorageAddress() internal view returns (address) {
         return
-            AddressResolver(voyager.getAddressResolverAddress()).getAddress(
-                voyager.getLiquidityManagerStorageName()
-            );
+            AddressResolver(voyager.getAddressResolverAddress())
+                .getLiquidityManagerStorage();
     }
 
     function _whenNotPaused() internal view {
