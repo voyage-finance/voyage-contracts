@@ -10,7 +10,7 @@ async function main() {
   const VaultManager = await ethers.getContractFactory('VaultManager');
   console.log('vault manager proxy: ', vaultManagerProxy);
   const vm = await VaultManager.attach(vaultManagerProxy);
-  await vm.updateSecurityDepositRequirement(
+  await vm.setSecurityDepositRequirement(
     treasureUnderSea,
     '100000000000000000000000000'
   );
