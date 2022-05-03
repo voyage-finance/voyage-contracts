@@ -319,4 +319,22 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
             0
         );
     }
+
+    /******************************************** Events *******************************************/
+
+    event VaultCreated(
+        address indexed _user,
+        address indexed _reserve,
+        address _vault
+    );
+    bytes32 internal constant VAULT_CREATED_SIG =
+        keccak256('VaultCreated(address,address,address)');
+
+    function emitVaultCreated(
+        address _reserve,
+        address _user,
+        address _vault
+    ) internal {
+        proxy._emit(abi.encode(_vault), 3, VAULT_CREATED_SIG, _reserve, _user);
+    }
 }
