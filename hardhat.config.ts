@@ -37,6 +37,10 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       allowUnlimitedContractSize: true,
+      mining: {
+        auto: process.env.MINING_MODE !== 'interval',
+        interval: parseInt(process.env.MIN_INTERVAL || '2000', 10),
+      },
     },
     avalancheMain: {
       // TODO @ian.tan use a private node!
@@ -55,7 +59,7 @@ const config: HardhatUserConfig = {
       chainId: 666,
       accounts: [DEPLOYER_PRIVATE_KEY],
       gas: 20000000,
-    }
+    },
   },
   namedAccounts: {
     // deployer/owner signer can now be accessed as accounts[0]
@@ -68,36 +72,36 @@ const config: HardhatUserConfig = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 2000
-          }
-        }
+            runs: 2000,
+          },
+        },
       },
       {
         version: '0.6.6',
         settings: {
           optimizer: {
             enabled: true,
-            runs: 2000
-          }
-        }
+            runs: 2000,
+          },
+        },
       },
       {
         version: '0.8.4',
         settings: {
           optimizer: {
             enabled: true,
-            runs: 2000
-          }
-        }
+            runs: 2000,
+          },
+        },
       },
       {
         version: '0.8.9',
         settings: {
           optimizer: {
             enabled: true,
-            runs: 2000
-          }
-        }
+            runs: 2000,
+          },
+        },
       },
     ],
   },
@@ -114,5 +118,8 @@ const config: HardhatUserConfig = {
     target: 'ethers-v5',
   },
 };
+
+if (!process.env.AUTOMINE) {
+}
 
 export default config;
