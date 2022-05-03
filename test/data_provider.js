@@ -63,7 +63,6 @@ describe('Data Provider', function () {
     voyageProtocolDataProvider = await ethers.getContract(
       'VoyageProtocolDataProvider'
     );
-    console.log('data provider address: ', voyageProtocolDataProvider.address);
   });
 
   it('Get pool data should return correct value', async function () {

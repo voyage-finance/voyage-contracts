@@ -93,6 +93,19 @@ contract Voyager is MessageBus {
         );
     }
 
+    function withdraw(
+        address _asset,
+        ReserveLogic.Tranche _tranche,
+        uint256 _amount
+    ) external {
+        LiquidityManager(getLiquidityManagerProxyAddress()).withdraw(
+            _asset,
+            _tranche,
+            _amount,
+            payable(msg.sender)
+        );
+    }
+
     /**
      * @dev Returns the normalized income per unit of asset
      * @param _asset The address of the underlying asset of the reserve

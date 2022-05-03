@@ -64,7 +64,6 @@ contract BaseSecurityEscrow is ReentrancyGuard {
         Deposit[] storage deposits = _depositRecords[_reserve][_user];
         uint256 eligibleAmount = 0;
         for (uint256 i = 0; i < deposits.length; i++) {
-            console.log('iteration', i);
             if (
                 uint40(block.timestamp) - deposits[i].depositTime >
                 _lockupTimeInSeconds

@@ -302,7 +302,6 @@ contract Vault is ReentrancyGuard, IVault {
             .getVaultConfig(_reserve);
 
         uint256 securityRequirement = vaultConfig.securityDepositRequirement;
-        console.log('sdt balance: ', securityDepositToken.balanceOf(_sponsor));
         return
             securityDepositToken.balanceOf(_sponsor) -
             totalDebt.wadToRay().rayMul(securityRequirement);
@@ -323,8 +322,6 @@ contract Vault is ReentrancyGuard, IVault {
     {
         uint256 withdrawableAmount = _getUnusedDeposits(_sponsor, _reserve);
         uint256 eligibleAmount = _eligibleAmount(_reserve, _sponsor);
-        console.log('unused deposit: ', withdrawableAmount);
-        console.log('eligible deposit: ', eligibleAmount);
         if (eligibleAmount < withdrawableAmount) {
             withdrawableAmount = eligibleAmount;
         }
