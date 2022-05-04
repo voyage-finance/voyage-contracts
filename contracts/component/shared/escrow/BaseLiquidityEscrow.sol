@@ -203,6 +203,7 @@ contract BaseLiquidityEscrow is ReentrancyGuard {
         uint256 _amount,
         uint256 _recordAmount
     ) internal {
+        // todo move to the end??
         if (_reserve != EthAddressLib.ethAddress()) {
             require(
                 msg.value == 0,

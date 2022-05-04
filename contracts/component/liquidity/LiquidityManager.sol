@@ -45,28 +45,21 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
             address(liquidityDepositEscrow)
         );
 
-        uint256 scaledBalance;
+        address vToken;
+        uint256 liquidityIndex;
 
         if (ReserveLogic.Tranche.JUNIOR == _tranche) {
-            JuniorDepositToken jdt = JuniorDepositToken(
-                reserve.juniorDepositTokenAddress
-            );
-            uint256 liquidityIndex = getJuniorLiquidityIndex(_asset);
-            jdt.mint(_onBehalfOf, _amount, liquidityIndex);
-            scaledBalance = jdt.scaledBalanceOf(_onBehalfOf).rayDiv(
-                liquidityIndex
-            );
+            vToken = reserve.juniorDepositTokenAddress;
+            liquidityIndex = getJuniorLiquidityIndex(_asset);
         } else {
-            SeniorDepositToken sdt = SeniorDepositToken(
-                reserve.seniorDepositTokenAddress
-            );
-            uint256 liquidityIndex = getSeniorLiquidityIndex(_asset);
-
-            sdt.mint(_onBehalfOf, _amount, liquidityIndex);
-            scaledBalance = sdt.scaledBalanceOf(_onBehalfOf).rayDiv(
-                liquidityIndex
-            );
+            vToken = reserve.seniorDepositTokenAddress;
+            liquidityIndex = getSeniorLiquidityIndex(_asset);
         }
+        IVToken(vToken).mint(_onBehalfOf, _amount, liquidityIndex);
+        uint256 scaledBalance = IVToken(vToken)
+            .scaledBalanceOf(_onBehalfOf)
+            .rayDiv(liquidityIndex);
+
         liquidityDepositEscrow.deposit(
             _asset,
             _tranche,
@@ -75,6 +68,47 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
             scaledBalance
         );
         emitDeposit(_asset, _user, _tranche, _amount);
+    }
+
+    function withdraw(
+        address _asset,
+        ReserveLogic.Tranche _tranche,
+        uint256 _amount,
+        address payable _user
+    ) external onlyProxy {
+        LiquidityManagerStorage lms = LiquidityManagerStorage(
+            liquidityManagerStorageAddress()
+        );
+        DataTypes.ReserveData memory reserve = getReserveData(_asset);
+
+        address vToken;
+        uint256 liquidityIndex;
+        if (ReserveLogic.Tranche.JUNIOR == _tranche) {
+            vToken = reserve.juniorDepositTokenAddress;
+            liquidityIndex = getJuniorLiquidityIndex(_asset);
+        } else {
+            vToken = reserve.seniorDepositTokenAddress;
+            liquidityIndex = getSeniorLiquidityIndex(_asset);
+        }
+
+        uint256 userBalance = IERC20(vToken).balanceOf(_user);
+
+        uint256 amountToWithdraw = _amount;
+
+        if (_amount == type(uint256).max) {
+            amountToWithdraw = userBalance;
+        }
+
+        lms.updateStateOnWithdraw(
+            _asset,
+            _tranche,
+            amountToWithdraw,
+            address(liquidityDepositEscrow)
+        );
+
+        IVToken(vToken).burn(_user, amountToWithdraw, liquidityIndex);
+        liquidityDepositEscrow.withdraw(_asset, _tranche, _user, _amount);
+        emitWithdraw(_asset, _user, _tranche, _amount);
     }
 
     /************************************** View Functions **************************************/
@@ -171,6 +205,9 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
     bytes32 internal constant DEPOSIT_SIG =
         keccak256('Deposit(address,address,uint8,uint256)');
 
+    bytes32 internal constant WITHDRAW_SIG =
+        keccak256('Withdraw(address,address,uint8,uint256)');
+
     function emitDeposit(
         address asset,
         address user,
@@ -181,6 +218,22 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
             abi.encode(amount),
             4,
             DEPOSIT_SIG,
+            addressToBytes32(asset),
+            addressToBytes32(user),
+            trancheToBytes32(tranche)
+        );
+    }
+
+    function emitWithdraw(
+        address asset,
+        address user,
+        ReserveLogic.Tranche tranche,
+        uint256 amount
+    ) internal {
+        proxy._emit(
+            abi.encode(amount),
+            4,
+            WITHDRAW_SIG,
             addressToBytes32(asset),
             addressToBytes32(user),
             trancheToBytes32(tranche)
