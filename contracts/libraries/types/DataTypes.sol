@@ -119,6 +119,7 @@ library DataTypes {
         uint256 totalDebt;
         uint256 borrowRate;
         uint256 trancheRatio;
+        uint256 decimals;
     }
 
     struct VaultData {
