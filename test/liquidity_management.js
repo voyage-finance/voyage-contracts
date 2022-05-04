@@ -145,7 +145,9 @@ describe('Reserve Init', function () {
     const flags = await voyager.getReserveFlags(tus.address);
     expect(flags[0]).to.equal(false);
 
-    await lm.activeReserve(tus.address);
+    await expect(lm.activeReserve(tus.address))
+      .to.emit(lm, 'ReserveActivated')
+      .withArgs(tus.address);
     const newFlags = await voyager.getReserveFlags(tus.address);
     expect(newFlags[0]).to.equal(true);
   });
