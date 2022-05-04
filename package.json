@@ -1,8 +1,9 @@
 {
-  "name": "ownft",
+  "name": "voyage",
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
+  "private": true,
   "scripts": {
     "check:hh": "hardhat check",
     "cov": "hardhat coverage",
@@ -19,7 +20,9 @@
     "node:deploy:interval": "MINING_MODE=interval yarn node:deploy",
     "scripts": "ts-node scripts/runner.ts",
     "test": "hardhat test",
-    "format": "hardhat format && prettier --write test && prettier --write deploy"
+    "format": "hardhat format && prettier --write test && prettier --write deploy",
+    "scan": "slither --print human-summary .",
+    "postinstall": "husky install"
   },
   "author": "",
   "license": "MIT",
@@ -42,6 +45,7 @@
     "hardhat": "^2.9.3",
     "hardhat-deploy": "^0.11.4",
     "hardhat-gas-reporter": "^1.0.4",
+    "husky": "^7.0.4",
     "pino": "^7.11.0",
     "pino-pretty": "^7.6.1",
     "prettier": "^2.3.1",
