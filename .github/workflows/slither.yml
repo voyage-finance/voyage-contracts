@@ -2,9 +2,9 @@ name: Slither Analysis
 
 on:
   push:
-    branches: [ unknown ]
+    branches: [ master ]
   pull_request:
-    branches: [ unknown ]
+    branches: [ master ]
 
 jobs:
   analyze:
