@@ -69,6 +69,7 @@ contract VoyageProtocolDataProvider {
         );
         DataTypes.DepositAndDebt memory depositAndDebt = lmp
             .getLiquidityAndDebt(underlyingAsset);
+        ERC20 token = ERC20(underlyingAsset);
 
         DataTypes.PoolData memory poolData;
         poolData.juniorLiquidity = depositAndDebt.juniorDepositAmount;
@@ -89,6 +90,7 @@ contract VoyageProtocolDataProvider {
         poolData.trancheRatio = depositAndDebt.juniorDepositAmount.rayDiv(
             depositAndDebt.seniorDepositAmount
         );
+        poolData.decimals = token.decimals();
 
         return poolData;
     }
