@@ -50,7 +50,6 @@ describe('Reserve Deposit', function () {
       libraries: { ReserveLogic: reserveLogic.address },
     });
     const lm = await LM.attach(liquidityManagerProxy.address);
-    const proxyTarget = await liquidityManagerProxy.target();
     await lm.initReserve(
       tus.address,
       juniorDepositToken.address,
@@ -61,7 +60,9 @@ describe('Reserve Deposit', function () {
       defaultReserveInterestRateStrategy.address,
       healthStrategyAddress.address
     );
-    await lm.activeReserve(tus.address);
+    await expect(lm.activeReserve(tus.address))
+      .to.emit(lm, 'ReserveActivated')
+      .withArgs(tus.address);
 
     const reserveFlags = await voyager.getReserveFlags(tus.address);
     expect(reserveFlags[0]).to.equal(true);

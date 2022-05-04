@@ -97,6 +97,7 @@ abstract contract ReserveManager is
         LiquidityManagerStorage(liquidityManagerStorageAddress()).activeReserve(
                 _asset
             );
+        emitReserveActivated(_asset);
     }
 
     /************************************** View Functions **************************************/
@@ -231,6 +232,22 @@ abstract contract ReserveManager is
             ),
             2,
             RESERVE_INITIALIZED_SIG,
+            addressToBytes32(_asset),
+            0,
+            0
+        );
+    }
+
+    event ReserveActivated(address indexed _asset);
+    bytes32 internal constant RESERVE_ACTIVATED_SIG =
+        keccak256('ReserveActivated(address)');
+
+    function emitReserveActivated(address _asset) internal {
+        bytes memory data;
+        proxy._emit(
+            data,
+            2,
+            RESERVE_ACTIVATED_SIG,
             addressToBytes32(_asset),
             0,
             0
