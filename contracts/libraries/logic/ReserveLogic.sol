@@ -117,7 +117,7 @@ library ReserveLogic {
                 _escrow,
                 liquidityAdded,
                 liquidityTaken,
-                _reserve.totalBorrows,
+                vars.totalStableDebt,
                 vars.avgStableRate
             );
         require(
