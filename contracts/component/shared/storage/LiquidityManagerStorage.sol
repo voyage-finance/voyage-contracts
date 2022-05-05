@@ -93,7 +93,6 @@ contract LiquidityManagerStorage is State {
         DataTypes.ReserveData storage reserve = _reserves[_asset];
         reserve.updateState(ReserveLogic.Tranche.SENIOR);
         reserve.updateInterestRates(_asset, _escrow, 0, 0, 0, _amount);
-        reserve.totalBorrows += _amount;
     }
 
     function activeReserve(address _asset) public onlyAssociatedContract {
@@ -199,7 +198,9 @@ contract LiquidityManagerStorage is State {
         DataTypes.DepositAndDebt memory res;
         res.juniorDepositAmount = reserve.juniorDepositAmount;
         res.seniorDepositAmount = reserve.seniorDepositAmount;
-        res.totalDebt = reserve.totalBorrows;
+        (res.totalDebt, res.avgStableRate) = IStableDebtToken(
+            reserve.stableDebtAddress
+        ).getTotalSupplyAndAvgRate();
         return res;
     }
 }

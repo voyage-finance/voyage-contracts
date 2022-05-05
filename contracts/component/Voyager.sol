@@ -340,7 +340,7 @@ contract Voyager is MessageBus {
 
     /************************************** Internal Interfaces **************************************/
 
-    function _requireCallerAdmin() internal {
+    function _requireCallerAdmin() internal view {
         IACLManager aclManager = IACLManager(addressResolver.getAclManager());
         require(aclManager.isProtocolManager(tx.origin), 'Not vault admin');
     }

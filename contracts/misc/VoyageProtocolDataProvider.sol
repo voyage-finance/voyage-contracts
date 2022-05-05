@@ -85,7 +85,7 @@ contract VoyageProtocolDataProvider {
             underlyingAsset,
             ReserveLogic.Tranche.SENIOR
         );
-        poolData.totalDebt = reserve.totalBorrows;
+        poolData.totalDebt = depositAndDebt.totalDebt;
         poolData.borrowRate = reserve.currentBorrowRate;
         poolData.trancheRatio = depositAndDebt.juniorDepositAmount.rayDiv(
             depositAndDebt.seniorDepositAmount

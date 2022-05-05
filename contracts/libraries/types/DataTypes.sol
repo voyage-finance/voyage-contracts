@@ -21,7 +21,6 @@ library DataTypes {
         uint256 seniorLiquidityIndex;
         uint256 juniorDepositAmount;
         uint256 seniorDepositAmount;
-        uint256 totalBorrows;
         uint256 currentBorrowRate;
         // Expressed in ray
         uint256 securityRequirement;
@@ -89,6 +88,7 @@ library DataTypes {
         uint256 juniorDepositAmount;
         uint256 seniorDepositAmount;
         uint256 totalDebt;
+        uint256 avgStableRate;
     }
 
     struct HealthRiskParameter {

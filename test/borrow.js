@@ -14,6 +14,7 @@ let addressResolver;
 let vaultManager;
 let tus;
 let vm;
+let lm;
 
 describe('Borrow', function () {
   beforeEach(async function () {
@@ -57,6 +58,22 @@ describe('Borrow', function () {
     const vaultManagerProxy = await ethers.getContract('VaultManagerProxy');
     const VaultManager = await ethers.getContractFactory('VaultManager');
     vm = await VaultManager.attach(vaultManagerProxy.address);
+
+    const reserveLogic = await ethers.getContract('ReserveLogic');
+    const LM = await ethers.getContractFactory('LiquidityManager', {
+      libraries: { ReserveLogic: reserveLogic.address },
+    });
+    lm = await LM.attach(liquidityManagerProxy.address);
+    await lm.initReserve(
+      tus.address,
+      juniorDepositToken.address,
+      seniorDepositToken.address,
+      '100000000000000000000000000',
+      '900000000000000000000000000',
+      stableDebtToken.address,
+      defaultReserveInterestRateStrategy.address,
+      healthStrategyAddress.address
+    );
   });
 
   it('Borrow with wrong vault address should revert', async function () {
@@ -79,21 +96,6 @@ describe('Borrow', function () {
 
   it('Insufficient credit limit should revert', async function () {
     // deposit sufficient reserve
-    const reserveLogic = await ethers.getContract('ReserveLogic');
-    const LM = await ethers.getContractFactory('LiquidityManager', {
-      libraries: { ReserveLogic: reserveLogic.address },
-    });
-    const lm = await LM.attach(liquidityManagerProxy.address);
-    await lm.initReserve(
-      tus.address,
-      juniorDepositToken.address,
-      seniorDepositToken.address,
-      '100000000000000000000000000',
-      '900000000000000000000000000',
-      stableDebtToken.address,
-      defaultReserveInterestRateStrategy.address,
-      healthStrategyAddress.address
-    );
     const depositAmount = '100000000000000000000';
     await lm.activeReserve(tus.address);
     await voyager.deposit(tus.address, 1, depositAmount, owner);

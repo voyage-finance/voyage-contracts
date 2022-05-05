@@ -191,6 +191,7 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
 
     function trancheToBytes32(ReserveLogic.Tranche tranche)
         public
+        view
         returns (bytes32)
     {
         return ReserveLogic.trancheToBytes32(tranche);
