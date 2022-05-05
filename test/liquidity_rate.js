@@ -15,6 +15,7 @@ let vaultManager;
 let tus;
 let vm;
 let dataProvider;
+const RAY = BigNumber.from('1000000000000000000000000000');
 
 describe('Liquidity Rate', function () {
   beforeEach(async function () {
@@ -115,8 +116,9 @@ describe('Liquidity Rate', function () {
     await voyager.deposit(tus.address, 0, juniorDeposit, owner);
 
     const dataPool = await dataProvider.getPoolData(tus.address);
-    console.log(dataPool);
-    console.log(dataPool.juniorLiquidityRate.toString());
-    console.log(dataPool.seniorLiquidityRate.toString());
+    const juniorLiquidityRate = dataPool.juniorLiquidityRate / RAY;
+    const seniorLiquidityRate = dataPool.seniorLiquidityRate / RAY;
+    console.log(juniorLiquidityRate.toPrecision(4));
+    console.log(seniorLiquidityRate.toPrecision(4));
   });
 });

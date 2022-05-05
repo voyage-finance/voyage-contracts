@@ -7,6 +7,7 @@ import '../../../libraries/logic/ReserveLogic.sol';
 import '../../../libraries/logic/ValidationLogic.sol';
 import '../../../libraries/configuration/ReserveConfiguration.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 
 contract LiquidityManagerStorage is State {
     using ReserveLogic for DataTypes.ReserveData;
@@ -196,6 +197,8 @@ contract LiquidityManagerStorage is State {
     {
         DataTypes.ReserveData storage reserve = _reserves[_reserve];
         DataTypes.DepositAndDebt memory res;
+
+        // todo
         res.juniorDepositAmount = reserve.juniorDepositAmount;
         res.seniorDepositAmount = reserve.seniorDepositAmount;
         (res.totalDebt, res.avgStableRate) = IStableDebtToken(
