@@ -170,10 +170,10 @@ library ReserveLogic {
         // juniorIncomeAllocation = 0.5
         // seniorIncomeAllocation = 0.5
         // overall liquidity rate = 0.2
-        uint256 overallInterestRate;
-        uint256 seniorLiquidity = IERC20(_seniorDepositToken).totalSupply();
-        uint256 juniorLiquidity = IERC20(_juniorDepositToken).totalSupply();
-        uint256 liquidityRatio = seniorLiquidity.div(juniorLiquidity);
+        //        uint256 overallInterestRate;
+        //        uint256 seniorLiquidity = IERC20(_seniorDepositToken).totalSupply();
+        //        uint256 juniorLiquidity = IERC20(_juniorDepositToken).totalSupply();
+        //        uint256 liquidityRatio = seniorLiquidity.div(juniorLiquidity);
         // junior rate = 0.2 * 0.5 * 5 = 0.5
         // if delta time = 1 year
         // seniorLiquidity = 120
@@ -183,13 +183,13 @@ library ReserveLogic {
         // juniorRate = 10 / 20 * 100 = 50%
         // seniorRate = 10 / 100 = 0.1
 
-        uint256 effectiveJuniorRate = overallInterestRate
-            .mul(juniorIncomeAllocation)
-            .mul(liquidityRatio);
-
-        uint256 effectiveSeniorRate = overallInterestRate.mul(
-            seniorIncomeAllocation
-        );
+        //        uint256 effectiveJuniorRate = overallInterestRate
+        //            .mul(juniorIncomeAllocation)
+        //            .mul(liquidityRatio);
+        //
+        //        uint256 effectiveSeniorRate = overallInterestRate.mul(
+        //            seniorIncomeAllocation
+        //        );
 
         uint256 totalAllocationInRay = reserve
             .currentJuniorIncomeAllocation

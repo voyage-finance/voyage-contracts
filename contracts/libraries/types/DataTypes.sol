@@ -143,4 +143,14 @@ library DataTypes {
         uint256 seniorTrancheBalance;
         uint256 withdrawableSeniorTrancheBalance;
     }
+
+    struct Deposit {
+        uint256 amount;
+        uint40 depositTime;
+    }
+
+    struct Withdrawal {
+        uint256 index;
+        uint256 amount;
+    }
 }

@@ -49,7 +49,7 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
     /**
      * @dev Calculates the interest rates depending on the reserve's state and configuration
      * @param reserve The address of the reserve undelrying asset
-     * @param liquidityEscrow The address of junior deposit token
+     * @param seniorDepositToken The address of senior deposit token
      * @param liquidityAdded The liquidity added during the operation
      * @param liquidityTaken The liquidity taken during the operation
      * @param totalDebt The total borrowed from the reserve a stable rate
@@ -57,14 +57,14 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
      **/
     function calculateInterestRates(
         address reserve,
-        address liquidityEscrow,
+        address seniorDepositToken,
         uint256 liquidityAdded,
         uint256 liquidityTaken,
         uint256 totalDebt,
         uint256 averageBorrowRate
     ) external view returns (uint256, uint256) {
         uint256 availableLiquidity = IERC20(reserve).balanceOf(
-            _seniorDepositToken
+            seniorDepositToken
         );
         availableLiquidity = availableLiquidity.add(liquidityAdded).sub(
             liquidityTaken
