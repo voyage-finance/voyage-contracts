@@ -18,6 +18,7 @@ library EscrowLogic {
         for (uint256 i = 0; i < _withdrawals.length; i++) {
             DataTypes.Withdrawal memory _withdrawal = _withdrawals[i];
             DataTypes.Deposit storage _deposit = _deposits[_withdrawal.index];
+            require(_deposit.amount >= _withdrawal.amount, 'invalid amount');
             if (_deposit.amount == _withdrawal.amount) {
                 // TODO if _withdrawal.index == _deposits.length - 1
                 _deposits[_withdrawal.index] = _deposits[_deposits.length - 1];

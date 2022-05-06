@@ -6,11 +6,12 @@ import '../../../libraries/types/DataTypes.sol';
 import '../../../libraries/logic/ReserveLogic.sol';
 import '../../../libraries/logic/ValidationLogic.sol';
 import '../../../libraries/configuration/ReserveConfiguration.sol';
-import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 import '../../../tokenization/StableDebtToken.sol';
+import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
+import './EscrowStorage.sol';
 
-contract LiquidityManagerStorage is State {
+contract LiquidityManagerStorage is EscrowStorage {
     using ReserveLogic for DataTypes.ReserveData;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
     using SafeMath for uint256;
@@ -94,6 +95,25 @@ contract LiquidityManagerStorage is State {
         DataTypes.ReserveData storage reserve = _reserves[_asset];
         reserve.updateState(ReserveLogic.Tranche.SENIOR);
         reserve.updateInterestRates(_asset, _escrow, 0, _amount);
+    }
+
+    function recordDeposit(
+        address _reserve,
+        ReserveLogic.Tranche _tranche,
+        address _user,
+        uint256 _scaledAmount,
+        uint40 _timestamp
+    ) public onlyAssociatedContract {
+        _recordDeposit(_reserve, _tranche, _user, _scaledAmount, _timestamp);
+    }
+
+    function recordWithdrawal(
+        address _reserve,
+        ReserveLogic.Tranche _tranche,
+        address payable _user,
+        DataTypes.Withdrawal[] memory _withdrawals
+    ) public onlyAssociatedContract {
+        _recordWithdrawal(_reserve, _tranche, _user, _withdrawals);
     }
 
     function activeReserve(address _asset) public onlyAssociatedContract {

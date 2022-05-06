@@ -8,8 +8,9 @@ import '../../../libraries/logic/ReserveLogic.sol';
 import '../../../libraries/logic/EscrowLogic.sol';
 import '../../../libraries/EthAddressLib.sol';
 import '../../../libraries/types/DataTypes.sol';
+import '../../../libraries/state/State.sol';
 
-contract EscrowStorage {
+abstract contract EscrowStorage is State {
     using Address for address payable;
     using SafeERC20 for ERC20;
     using EscrowLogic for DataTypes.Deposit[];
@@ -31,7 +32,7 @@ contract EscrowStorage {
 
     uint40 private _lockupTimeInSeconds = 7 days;
 
-    function recordDeposit(
+    function _recordDeposit(
         address _reserve,
         ReserveLogic.Tranche _tranche,
         address _user,
@@ -50,21 +51,7 @@ contract EscrowStorage {
         deposits.recordDeposit(deposit);
     }
 
-    function recordWithdrawal(
-        address _reserve,
-        ReserveLogic.Tranche _tranche,
-        address payable _user,
-        DataTypes.Withdrawal[] memory _withdrawals
-    ) internal {
-        DataTypes.Deposit[] storage _deposits;
-        if (_tranche == ReserveLogic.Tranche.SENIOR) {
-            _deposits = _seniorDepositRecords[_reserve][_user];
-        } else {
-            _deposits = _seniorDepositRecords[_reserve][_user];
-        }
-    }
-
-    function recordWithdrawal(
+    function _recordWithdrawal(
         address _reserve,
         ReserveLogic.Tranche _tranche,
         address payable _user,

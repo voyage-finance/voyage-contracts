@@ -17,12 +17,12 @@ interface ILiquidityManager {
         uint256 _amount,
         address _user,
         address _onBehalfOf
-    ) external;
+    ) external payable;
 
     function withdraw(
         address _asset,
         ReserveLogic.Tranche _tranche,
-        uint256 _amount,
+        DataTypes.Withdrawal[] memory _withdrawals,
         address payable _user
     ) external;
 

@@ -1,19 +1,25 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
+import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
+import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
 import './ReserveManager.sol';
 import '../../libraries/helpers/Errors.sol';
 import '../../libraries/logic/ReserveLogic.sol';
 import '../../libraries/math/WadRayMath.sol';
-import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
 import '../shared/escrow/LiquidityDepositEscrow.sol';
 import '../../interfaces/IReserveManager.sol';
 import '../../interfaces/ILiquidityManager.sol';
 import '../../tokenization/JuniorDepositToken.sol';
 import '../../tokenization/SeniorDepositToken.sol';
 
-contract LiquidityManager is ReserveManager, ILiquidityManager {
+contract LiquidityManager is
+    ReserveManager,
+    ILiquidityManager,
+    ReentrancyGuard
+{
     using WadRayMath for uint256;
+    using SafeERC20 for IERC20;
 
     LiquidityDepositEscrow public liquidityDepositEscrow;
 
@@ -32,7 +38,7 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
         uint256 _amount,
         address _user,
         address _onBehalfOf
-    ) external onlyProxy {
+    ) external payable nonReentrant onlyProxy {
         LiquidityManagerStorage lms = LiquidityManagerStorage(
             liquidityManagerStorageAddress()
         );
@@ -60,20 +66,34 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
             .scaledBalanceOf(_onBehalfOf)
             .rayDiv(liquidityIndex);
 
-        liquidityDepositEscrow.deposit(
+        lms.recordDeposit(
             _asset,
             _tranche,
             _user,
-            _amount,
-            scaledBalance
+            scaledBalance,
+            uint40(block.timestamp)
         );
+
+        if (_asset != EthAddressLib.ethAddress()) {
+            require(
+                msg.value == 0,
+                'User is sending ETH along with the ERC20 transfer.'
+            );
+        } else {
+            require(
+                msg.value == _amount,
+                'The amount and the value sent to deposit do not match'
+            );
+        }
+
+        IERC20(_asset).safeTransferFrom(_user, vToken, _amount);
         emitDeposit(_asset, _user, _tranche, _amount);
     }
 
     function withdraw(
         address _asset,
         ReserveLogic.Tranche _tranche,
-        uint256 _amount,
+        DataTypes.Withdrawal[] memory _withdrawals,
         address payable _user
     ) external onlyProxy {
         LiquidityManagerStorage lms = LiquidityManagerStorage(
@@ -93,9 +113,12 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
 
         uint256 userBalance = IERC20(vToken).balanceOf(_user);
 
-        uint256 amountToWithdraw = _amount;
+        uint256 amountToWithdraw;
+        for (uint256 i = 0; i < _withdrawals.length; i++) {
+            amountToWithdraw += _withdrawals[i].amount;
+        }
 
-        if (_amount == type(uint256).max) {
+        if (amountToWithdraw == type(uint256).max) {
             amountToWithdraw = userBalance;
         }
 
@@ -107,8 +130,7 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
         );
 
         IVToken(vToken).burn(_user, amountToWithdraw, liquidityIndex);
-        liquidityDepositEscrow.withdraw(_asset, _tranche, _user, _amount);
-        emitWithdraw(_asset, _user, _tranche, _amount);
+        emitWithdraw(_asset, _user, _tranche, amountToWithdraw);
     }
 
     /************************************** View Functions **************************************/
