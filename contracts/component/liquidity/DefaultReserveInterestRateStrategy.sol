@@ -63,8 +63,9 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
         uint256 totalDebt,
         uint256 averageBorrowRate
     ) external view returns (uint256, uint256) {
-        uint256 availableLiquidity = LiquidityDepositEscrow(liquidityEscrow)
-            .balanceOfTranche(ReserveLogic.Tranche.SENIOR);
+        uint256 availableLiquidity = IERC20(reserve).balanceOf(
+            _seniorDepositToken
+        );
         availableLiquidity = availableLiquidity.add(liquidityAdded).sub(
             liquidityTaken
         );

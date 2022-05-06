@@ -114,6 +114,7 @@ library DataTypes {
         uint256 totalLiquidity;
         uint256 juniorLiquidity;
         uint256 seniorLiquidity;
+        uint256 overallLiquidityRate;
         uint256 juniorLiquidityRate;
         uint256 seniorLiquidityRate;
         uint256 totalDebt;
