@@ -2,6 +2,8 @@
 pragma solidity ^0.8.9;
 
 import '../../libraries/math/WadRayMath.sol';
+import '../../libraries/logic/ReserveLogic.sol';
+import '../shared/escrow/LiquidityDepositEscrow.sol';
 import '../../interfaces/IReserveInterestRateStrategy.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
@@ -39,18 +41,18 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
 
     struct CalcInterestRatesLocalVars {
         uint256 totalDebt;
-        uint256 currentStableBorrowRate;
+        uint256 currentBorrowRate;
         uint256 currentLiquidityRate;
         uint256 utilizationRate;
     }
 
     /**
      * @dev Calculates the interest rates depending on the reserve's state and configuration
-     * @param reserve The address of the reserve
+     * @param reserve The address of the reserve undelrying asset
      * @param liquidityEscrow The address of junior deposit token
      * @param liquidityAdded The liquidity added during the operation
      * @param liquidityTaken The liquidity taken during the operation
-     * @param totalStableDebt The total borrowed from the reserve a stable rate
+     * @param totalDebt The total borrowed from the reserve a stable rate
      * @param averageBorrowRate The current average borrow rate
      **/
     function calculateInterestRates(
@@ -58,10 +60,11 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
         address liquidityEscrow,
         uint256 liquidityAdded,
         uint256 liquidityTaken,
-        uint256 totalStableDebt,
+        uint256 totalDebt,
         uint256 averageBorrowRate
     ) external view returns (uint256, uint256) {
-        uint256 availableLiquidity = IERC20(reserve).balanceOf(liquidityEscrow);
+        uint256 availableLiquidity = LiquidityDepositEscrow(liquidityEscrow)
+            .balanceOfTranche(ReserveLogic.Tranche.SENIOR);
         availableLiquidity = availableLiquidity.add(liquidityAdded).sub(
             liquidityTaken
         );
@@ -69,7 +72,7 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
             calculateInterestRates(
                 reserve,
                 availableLiquidity,
-                totalStableDebt,
+                totalDebt,
                 averageBorrowRate
             );
     }
@@ -77,21 +80,21 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
     /**
      * @dev Calculates the interest rates depending on the reserve's state and configurations.
      * @param reserve The address of the reserve
-     * @param availableLiquidity The liquidity available in the corresponding aToken
-     * @param totalStableDebt The total borrowed from the reserve a stable rate
+     * @param availableLiquidity The liquidity available in the corresponding tranche liquidity token
+     * @param totalDebt total debt that has accumulated
      * @return The liquidity rate, the stable borrow rate
      * @param averageBorrowRate The current average borrow rate
      **/
     function calculateInterestRates(
         address reserve,
         uint256 availableLiquidity,
-        uint256 totalStableDebt,
+        uint256 totalDebt,
         uint256 averageBorrowRate
     ) public view returns (uint256, uint256) {
         CalcInterestRatesLocalVars memory vars;
 
-        vars.totalDebt = totalStableDebt;
-        vars.currentStableBorrowRate = baseBorrowRate;
+        vars.totalDebt = totalDebt;
+        vars.currentBorrowRate = baseBorrowRate;
         vars.currentLiquidityRate = 0;
 
         vars.utilizationRate = vars.totalDebt == 0
@@ -99,8 +102,8 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
             : vars.totalDebt.rayDiv(availableLiquidity.add(vars.totalDebt));
 
         if (vars.utilizationRate > OPTIMAL_UTILIZATION_RATE) {
-            vars.currentStableBorrowRate = vars
-                .currentStableBorrowRate
+            vars.currentBorrowRate = vars
+                .currentBorrowRate
                 .add(stableRateSlope1)
                 .add(
                     stableRateSlope2
@@ -110,7 +113,7 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
                         .rayDiv(WadRayMath.Ray().sub(OPTIMAL_UTILIZATION_RATE))
                 );
         } else {
-            vars.currentStableBorrowRate = vars.currentStableBorrowRate.add(
+            vars.currentBorrowRate = vars.currentBorrowRate.add(
                 stableRateSlope1.rayMul(vars.utilizationRate).rayDiv(
                     OPTIMAL_UTILIZATION_RATE
                 )
@@ -120,6 +123,6 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
         vars.currentLiquidityRate = averageBorrowRate.rayMul(
             vars.utilizationRate
         );
-        return (vars.currentLiquidityRate, vars.currentStableBorrowRate);
+        return (vars.currentLiquidityRate, vars.currentBorrowRate);
     }
 }

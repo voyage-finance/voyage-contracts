@@ -25,6 +25,9 @@ contract BaseLiquidityEscrow is ReentrancyGuard {
     );
     event Withdrawn(address indexed payee, address token, uint256 amount);
 
+    uint256 seniorUnderlyingBalance;
+    uint256 juniorUnderlyingBalance;
+
     // reserve address => amount
     mapping(address => uint256) private _deposits;
     // reserve address => user address => junior deposit record
@@ -209,7 +212,6 @@ contract BaseLiquidityEscrow is ReentrancyGuard {
                 msg.value == 0,
                 'User is sending ETH along with the ERC20 transfer.'
             );
-            ERC20(_reserve).safeTransferFrom(_user, address(this), _amount);
         } else {
             require(
                 msg.value == _amount,
@@ -222,10 +224,14 @@ contract BaseLiquidityEscrow is ReentrancyGuard {
             uint40(block.timestamp)
         );
         if (ReserveLogic.Tranche.JUNIOR == _tranche) {
+            juniorUnderlyingBalance += _amount;
             _juniorDepositRecords[_reserve][_user].push(deposit);
         } else {
+            seniorUnderlyingBalance += _amount;
             _seniorDepositRecords[_reserve][_user].push(deposit);
         }
+
+        ERC20(_reserve).safeTransferFrom(_user, address(this), _amount);
         emit Deposited(_user, _reserve, _amount, _scaledAmount);
     }
 }

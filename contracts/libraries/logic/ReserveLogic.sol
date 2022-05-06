@@ -77,64 +77,56 @@ library ReserveLogic {
     }
 
     struct UpdateInterestRatesLocalVars {
-        address stableDebtTokenAddress;
+        address debtTokenAddress;
         uint256 availableLiquidity;
-        uint256 totalStableDebt;
+        uint256 totalDebt;
         uint256 newLiquidityRate;
-        uint256 newStableRate;
-        uint256 avgStableRate;
+        uint256 newBorrowRate;
+        uint256 avgBorrowRate;
     }
 
+    // for the purposes of updating interest rates, we only care about senior tranche liquidity.
     function updateInterestRates(
         DataTypes.ReserveData storage _reserve,
-        address _escrow,
         address _reserveAddress,
-        uint256 _juniorLiquidityAdded,
-        uint256 _juniorLiquidityTaken,
+        address _escrow,
         uint256 _seniorLiquidityAdded,
         uint256 _seniorLiquidityTaken
     ) public {
         UpdateInterestRatesLocalVars memory vars;
 
-        vars.stableDebtTokenAddress = _reserve.stableDebtAddress;
-        uint256 liquidityAdded = _juniorLiquidityAdded.add(
-            _seniorLiquidityAdded
-        );
-        uint256 liquidityTaken = _juniorLiquidityTaken.add(
-            _seniorLiquidityTaken
-        );
-
-        (vars.totalStableDebt, vars.avgStableRate) = IStableDebtToken(
+        vars.debtTokenAddress = _reserve.stableDebtAddress;
+        (vars.totalDebt, vars.avgBorrowRate) = IStableDebtToken(
             _reserve.stableDebtAddress
         ).getTotalSupplyAndAvgRate();
 
         (
             vars.newLiquidityRate,
-            vars.newStableRate
+            vars.newBorrowRate
         ) = IReserveInterestRateStrategy(_reserve.interestRateStrategyAddress)
             .calculateInterestRates(
                 _reserveAddress,
                 _escrow,
-                liquidityAdded,
-                liquidityTaken,
-                vars.totalStableDebt,
-                vars.avgStableRate
+                _seniorLiquidityAdded,
+                _seniorLiquidityTaken,
+                vars.totalDebt,
+                vars.avgBorrowRate
             );
         require(
             vars.newLiquidityRate <= type(uint128).max,
             Errors.RL_LIQUIDITY_RATE_OVERFLOW
         );
         require(
-            vars.newStableRate <= type(uint128).max,
+            vars.newBorrowRate <= type(uint128).max,
             Errors.RL_STABLE_BORROW_RATE_OVERFLOW
         );
         _reserve.currentOverallLiquidityRate = vars.newLiquidityRate;
-        _reserve.currentBorrowRate = vars.newStableRate;
+        _reserve.currentBorrowRate = vars.newBorrowRate;
 
         emit ReserveDataUpdated(
             _reserveAddress,
             vars.newLiquidityRate,
-            vars.newStableRate,
+            vars.newBorrowRate,
             vars.newLiquidityRate
         );
     }

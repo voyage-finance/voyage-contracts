@@ -7,6 +7,7 @@ import '../../../libraries/logic/ReserveLogic.sol';
 import '../../../libraries/logic/ValidationLogic.sol';
 import '../../../libraries/configuration/ReserveConfiguration.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
+import '../../../tokenization/StableDebtToken.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 
 contract LiquidityManagerStorage is State {
@@ -78,10 +79,10 @@ contract LiquidityManagerStorage is State {
         // todo validate withdraw
         reserve.updateState(_tranche);
         if (ReserveLogic.Tranche.JUNIOR == _tranche) {
-            reserve.updateInterestRates(_asset, _escrow, 0, _amount, 0, 0);
+            reserve.updateInterestRates(_asset, _escrow, 0, 0);
             reserve.juniorDepositAmount -= _amount;
         } else {
-            reserve.updateInterestRates(_asset, _escrow, 0, 0, 0, _amount);
+            reserve.updateInterestRates(_asset, _escrow, 0, _amount);
             reserve.seniorDepositAmount -= _amount;
         }
     }
@@ -93,7 +94,10 @@ contract LiquidityManagerStorage is State {
     ) public onlyAssociatedContract {
         DataTypes.ReserveData storage reserve = _reserves[_asset];
         reserve.updateState(ReserveLogic.Tranche.SENIOR);
-        reserve.updateInterestRates(_asset, _escrow, 0, 0, 0, _amount);
+        reserve.updateInterestRates(_asset, _escrow, 0, _amount);
+        // TODO @ian this can't be right - totalBorrows grows over time due to compounding interest.
+        // why do we even keep track of totalBorrows here when we have it available on StableDebtToken?
+        reserve.totalBorrows += _amount;
     }
 
     function activeReserve(address _asset) public onlyAssociatedContract {
