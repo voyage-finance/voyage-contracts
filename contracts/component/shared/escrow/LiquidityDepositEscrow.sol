@@ -27,9 +27,9 @@ contract LiquidityDepositEscrow is BaseLiquidityEscrow {
         ReserveLogic.Tranche _tranche,
         address _user,
         uint256 _amount,
-        uint256 _recordAmount
+        uint256 _scaledAmount
     ) public payable nonReentrant onlyLiquidityManager {
-        _deposit(_reserve, _tranche, _user, _amount, _recordAmount);
+        _deposit(_reserve, _tranche, _user, _amount, _scaledAmount);
     }
 
     function init(address _voyager) external {

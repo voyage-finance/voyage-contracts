@@ -21,7 +21,7 @@ contract BaseLiquidityEscrow is ReentrancyGuard {
         address indexed payee,
         address token,
         uint256 amount,
-        uint256 recordAmount
+        uint256 scaledAmount
     );
     event Withdrawn(address indexed payee, address token, uint256 amount);
 
@@ -193,15 +193,15 @@ contract BaseLiquidityEscrow is ReentrancyGuard {
      * @dev Stores the sent amount as credit to be withdrawn.
      * @param _reserve the asset address
      * @param _user user address who deposit to this escrow
-     * @param _amount token amount need to transfer
-     * @param _recordAmount token amount that will be recored
+     * @param _amount unscaled real token amount to be transferred
+     * @param _scaledAmount scaled token amount, recorded by the escrow and VToken contracts
      */
     function _deposit(
         address _reserve,
         ReserveLogic.Tranche _tranche,
         address _user,
         uint256 _amount,
-        uint256 _recordAmount
+        uint256 _scaledAmount
     ) internal {
         // todo move to the end??
         if (_reserve != EthAddressLib.ethAddress()) {
@@ -216,9 +216,9 @@ contract BaseLiquidityEscrow is ReentrancyGuard {
                 'The amount and the value sent to deposit do not match'
             );
         }
-        _deposits[_reserve] += _recordAmount;
+        _deposits[_reserve] += _scaledAmount;
         Deposit memory deposit = Deposit(
-            _recordAmount,
+            _scaledAmount,
             uint40(block.timestamp)
         );
         if (ReserveLogic.Tranche.JUNIOR == _tranche) {
@@ -226,6 +226,6 @@ contract BaseLiquidityEscrow is ReentrancyGuard {
         } else {
             _seniorDepositRecords[_reserve][_user].push(deposit);
         }
-        emit Deposited(_user, _reserve, _amount, _recordAmount);
+        emit Deposited(_user, _reserve, _amount, _scaledAmount);
     }
 }
