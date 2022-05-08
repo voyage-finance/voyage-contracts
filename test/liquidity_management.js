@@ -46,9 +46,13 @@ describe('Reserve Init', function () {
     );
     liquidityManagerProxy.setTarget(liquidityManager.address);
     lm = LiquidityManager.attach(liquidityManagerProxy.address);
+
     // deploy ValidationLogic library
     const ValidationLogic = await ethers.getContractFactory('ValidationLogic');
     const validationLogic = await ValidationLogic.deploy();
+
+    const EscrowLogic = await ethers.getContractFactory('EscrowLogic');
+    const escrowLogic = await EscrowLogic.deploy();
 
     // deploy LiquidityManagerStorage contract
     const LiquidityManagerStorage = await ethers.getContractFactory(
@@ -57,6 +61,7 @@ describe('Reserve Init', function () {
         libraries: {
           ReserveLogic: reserveLogic.address,
           ValidationLogic: validationLogic.address,
+          EscrowLogic: escrowLogic.address,
         },
       }
     );

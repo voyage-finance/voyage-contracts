@@ -4,6 +4,7 @@ const LM_PROXY_NAME = 'LiquidityManagerProxy';
 const LM_NAME = 'LiquidityManager';
 const RESERVE_LOGIC_NAME = 'ReserveLogic';
 const VALIDATION_LOGIC_NAME = 'ValidationLogic';
+const ESCROW_LOGIC_NAME = 'EscrowLogic';
 const LM_STORAGE_NAME = 'LiquidityManagerStorage';
 
 const deployFn: DeployFunction = async (hre) => {
@@ -22,7 +23,13 @@ const deployFn: DeployFunction = async (hre) => {
     from: owner,
     log: true,
   });
+
   const ValidationLogic = await deploy(VALIDATION_LOGIC_NAME, {
+    from: owner,
+    log: true,
+  });
+
+  const EscrowLogic = await deploy(ESCROW_LOGIC_NAME, {
     from: owner,
     log: true,
   });
@@ -42,6 +49,7 @@ const deployFn: DeployFunction = async (hre) => {
     libraries: {
       ReserveLogic: ReserveLogic.address,
       ValidationLogic: ValidationLogic.address,
+      EscrowLogic: EscrowLogic.address,
     },
     log: true,
   });

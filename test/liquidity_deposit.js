@@ -69,8 +69,10 @@ describe('Reserve Deposit', function () {
     expect(reserveFlags[1]).to.equal(false);
     expect(reserveFlags[2]).to.equal(false);
 
-    escrowContract = await voyager.getLiquidityManagerEscrowContractAddress();
-    await tus.increaseAllowance(escrowContract, '100000000000000000000');
+    await tus.increaseAllowance(
+      liquidityManager.address,
+      '100000000000000000000'
+    );
 
     const aclManager = await ethers.getContract('ACLManager');
     await aclManager.grantLiquidityManager(owner);
