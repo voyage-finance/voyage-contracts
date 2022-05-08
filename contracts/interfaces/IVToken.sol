@@ -16,8 +16,7 @@ interface IVToken {
         uint256 _index
     ) external;
 
-    function transferUnderlyingTo(address _target, uint256 _amount)
-    external;
+    function transferUnderlyingTo(address _target, uint256 _amount) external;
 
     function scaledBalanceOf(address _user) external view returns (uint256);
 }

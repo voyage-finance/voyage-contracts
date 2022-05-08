@@ -9,6 +9,7 @@ import '../../libraries/math/WadRayMath.sol';
 import '../../libraries/types/DataTypes.sol';
 import '../../interfaces/IMessageBus.sol';
 import '../../interfaces/IHealthStrategy.sol';
+import '../../interfaces/IVToken.sol';
 import '../../interfaces/IInitializableDebtToken.sol';
 import '../../interfaces/IVault.sol';
 import '../Voyager.sol';
@@ -100,7 +101,12 @@ contract LoanManager is Proxyable, IVoyagerComponent {
             healthStrategy.getLoanTenure(),
             reserveData.currentBorrowRate
         );
-        escrow().transfer(_asset, _vault, _amount);
+
+        // todo @xiaohuo ensure this is correct
+        IVToken(reserveData.seniorDepositTokenAddress).transferUnderlyingTo(
+            _vault,
+            _amount
+        );
     }
 
     function escrow() internal view override returns (LiquidityDepositEscrow) {
