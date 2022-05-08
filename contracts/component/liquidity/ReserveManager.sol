@@ -12,7 +12,6 @@ import '../../interfaces/IReserveManager.sol';
 import '../../interfaces/IVoyagerComponent.sol';
 import '../../interfaces/IStableDebtToken.sol';
 import '../../interfaces/IACLManager.sol';
-import '../shared/escrow/LiquidityDepositEscrow.sol';
 
 abstract contract ReserveManager is
     Proxyable,

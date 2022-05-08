@@ -3,7 +3,6 @@ pragma solidity ^0.8.9;
 
 import '../../libraries/math/WadRayMath.sol';
 import '../../libraries/logic/ReserveLogic.sol';
-import '../shared/escrow/LiquidityDepositEscrow.sol';
 import '../../interfaces/IReserveInterestRateStrategy.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';

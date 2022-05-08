@@ -7,7 +7,6 @@ import './ReserveManager.sol';
 import '../../libraries/helpers/Errors.sol';
 import '../../libraries/logic/ReserveLogic.sol';
 import '../../libraries/math/WadRayMath.sol';
-import '../shared/escrow/LiquidityDepositEscrow.sol';
 import '../../interfaces/IReserveManager.sol';
 import '../../interfaces/ILiquidityManager.sol';
 import '../../tokenization/JuniorDepositToken.sol';
