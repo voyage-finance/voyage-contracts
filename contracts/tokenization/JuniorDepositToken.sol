@@ -112,6 +112,13 @@ contract JuniorDepositToken is
         emit Burn(_user, _amount, _index);
     }
 
+    function transferUnderlyingTo(address _target, uint256 _amount)
+        external
+        onlyLiquidityManagerProxy
+    {
+        IERC20(underlyingAsset).safeTransfer(_target, _amount);
+    }
+
     /**
      * @dev Returns the scaled balance of the user. The scaled balance is the sum of all the updated
      * stored balance divided by the reserve's liquidity index at the moment of the update
