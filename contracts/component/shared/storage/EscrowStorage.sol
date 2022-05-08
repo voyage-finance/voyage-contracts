@@ -65,4 +65,47 @@ abstract contract EscrowStorage is State {
         }
         _deposits.recordWithdrawal(_withdrawals);
     }
+
+    function _eligibleAmount(
+        address _reserve,
+        address _user,
+        ReserveLogic.Tranche _tranche
+    ) internal view returns (uint256, uint40) {
+        DataTypes.Deposit[] storage deposits;
+        uint40 lastUpdateTime;
+        if (ReserveLogic.Tranche.JUNIOR == _tranche) {
+            deposits = _juniorDepositRecords[_reserve][_user];
+        } else {
+            deposits = _seniorDepositRecords[_reserve][_user];
+        }
+        uint256 eligibleAmount = 0;
+        for (uint256 i = 0; i < deposits.length; i++) {
+            if (
+                uint40(block.timestamp) - deposits[i].depositTime >
+                _lockupTimeInSeconds
+            ) {
+                eligibleAmount += deposits[i].amount;
+                lastUpdateTime = deposits[i].depositTime;
+            }
+        }
+        return (eligibleAmount, lastUpdateTime);
+    }
+
+    function _overallAmount(
+        address _reserve,
+        address _user,
+        ReserveLogic.Tranche _tranche
+    ) internal view returns (uint256) {
+        DataTypes.Deposit[] storage deposits;
+        if (ReserveLogic.Tranche.JUNIOR == _tranche) {
+            deposits = _juniorDepositRecords[_reserve][_user];
+        } else {
+            deposits = _seniorDepositRecords[_reserve][_user];
+        }
+        uint256 overallAmount = 0;
+        for (uint256 i = 0; i < deposits.length; i++) {
+            overallAmount += deposits[i].amount;
+        }
+        return overallAmount;
+    }
 }

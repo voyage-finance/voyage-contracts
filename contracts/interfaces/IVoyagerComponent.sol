@@ -39,6 +39,4 @@ abstract contract IVoyagerComponent {
         return
             LiquidityManagerStorage(storageAddress).getDepositAndDebt(_reserve);
     }
-
-    function escrow() internal view virtual returns (LiquidityDepositEscrow);
 }

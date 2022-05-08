@@ -89,7 +89,7 @@ library ReserveLogic {
     function updateInterestRates(
         DataTypes.ReserveData storage _reserve,
         address _reserveAddress,
-        address _escrow,
+        address _seniorDepositTokenAddress,
         uint256 _seniorLiquidityAdded,
         uint256 _seniorLiquidityTaken
     ) public {
@@ -106,7 +106,7 @@ library ReserveLogic {
         ) = IReserveInterestRateStrategy(_reserve.interestRateStrategyAddress)
             .calculateInterestRates(
                 _reserveAddress,
-                _escrow,
+                _seniorDepositTokenAddress,
                 _seniorLiquidityAdded,
                 _seniorLiquidityTaken,
                 vars.totalDebt,

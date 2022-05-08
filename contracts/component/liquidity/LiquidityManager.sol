@@ -21,14 +21,9 @@ contract LiquidityManager is
     using WadRayMath for uint256;
     using SafeERC20 for IERC20;
 
-    LiquidityDepositEscrow public liquidityDepositEscrow;
-
     constructor(address payable _proxy, address _voyager)
         ReserveManager(_proxy, _voyager)
-    {
-        liquidityDepositEscrow = LiquidityDepositEscrow(deployEscrow());
-        liquidityDepositEscrow.init(_voyager);
-    }
+    {}
 
     /************************************** User Functions **************************************/
 
@@ -44,12 +39,7 @@ contract LiquidityManager is
         );
         DataTypes.ReserveData memory reserve = getReserveData(_asset);
 
-        lms.updateStateOnDeposit(
-            _asset,
-            _tranche,
-            _amount,
-            address(liquidityDepositEscrow)
-        );
+        lms.updateStateOnDeposit(_asset, _tranche, _amount);
 
         address vToken;
         uint256 liquidityIndex;
@@ -122,12 +112,7 @@ contract LiquidityManager is
             amountToWithdraw = userBalance;
         }
 
-        lms.updateStateOnWithdraw(
-            _asset,
-            _tranche,
-            amountToWithdraw,
-            address(liquidityDepositEscrow)
-        );
+        lms.updateStateOnWithdraw(_asset, _tranche, amountToWithdraw);
 
         IVToken(vToken).burn(_user, amountToWithdraw, liquidityIndex);
         emitWithdraw(_asset, _user, _tranche, amountToWithdraw);
@@ -140,7 +125,10 @@ contract LiquidityManager is
         address _user,
         ReserveLogic.Tranche _tranche
     ) external view returns (uint256) {
-        uint256 scaledBalance = liquidityDepositEscrow.eligibleAmount(
+        LiquidityManagerStorage lms = LiquidityManagerStorage(
+            liquidityManagerStorageAddress()
+        );
+        (uint256 scaledBalance, uint40 timestamp) = lms.eligibleAmount(
             _reserve,
             _user,
             _tranche
@@ -162,24 +150,15 @@ contract LiquidityManager is
         address _user,
         ReserveLogic.Tranche _tranche
     ) external view returns (uint256) {
-        uint256 scaledBalance = liquidityDepositEscrow.overallAmount(
-            _reserve,
-            _user,
-            _tranche
+        LiquidityManagerStorage lms = LiquidityManagerStorage(
+            liquidityManagerStorageAddress()
         );
+        uint256 scaledBalance = lms.overallAmount(_reserve, _user, _tranche);
         return
             scaledBalance.rayMul(
                 LiquidityManagerStorage(liquidityManagerStorageAddress())
                     .getReserveNormalizedIncome(_reserve, _tranche)
             );
-    }
-
-    function getEscrowAddress() external view returns (address) {
-        return address(escrow());
-    }
-
-    function escrow() internal view override returns (LiquidityDepositEscrow) {
-        return liquidityDepositEscrow;
     }
 
     function getReserveNormalizedIncome(
@@ -190,23 +169,6 @@ contract LiquidityManager is
         return
             LiquidityManagerStorage(liquidityManagerStorageAddress())
                 .getReserveNormalizedIncome(_asset, _tranche);
-    }
-
-    /************************************** Private Functions **************************************/
-
-    function deployEscrow() private returns (address) {
-        bytes32 salt = keccak256(abi.encodePacked(msg.sender));
-        bytes memory bytecode = type(LiquidityDepositEscrow).creationCode;
-        address deployedEscrow;
-        assembly {
-            deployedEscrow := create2(
-                0,
-                add(bytecode, 32),
-                mload(bytecode),
-                salt
-            )
-        }
-        return deployedEscrow;
     }
 
     /******************************************** Events *******************************************/

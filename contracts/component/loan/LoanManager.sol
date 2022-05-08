@@ -88,7 +88,7 @@ contract LoanManager is Proxyable, IVoyagerComponent {
             liquidityManagerStorageAddress()
         );
 
-        lms.updateStateOnBorrow(_asset, _amount, address(escrow()));
+        lms.updateStateOnBorrow(_asset, _amount);
 
         // 5. increase vault debt
         IVault(_vault).increaseTotalDebt(_amount);
@@ -107,12 +107,5 @@ contract LoanManager is Proxyable, IVoyagerComponent {
             _vault,
             _amount
         );
-    }
-
-    function escrow() internal view override returns (LiquidityDepositEscrow) {
-        return
-            LiquidityDepositEscrow(
-                voyager.addressResolver().getLiquidityDepositEscrow()
-            );
     }
 }

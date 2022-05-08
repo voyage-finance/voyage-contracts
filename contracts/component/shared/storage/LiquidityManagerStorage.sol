@@ -55,17 +55,20 @@ contract LiquidityManagerStorage is EscrowStorage {
     function updateStateOnDeposit(
         address _asset,
         ReserveLogic.Tranche _tranche,
-        uint256 _amount,
-        address _escrow
+        uint256 _amount
     ) public onlyAssociatedContract {
         DataTypes.ReserveData storage reserve = _reserves[_asset];
         ValidationLogic.validateDeposit(reserve, _amount);
         reserve.updateState(_tranche);
         if (ReserveLogic.Tranche.JUNIOR == _tranche) {
-            //            reserve.updateInterestRates(_asset, _escrow, _amount, 0, 0, 0);
             reserve.juniorDepositAmount += _amount;
         } else {
-            reserve.updateInterestRates(_asset, _escrow, _amount, 0);
+            reserve.updateInterestRates(
+                _asset,
+                reserve.seniorDepositTokenAddress,
+                _amount,
+                0
+            );
             reserve.seniorDepositAmount += _amount;
         }
     }
@@ -73,8 +76,7 @@ contract LiquidityManagerStorage is EscrowStorage {
     function updateStateOnWithdraw(
         address _asset,
         ReserveLogic.Tranche _tranche,
-        uint256 _amount,
-        address _escrow
+        uint256 _amount
     ) public onlyAssociatedContract {
         DataTypes.ReserveData storage reserve = _reserves[_asset];
         // todo validate withdraw
@@ -82,19 +84,28 @@ contract LiquidityManagerStorage is EscrowStorage {
         if (ReserveLogic.Tranche.JUNIOR == _tranche) {
             reserve.juniorDepositAmount -= _amount;
         } else {
-            reserve.updateInterestRates(_asset, _escrow, 0, _amount);
+            reserve.updateInterestRates(
+                _asset,
+                reserve.seniorDepositTokenAddress,
+                0,
+                _amount
+            );
             reserve.seniorDepositAmount -= _amount;
         }
     }
 
-    function updateStateOnBorrow(
-        address _asset,
-        uint256 _amount,
-        address _escrow
-    ) public onlyAssociatedContract {
+    function updateStateOnBorrow(address _asset, uint256 _amount)
+        public
+        onlyAssociatedContract
+    {
         DataTypes.ReserveData storage reserve = _reserves[_asset];
         reserve.updateState(ReserveLogic.Tranche.SENIOR);
-        reserve.updateInterestRates(_asset, _escrow, 0, _amount);
+        reserve.updateInterestRates(
+            _asset,
+            reserve.seniorDepositTokenAddress,
+            0,
+            _amount
+        );
     }
 
     function recordDeposit(
@@ -114,6 +125,22 @@ contract LiquidityManagerStorage is EscrowStorage {
         DataTypes.Withdrawal[] memory _withdrawals
     ) public onlyAssociatedContract {
         _recordWithdrawal(_reserve, _tranche, _user, _withdrawals);
+    }
+
+    function eligibleAmount(
+        address _reserve,
+        address _user,
+        ReserveLogic.Tranche _tranche
+    ) public view returns (uint256, uint40) {
+        return _eligibleAmount(_reserve, _user, _tranche);
+    }
+
+    function overallAmount(
+        address _reserve,
+        address _user,
+        ReserveLogic.Tranche _tranche
+    ) public view returns (uint256) {
+        return _overallAmount(_reserve, _user, _tranche);
     }
 
     function activeReserve(address _asset) public onlyAssociatedContract {
