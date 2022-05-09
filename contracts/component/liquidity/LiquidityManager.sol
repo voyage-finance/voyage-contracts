@@ -6,7 +6,6 @@ import '../../libraries/helpers/Errors.sol';
 import '../../libraries/logic/ReserveLogic.sol';
 import '../../libraries/math/WadRayMath.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
-import '../shared/escrow/LiquidityDepositEscrow.sol';
 import '../../interfaces/IReserveManager.sol';
 import '../../interfaces/ILiquidityManager.sol';
 import '../../tokenization/JuniorDepositToken.sol';
@@ -14,15 +13,11 @@ import '../../tokenization/SeniorDepositToken.sol';
 
 contract LiquidityManager is ReserveManager, ILiquidityManager {
     using WadRayMath for uint256;
-
-    LiquidityDepositEscrow public liquidityDepositEscrow;
+    using SafeERC20 for IERC20;
 
     constructor(address payable _proxy, address _voyager)
         ReserveManager(_proxy, _voyager)
-    {
-        liquidityDepositEscrow = LiquidityDepositEscrow(deployEscrow());
-        liquidityDepositEscrow.init(_voyager);
-    }
+    {}
 
     /************************************** User Functions **************************************/
 
@@ -38,12 +33,7 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
         );
         DataTypes.ReserveData memory reserve = getReserveData(_asset);
 
-        lms.updateStateOnDeposit(
-            _asset,
-            _tranche,
-            _amount,
-            address(liquidityDepositEscrow)
-        );
+        lms.updateStateOnDeposit(_asset, _tranche, _amount);
 
         address vToken;
         uint256 liquidityIndex;
@@ -56,17 +46,7 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
             liquidityIndex = getSeniorLiquidityIndex(_asset);
         }
         IVToken(vToken).mint(_onBehalfOf, _amount, liquidityIndex);
-        uint256 scaledBalance = IVToken(vToken)
-            .scaledBalanceOf(_onBehalfOf)
-            .rayDiv(liquidityIndex);
-
-        liquidityDepositEscrow.deposit(
-            _asset,
-            _tranche,
-            _user,
-            _amount,
-            scaledBalance
-        );
+        IERC20(_asset).safeTransferFrom(_user, vToken, _amount);
         emitDeposit(_asset, _user, _tranche, _amount);
     }
 
@@ -99,35 +79,28 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
             amountToWithdraw = userBalance;
         }
 
-        lms.updateStateOnWithdraw(
-            _asset,
-            _tranche,
-            amountToWithdraw,
-            address(liquidityDepositEscrow)
-        );
+        lms.updateStateOnWithdraw(_asset, _tranche, amountToWithdraw);
 
         IVToken(vToken).burn(_user, amountToWithdraw, liquidityIndex);
-        liquidityDepositEscrow.withdraw(_asset, _tranche, _user, _amount);
         emitWithdraw(_asset, _user, _tranche, _amount);
     }
 
     /************************************** View Functions **************************************/
 
+    // todo @ian @xiaohuo this case, total balance should be the same as withdrawable amount
     function withdrawAbleAmount(
         address _reserve,
         address _user,
         ReserveLogic.Tranche _tranche
     ) external view returns (uint256) {
-        uint256 scaledBalance = liquidityDepositEscrow.eligibleAmount(
-            _reserve,
-            _user,
-            _tranche
-        );
-        return
-            scaledBalance.rayMul(
-                LiquidityManagerStorage(liquidityManagerStorageAddress())
-                    .getReserveNormalizedIncome(_reserve, _tranche)
-            );
+        DataTypes.ReserveData memory reserve = getReserveData(_reserve);
+        address vToken;
+        if (ReserveLogic.Tranche.JUNIOR == _tranche) {
+            vToken = reserve.juniorDepositTokenAddress;
+        } else {
+            vToken = reserve.seniorDepositTokenAddress;
+        }
+        return IERC20(vToken).balanceOf(_user);
     }
 
     function totalDepositAndDebt() external {
@@ -140,24 +113,14 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
         address _user,
         ReserveLogic.Tranche _tranche
     ) external view returns (uint256) {
-        uint256 scaledBalance = liquidityDepositEscrow.overallAmount(
-            _reserve,
-            _user,
-            _tranche
-        );
-        return
-            scaledBalance.rayMul(
-                LiquidityManagerStorage(liquidityManagerStorageAddress())
-                    .getReserveNormalizedIncome(_reserve, _tranche)
-            );
-    }
-
-    function getEscrowAddress() external view returns (address) {
-        return address(escrow());
-    }
-
-    function escrow() internal view override returns (LiquidityDepositEscrow) {
-        return liquidityDepositEscrow;
+        DataTypes.ReserveData memory reserve = getReserveData(_reserve);
+        address vToken;
+        if (ReserveLogic.Tranche.JUNIOR == _tranche) {
+            vToken = reserve.juniorDepositTokenAddress;
+        } else {
+            vToken = reserve.seniorDepositTokenAddress;
+        }
+        return IERC20(vToken).balanceOf(_user);
     }
 
     function getReserveNormalizedIncome(
@@ -168,23 +131,6 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
         return
             LiquidityManagerStorage(liquidityManagerStorageAddress())
                 .getReserveNormalizedIncome(_asset, _tranche);
-    }
-
-    /************************************** Private Functions **************************************/
-
-    function deployEscrow() private returns (address) {
-        bytes32 salt = keccak256(abi.encodePacked(msg.sender));
-        bytes memory bytecode = type(LiquidityDepositEscrow).creationCode;
-        address deployedEscrow;
-        assembly {
-            deployedEscrow := create2(
-                0,
-                add(bytecode, 32),
-                mload(bytecode),
-                salt
-            )
-        }
-        return deployedEscrow;
     }
 
     /******************************************** Events *******************************************/

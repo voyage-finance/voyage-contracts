@@ -11,6 +11,7 @@ import '../../interfaces/IMessageBus.sol';
 import '../../interfaces/IHealthStrategy.sol';
 import '../../interfaces/IInitializableDebtToken.sol';
 import '../../interfaces/IVault.sol';
+import '../../interfaces/IVToken.sol';
 import '../Voyager.sol';
 import 'hardhat/console.sol';
 
@@ -41,19 +42,28 @@ contract LoanManager is Proxyable, IVoyagerComponent {
         require(voyager.getVault(_user) == _vault, Errors.LOM_NOT_VAULT_OWNER);
 
         // 1. check if pool liquidity is sufficient
-        DataTypes.DepositAndDebt memory depositAndDebt = getDepositAndDebt(
-            _asset
-        );
-        require(
-            depositAndDebt.seniorDepositAmount - depositAndDebt.totalDebt >=
-                _amount,
-            Errors.LOM_RESERVE_NOT_SUFFICIENT
-        );
-
-        // 2. check HF
         DataTypes.ReserveData memory reserveData = voyager.getReserveData(
             _asset
         );
+
+        uint256 availableSeniorLiquidity = IERC20(
+            reserveData.seniorDepositTokenAddress
+        ).totalSupply();
+        uint256 totalDebt = IERC20(reserveData.stableDebtAddress).totalSupply();
+        require(
+            availableSeniorLiquidity - totalDebt >= _amount,
+            Errors.LOM_RESERVE_NOT_SUFFICIENT
+        );
+
+        uint256 availableJuniorLiquidity = IERC20(_asset).balanceOf(
+            reserveData.juniorDepositTokenAddress
+        );
+        require(
+            availableJuniorLiquidity >= 0,
+            'invalid available junior liquidity'
+        );
+
+        // 2. check HF
         IHealthStrategy healthStrategy = IHealthStrategy(
             reserveData.healthStrategyAddress
         );
@@ -87,7 +97,7 @@ contract LoanManager is Proxyable, IVoyagerComponent {
             liquidityManagerStorageAddress()
         );
 
-        lms.updateStateOnBorrow(_asset, _amount, address(escrow()));
+        lms.updateStateOnBorrow(_asset, _amount);
 
         // 5. increase vault debt
         IVault(_vault).increaseTotalDebt(_amount);
@@ -100,13 +110,10 @@ contract LoanManager is Proxyable, IVoyagerComponent {
             healthStrategy.getLoanTenure(),
             reserveData.currentBorrowRate
         );
-        escrow().transfer(_asset, _vault, _amount);
-    }
 
-    function escrow() internal view override returns (LiquidityDepositEscrow) {
-        return
-            LiquidityDepositEscrow(
-                voyager.addressResolver().getLiquidityDepositEscrow()
-            );
+        IVToken(reserveData.seniorDepositTokenAddress).transferUnderlyingTo(
+            _vault,
+            _amount
+        );
     }
 }

@@ -29,9 +29,10 @@ contract SeniorDepositToken is
 
     uint256 public constant SENIOR_DEPOSIT_TOKEN_REVISION = 0x1;
 
-    modifier onlyLiquidityManagerProxy() {
+    modifier onlyAdmin() {
         require(
-            _msgSender() == addressResolver.getAddress('liquidityManager'),
+            _msgSender() == addressResolver.getAddress('liquidityManager') ||
+                _msgSender() == addressResolver.getAddress('loanManager'),
             Errors.CT_CALLER_MUST_BE_LIQUIDITY_MANAGER_POOL
         );
         _;
@@ -81,7 +82,7 @@ contract SeniorDepositToken is
         address _user,
         uint256 _amount,
         uint256 _index
-    ) external onlyLiquidityManagerProxy returns (bool) {
+    ) external onlyAdmin returns (bool) {
         uint256 previousBalance = super.balanceOf(_user);
         uint256 amountScaled = _amount.rayDiv(_index);
         require(amountScaled != 0, Errors.CT_INVALID_MINT_AMOUNT);
@@ -103,12 +104,20 @@ contract SeniorDepositToken is
         address _user,
         uint256 _amount,
         uint256 _index
-    ) external onlyLiquidityManagerProxy {
+    ) external onlyAdmin {
         uint256 amountScaled = _amount.rayDiv(_index);
         require(amountScaled != 0, Errors.CT_INVALID_BURN_AMOUNT);
         _burn(_user, amountScaled);
+        IERC20(underlyingAsset).safeTransfer(_user, _amount);
         emit Transfer(_user, address(0), _amount);
         emit Burn(_user, _amount, _index);
+    }
+
+    function transferUnderlyingTo(address _target, uint256 _amount)
+        external
+        onlyAdmin
+    {
+        IERC20(underlyingAsset).safeTransfer(_target, _amount);
     }
 
     /**
@@ -156,7 +165,7 @@ contract SeniorDepositToken is
 
         return
             currentSupplyScaled.rayMul(
-                liquidityManagerProxy.getLiquidityRate(
+                liquidityManagerProxy.getReserveNormalizedIncome(
                     underlyingAsset,
                     ReserveLogic.Tranche.SENIOR
                 )

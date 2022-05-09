@@ -69,7 +69,7 @@ contract VoyageProtocolDataProvider {
         );
         DataTypes.DepositAndDebt memory depositAndDebt = lmp
             .getLiquidityAndDebt(underlyingAsset);
-        ERC20 token = ERC20(underlyingAsset);
+        IERC20Metadata token = IERC20Metadata(underlyingAsset);
 
         DataTypes.PoolData memory poolData;
         poolData.juniorLiquidity = depositAndDebt.juniorDepositAmount;

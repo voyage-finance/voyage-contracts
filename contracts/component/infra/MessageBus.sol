@@ -18,9 +18,6 @@ import '../vault/VaultManagerProxy.sol';
  * for querying each other among the internal components
  **/
 contract MessageBus is IMessageBus, Ownable {
-    // todo to remove
-    bytes32 public constant aclManagerName = 'aclManager';
-
     AddressResolver public addressResolver;
 
     /**

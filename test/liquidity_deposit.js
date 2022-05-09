@@ -69,8 +69,10 @@ describe('Reserve Deposit', function () {
     expect(reserveFlags[1]).to.equal(false);
     expect(reserveFlags[2]).to.equal(false);
 
-    escrowContract = await voyager.getLiquidityManagerEscrowContractAddress();
-    await tus.increaseAllowance(escrowContract, '100000000000000000000');
+    await tus.increaseAllowance(
+      liquidityManager.address,
+      '100000000000000000000'
+    );
 
     const aclManager = await ethers.getContract('ACLManager');
     await aclManager.grantLiquidityManager(owner);
@@ -85,9 +87,6 @@ describe('Reserve Deposit', function () {
       .withArgs(tus.address, owner, 0, depositAmount);
     const juniorTokenAmount = await juniorDepositToken.balanceOf(owner);
     expect(juniorTokenAmount).to.equal(BigNumber.from(depositAmount));
-    expect(await tus.balanceOf(escrowContract)).to.equal(
-      BigNumber.from(depositAmount)
-    );
 
     // deposit again
     await expect(voyager.deposit(tus.address, 0, depositAmount, owner))
