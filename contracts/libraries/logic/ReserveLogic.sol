@@ -79,8 +79,14 @@ library ReserveLogic {
     struct UpdateInterestRatesLocalVars {
         address debtTokenAddress;
         uint256 availableLiquidity;
+        uint256 juniorLiquidity;
+        uint256 seniorLiquidity;
+        uint256 liquidityRatio;
         uint256 totalDebt;
+        // total liquidity rate
         uint256 newLiquidityRate;
+        uint256 effectiveJuniorLiquidityRate;
+        uint256 effectSeniorLiquidityRate;
         uint256 newBorrowRate;
         uint256 avgBorrowRate;
     }
@@ -89,11 +95,17 @@ library ReserveLogic {
     function updateInterestRates(
         DataTypes.ReserveData storage _reserve,
         address _reserveAddress,
+        address _juniorDepositTokenAddress,
         address _seniorDepositTokenAddress,
         uint256 _seniorLiquidityAdded,
         uint256 _seniorLiquidityTaken
     ) public {
         UpdateInterestRatesLocalVars memory vars;
+
+        vars.seniorLiquidity = IERC20(_seniorDepositTokenAddress).totalSupply();
+        vars.juniorLiquidity = IERC20(_juniorDepositTokenAddress).totalSupply();
+        // todo @xiaohuo check ray or wad
+        vars.liquidityRatio = vars.seniorLiquidity.rayDiv(vars.juniorLiquidity);
 
         vars.debtTokenAddress = _reserve.stableDebtAddress;
         (vars.totalDebt, vars.avgBorrowRate) = IStableDebtToken(
@@ -120,8 +132,20 @@ library ReserveLogic {
             vars.newBorrowRate <= type(uint128).max,
             Errors.RL_STABLE_BORROW_RATE_OVERFLOW
         );
+
+        vars.effectiveJuniorLiquidityRate = vars
+            .newLiquidityRate
+            .rayMul(WadRayMath.Ray() - _reserve.optimalIncomeRatio)
+            .rayMul(vars.liquidityRatio);
+
+        vars.effectSeniorLiquidityRate = vars.newLiquidityRate.rayMul(
+            _reserve.optimalIncomeRatio
+        );
+
         _reserve.currentOverallLiquidityRate = vars.newLiquidityRate;
         _reserve.currentBorrowRate = vars.newBorrowRate;
+        _reserve.currentJuniorLiquidityRate = vars.effectiveJuniorLiquidityRate;
+        _reserve.currentSeniorLiquidityRate = vars.effectSeniorLiquidityRate;
 
         emit ReserveDataUpdated(
             _reserveAddress,
@@ -160,54 +184,13 @@ library ReserveLogic {
     }
 
     function _getLiquidityRate(
-        DataTypes.ReserveData storage reserve,
+        DataTypes.ReserveData storage _reserve,
         Tranche _tranche
     ) internal view returns (uint256) {
-        // totalAllocation always == 1
-        // E.g. liquidity ratio sr:jr is 5:1
-        // seniorLiquidity = 100
-        // juniorLiquidity = 20
-        // juniorIncomeAllocation = 0.5
-        // seniorIncomeAllocation = 0.5
-        // overall liquidity rate = 0.2
-        //        uint256 overallInterestRate;
-        //        uint256 seniorLiquidity = IERC20(_seniorDepositToken).totalSupply();
-        //        uint256 juniorLiquidity = IERC20(_juniorDepositToken).totalSupply();
-        //        uint256 liquidityRatio = seniorLiquidity.div(juniorLiquidity);
-        // junior rate = 0.2 * 0.5 * 5 = 0.5
-        // if delta time = 1 year
-        // seniorLiquidity = 120
-        // juniorLiquidity = 20
-        // juniorIncome = 10
-        // seniorIncome = 10
-        // juniorRate = 10 / 20 * 100 = 50%
-        // seniorRate = 10 / 100 = 0.1
-
-        //        uint256 effectiveJuniorRate = overallInterestRate
-        //            .mul(juniorIncomeAllocation)
-        //            .mul(liquidityRatio);
-        //
-        //        uint256 effectiveSeniorRate = overallInterestRate.mul(
-        //            seniorIncomeAllocation
-        //        );
-
-        uint256 totalAllocationInRay = reserve
-            .currentJuniorIncomeAllocation
-            .add(reserve.currentSeniorIncomeAllocation);
         if (_tranche == Tranche.JUNIOR) {
-            return
-                reserve.currentOverallLiquidityRate.rayMul(
-                    reserve.currentJuniorIncomeAllocation.rayDiv(
-                        totalAllocationInRay
-                    )
-                );
+            return _reserve.currentJuniorLiquidityRate;
         } else {
-            return
-                reserve.currentOverallLiquidityRate.rayMul(
-                    reserve.currentSeniorIncomeAllocation.rayDiv(
-                        totalAllocationInRay
-                    )
-                );
+            return _reserve.currentSeniorLiquidityRate;
         }
     }
 

@@ -65,6 +65,7 @@ contract LiquidityManagerStorage is EscrowStorage {
         } else {
             reserve.updateInterestRates(
                 _asset,
+                reserve.juniorDepositTokenAddress,
                 reserve.seniorDepositTokenAddress,
                 _amount,
                 0
@@ -86,6 +87,7 @@ contract LiquidityManagerStorage is EscrowStorage {
         } else {
             reserve.updateInterestRates(
                 _asset,
+                reserve.juniorDepositTokenAddress,
                 reserve.seniorDepositTokenAddress,
                 0,
                 _amount
@@ -102,6 +104,7 @@ contract LiquidityManagerStorage is EscrowStorage {
         reserve.updateState(ReserveLogic.Tranche.SENIOR);
         reserve.updateInterestRates(
             _asset,
+            reserve.juniorDepositTokenAddress,
             reserve.seniorDepositTokenAddress,
             0,
             _amount

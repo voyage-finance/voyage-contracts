@@ -51,9 +51,6 @@ contract LiquidityManager is
             liquidityIndex = getSeniorLiquidityIndex(_asset);
         }
         IVToken(vToken).mint(_onBehalfOf, _amount, liquidityIndex);
-        uint256 scaledBalance = IVToken(vToken)
-            .scaledBalanceOf(_onBehalfOf)
-            .rayDiv(liquidityIndex);
 
         if (_asset != EthAddressLib.ethAddress()) {
             require(
@@ -105,6 +102,8 @@ contract LiquidityManager is
         IVToken(vToken).burn(_user, amountToWithdraw, liquidityIndex);
         emitWithdraw(_asset, _user, _tranche, amountToWithdraw);
     }
+
+    // todo @xiaohuo claim process
 
     /************************************** View Functions **************************************/
 

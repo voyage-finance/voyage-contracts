@@ -13,6 +13,8 @@ library DataTypes {
         // for calculating overall interested accumulated
         // then split it into two indexs base on two allocations
         uint256 currentOverallLiquidityRate;
+        uint256 currentJuniorLiquidityRate;
+        uint256 currentSeniorLiquidityRate;
         // Expressed in ray
         uint256 currentSeniorIncomeAllocation;
         // Expressed in ray
@@ -34,6 +36,7 @@ library DataTypes {
         uint40 juniorLastUpdateTimestamp;
         uint40 seniorLastUpdateTimestamp;
         uint256 optimalTrancheRatio;
+        // senior allocation
         uint256 optimalIncomeRatio;
     }
 
