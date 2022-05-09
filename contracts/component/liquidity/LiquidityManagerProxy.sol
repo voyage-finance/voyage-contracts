@@ -98,8 +98,4 @@ contract LiquidityManagerProxy is Proxy, ILiquidityManagerProxy {
                 _tranche
             );
     }
-
-    function getEscrowAddress() external view returns (address) {
-        return ILiquidityManager(address(target)).getEscrowAddress();
-    }
 }

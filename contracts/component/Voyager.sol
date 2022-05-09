@@ -172,19 +172,6 @@ contract Voyager is MessageBus {
                 .getLiquidityRate(_asset, _tranche);
     }
 
-    /**
-     * @dev Get EscrowContract owned by LiquidityManager
-     **/
-    function getLiquidityManagerEscrowContractAddress()
-        external
-        view
-        returns (address)
-    {
-        return
-            LiquidityManager(getLiquidityManagerProxyAddress())
-                .getEscrowAddress();
-    }
-
     /************************************** Loan Manager Interfaces **************************************/
 
     // todo remove _grossAssetValue

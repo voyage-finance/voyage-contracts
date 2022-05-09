@@ -19,6 +19,8 @@ library ReserveLogic {
     using SafeMath for uint256;
     using WadRayMath for uint256;
 
+    uint256 internal constant RAY = 1e27;
+
     using ReserveLogic for DataTypes.ReserveData;
 
     enum Tranche {
@@ -54,12 +56,12 @@ library ReserveLogic {
         reserve.seniorLiquidityIndex = WadRayMath.ray();
         reserve.juniorDepositTokenAddress = _juniorDepositTokenAddress;
         reserve.seniorDepositTokenAddress = _seniorDepositTokenAddress;
-        //reserve.currentOverallLiquidityRate = WadRayMath.ray();
         reserve.currentJuniorIncomeAllocation = _juniorIncomeAllocation;
         reserve.currentSeniorIncomeAllocation = _seniorIncomeAllocation;
         reserve.stableDebtAddress = _stableDebtAddress;
         reserve.interestRateStrategyAddress = _interestRateStrategyAddress;
         reserve.healthStrategyAddress = _healthStrategyAddress;
+        reserve.optimalIncomeRatio = WadRayMath.ray() / 2;
     }
 
     function updateState(
@@ -77,64 +79,87 @@ library ReserveLogic {
     }
 
     struct UpdateInterestRatesLocalVars {
-        address stableDebtTokenAddress;
+        address debtTokenAddress;
         uint256 availableLiquidity;
-        uint256 totalStableDebt;
+        uint256 juniorLiquidity;
+        uint256 seniorLiquidity;
+        uint256 liquidityRatio;
+        uint256 totalDebt;
+        // total liquidity rate
         uint256 newLiquidityRate;
-        uint256 newStableRate;
-        uint256 avgStableRate;
+        uint256 effectiveJuniorLiquidityRate;
+        uint256 effectSeniorLiquidityRate;
+        uint256 newBorrowRate;
+        uint256 avgBorrowRate;
     }
 
+    // for the purposes of updating interest rates, we only care about senior tranche liquidity.
     function updateInterestRates(
         DataTypes.ReserveData storage _reserve,
-        address _escrow,
         address _reserveAddress,
-        uint256 _juniorLiquidityAdded,
-        uint256 _juniorLiquidityTaken,
+        address _juniorDepositTokenAddress,
+        address _seniorDepositTokenAddress,
         uint256 _seniorLiquidityAdded,
         uint256 _seniorLiquidityTaken
     ) public {
         UpdateInterestRatesLocalVars memory vars;
 
-        vars.stableDebtTokenAddress = _reserve.stableDebtAddress;
-        uint256 liquidityAdded = _juniorLiquidityAdded.add(
-            _seniorLiquidityAdded
-        );
-        uint256 liquidityTaken = _juniorLiquidityTaken.add(
-            _seniorLiquidityTaken
-        );
-
-        (vars.totalStableDebt, vars.avgStableRate) = IStableDebtToken(
+        vars.debtTokenAddress = _reserve.stableDebtAddress;
+        (vars.totalDebt, vars.avgBorrowRate) = IStableDebtToken(
             _reserve.stableDebtAddress
         ).getTotalSupplyAndAvgRate();
 
         (
             vars.newLiquidityRate,
-            vars.newStableRate
+            vars.newBorrowRate
         ) = IReserveInterestRateStrategy(_reserve.interestRateStrategyAddress)
             .calculateInterestRates(
                 _reserveAddress,
-                _escrow,
-                liquidityAdded,
-                liquidityTaken,
-                vars.totalStableDebt,
-                vars.avgStableRate
+                _seniorDepositTokenAddress,
+                _seniorLiquidityAdded,
+                _seniorLiquidityTaken,
+                vars.totalDebt,
+                vars.avgBorrowRate
             );
         require(
             vars.newLiquidityRate <= type(uint128).max,
             Errors.RL_LIQUIDITY_RATE_OVERFLOW
         );
         require(
-            vars.newStableRate <= type(uint128).max,
+            vars.newBorrowRate <= type(uint128).max,
             Errors.RL_STABLE_BORROW_RATE_OVERFLOW
         );
+
+        vars.seniorLiquidity = IERC20(_seniorDepositTokenAddress).totalSupply();
+        vars.juniorLiquidity = IERC20(_juniorDepositTokenAddress).totalSupply();
+
+        if (vars.juniorLiquidity == 0) {
+            vars.effectiveJuniorLiquidityRate = 0;
+            vars.effectSeniorLiquidityRate = vars.newLiquidityRate;
+        } else {
+            vars.liquidityRatio = vars.seniorLiquidity.rayDiv(
+                vars.juniorLiquidity
+            );
+
+            vars.effectiveJuniorLiquidityRate = vars
+                .newLiquidityRate
+                .rayMul(RAY - _reserve.optimalIncomeRatio)
+                .rayMul(vars.liquidityRatio);
+
+            vars.effectSeniorLiquidityRate = vars.newLiquidityRate.rayMul(
+                _reserve.optimalIncomeRatio
+            );
+        }
+
         _reserve.currentOverallLiquidityRate = vars.newLiquidityRate;
-        _reserve.currentBorrowRate = vars.newStableRate;
+        _reserve.currentBorrowRate = vars.newBorrowRate;
+        _reserve.currentJuniorLiquidityRate = vars.effectiveJuniorLiquidityRate;
+        _reserve.currentSeniorLiquidityRate = vars.effectSeniorLiquidityRate;
 
         emit ReserveDataUpdated(
             _reserveAddress,
             vars.newLiquidityRate,
-            vars.newStableRate,
+            vars.newBorrowRate,
             vars.newLiquidityRate
         );
     }
@@ -171,23 +196,10 @@ library ReserveLogic {
         DataTypes.ReserveData storage reserve,
         Tranche _tranche
     ) internal view returns (uint256) {
-        uint256 totalAllocationInRay = reserve
-            .currentJuniorIncomeAllocation
-            .add(reserve.currentSeniorIncomeAllocation);
         if (_tranche == Tranche.JUNIOR) {
-            return
-                reserve.currentOverallLiquidityRate.rayMul(
-                    reserve.currentJuniorIncomeAllocation.rayDiv(
-                        totalAllocationInRay
-                    )
-                );
+            return reserve.currentJuniorLiquidityRate;
         } else {
-            return
-                reserve.currentOverallLiquidityRate.rayMul(
-                    reserve.currentSeniorIncomeAllocation.rayDiv(
-                        totalAllocationInRay
-                    )
-                );
+            return reserve.currentSeniorLiquidityRate;
         }
     }
 

@@ -13,6 +13,7 @@ import '../libraries/logic/ReserveLogic.sol';
 import '../component/infra/AddressResolver.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 import '../interfaces/IVToken.sol';
+import 'hardhat/console.sol';
 
 contract JuniorDepositToken is
     Context,
@@ -107,8 +108,16 @@ contract JuniorDepositToken is
         uint256 amountScaled = _amount.rayDiv(_index);
         require(amountScaled != 0, Errors.CT_INVALID_BURN_AMOUNT);
         _burn(_user, amountScaled);
+        IERC20(underlyingAsset).safeTransfer(_user, _amount);
         emit Transfer(_user, address(0), _amount);
         emit Burn(_user, _amount, _index);
+    }
+
+    function transferUnderlyingTo(address _target, uint256 _amount)
+        external
+        onlyLiquidityManagerProxy
+    {
+        IERC20(underlyingAsset).safeTransfer(_target, _amount);
     }
 
     /**
@@ -149,6 +158,7 @@ contract JuniorDepositToken is
      **/
     function totalSupply() public view override(BaseERC20) returns (uint256) {
         uint256 currentSupplyScaled = super.totalSupply();
+        console.log('currentSupplyScaled:', currentSupplyScaled);
         if (currentSupplyScaled == 0) {
             return 0;
         }
@@ -156,7 +166,7 @@ contract JuniorDepositToken is
 
         return
             currentSupplyScaled.rayMul(
-                liquidityManagerProxy.getLiquidityRate(
+                liquidityManagerProxy.getReserveNormalizedIncome(
                     underlyingAsset,
                     ReserveLogic.Tranche.JUNIOR
                 )

@@ -5,6 +5,7 @@ const { BigNumber } = require('ethers');
 let owner;
 let voyager;
 let liquidityManagerProxy;
+let liquidityManager;
 let juniorDepositToken;
 let seniorDepositToken;
 let stableDebtToken;
@@ -32,6 +33,7 @@ describe('Withdraw', function () {
       'VaultManager',
     ]);
     liquidityManagerProxy = await ethers.getContract('LiquidityManagerProxy');
+    liquidityManager = await ethers.getContract('LiquidityManager');
     juniorDepositToken = await ethers.getContract('JuniorDepositToken');
     seniorDepositToken = await ethers.getContract('SeniorDepositToken');
     stableDebtToken = await ethers.getContract('StableDebtToken');
@@ -50,10 +52,10 @@ describe('Withdraw', function () {
       ethers.utils.formatBytes32String('redeemSecurity'),
       ethers.utils.formatBytes32String('borrow'),
     ]);
-    const escrowContract =
-      await voyager.getLiquidityManagerEscrowContractAddress();
-    // 1000
-    await tus.increaseAllowance(escrowContract, '1000000000000000000000');
+    await tus.increaseAllowance(
+      liquidityManager.address,
+      '1000000000000000000000'
+    );
 
     const vaultManagerProxy = await ethers.getContract('VaultManagerProxy');
     const VaultManager = await ethers.getContractFactory('VaultManager');
@@ -134,10 +136,7 @@ describe('Withdraw', function () {
     console.log('original balance: ', originalBalance.toString());
 
     const accumulatedBalance = await seniorDepositToken.balanceOf(owner);
-    await expect(accumulatedBalance > BigNumber.from('100000000000000000000'))
-      .to.be.true;
-    console.log('accumulated balance: ', accumulatedBalance);
-
+    console.log('accumulated balance: ', accumulatedBalance.toString());
     await voyager.withdraw(tus.address, 1, '10000000000000000000');
     const accumulatedBalanceAfter = await seniorDepositToken.balanceOf(owner);
     console.log(

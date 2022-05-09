@@ -5,6 +5,7 @@ const { BigNumber } = require('ethers');
 let owner;
 let voyager;
 let liquidityManagerProxy;
+let liquidityManager;
 let juniorDepositToken;
 let seniorDepositToken;
 let stableDebtToken;
@@ -32,6 +33,7 @@ describe('Borrow', function () {
       'VaultManager',
     ]);
     liquidityManagerProxy = await ethers.getContract('LiquidityManagerProxy');
+    liquidityManager = await ethers.getContract('LiquidityManager');
     juniorDepositToken = await ethers.getContract('JuniorDepositToken');
     seniorDepositToken = await ethers.getContract('SeniorDepositToken');
     stableDebtToken = await ethers.getContract('StableDebtToken');
@@ -50,10 +52,10 @@ describe('Borrow', function () {
       ethers.utils.formatBytes32String('redeemSecurity'),
       ethers.utils.formatBytes32String('borrow'),
     ]);
-    const escrowContract =
-      await voyager.getLiquidityManagerEscrowContractAddress();
-    // 1000
-    await tus.increaseAllowance(escrowContract, '1000000000000000000000');
+    await tus.increaseAllowance(
+      liquidityManager.address,
+      '1000000000000000000000'
+    );
 
     const vaultManagerProxy = await ethers.getContract('VaultManagerProxy');
     const VaultManager = await ethers.getContractFactory('VaultManager');
@@ -140,9 +142,13 @@ describe('Borrow', function () {
     // 100
     const depositAmount = '100000000000000000000';
     await lm.activeReserve(tus.address);
-    // todo
-    vm.setMaxSecurityDeposit(tus.address, '1000000000000000000000');
+    await vm.setMaxSecurityDeposit(tus.address, '1000000000000000000000');
+    await voyager.deposit(tus.address, 0, depositAmount, owner);
     await voyager.deposit(tus.address, 1, depositAmount, owner);
+    const seniorLiquidity = await tus.balanceOf(seniorDepositToken.address);
+    const juniorLiquidity = await tus.balanceOf(juniorDepositToken.address);
+    console.log('senior liquidity: ', seniorLiquidity.toString());
+    console.log('junior liquidity: ', juniorLiquidity.toString());
     await vm.setSecurityDepositRequirement(
       tus.address,
       '100000000000000000000000000'

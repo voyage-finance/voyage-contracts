@@ -13,8 +13,6 @@ const deployFn: DeployFunction = async (hre) => {
   const { deployments, ethers, getNamedAccounts, network } = hre;
   const { deploy, execute, read } = deployments;
   const { owner } = await getNamedAccounts();
-  const signer = ethers.provider.getSigner(0);
-  const escrowAddress = await read('LiquidityManager', {}, 'getEscrowAddress');
 
   const LoanManagerProxy = await deploy(LOAN_MANAGER_PROXY_NAME, {
     from: owner,
@@ -39,13 +37,8 @@ const deployFn: DeployFunction = async (hre) => {
   const names = [
     ethers.utils.formatBytes32String('loanManager'),
     ethers.utils.formatBytes32String('loanManagerProxy'),
-    ethers.utils.formatBytes32String('liquidityDepositEscrow'),
   ];
-  const destinations = [
-    LoanManager.address,
-    LoanManagerProxy.address,
-    escrowAddress,
-  ];
+  const destinations = [LoanManager.address, LoanManagerProxy.address];
   await execute(
     'AddressResolver',
     { from: owner, log: true },
