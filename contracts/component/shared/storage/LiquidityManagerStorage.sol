@@ -108,25 +108,6 @@ contract LiquidityManagerStorage is EscrowStorage {
         );
     }
 
-    function recordDeposit(
-        address _reserve,
-        ReserveLogic.Tranche _tranche,
-        address _user,
-        uint256 _scaledAmount,
-        uint40 _timestamp
-    ) public onlyAssociatedContract {
-        _recordDeposit(_reserve, _tranche, _user, _scaledAmount, _timestamp);
-    }
-
-    function recordWithdrawal(
-        address _reserve,
-        ReserveLogic.Tranche _tranche,
-        address payable _user,
-        DataTypes.Withdrawal[] memory _withdrawals
-    ) public onlyAssociatedContract {
-        _recordWithdrawal(_reserve, _tranche, _user, _withdrawals);
-    }
-
     function eligibleAmount(
         address _reserve,
         address _user,

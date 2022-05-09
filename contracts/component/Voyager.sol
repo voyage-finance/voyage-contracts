@@ -96,12 +96,12 @@ contract Voyager is MessageBus {
     function withdraw(
         address _asset,
         ReserveLogic.Tranche _tranche,
-        DataTypes.Withdrawal[] memory _withdrawals
+        uint256 _amount
     ) external {
         LiquidityManager(getLiquidityManagerProxyAddress()).withdraw(
             _asset,
             _tranche,
-            _withdrawals,
+            _amount,
             payable(msg.sender)
         );
     }

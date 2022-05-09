@@ -32,40 +32,6 @@ abstract contract EscrowStorage is State {
 
     uint40 private _lockupTimeInSeconds = 7 days;
 
-    function _recordDeposit(
-        address _reserve,
-        ReserveLogic.Tranche _tranche,
-        address _user,
-        uint256 _scaledAmount,
-        uint40 _timestamp
-    ) internal {
-        DataTypes.Deposit[] storage deposits;
-        DataTypes.Deposit memory deposit;
-        deposit.amount = _scaledAmount;
-        deposit.depositTime = _timestamp;
-        if (ReserveLogic.Tranche.JUNIOR == _tranche) {
-            deposits = _juniorDepositRecords[_reserve][_user];
-        } else {
-            deposits = _seniorDepositRecords[_reserve][_user];
-        }
-        deposits.recordDeposit(deposit);
-    }
-
-    function _recordWithdrawal(
-        address _reserve,
-        ReserveLogic.Tranche _tranche,
-        address payable _user,
-        DataTypes.Withdrawal[] memory _withdrawals
-    ) internal {
-        DataTypes.Deposit[] storage _deposits;
-        if (_tranche == ReserveLogic.Tranche.SENIOR) {
-            _deposits = _seniorDepositRecords[_reserve][_user];
-        } else {
-            _deposits = _seniorDepositRecords[_reserve][_user];
-        }
-        _deposits.recordWithdrawal(_withdrawals);
-    }
-
     function _eligibleAmount(
         address _reserve,
         address _user,

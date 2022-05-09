@@ -55,14 +55,6 @@ contract LiquidityManager is
             .scaledBalanceOf(_onBehalfOf)
             .rayDiv(liquidityIndex);
 
-        lms.recordDeposit(
-            _asset,
-            _tranche,
-            _user,
-            scaledBalance,
-            uint40(block.timestamp)
-        );
-
         if (_asset != EthAddressLib.ethAddress()) {
             require(
                 msg.value == 0,
@@ -82,7 +74,7 @@ contract LiquidityManager is
     function withdraw(
         address _asset,
         ReserveLogic.Tranche _tranche,
-        DataTypes.Withdrawal[] memory _withdrawals,
+        uint256 _amount,
         address payable _user
     ) external onlyProxy {
         LiquidityManagerStorage lms = LiquidityManagerStorage(
@@ -102,10 +94,7 @@ contract LiquidityManager is
 
         uint256 userBalance = IERC20(vToken).balanceOf(_user);
 
-        uint256 amountToWithdraw;
-        for (uint256 i = 0; i < _withdrawals.length; i++) {
-            amountToWithdraw += _withdrawals[i].amount;
-        }
+        uint256 amountToWithdraw = _amount;
 
         if (amountToWithdraw == type(uint256).max) {
             amountToWithdraw = userBalance;
