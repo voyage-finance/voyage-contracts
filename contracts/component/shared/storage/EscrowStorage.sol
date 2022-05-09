@@ -5,7 +5,6 @@ import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
 import '../../../libraries/logic/ReserveLogic.sol';
-import '../../../libraries/logic/EscrowLogic.sol';
 import '../../../libraries/EthAddressLib.sol';
 import '../../../libraries/types/DataTypes.sol';
 import '../../../libraries/state/State.sol';
@@ -13,7 +12,6 @@ import '../../../libraries/state/State.sol';
 abstract contract EscrowStorage is State {
     using Address for address payable;
     using SafeERC20 for ERC20;
-    using EscrowLogic for DataTypes.Deposit[];
 
     event Deposited(address indexed payee, address token, uint256 scaledAmount);
 
