@@ -7,11 +7,11 @@ import '../../../libraries/logic/ReserveLogic.sol';
 import '../../../libraries/logic/ValidationLogic.sol';
 import '../../../libraries/configuration/ReserveConfiguration.sol';
 import '../../../tokenization/StableDebtToken.sol';
+import '../../../libraries/state/State.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
-import './EscrowStorage.sol';
 
-contract LiquidityManagerStorage is EscrowStorage {
+contract LiquidityManagerStorage is State {
     using ReserveLogic for DataTypes.ReserveData;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
     using SafeMath for uint256;
@@ -109,22 +109,6 @@ contract LiquidityManagerStorage is EscrowStorage {
             0,
             _amount
         );
-    }
-
-    function eligibleAmount(
-        address _reserve,
-        address _user,
-        ReserveLogic.Tranche _tranche
-    ) public view returns (uint256, uint40) {
-        return _eligibleAmount(_reserve, _user, _tranche);
-    }
-
-    function overallAmount(
-        address _reserve,
-        address _user,
-        ReserveLogic.Tranche _tranche
-    ) public view returns (uint256) {
-        return _overallAmount(_reserve, _user, _tranche);
     }
 
     function activeReserve(address _asset) public onlyAssociatedContract {

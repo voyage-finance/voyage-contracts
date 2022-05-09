@@ -3,9 +3,11 @@ pragma solidity ^0.8.9;
 
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
 import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 import './ReserveManager.sol';
 import '../../libraries/helpers/Errors.sol';
 import '../../libraries/logic/ReserveLogic.sol';
+import '../../libraries/EthAddressLib.sol';
 import '../../libraries/math/WadRayMath.sol';
 import '../../interfaces/IReserveManager.sol';
 import '../../interfaces/ILiquidityManager.sol';
@@ -115,11 +117,13 @@ contract LiquidityManager is
         LiquidityManagerStorage lms = LiquidityManagerStorage(
             liquidityManagerStorageAddress()
         );
-        (uint256 scaledBalance, uint40 timestamp) = lms.eligibleAmount(
-            _reserve,
-            _user,
-            _tranche
-        );
+        //        (uint256 scaledBalance, uint40 timestamp) = lms.eligibleAmount(
+        //            _reserve,
+        //            _user,
+        //            _tranche
+        //        );
+        //todo
+        uint256 scaledBalance = 0;
         return
             scaledBalance.rayMul(
                 LiquidityManagerStorage(liquidityManagerStorageAddress())
@@ -140,7 +144,9 @@ contract LiquidityManager is
         LiquidityManagerStorage lms = LiquidityManagerStorage(
             liquidityManagerStorageAddress()
         );
-        uint256 scaledBalance = lms.overallAmount(_reserve, _user, _tranche);
+        //        uint256 scaledBalance = lms.overallAmount(_reserve, _user, _tranche);
+        // todo @xiaohuo
+        uint256 scaledBalance = 0;
         return
             scaledBalance.rayMul(
                 LiquidityManagerStorage(liquidityManagerStorageAddress())

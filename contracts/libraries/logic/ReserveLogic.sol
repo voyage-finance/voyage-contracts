@@ -2,6 +2,7 @@
 pragma solidity ^0.8.9;
 
 import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 import '../math/WadRayMath.sol';
 import '../math/MathUtils.sol';
 import '../types/DataTypes.sol';
@@ -18,8 +19,8 @@ import 'hardhat/console.sol';
 library ReserveLogic {
     using SafeMath for uint256;
     using WadRayMath for uint256;
+    uint256 internal constant RAY = 1e27;
 
-    using ReserveLogic for DataTypes.ReserveData;
 
     enum Tranche {
         JUNIOR,
@@ -73,7 +74,7 @@ library ReserveLogic {
         DataTypes.ReserveData storage reserve,
         Tranche _tranche
     ) public view returns (uint256) {
-        return reserve._getLiquidityRate(_tranche);
+        return getLiquidityRate(reserve, _tranche);
     }
 
     struct UpdateInterestRatesLocalVars {
@@ -135,7 +136,7 @@ library ReserveLogic {
 
         vars.effectiveJuniorLiquidityRate = vars
             .newLiquidityRate
-            .rayMul(WadRayMath.Ray() - _reserve.optimalIncomeRatio)
+            .rayMul(RAY - _reserve.optimalIncomeRatio)
             .rayMul(vars.liquidityRatio);
 
         vars.effectSeniorLiquidityRate = vars.newLiquidityRate.rayMul(
@@ -176,7 +177,7 @@ library ReserveLogic {
 
         uint256 cumulated = MathUtils
             .calculateLinearInterest(
-                reserve._getLiquidityRate(_tranche),
+                _getLiquidityRate(reserve, _tranche),
                 timestamp
             )
             .rayMul(liquidityIndex);
@@ -202,7 +203,8 @@ library ReserveLogic {
             uint256 previousJuniorLiquidityIndex = reserve.juniorLiquidityIndex;
             uint256 lastJuniorUpdatedTimestamp = reserve
                 .juniorLastUpdateTimestamp;
-            reserve._updateJuniorLiquidityIndex(
+            _updateJuniorLiquidityIndex(
+                reserve,
                 previousJuniorLiquidityIndex,
                 uint40(lastJuniorUpdatedTimestamp)
             );
@@ -210,7 +212,8 @@ library ReserveLogic {
             uint256 previousSeniorLiquidityIndex = reserve.seniorLiquidityIndex;
             uint256 lastSeniorUpdatedTimestamp = reserve
                 .seniorLastUpdateTimestamp;
-            reserve._updateSeniorLiquidityIndex(
+            _updateSeniorLiquidityIndex(
+                reserve,
                 previousSeniorLiquidityIndex,
                 uint40(lastSeniorUpdatedTimestamp)
             );
@@ -222,7 +225,10 @@ library ReserveLogic {
         uint256 juniorLiquidityIndex,
         uint40 timestamp
     ) internal returns (uint256) {
-        uint256 juniorLiquidityRate = reserve._getLiquidityRate(Tranche.JUNIOR);
+        uint256 juniorLiquidityRate = _getLiquidityRate(
+            reserve,
+            Tranche.JUNIOR
+        );
         uint256 newJuniorLiquidityIndex = juniorLiquidityIndex;
 
         // only cumulating if there is any income being produced
@@ -244,7 +250,10 @@ library ReserveLogic {
         uint256 seniorLiquidityIndex,
         uint40 timestamp
     ) internal returns (uint256) {
-        uint256 seniorLiquidityRate = reserve._getLiquidityRate(Tranche.SENIOR);
+        uint256 seniorLiquidityRate = _getLiquidityRate(
+            reserve,
+            Tranche.SENIOR
+        );
         uint256 newSeniorLiquidityIndex = seniorLiquidityIndex;
 
         if (seniorLiquidityRate > 0) {

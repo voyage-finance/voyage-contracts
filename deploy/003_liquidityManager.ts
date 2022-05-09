@@ -28,35 +28,40 @@ const deployFn: DeployFunction = async (hre) => {
     log: true,
   });
 
+  const EthAddressLib = await deploy('EthAddressLib', {
+    from: owner,
+    log: true,
+  });
+
   const LiquidityManager = await deploy(LM_NAME, {
     from: owner,
     args: [LMProxy.address, Voyager.address],
     libraries: {
-      ReserveLogic: ReserveLogic.address,
+      EthAddressLib: EthAddressLib.address,
     },
     log: true,
   });
 
-  await deploy(LM_STORAGE_NAME, {
-    from: owner,
-    args: [LiquidityManager.address],
-    libraries: {
-      ReserveLogic: ReserveLogic.address,
-      ValidationLogic: ValidationLogic.address
-    },
-    log: true,
-  });
+  // await deploy(LM_STORAGE_NAME, {
+  //   from: owner,
+  //   args: [LiquidityManager.address],
+  //   libraries: {
+  //     ReserveLogic: ReserveLogic.address,
+  //     ValidationLogic: ValidationLogic.address,
+  //   },
+  //   log: true,
+  // });
 
   const isOwner = await read(LM_PROXY_NAME, { from: owner }, 'isOwner');
 
-  if (isOwner) {
-    await execute(
-      LM_PROXY_NAME,
-      { from: owner, log: true },
-      'setTarget',
-      LiquidityManager.address
-    );
-  }
+  // if (isOwner) {
+  //   await execute(
+  //     LM_PROXY_NAME,
+  //     { from: owner, log: true },
+  //     'setTarget',
+  //     LiquidityManager.address
+  //   );
+  // }
 };
 
 deployFn.dependencies = ['Voyager'];

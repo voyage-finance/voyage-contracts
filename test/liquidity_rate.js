@@ -55,14 +55,17 @@ describe('Liquidity Rate', function () {
       ethers.utils.formatBytes32String('redeemSecurity'),
       ethers.utils.formatBytes32String('borrow'),
     ]);
-    await tus.increaseAllowance(liquidityManager.address, '1000000000000000000000');
+    await tus.increaseAllowance(
+      liquidityManager.address,
+      '1000000000000000000000'
+    );
 
     const vaultManagerProxy = await ethers.getContract('VaultManagerProxy');
     const VaultManager = await ethers.getContractFactory('VaultManager');
     vm = await VaultManager.attach(vaultManagerProxy.address);
   });
 
-  it.only("Liquidity rate should be 0 if utilization rate is 0", async function () {
+  it.only('Liquidity rate should be 0 if utilization rate is 0', async function () {
     // deposit sufficient reserve
     const reserveLogic = await ethers.getContract('ReserveLogic');
     const LM = await ethers.getContractFactory('LiquidityManager', {
