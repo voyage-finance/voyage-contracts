@@ -1,4 +1,5 @@
 const hre = require('hardhat');
+const { MAX_UINT_256 } = require('../helpers/math');
 const { ethers, getNamedAccounts } = hre;
 
 async function main() {
@@ -16,9 +17,9 @@ async function main() {
   ).getSecurityDepositEscrowAddress();
   console.log('vault escrow address: ', escrowAddress);
 
+  // grant max uint
   const tus = await ethers.getContract('Tus', owner);
-  // 100
-  await tus.increaseAllowance(escrowAddress, '100000000000000000000');
+  await tus.increaseAllowance(escrowAddress, MAX_UINT_256);
 }
 
 main()
