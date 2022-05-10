@@ -6,6 +6,11 @@ pragma solidity ^0.8.9;
  * @notice Interface for the initialize function on JuniorDepositToken and SeniorDepositToken
  **/
 abstract contract IInitializableDepositToken {
+    struct Withdrawal {
+        uint256 amount;
+        uint256 time;
+    }
+
     /**
      * @dev Indicates that the contract has been initialized.
      */
@@ -15,6 +20,10 @@ abstract contract IInitializableDepositToken {
      * @dev Indicates that the contract is in the process of being initialized.
      */
     bool private initializing;
+
+    mapping(address => Withdrawal[]) private withdrawals;
+
+    uint256 private lockupTime = 7 days;
 
     /**
      * @dev Modifier to use in the initializer function of a contract.
@@ -107,4 +116,11 @@ abstract contract IInitializableDepositToken {
 
     // Reserved storage space to allow for layout changes in the future.
     uint256[50] private ______gap;
+
+    function addWithdraw(address _user, uint256 _amount) internal {
+        Withdrawal memory withdraw;
+        withdraw.amount = _amount;
+        withdraw.time = block.timestamp;
+        withdrawals[_user].push(withdraw);
+    }
 }
