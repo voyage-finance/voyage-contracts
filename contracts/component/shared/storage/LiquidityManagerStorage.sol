@@ -58,9 +58,7 @@ contract LiquidityManagerStorage is State {
         DataTypes.ReserveData storage reserve = _reserves[_asset];
         ValidationLogic.validateDeposit(reserve, _amount);
         reserve.updateState(_tranche);
-        if (ReserveLogic.Tranche.JUNIOR == _tranche) {
-            reserve.juniorDepositAmount += _amount;
-        } else {
+        if (ReserveLogic.Tranche.JUNIOR == _tranche) {} else {
             reserve.updateInterestRates(
                 _asset,
                 reserve.juniorDepositTokenAddress,
@@ -68,7 +66,6 @@ contract LiquidityManagerStorage is State {
                 _amount,
                 0
             );
-            reserve.seniorDepositAmount += _amount;
         }
     }
 
@@ -80,9 +77,7 @@ contract LiquidityManagerStorage is State {
         DataTypes.ReserveData storage reserve = _reserves[_asset];
         // todo validate withdraw
         reserve.updateState(_tranche);
-        if (ReserveLogic.Tranche.JUNIOR == _tranche) {
-            reserve.juniorDepositAmount -= _amount;
-        } else {
+        if (ReserveLogic.Tranche.JUNIOR == _tranche) {} else {
             reserve.updateInterestRates(
                 _asset,
                 reserve.juniorDepositTokenAddress,
@@ -90,8 +85,6 @@ contract LiquidityManagerStorage is State {
                 0,
                 _amount
             );
-
-            reserve.seniorDepositAmount -= _amount;
         }
     }
 
