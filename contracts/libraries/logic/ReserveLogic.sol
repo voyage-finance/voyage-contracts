@@ -50,7 +50,8 @@ library ReserveLogic {
         uint256 _seniorIncomeAllocation,
         address _debtTokenAddress,
         address _interestRateStrategyAddress,
-        address _healthStrategyAddress
+        address _healthStrategyAddress,
+        uint256 _optimalIncomeRatio
     ) external {
         reserve.juniorLiquidityIndex = WadRayMath.ray();
         reserve.seniorLiquidityIndex = WadRayMath.ray();
@@ -61,7 +62,7 @@ library ReserveLogic {
         reserve.debtTokenAddress = _debtTokenAddress;
         reserve.interestRateStrategyAddress = _interestRateStrategyAddress;
         reserve.healthStrategyAddress = _healthStrategyAddress;
-        reserve.optimalIncomeRatio = WadRayMath.ray() / 2;
+        reserve.optimalIncomeRatio = _optimalIncomeRatio;
     }
 
     function updateState(

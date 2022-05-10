@@ -34,7 +34,8 @@ contract LiquidityManagerStorage is State {
         uint256 _seniorIncomeAllocation,
         address _stableDebtAddress,
         address _interestRateStrategyAddress,
-        address _healthStrategyAddress
+        address _healthStrategyAddress,
+        uint256 _optimalIncomeRatio
     ) external onlyAssociatedContract {
         _reserves[_asset].init(
             _juniorDepositTokenAddress,
@@ -43,7 +44,8 @@ contract LiquidityManagerStorage is State {
             _seniorIncomeAllocation,
             _stableDebtAddress,
             _interestRateStrategyAddress,
-            _healthStrategyAddress
+            _healthStrategyAddress,
+            _optimalIncomeRatio
         );
 
         _reserveList[_reservesCount] = _asset;

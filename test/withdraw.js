@@ -75,7 +75,8 @@ describe('Withdraw', function () {
       '900000000000000000000000000',
       stableDebtToken.address,
       defaultReserveInterestRateStrategy.address,
-      healthStrategyAddress.address
+      healthStrategyAddress.address,
+      '500000000000000000000000000'
     );
     // 100
     const depositAmount = '100000000000000000000';
