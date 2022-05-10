@@ -2,6 +2,7 @@ import { DeployFunction } from 'hardhat-deploy/types';
 import { DefaultHealthStrategy, Tus } from '@contracts';
 import TusABI from '../artifacts/contracts/mock/Tus.sol/Tus.json';
 import { ethers } from 'hardhat';
+import BigNumber from 'bignumber.js';
 
 const LM_NAME = 'LiquidityManager';
 const LM_STORAGE_NAME = 'LiquidityManagerStorage';
@@ -12,7 +13,7 @@ const WRM_NAME = 'WadRayMath';
 const INTEREST_STRATEGY_NAME = 'DefaultReserveInterestRateStrategy';
 const HEALTH_STRATEGY_ADDRESS = 'DefaultHealthStrategy';
 
-const WAD = 1000000000000000000;
+const RAY = new BigNumber(10).pow(27);
 
 const deployFn: DeployFunction = async (hre) => {
   const { deployments, ethers, getNamedAccounts, network } = hre;
@@ -21,6 +22,9 @@ const deployFn: DeployFunction = async (hre) => {
   const signer = ethers.provider.getSigner(0);
 
   let TreasureUnderSea: Tus;
+  const tusSupply = new BigNumber(1_000_000_000).multipliedBy(
+    new BigNumber(10).pow(18)
+  );
   if (network.live && network.name === 'avalancheMain') {
     TreasureUnderSea = new ethers.Contract(
       process.env.TUS || '0x0',
@@ -31,7 +35,7 @@ const deployFn: DeployFunction = async (hre) => {
     const TusDeployment = await deploy('Tus', {
       from: owner,
       log: true,
-      args: [(BigInt(1000) * BigInt(WAD)).toString()],
+      args: [tusSupply.toFixed()],
     });
     TreasureUnderSea = new ethers.Contract(
       TusDeployment.address,
@@ -93,17 +97,17 @@ const deployFn: DeployFunction = async (hre) => {
   }
 
   const WadRayMath = await deploy(WRM_NAME, { from: owner, log: true });
+
+  const utilisationRate = new BigNumber('0.8').multipliedBy(RAY).toFixed();
+  const slope1 = new BigNumber('0.04').multipliedBy(RAY).toFixed();
+  const slope2 = new BigNumber('1').multipliedBy(RAY).toFixed();
+  const baseInterest = new BigNumber('0.18').multipliedBy(RAY).toFixed();
+
   await deploy(INTEREST_STRATEGY_NAME, {
     from: owner,
     log: true,
     libraries: { WadRayMath: WadRayMath.address },
-    // 50% 10% 20% 8%
-    args: [
-      '500000000000000000000000000',
-      '100000000000000000000000000',
-      '200000000000000000000000000',
-      '200000000000000000000000000',
-    ],
+    args: [utilisationRate, slope1, slope2, baseInterest],
   });
 
   await deploy(HEALTH_STRATEGY_ADDRESS, {

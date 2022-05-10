@@ -35,6 +35,7 @@
     "@types/chai": "^4.2.18",
     "@types/mocha": "^8.2.2",
     "@types/node": "^15.12.2",
+    "bignumber.js": "^9.0.2",
     "chai": "^4.3.4",
     "cross-env": "^7.0.3",
     "dotenv": "^10.0.0",

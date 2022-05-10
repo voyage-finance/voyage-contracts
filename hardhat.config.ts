@@ -37,10 +37,12 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       allowUnlimitedContractSize: true,
-      mining: {
-        auto: process.env.MINING_MODE !== 'interval',
-        interval: parseInt(process.env.MIN_INTERVAL || '2000', 10),
-      },
+      mining:
+        process.env.MINING_MODE !== 'interval'
+          ? { auto: true }
+          : {
+              interval: parseInt(process.env.MIN_INTERVAL || '2000', 10),
+            },
     },
     avalancheMain: {
       // TODO @ian.tan use a private node!
