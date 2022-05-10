@@ -49,8 +49,6 @@ abstract contract ReserveManager is
      * @param _asset The address of the underlying asset of the reserve
      * @param _juniorDepositTokenAddress The address of the junior deposit token that will be assigned to the reserve
      * @param _seniorDepositTokenAddress The address of the senior deposit token that will be assigned to the reserve
-     * @param _juniorIncomeAllocation Junior income allocation, express in RAY
-     * @param _seniorIncomeAllocation Senior income allocation, express in RAY
      * @param _stableDebtAddress The address of the StableDebtToken that will be assigned to the reserve
      * @param _interestRateStrategyAddress The address of the interest rate strategy contract
      * @param _optimalIncomeRatio The ratio of income ratio
@@ -59,8 +57,6 @@ abstract contract ReserveManager is
         address _asset,
         address _juniorDepositTokenAddress,
         address _seniorDepositTokenAddress,
-        uint256 _juniorIncomeAllocation,
-        uint256 _seniorIncomeAllocation,
         address _stableDebtAddress,
         address _interestRateStrategyAddress,
         address _healthStrategyAddress,
@@ -71,8 +67,6 @@ abstract contract ReserveManager is
             _asset,
             _juniorDepositTokenAddress,
             _seniorDepositTokenAddress,
-            _juniorIncomeAllocation,
-            _seniorIncomeAllocation,
             _stableDebtAddress,
             _interestRateStrategyAddress,
             _healthStrategyAddress,
@@ -82,8 +76,6 @@ abstract contract ReserveManager is
             _asset,
             _juniorDepositTokenAddress,
             _seniorDepositTokenAddress,
-            _juniorIncomeAllocation,
-            _seniorIncomeAllocation,
             _stableDebtAddress,
             _interestRateStrategyAddress,
             _healthStrategyAddress
@@ -216,8 +208,6 @@ abstract contract ReserveManager is
         address _asset,
         address _juniorDepositTokenAddress,
         address _seniorDepositTokenAddress,
-        uint256 _juniorIncomeAllocation,
-        uint256 _seniorIncomeAllocation,
         address _stableDebtAddress,
         address _interestRateStrategyAddress,
         address _healthStrategyAddress
@@ -226,8 +216,6 @@ abstract contract ReserveManager is
             abi.encode(
                 _juniorDepositTokenAddress,
                 _seniorDepositTokenAddress,
-                _juniorIncomeAllocation,
-                _seniorIncomeAllocation,
                 _stableDebtAddress,
                 _interestRateStrategyAddress,
                 _healthStrategyAddress

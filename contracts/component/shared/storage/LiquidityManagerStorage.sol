@@ -30,8 +30,6 @@ contract LiquidityManagerStorage is State {
         address _asset,
         address _juniorDepositTokenAddress,
         address _seniorDepositTokenAddress,
-        uint256 _juniorIncomeAllocation,
-        uint256 _seniorIncomeAllocation,
         address _stableDebtAddress,
         address _interestRateStrategyAddress,
         address _healthStrategyAddress,
@@ -40,8 +38,6 @@ contract LiquidityManagerStorage is State {
         _reserves[_asset].init(
             _juniorDepositTokenAddress,
             _seniorDepositTokenAddress,
-            _juniorIncomeAllocation,
-            _seniorIncomeAllocation,
             _stableDebtAddress,
             _interestRateStrategyAddress,
             _healthStrategyAddress,
