@@ -58,7 +58,8 @@ describe('Reserve Deposit', function () {
       '900000000000000000000000000',
       stableDebtToken.address,
       defaultReserveInterestRateStrategy.address,
-      healthStrategyAddress.address
+      healthStrategyAddress.address,
+      '500000000000000000000000000'
     );
     await expect(lm.activeReserve(tus.address))
       .to.emit(lm, 'ReserveActivated')

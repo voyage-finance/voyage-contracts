@@ -78,7 +78,8 @@ describe('Liquidity Rate', function () {
       '900000000000000000000000000',
       stableDebtToken.address,
       defaultReserveInterestRateStrategy.address,
-      healthStrategyAddress.address
+      healthStrategyAddress.address,
+      '500000000000000000000000000'
     );
     voyageProtocolDataProvider = await ethers.getContract(
       'VoyageProtocolDataProvider'
@@ -103,7 +104,8 @@ describe('Liquidity Rate', function () {
       '900000000000000000000000000',
       stableDebtToken.address,
       defaultReserveInterestRateStrategy.address,
-      healthStrategyAddress.address
+      healthStrategyAddress.address,
+      '500000000000000000000000000'
     );
     // 100
     const seniorDepositAmount = '500000000000000000000';

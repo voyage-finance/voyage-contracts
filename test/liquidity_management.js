@@ -108,7 +108,8 @@ describe('Reserve Init', function () {
         '600000000000000000000000000',
         fakeAddress,
         fakeAddress,
-        fakeAddress
+        fakeAddress,
+        '500000000000000000000000000'
       )
     ).to.emit(lm, 'ReserveInitialized');
     const reserveState = await voyager.getReserveData(tus.address);
@@ -139,7 +140,8 @@ describe('Reserve Init', function () {
         '600000000000000000000000000',
         fakeAddress,
         fakeAddress,
-        fakeAddress
+        fakeAddress,
+        '500000000000000000000000000'
       )
     ).to.emit(lm, 'ReserveInitialized');
     const flags = await voyager.getReserveFlags(tus.address);

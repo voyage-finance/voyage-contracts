@@ -53,6 +53,7 @@ abstract contract ReserveManager is
      * @param _seniorIncomeAllocation Senior income allocation, express in RAY
      * @param _stableDebtAddress The address of the StableDebtToken that will be assigned to the reserve
      * @param _interestRateStrategyAddress The address of the interest rate strategy contract
+     * @param _optimalIncomeRatio The ratio of income ratio
      **/
     function initReserve(
         address _asset,
@@ -62,7 +63,8 @@ abstract contract ReserveManager is
         uint256 _seniorIncomeAllocation,
         address _stableDebtAddress,
         address _interestRateStrategyAddress,
-        address _healthStrategyAddress
+        address _healthStrategyAddress,
+        uint256 _optimalIncomeRatio
     ) external onlyProxy onlyAdmin {
         require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
         LiquidityManagerStorage(liquidityManagerStorageAddress()).initReserve(
@@ -73,7 +75,8 @@ abstract contract ReserveManager is
             _seniorIncomeAllocation,
             _stableDebtAddress,
             _interestRateStrategyAddress,
-            _healthStrategyAddress
+            _healthStrategyAddress,
+            _optimalIncomeRatio
         );
         emitReserveInitialized(
             _asset,

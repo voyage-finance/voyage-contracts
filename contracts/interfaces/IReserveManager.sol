@@ -12,7 +12,8 @@ interface IReserveManager {
         uint256 _seniorIncomeAllocation,
         address _stableDebtAddress,
         address _interestRateStrategyAddress,
-        address _healthStrategyAddress
+        address _healthStrategyAddress,
+        uint256 _optimalIncomeRatio
     ) external;
 
     function activeReserve(address _asset) external;
