@@ -26,11 +26,10 @@ async function main() {
     treasureUnderSea,
     juniorDepositToken,
     seniorDepositToken,
-    '100000000000000000000000000',
-    '900000000000000000000000000',
     stableDebtToken,
     interestStrategy,
-    healthStrategy
+    healthStrategy,
+      '500000000000000000000000000'
   );
 }
 
