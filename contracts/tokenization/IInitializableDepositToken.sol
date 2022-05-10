@@ -6,11 +6,6 @@ pragma solidity ^0.8.9;
  * @notice Interface for the initialize function on JuniorDepositToken and SeniorDepositToken
  **/
 abstract contract IInitializableDepositToken {
-    struct Withdrawal {
-        uint256 amount;
-        uint256 time;
-    }
-
     /**
      * @dev Indicates that the contract has been initialized.
      */
@@ -21,7 +16,11 @@ abstract contract IInitializableDepositToken {
      */
     bool private initializing;
 
-    mapping(address => Withdrawal[]) private withdrawals;
+    // user address => timestamp => amount
+    mapping(address => mapping(uint256 => uint256)) private withdrawals;
+
+    // user address => timestamp array
+    mapping(address => uint256[]) private pendingTimestamp;
 
     uint256 private lockupTime = 7 days;
 
@@ -117,10 +116,35 @@ abstract contract IInitializableDepositToken {
     // Reserved storage space to allow for layout changes in the future.
     uint256[50] private ______gap;
 
-    function addWithdraw(address _user, uint256 _amount) internal {
-        Withdrawal memory withdraw;
-        withdraw.amount = _amount;
-        withdraw.time = block.timestamp;
-        withdrawals[_user].push(withdraw);
+    function pushWithdraw(address _user, uint256 _amount) internal {
+        require(withdrawals[_user][block.timestamp] == 0, 'invalid withdraw');
+        withdrawals[_user][block.timestamp] = _amount;
+        pendingTimestamp[_user].push(block.timestamp);
+    }
+
+    function popWithdraw(address _user, uint256 _index)
+        internal
+        returns (uint256)
+    {
+        uint256[] storage times = pendingTimestamp[_user];
+        require(_index < times.length, 'invalid index');
+        uint256 ts = times[_index];
+        require(block.timestamp - ts > lockupTime, 'cool down error');
+
+        uint256 last = times[times.length - 1];
+        times[_index] = last;
+        times.pop();
+
+        uint256 withdrawable = withdrawals[_user][ts];
+        delete withdrawals[_user][ts];
+        return withdrawable;
+    }
+
+    function pendingWithdrawal(address _user)
+        public
+        view
+        returns (uint256[] memory)
+    {
+        return pendingTimestamp[_user];
     }
 }
