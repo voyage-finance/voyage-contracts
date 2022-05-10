@@ -15,10 +15,6 @@ library DataTypes {
         uint256 currentOverallLiquidityRate;
         uint256 currentJuniorLiquidityRate;
         uint256 currentSeniorLiquidityRate;
-        // Expressed in ray
-        uint256 currentSeniorIncomeAllocation;
-        // Expressed in ray
-        uint256 currentJuniorIncomeAllocation;
         uint256 juniorLiquidityIndex;
         uint256 seniorLiquidityIndex;
         uint256 currentBorrowRate;
@@ -34,6 +30,7 @@ library DataTypes {
         uint40 juniorLastUpdateTimestamp;
         uint40 seniorLastUpdateTimestamp;
         uint256 optimalTrancheRatio;
+        uint256 currentIncomeRatio;
         uint256 optimalIncomeRatio;
     }
 

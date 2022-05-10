@@ -81,8 +81,6 @@ describe('Data Provider', function () {
       tus.address,
       juniorDepositToken.address,
       seniorDepositToken.address,
-      '100000000000000000000000000',
-      '900000000000000000000000000',
       stableDebtToken.address,
       defaultReserveInterestRateStrategy.address,
       healthStrategyAddress.address,
