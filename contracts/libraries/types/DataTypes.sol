@@ -32,7 +32,7 @@ library DataTypes {
         address healthStrategyAddress;
         address juniorDepositTokenAddress;
         address seniorDepositTokenAddress;
-        address stableDebtAddress;
+        address debtTokenAddress;
         uint40 juniorLastUpdateTimestamp;
         uint40 seniorLastUpdateTimestamp;
         uint256 optimalTrancheRatio;

@@ -216,7 +216,7 @@ contract LiquidityManagerStorage is State {
         res.seniorDepositAmount = IERC20(reserve.seniorDepositTokenAddress)
             .totalSupply();
         (res.totalDebt, res.avgStableRate) = IStableDebtToken(
-            reserve.stableDebtAddress
+            reserve.debtTokenAddress
         ).getTotalSupplyAndAvgRate();
         return res;
     }
