@@ -48,7 +48,7 @@ library ReserveLogic {
         address _seniorDepositTokenAddress,
         uint256 _juniorIncomeAllocation,
         uint256 _seniorIncomeAllocation,
-        address _stableDebtAddress,
+        address _debtTokenAddress,
         address _interestRateStrategyAddress,
         address _healthStrategyAddress
     ) external {
@@ -58,7 +58,7 @@ library ReserveLogic {
         reserve.seniorDepositTokenAddress = _seniorDepositTokenAddress;
         reserve.currentJuniorIncomeAllocation = _juniorIncomeAllocation;
         reserve.currentSeniorIncomeAllocation = _seniorIncomeAllocation;
-        reserve.stableDebtAddress = _stableDebtAddress;
+        reserve.debtTokenAddress = _debtTokenAddress;
         reserve.interestRateStrategyAddress = _interestRateStrategyAddress;
         reserve.healthStrategyAddress = _healthStrategyAddress;
         reserve.optimalIncomeRatio = WadRayMath.ray() / 2;
@@ -104,9 +104,9 @@ library ReserveLogic {
     ) public {
         UpdateInterestRatesLocalVars memory vars;
 
-        vars.debtTokenAddress = _reserve.stableDebtAddress;
+        vars.debtTokenAddress = _reserve.debtTokenAddress;
         (vars.totalDebt, vars.avgBorrowRate) = IStableDebtToken(
-            _reserve.stableDebtAddress
+            _reserve.debtTokenAddress
         ).getTotalSupplyAndAvgRate();
 
         (

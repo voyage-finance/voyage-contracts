@@ -49,7 +49,7 @@ contract LoanManager is Proxyable, IVoyagerComponent {
         uint256 availableSeniorLiquidity = IERC20(
             reserveData.seniorDepositTokenAddress
         ).totalSupply();
-        uint256 totalDebt = IERC20(reserveData.stableDebtAddress).totalSupply();
+        uint256 totalDebt = IERC20(reserveData.debtTokenAddress).totalSupply();
         require(
             availableSeniorLiquidity - totalDebt >= _amount,
             Errors.LOM_RESERVE_NOT_SUFFICIENT
