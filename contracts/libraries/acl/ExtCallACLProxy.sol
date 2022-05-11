@@ -5,6 +5,8 @@ import '../proxy/Proxy.sol';
 import './IExtCallACL.sol';
 
 contract ExtCallACLProxy is Proxy {
+    constructor(address _addressResolver) Proxy(_addressResolver) {}
+
     function isWhitelistedAddress(address _address) public view returns (bool) {
         return IExtCallACL(address(target)).isWhitelistedAddress(_address);
     }

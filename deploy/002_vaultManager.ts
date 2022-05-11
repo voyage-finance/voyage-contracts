@@ -15,6 +15,7 @@ const deployFn: DeployFunction = async (hre) => {
 
   const VaultManagerProxy = await deploy('VaultManagerProxy', {
     from: owner,
+    args: [AddressResolver.address],
     log: true,
   });
 

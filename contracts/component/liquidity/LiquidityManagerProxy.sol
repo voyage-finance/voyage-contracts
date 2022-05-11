@@ -10,6 +10,8 @@ import '../../libraries/logic/ReserveLogic.sol';
 import 'hardhat/console.sol';
 
 contract LiquidityManagerProxy is Proxy, ILiquidityManagerProxy {
+    constructor(address _addressResolver) Proxy(_addressResolver) {}
+
     function getLiquidityRate(address _reserve, ReserveLogic.Tranche _tranche)
         external
         view

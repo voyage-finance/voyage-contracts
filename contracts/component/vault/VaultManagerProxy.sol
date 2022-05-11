@@ -6,6 +6,8 @@ import '../../interfaces/IVaultManager.sol';
 import '../../interfaces/IVaultManagerProxy.sol';
 
 contract VaultManagerProxy is Proxy, IVaultManagerProxy {
+    constructor(address _addressResolver) Proxy(_addressResolver) {}
+
     /************************** Immutable static call for target contract **************************/
 
     function getVaultConfig(address _reserve)

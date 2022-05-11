@@ -14,12 +14,14 @@ const deployFn: DeployFunction = async (hre) => {
   const { deploy, execute, read } = deployments;
   const { owner } = await getNamedAccounts();
 
+  const AddressResolver = await deployments.get('AddressResolver');
+  const Voyager = await deployments.get('Voyager');
+
   const LoanManagerProxy = await deploy(LOAN_MANAGER_PROXY_NAME, {
     from: owner,
+    args: [AddressResolver.address],
     log: true,
   });
-
-  const Voyager = await deployments.get('Voyager');
 
   const LoanManager = await deploy(LOAN_MANAGER_NAME, {
     from: owner,

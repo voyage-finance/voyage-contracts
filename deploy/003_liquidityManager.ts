@@ -12,10 +12,15 @@ const deployFn: DeployFunction = async (hre) => {
   const { owner } = await getNamedAccounts();
 
   const Voyager = await deployments.get('Voyager');
+  const AddressResolver = await deployments.get('AddressResolver');
 
   let LMProxy = await deployments.getOrNull(LM_PROXY_NAME);
   if (!LMProxy) {
-    LMProxy = await deploy(LM_PROXY_NAME, { from: owner, log: true });
+    LMProxy = await deploy(LM_PROXY_NAME, {
+      from: owner,
+      args: [AddressResolver.address],
+      log: true,
+    });
   }
 
   const ReserveLogic = await deploy(RESERVE_LOGIC_NAME, {
@@ -58,7 +63,7 @@ const deployFn: DeployFunction = async (hre) => {
   }
 };
 
-deployFn.dependencies = ['Voyager'];
+deployFn.dependencies = ['AddressResolver', 'Voyager'];
 deployFn.tags = [LM_NAME];
 
 export default deployFn;

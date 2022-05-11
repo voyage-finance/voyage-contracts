@@ -8,8 +8,11 @@ const deployFn: DeployFunction = async (hre) => {
   const { deploy, execute } = deployments;
   const { owner } = await getNamedAccounts();
 
+  const AddressResolver = await deployments.get('AddressResolver');
+
   const ExtCallAclProxy = await deploy(ExtCallACLProxy, {
     from: owner,
+    args: [AddressResolver.address],
     log: true,
   });
 
@@ -28,5 +31,6 @@ const deployFn: DeployFunction = async (hre) => {
 };
 
 deployFn.tags = ['ExtCallAcl'];
+deployFn.dependencies = ['AddressResolver'];
 
 export default deployFn;

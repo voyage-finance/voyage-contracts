@@ -3,8 +3,12 @@ pragma solidity ^0.8.9;
 
 import '../ownership/Ownable.sol';
 import './Proxyable.sol';
+import '../../component/infra/AddressResolver.sol';
+import 'hardhat/console.sol';
 
 contract Proxy is Ownable {
+    AddressResolver private addressResolver;
+
     Proxyable public target;
 
     event TargetUpdated(Proxyable newTarget);
@@ -12,6 +16,20 @@ contract Proxy is Ownable {
     modifier onlyTarget() {
         require(Proxyable(msg.sender) == target, 'Must be proxy target');
         _;
+    }
+
+    modifier onlyVoyager() {
+        console.log('sender: ', msg.sender);
+        console.log('voyage:', addressResolver.getVoyage());
+        require(
+            msg.sender == addressResolver.getVoyage(),
+            'Must be Voyager contract'
+        );
+        _;
+    }
+
+    constructor(address _addressResolver) {
+        addressResolver = AddressResolver(_addressResolver);
     }
 
     function setTarget(Proxyable _target) external onlyOwner {
@@ -56,7 +74,7 @@ contract Proxy is Ownable {
     }
 
     // solhint-disable no-complex-fallback
-    fallback() external payable {
+    fallback() external payable onlyVoyager {
         // Mutable call setting Proxyable.messageSender as this is using call not delegatecall
         target.setMessageSender(msg.sender);
 

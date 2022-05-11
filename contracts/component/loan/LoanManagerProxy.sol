@@ -3,4 +3,6 @@ pragma solidity ^0.8.9;
 
 import '../../libraries/proxy/Proxy.sol';
 
-contract LoanManagerProxy is Proxy {}
+contract LoanManagerProxy is Proxy {
+    constructor(address _addressResolver) Proxy(_addressResolver) {}
+}
