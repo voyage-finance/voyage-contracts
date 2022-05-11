@@ -117,7 +117,7 @@ contract SeniorDepositToken is
         uint256 amount = popWithdraw(msg.sender, _index);
         require(
             IERC20(underlyingAsset).balanceOf(address(this)) > amount,
-            'fund not enough'
+            'Insufficient liquidity available'
         );
         IERC20(underlyingAsset).safeTransfer(msg.sender, amount);
     }
