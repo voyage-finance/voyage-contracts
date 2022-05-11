@@ -38,6 +38,7 @@ contract LoanManager is Proxyable, IVoyagerComponent {
     ) external requireNotPaused onlyProxy {
         // todo use min security deposit
         require(_amount >= 1e19, Errors.LOM_INVALID_AMOUNT);
+
         // 0. check if the user owns the vault
         require(voyager.getVault(_user) == _vault, Errors.LOM_NOT_VAULT_OWNER);
 
@@ -92,17 +93,10 @@ contract LoanManager is Proxyable, IVoyagerComponent {
             Errors.LOM_CREDIT_NOT_SUFFICIENT
         );
 
-        // 4. update liquidity index and interest rate
-        LiquidityManagerStorage lms = LiquidityManagerStorage(
-            liquidityManagerStorageAddress()
-        );
-
-        lms.updateStateOnBorrow(_asset, _amount);
-
-        // 5. increase vault debt
+        // 4. increase vault debt
         IVault(_vault).increaseTotalDebt(_amount);
 
-        // 6. mint debt token and transfer underlying token
+        // 5. mint debt token and transfer underlying token
         address debtToken = voyager.addressResolver().getStableDebtToken();
         IInitializableDebtToken(debtToken).mint(
             _vault,
@@ -110,6 +104,13 @@ contract LoanManager is Proxyable, IVoyagerComponent {
             healthStrategy.getLoanTenure(),
             reserveData.currentBorrowRate
         );
+
+        // 6. update liquidity index and interest rate
+        LiquidityManagerStorage lms = LiquidityManagerStorage(
+            liquidityManagerStorageAddress()
+        );
+
+        lms.updateStateOnBorrow(_asset, _amount);
 
         IVToken(reserveData.seniorDepositTokenAddress).transferUnderlyingTo(
             _vault,

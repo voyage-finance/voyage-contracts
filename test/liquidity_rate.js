@@ -135,7 +135,6 @@ describe('Liquidity Rate', function () {
     await tus.increaseAllowance(escrowAddress, '1000000000000000000000');
 
     await voyager.depositSecurity(owner, tus.address, '100000000000000000000');
-    await voyager.borrow(tus.address, '400000000000000000000', vaultAddr, 0);
     await voyager.borrow(tus.address, '10000000000000000000', vaultAddr, 0);
     const DataProvider = await ethers.getContractFactory(
       'VoyageProtocolDataProvider'
