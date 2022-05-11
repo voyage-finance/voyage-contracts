@@ -117,7 +117,7 @@ contract JuniorDepositToken is
     function claim(uint256 _index) external {
         uint256 amount = popWithdraw(msg.sender, _index);
         require(
-            IERC20(underlyingAsset).balanceOf(address(this)) > amount,
+            IERC20(underlyingAsset).balanceOf(address(this)) >= amount,
             'Insufficient liquidity available'
         );
         IERC20(underlyingAsset).safeTransfer(msg.sender, amount);
