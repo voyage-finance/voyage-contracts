@@ -22,6 +22,8 @@ abstract contract IInitializableDepositToken {
     // user address => timestamp array
     mapping(address => uint256[]) private pendingTimestamp;
 
+    uint256 private totalPending;
+
     uint256 private lockupTime = 7 days;
 
     /**
@@ -120,6 +122,7 @@ abstract contract IInitializableDepositToken {
         require(withdrawals[_user][block.timestamp] == 0, 'invalid withdraw');
         withdrawals[_user][block.timestamp] = _amount;
         pendingTimestamp[_user].push(block.timestamp);
+        totalPending += _amount;
     }
 
     function popWithdraw(address _user, uint256 _index)
@@ -137,6 +140,7 @@ abstract contract IInitializableDepositToken {
 
         uint256 withdrawable = withdrawals[_user][ts];
         delete withdrawals[_user][ts];
+        totalPending -= withdrawable;
         return withdrawable;
     }
 
@@ -146,5 +150,9 @@ abstract contract IInitializableDepositToken {
         returns (uint256[] memory)
     {
         return pendingTimestamp[_user];
+    }
+
+    function totalPendingWithdrawal() public view returns (uint256) {
+        return totalPending;
     }
 }

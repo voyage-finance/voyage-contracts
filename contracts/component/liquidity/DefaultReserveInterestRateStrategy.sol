@@ -3,6 +3,7 @@ pragma solidity ^0.8.9;
 
 import '../../libraries/math/WadRayMath.sol';
 import '../../interfaces/IReserveInterestRateStrategy.sol';
+import '../../tokenization/IInitializableDepositToken.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 import 'hardhat/console.sol';
@@ -61,9 +62,14 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
         uint256 totalStableDebt,
         uint256 averageBorrowRate
     ) external view returns (uint256, uint256) {
+        uint256 totalPendingWithdrawal = IInitializableDepositToken(
+            seniorDepositTokenAddress
+        ).totalPendingWithdrawal();
+
         uint256 availableLiquidity = IERC20(reserve).balanceOf(
             seniorDepositTokenAddress
-        );
+        ) - totalPendingWithdrawal;
+
         availableLiquidity = availableLiquidity.add(liquidityAdded).sub(
             liquidityTaken
         );
