@@ -108,9 +108,18 @@ contract SeniorDepositToken is
         uint256 amountScaled = _amount.rayDiv(_index);
         require(amountScaled != 0, Errors.CT_INVALID_BURN_AMOUNT);
         _burn(_user, amountScaled);
-        IERC20(underlyingAsset).safeTransfer(_user, _amount);
+        pushWithdraw(_user, _amount);
         emit Transfer(_user, address(0), _amount);
         emit Burn(_user, _amount, _index);
+    }
+
+    function claim(uint256 _index) external {
+        uint256 amount = popWithdraw(msg.sender, _index);
+        require(
+            IERC20(underlyingAsset).balanceOf(address(this)) >= amount,
+            'Insufficient liquidity available'
+        );
+        IERC20(underlyingAsset).safeTransfer(msg.sender, amount);
     }
 
     function transferUnderlyingTo(address _target, uint256 _amount)
