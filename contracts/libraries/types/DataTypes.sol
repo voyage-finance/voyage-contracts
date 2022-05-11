@@ -138,5 +138,6 @@ library DataTypes {
         uint256 withdrawableJuniorTrancheBalance;
         uint256 seniorTrancheBalance;
         uint256 withdrawableSeniorTrancheBalance;
+        uint256 decimals;
     }
 }

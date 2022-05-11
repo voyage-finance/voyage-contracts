@@ -143,6 +143,8 @@ contract VoyageProtocolDataProvider {
             addressResolver.getLiquidityManagerProxy()
         );
         DataTypes.UserPoolData memory userPoolData;
+        IERC20Metadata token = IERC20Metadata(_reserve);
+
         userPoolData.juniorTrancheBalance = lmp.balance(
             _reserve,
             _user,
@@ -163,6 +165,7 @@ contract VoyageProtocolDataProvider {
             _user,
             ReserveLogic.Tranche.SENIOR
         );
+        userPoolData.decimals = token.decimals();
 
         return userPoolData;
     }

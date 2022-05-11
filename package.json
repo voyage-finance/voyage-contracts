@@ -16,7 +16,7 @@
     "dev:deploy": "hardhat node --hostname 0.0.0.0 --watch",
     "node": "hardhat node --hostname 0.0.0.0 --no-deploy",
     "node:deploy": "hardhat node --hostname 0.0.0.0",
-    "node:interval": "MINING_MODE=interval yarn node",
+    "node:interval": "MINING_MODE=interval yarn run node",
     "node:deploy:interval": "MINING_MODE=interval yarn node:deploy",
     "scripts": "ts-node scripts/runner.ts",
     "test": "hardhat test",
