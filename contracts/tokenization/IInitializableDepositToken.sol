@@ -155,4 +155,14 @@ abstract contract IInitializableDepositToken {
     function totalPendingWithdrawal() public view returns (uint256) {
         return totalPending;
     }
+
+    function withdrawalAble(address _user) public view returns (uint256) {
+        uint256[] storage ts = pendingTimestamp[_user];
+        uint256 withdrawable = 0;
+
+        for (uint256 i = 0; i < ts.length; i++) {
+            withdrawable += withdrawals[_user][ts[i]];
+        }
+        return withdrawable;
+    }
 }
