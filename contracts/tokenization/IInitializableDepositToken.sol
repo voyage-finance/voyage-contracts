@@ -165,4 +165,8 @@ abstract contract IInitializableDepositToken {
         }
         return withdrawable;
     }
+
+    function lockTime() public view returns (uint256) {
+        return lockupTime;
+    }
 }
