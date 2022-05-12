@@ -17,6 +17,7 @@ let tus;
 let vm;
 let lm;
 let dp;
+let vaultAddr;
 
 const RAY = BigNumber.from('1000000000000000000000000000');
 
@@ -79,25 +80,10 @@ describe('Liquidity Rate', function () {
       healthStrategyAddress.address,
       '500000000000000000000000000'
     );
-    const DataProvider = await ethers.getContract(
-        'VoyageProtocolDataProvider'
-    );
+    const DataProvider = await ethers.getContract('VoyageProtocolDataProvider');
     dp = await DataProvider.attach(DataProvider.address);
     await lm.activeReserve(tus.address);
     await vm.setMaxSecurityDeposit(tus.address, '1000000000000000000000');
-  });
-
-  it.only('Liquidity rate', async function () {
-    // 100
-    const seniorDepositAmount = '500000000000000000000';
-    const juniorDepositAmount = '100000000000000000000';
-
-    await voyager.deposit(tus.address, 0, juniorDepositAmount, owner);
-    await voyager.deposit(tus.address, 1, seniorDepositAmount, owner);
-    const seniorLiquidity = await tus.balanceOf(seniorDepositToken.address);
-    const juniorLiquidity = await tus.balanceOf(juniorDepositToken.address);
-    console.log('senior liquidity: ', seniorLiquidity.toString());
-    console.log('junior liquidity: ', juniorLiquidity.toString());
     await vm.setSecurityDepositRequirement(
       tus.address,
       '100000000000000000000000000'
@@ -108,7 +94,7 @@ describe('Liquidity Rate', function () {
       (Math.random() + 1).toString(36).substring(7)
     );
     await voyager.createVault(owner, tus.address, salt);
-    const vaultAddr = await voyager.getVault(owner);
+    vaultAddr = await voyager.getVault(owner);
     await voyager.initVault(vaultAddr, tus.address);
 
     // get security deposit escrow address
@@ -117,6 +103,35 @@ describe('Liquidity Rate', function () {
       vaultAddr
     ).getSecurityDepositEscrowAddress();
     await tus.increaseAllowance(escrowAddress, '1000000000000000000000');
+  });
+
+  it.only('No borrow should return zero interest rate on deposit', async function () {
+    const seniorDepositAmount = '500000000000000000000';
+    const juniorDepositAmount = '100000000000000000000';
+
+    await voyager.deposit(tus.address, 0, juniorDepositAmount, owner);
+    await voyager.deposit(tus.address, 1, seniorDepositAmount, owner);
+    await voyager.depositSecurity(owner, tus.address, '100000000000000000000');
+    const poolData = await dp.getPoolData(tus.address);
+
+    const juniorLiquidityRate = poolData.juniorLiquidityRate / RAY;
+    const seniorLiquidityRate = poolData.seniorLiquidityRate / RAY;
+
+    expect(juniorLiquidityRate.toPrecision(4)).to.equal('0.000');
+    expect(seniorLiquidityRate.toPrecision(4)).to.equal('0.000');
+  });
+
+  // todo exact assertion
+  it('Borrow should return correct interest rate', async function () {
+    const seniorDepositAmount = '500000000000000000000';
+    const juniorDepositAmount = '100000000000000000000';
+
+    await voyager.deposit(tus.address, 0, juniorDepositAmount, owner);
+    await voyager.deposit(tus.address, 1, seniorDepositAmount, owner);
+    const seniorLiquidity = await tus.balanceOf(seniorDepositToken.address);
+    const juniorLiquidity = await tus.balanceOf(juniorDepositToken.address);
+    console.log('senior liquidity: ', seniorLiquidity.toString());
+    console.log('junior liquidity: ', juniorLiquidity.toString());
 
     await voyager.depositSecurity(owner, tus.address, '100000000000000000000');
     await voyager.borrow(tus.address, '10000000000000000000', vaultAddr, 0);
