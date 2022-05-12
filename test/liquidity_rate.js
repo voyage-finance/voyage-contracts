@@ -105,13 +105,12 @@ describe('Liquidity Rate', function () {
     await tus.increaseAllowance(escrowAddress, '1000000000000000000000');
   });
 
-  it.only('No borrow should return zero interest rate on deposit', async function () {
+  it('No borrow should return zero interest rate on deposit', async function () {
     const seniorDepositAmount = '500000000000000000000';
     const juniorDepositAmount = '100000000000000000000';
 
     await voyager.deposit(tus.address, 0, juniorDepositAmount, owner);
     await voyager.deposit(tus.address, 1, seniorDepositAmount, owner);
-    await voyager.depositSecurity(owner, tus.address, '100000000000000000000');
     const poolData = await dp.getPoolData(tus.address);
 
     const juniorLiquidityRate = poolData.juniorLiquidityRate / RAY;
@@ -121,7 +120,33 @@ describe('Liquidity Rate', function () {
     expect(seniorLiquidityRate.toPrecision(4)).to.equal('0.000');
   });
 
-  // todo exact assertion
+  it.only('Junior deposit should return correct interest rate', async function () {
+    const seniorDepositAmount = '500000000000000000000';
+    const juniorDepositAmount = '100000000000000000000';
+
+    await voyager.deposit(tus.address, 0, juniorDepositAmount, owner);
+    await voyager.deposit(tus.address, 1, seniorDepositAmount, owner);
+    await voyager.depositSecurity(owner, tus.address, '100000000000000000000');
+
+    await voyager.borrow(tus.address, '400000000000000000000', vaultAddr, 0);
+    const poolData = await dp.getPoolData(tus.address);
+
+    const juniorLiquidityRate = poolData.juniorLiquidityRate / RAY;
+    const seniorLiquidityRate = poolData.seniorLiquidityRate / RAY;
+
+    console.log('junior liquidity rate: ', juniorLiquidityRate.toPrecision(4));
+    console.log('senior liquidity rate: ', seniorLiquidityRate.toPrecision(4));
+
+    await voyager.deposit(tus.address, 0, juniorDepositAmount, owner);
+    await voyager.deposit(tus.address, 0, juniorDepositAmount, owner);
+    const poolData1 = await dp.getPoolData(tus.address);
+    const juniorLiquidityRate1 = poolData1.juniorLiquidityRate / RAY;
+    const seniorLiquidityRate1 = poolData1.seniorLiquidityRate / RAY;
+
+    console.log('junior liquidity rate: ', juniorLiquidityRate1.toPrecision(4));
+    console.log('senior liquidity rate: ', seniorLiquidityRate1.toPrecision(4));
+  });
+
   it('Borrow should return correct interest rate', async function () {
     const seniorDepositAmount = '500000000000000000000';
     const juniorDepositAmount = '100000000000000000000';
