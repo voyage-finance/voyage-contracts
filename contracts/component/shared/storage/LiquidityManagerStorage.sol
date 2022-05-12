@@ -69,8 +69,7 @@ contract LiquidityManagerStorage is State {
 
     function updateStateOnWithdraw(
         address _asset,
-        ReserveLogic.Tranche _tranche,
-        uint256 _amount
+        ReserveLogic.Tranche _tranche
     ) public onlyAssociatedContract {
         DataTypes.ReserveData storage reserve = _reserves[_asset];
         // todo validate withdraw
@@ -81,7 +80,7 @@ contract LiquidityManagerStorage is State {
                 reserve.juniorDepositTokenAddress,
                 reserve.seniorDepositTokenAddress,
                 0,
-                _amount
+                0
             );
         }
     }

@@ -79,9 +79,9 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
             amountToWithdraw = userBalance;
         }
 
-        lms.updateStateOnWithdraw(_asset, _tranche, amountToWithdraw);
-
         IVToken(vToken).burn(_user, amountToWithdraw, liquidityIndex);
+        lms.updateStateOnWithdraw(_asset, _tranche);
+
         emitWithdraw(_asset, _user, _tranche, _amount);
     }
 
