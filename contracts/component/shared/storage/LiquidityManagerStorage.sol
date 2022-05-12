@@ -56,7 +56,15 @@ contract LiquidityManagerStorage is State {
         DataTypes.ReserveData storage reserve = _reserves[_asset];
         ValidationLogic.validateDeposit(reserve, _amount);
         reserve.updateState(_tranche);
-        if (ReserveLogic.Tranche.JUNIOR == _tranche) {} else {
+        if (ReserveLogic.Tranche.JUNIOR == _tranche) {
+            reserve.updateInterestRates(
+                _asset,
+                reserve.juniorDepositTokenAddress,
+                reserve.seniorDepositTokenAddress,
+                0,
+                0
+            );
+        } else {
             reserve.updateInterestRates(
                 _asset,
                 reserve.juniorDepositTokenAddress,
@@ -72,17 +80,14 @@ contract LiquidityManagerStorage is State {
         ReserveLogic.Tranche _tranche
     ) public onlyAssociatedContract {
         DataTypes.ReserveData storage reserve = _reserves[_asset];
-        // todo validate withdraw
         reserve.updateState(_tranche);
-        if (ReserveLogic.Tranche.JUNIOR == _tranche) {} else {
-            reserve.updateInterestRates(
-                _asset,
-                reserve.juniorDepositTokenAddress,
-                reserve.seniorDepositTokenAddress,
-                0,
-                0
-            );
-        }
+        reserve.updateInterestRates(
+            _asset,
+            reserve.juniorDepositTokenAddress,
+            reserve.seniorDepositTokenAddress,
+            0,
+            0
+        );
     }
 
     function updateStateOnBorrow(address _asset, uint256 _amount)
