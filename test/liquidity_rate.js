@@ -16,7 +16,7 @@ let vaultManager;
 let tus;
 let vm;
 let lm;
-let voyageProtocolDataProvider;
+let dp;
 
 const RAY = BigNumber.from('1000000000000000000000000000');
 
@@ -79,35 +79,19 @@ describe('Liquidity Rate', function () {
       healthStrategyAddress.address,
       '500000000000000000000000000'
     );
-    voyageProtocolDataProvider = await ethers.getContract(
-      'VoyageProtocolDataProvider'
+    const DataProvider = await ethers.getContract(
+        'VoyageProtocolDataProvider'
     );
+    dp = await DataProvider.attach(DataProvider.address);
+    await lm.activeReserve(tus.address);
+    await vm.setMaxSecurityDeposit(tus.address, '1000000000000000000000');
   });
 
-  it('Liquidity rate', async function () {
-    // deposit sufficient reserve
-    const reserveLogic = await ethers.getContract('ReserveLogic');
-    const LM = await ethers.getContractFactory('LiquidityManager', {
-      libraries: { ReserveLogic: reserveLogic.address },
-    });
-    const lm = await LM.attach(liquidityManagerProxy.address);
-    const vaultManagerProxy = await ethers.getContract('VaultManagerProxy');
-    const VaultManager = await ethers.getContract('VaultManager');
-    const vm = VaultManager.attach(vaultManagerProxy.address);
-    await lm.initReserve(
-      tus.address,
-      juniorDepositToken.address,
-      seniorDepositToken.address,
-      stableDebtToken.address,
-      defaultReserveInterestRateStrategy.address,
-      healthStrategyAddress.address,
-      '500000000000000000000000000'
-    );
+  it.only('Liquidity rate', async function () {
     // 100
     const seniorDepositAmount = '500000000000000000000';
     const juniorDepositAmount = '100000000000000000000';
-    await lm.activeReserve(tus.address);
-    await vm.setMaxSecurityDeposit(tus.address, '1000000000000000000000');
+
     await voyager.deposit(tus.address, 0, juniorDepositAmount, owner);
     await voyager.deposit(tus.address, 1, seniorDepositAmount, owner);
     const seniorLiquidity = await tus.balanceOf(seniorDepositToken.address);
@@ -136,10 +120,7 @@ describe('Liquidity Rate', function () {
 
     await voyager.depositSecurity(owner, tus.address, '100000000000000000000');
     await voyager.borrow(tus.address, '10000000000000000000', vaultAddr, 0);
-    const DataProvider = await ethers.getContractFactory(
-      'VoyageProtocolDataProvider'
-    );
-    const dp = await DataProvider.attach(voyageProtocolDataProvider.address);
+
     const poolData = await dp.getPoolData(tus.address);
     console.log('total liquidity: ', poolData.totalLiquidity.toString());
 
