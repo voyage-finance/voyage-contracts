@@ -168,7 +168,6 @@ contract JuniorDepositToken is
      **/
     function totalSupply() public view override(BaseERC20) returns (uint256) {
         uint256 currentSupplyScaled = super.totalSupply();
-        console.log('currentSupplyScaled:', currentSupplyScaled);
         if (currentSupplyScaled == 0) {
             return 0;
         }

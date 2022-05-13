@@ -96,6 +96,8 @@ library ReserveLogic {
         address _reserveAddress,
         address _juniorDepositTokenAddress,
         address _seniorDepositTokenAddress,
+        uint256 _juniorLiquidityAdded,
+        uint256 _juniorLiquidityTaken,
         uint256 _seniorLiquidityAdded,
         uint256 _seniorLiquidityTaken
     ) public {
@@ -128,7 +130,10 @@ library ReserveLogic {
         );
 
         vars.seniorLiquidity = IERC20(_seniorDepositTokenAddress).totalSupply();
-        vars.juniorLiquidity = IERC20(_juniorDepositTokenAddress).totalSupply();
+        vars.juniorLiquidity =
+            IERC20(_juniorDepositTokenAddress).totalSupply() +
+            _juniorLiquidityAdded -
+            _juniorLiquidityTaken;
 
         if (vars.juniorLiquidity == 0) {
             vars.effectiveJuniorLiquidityRate = 0;

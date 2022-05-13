@@ -87,9 +87,14 @@ contract VoyageProtocolDataProvider {
         );
         poolData.totalDebt = depositAndDebt.totalDebt;
         poolData.borrowRate = reserve.currentBorrowRate;
-        poolData.trancheRatio = depositAndDebt.juniorDepositAmount.rayDiv(
-            depositAndDebt.seniorDepositAmount
-        );
+        if (depositAndDebt.seniorDepositAmount == 0) {
+            poolData.trancheRatio = 0;
+        } else {
+            poolData.trancheRatio = depositAndDebt.juniorDepositAmount.rayDiv(
+                depositAndDebt.seniorDepositAmount
+            );
+        }
+
         poolData.decimals = token.decimals();
 
         return poolData;
