@@ -61,6 +61,8 @@ contract LiquidityManagerStorage is State {
                 _asset,
                 reserve.juniorDepositTokenAddress,
                 reserve.seniorDepositTokenAddress,
+                _amount,
+                0,
                 0,
                 0
             );
@@ -69,6 +71,8 @@ contract LiquidityManagerStorage is State {
                 _asset,
                 reserve.juniorDepositTokenAddress,
                 reserve.seniorDepositTokenAddress,
+                0,
+                0,
                 _amount,
                 0
             );
@@ -77,17 +81,32 @@ contract LiquidityManagerStorage is State {
 
     function updateStateOnWithdraw(
         address _asset,
-        ReserveLogic.Tranche _tranche
+        ReserveLogic.Tranche _tranche,
+        uint256 _amount
     ) public onlyAssociatedContract {
         DataTypes.ReserveData storage reserve = _reserves[_asset];
         reserve.updateState(_tranche);
-        reserve.updateInterestRates(
-            _asset,
-            reserve.juniorDepositTokenAddress,
-            reserve.seniorDepositTokenAddress,
-            0,
-            0
-        );
+        if (ReserveLogic.Tranche.JUNIOR == _tranche) {
+            reserve.updateInterestRates(
+                _asset,
+                reserve.juniorDepositTokenAddress,
+                reserve.seniorDepositTokenAddress,
+                0,
+                _amount,
+                0,
+                0
+            );
+        } else {
+            reserve.updateInterestRates(
+                _asset,
+                reserve.juniorDepositTokenAddress,
+                reserve.seniorDepositTokenAddress,
+                0,
+                0,
+                0,
+                0
+            );
+        }
     }
 
     function updateStateOnBorrow(address _asset, uint256 _amount)
@@ -100,6 +119,8 @@ contract LiquidityManagerStorage is State {
             _asset,
             reserve.juniorDepositTokenAddress,
             reserve.seniorDepositTokenAddress,
+            0,
+            0,
             0,
             _amount
         );
