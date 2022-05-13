@@ -45,13 +45,12 @@ const config: HardhatUserConfig = {
             },
     },
     avalancheMain: {
-      // TODO @ian.tan use a private node!
-      url: 'https://api.avax.network/ext/bc/C/rpc',
+      url: 'https://avax-c.staging.voyage.finance/rpc',
       chainId: 43114,
       accounts: [DEPLOYER_PRIVATE_KEY],
     },
     avalancheFuji: {
-      url: 'https://api.avax-test.network/ext/bc/C/rpc',
+      url: 'https://fuji-c.staging.voyage.finance/rpc',
       chainId: 43113,
       accounts: [DEPLOYER_PRIVATE_KEY],
       gas: 8000000,
