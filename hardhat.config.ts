@@ -29,6 +29,9 @@ task('accounts', 'Prints the list of accounts', async (args, hre) => {
   }
 });
 
+// http://localhost:8545
+// 31337
+
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
