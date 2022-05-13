@@ -87,8 +87,8 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
      * @param reserve The address of the reserve
      * @param availableLiquidity The liquidity available in the corresponding aToken
      * @param totalStableDebt The total borrowed from the reserve a stable rate
-     * @return The liquidity rate, the stable borrow rate
      * @param averageBorrowRate The current average borrow rate
+     * @return The liquidity rate, the stable borrow rate
      **/
     function calculateInterestRates(
         address reserve,
