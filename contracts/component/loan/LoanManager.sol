@@ -15,7 +15,7 @@ import '../../interfaces/IVToken.sol';
 import '../Voyager.sol';
 import 'hardhat/console.sol';
 
-contract LoanManager is Proxyable, IVoyagerComponent {
+contract LoanManager is Proxyable {
     using SafeMath for uint256;
     using WadRayMath for uint256;
 

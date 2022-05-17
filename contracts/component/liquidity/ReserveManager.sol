@@ -13,11 +13,7 @@ import '../../interfaces/IVoyagerComponent.sol';
 import '../../interfaces/IStableDebtToken.sol';
 import '../../interfaces/IACLManager.sol';
 
-abstract contract ReserveManager is
-    Proxyable,
-    IReserveManager,
-    IVoyagerComponent
-{
+abstract contract ReserveManager is Proxyable, IReserveManager {
     constructor(address payable _proxy, address _voyager) Proxyable(_proxy) {
         voyager = Voyager(_voyager);
     }

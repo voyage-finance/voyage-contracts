@@ -28,6 +28,7 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
     ) public Proxyable(_proxy) {
         addressResolver = IAddressResolver(_addressResolver);
         vaultFactory = _vaultFactory;
+        voyager = Voyager(_voyager);
     }
 
     modifier onlyAdmin() {

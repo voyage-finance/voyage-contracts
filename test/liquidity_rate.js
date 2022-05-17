@@ -120,7 +120,7 @@ describe('Liquidity Rate', function () {
     expect(seniorLiquidityRate.toPrecision(4)).to.equal('0.000');
   });
 
-  it.only('Junior deposit should return correct interest rate', async function () {
+  it('Junior deposit should return correct interest rate', async function () {
     const seniorDepositAmount = '500000000000000000000';
     const juniorDepositAmount = '100000000000000000000';
 
@@ -146,7 +146,7 @@ describe('Liquidity Rate', function () {
     console.log('senior liquidity rate: ', seniorLiquidityRate1.toPrecision(4));
   });
 
-  it.only('Senior deposit should return correct interest rate', async function () {
+  it('Senior deposit should return correct interest rate', async function () {
     const seniorDepositAmount = '50000000000000000000';
     const juniorDepositAmount = '10000000000000000000';
 

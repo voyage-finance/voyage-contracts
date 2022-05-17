@@ -55,10 +55,6 @@ contract AddressResolver is IAddressResolver, Ownable {
         return repository[liquidityManagerStorageName];
     }
 
-    function getLiquidityDepositEscrow() external view returns (address) {
-        return repository[liquidityDepositEscrowName];
-    }
-
     function getLoanManagerProxy() external view returns (address) {
         return repository[loanManagerProxyName];
     }

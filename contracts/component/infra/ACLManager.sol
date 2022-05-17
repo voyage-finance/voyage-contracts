@@ -28,6 +28,9 @@ contract ACLManager is AccessControl, IACLManager {
     bytes32 public constant VAULT_CONFIGURATOR =
         keccak256('VAULT_CONFIGURATOR');
 
+    bytes32 public constant VOYAGER_CONTRACT_ROLE =
+        keccak256('VOYAGER_CONTRACT');
+
     constructor(address _aclAdmin) {
         _setupRole(DEFAULT_ADMIN_ROLE, _aclAdmin);
     }
@@ -106,5 +109,13 @@ contract ACLManager is AccessControl, IACLManager {
 
     function isVaultConfigurator(address _admin) external view returns (bool) {
         return hasRole(VAULT_CONFIGURATOR, _admin);
+    }
+
+    function grantVoyagerContract(address _admin) external {
+        grantRole(VOYAGER_CONTRACT_ROLE, _admin);
+    }
+
+    function isVoyagerContract(address _admin) external view returns (bool) {
+        return hasRole(VOYAGER_CONTRACT_ROLE, _admin);
     }
 }

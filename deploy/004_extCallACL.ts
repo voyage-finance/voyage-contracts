@@ -7,6 +7,7 @@ const deployFn: DeployFunction = async (hre) => {
   const { deployments, getNamedAccounts } = hre;
   const { deploy, execute } = deployments;
   const { owner } = await getNamedAccounts();
+  const Voyager = await deployments.get('Voyager');
 
   const ExtCallAclProxy = await deploy(ExtCallACLProxy, {
     from: owner,
@@ -15,7 +16,7 @@ const deployFn: DeployFunction = async (hre) => {
 
   const ExtCallAcl = await deploy(ExtCallACL, {
     from: owner,
-    args: [ExtCallAclProxy.address],
+    args: [ExtCallAclProxy.address, Voyager.address],
     log: true,
   });
 
@@ -27,6 +28,6 @@ const deployFn: DeployFunction = async (hre) => {
   );
 };
 
-deployFn.tags = ['ExtCallAcl'];
+deployFn.tags = ['ExtCallAcl', 'Voyager'];
 
 export default deployFn;

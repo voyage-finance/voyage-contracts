@@ -3,6 +3,8 @@ pragma solidity ^0.8.9;
 
 import '../ownership/Ownable.sol';
 import './Proxyable.sol';
+import '../../interfaces/IACLManager.sol';
+import 'hardhat/console.sol';
 
 contract Proxy is Ownable {
     Proxyable public target;
@@ -11,6 +13,11 @@ contract Proxy is Ownable {
 
     modifier onlyTarget() {
         require(Proxyable(msg.sender) == target, 'Must be proxy target');
+        _;
+    }
+
+    modifier onlyAuthorized() {
+        _onlyAuthorized();
         _;
     }
 
@@ -56,7 +63,7 @@ contract Proxy is Ownable {
     }
 
     // solhint-disable no-complex-fallback
-    fallback() external payable {
+    fallback() external payable onlyAuthorized {
         // Mutable call setting Proxyable.messageSender as this is using call not delegatecall
         target.setMessageSender(msg.sender);
 
@@ -81,5 +88,18 @@ contract Proxy is Ownable {
             }
             return(free_ptr, returndatasize())
         }
+    }
+
+    function _onlyAuthorized() public {
+        address voyage = address(target.voyager());
+        IACLManager aclManager = IACLManager(
+            target.voyager().addressResolver().getAclManager()
+        );
+        require(
+            msg.sender == target.voyager().addressResolver().getVoyage() ||
+                aclManager.isLiquidityManager(msg.sender) ||
+                aclManager.isLoanManager(msg.sender),
+            'Voyager or admin only function'
+        );
     }
 }
