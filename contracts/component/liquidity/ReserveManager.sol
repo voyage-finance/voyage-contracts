@@ -78,7 +78,8 @@ abstract contract ReserveManager is
             _seniorDepositTokenAddress,
             _stableDebtAddress,
             _interestRateStrategyAddress,
-            _healthStrategyAddress
+            _healthStrategyAddress,
+            _optimalIncomeRatio
         );
     }
 
@@ -201,7 +202,7 @@ abstract contract ReserveManager is
     );
     bytes32 internal constant RESERVE_INITIALIZED_SIG =
         keccak256(
-            'ReserveInitialized(address,address,address,uint256,uint256,address,address,address)'
+            'ReserveInitialized(address,address,address,address,address,address,uint256)'
         );
 
     function emitReserveInitialized(
@@ -210,7 +211,8 @@ abstract contract ReserveManager is
         address _seniorDepositTokenAddress,
         address _stableDebtAddress,
         address _interestRateStrategyAddress,
-        address _healthStrategyAddress
+        address _healthStrategyAddress,
+        uint256 _optimalIncomeRatio
     ) internal {
         proxy._emit(
             abi.encode(
@@ -218,7 +220,8 @@ abstract contract ReserveManager is
                 _seniorDepositTokenAddress,
                 _stableDebtAddress,
                 _interestRateStrategyAddress,
-                _healthStrategyAddress
+                _healthStrategyAddress,
+                _optimalIncomeRatio
             ),
             2,
             RESERVE_INITIALIZED_SIG,
