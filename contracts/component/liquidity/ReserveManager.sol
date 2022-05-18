@@ -194,11 +194,10 @@ abstract contract ReserveManager is
         address indexed _asset,
         address _juniorDepositTokenAddress,
         address _seniorDepositTokenAddress,
-        uint256 _juniorIncomeAllocation,
-        uint256 _seniorIncomeAllocation,
         address _stableDebtAddress,
         address _interestRateStrategyAddress,
-        address _healthStrategyAddress
+        address _healthStrategyAddress,
+        uint256 _optimalIncomeRatio
     );
     bytes32 internal constant RESERVE_INITIALIZED_SIG =
         keccak256(
