@@ -22,8 +22,6 @@ interface IAddressResolver {
 
     function getLiquidityManagerStorage() external view returns (address);
 
-    function getLiquidityDepositEscrow() external view returns (address);
-
     function getLoanManagerProxy() external view returns (address);
 
     function getLoanManager() external view returns (address);

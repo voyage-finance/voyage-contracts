@@ -3,12 +3,18 @@ pragma solidity ^0.8.9;
 
 import '../proxy/Proxyable.sol';
 import './IExtCallACL.sol';
+import '../../component/Voyager.sol';
 
 contract ExtCallACL is Proxyable, IExtCallACL {
     mapping(address => bool) public whitelistedAddress;
     mapping(bytes32 => bool) public whitelistedFunctions;
 
-    constructor(address payable _proxy) public Proxyable(_proxy) {}
+    constructor(address payable _proxy, address _voyage)
+        public
+        Proxyable(_proxy)
+    {
+        voyager = Voyager(_voyage);
+    }
 
     function whitelistAddress(address[] calldata _address) external onlyProxy {
         uint256 arrayLength = _address.length;

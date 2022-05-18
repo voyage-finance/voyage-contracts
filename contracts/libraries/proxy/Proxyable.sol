@@ -4,8 +4,9 @@ pragma solidity ^0.8.9;
 import './Proxy.sol';
 import '../ownership/Ownable.sol';
 import 'hardhat/console.sol';
+import '../../interfaces/IVoyagerComponent.sol';
 
-abstract contract Proxyable is Ownable {
+abstract contract Proxyable is Ownable, IVoyagerComponent {
     /* The proxy this contract exists behind. */
     Proxy public proxy;
 

@@ -39,4 +39,8 @@ interface IACLManager {
     function grantVaultConfigurator(address _amin) external;
 
     function isVaultConfigurator(address _admin) external view returns (bool);
+
+    function grantVoyagerContract(address _admin) external;
+
+    function isVoyagerContract(address _admin) external view returns (bool);
 }

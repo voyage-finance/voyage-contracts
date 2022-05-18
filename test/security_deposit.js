@@ -57,7 +57,10 @@ describe('Security Deposit', function () {
     const ExtCallACLProxy = await ethers.getContractFactory('ExtCallACLProxy');
     extCallACLProxy = await ExtCallACLProxy.deploy();
     const ExtCallALC = await ethers.getContractFactory('ExtCallACL');
-    extCallACL = await ExtCallALC.deploy(extCallACLProxy.address);
+    extCallACL = await ExtCallALC.deploy(
+      extCallACLProxy.address,
+      voyager.address
+    );
     await extCallACLProxy.setTarget(extCallACL.address);
 
     //deploy ACLManager
