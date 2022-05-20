@@ -341,12 +341,6 @@ contract StableDebtToken is
         drawDown.amount -= _amount;
         drawDown.timestamp = uint40(block.timestamp);
 
-        // update repayment
-        uint256 numPayment = drawDown.repayment.numPayments;
-        drawDown.repayment.payments[numPayment] = _amount;
-        drawDown.repayment.totalPaid += _amount;
-        drawDown.repayment.numPayments++;
-
         // clean up date if necessary
         if (drawDown.amount == 0) {
             delete _borrowData[_vaultAddr].drawDowns[_drawDown];
@@ -355,6 +349,12 @@ contract StableDebtToken is
                 delete _vaultRate[_vaultAddr];
                 delete _borrowData[_vaultAddr];
             }
+        } else {
+            // update repayment
+            uint256 numPayment = drawDown.repayment.numPayments;
+            drawDown.repayment.payments[numPayment] = _amount;
+            drawDown.repayment.totalPaid += _amount;
+            drawDown.repayment.numPayments++;
         }
     }
 
