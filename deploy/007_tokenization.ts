@@ -22,7 +22,7 @@ const deployFn: DeployFunction = async (hre) => {
   const signer = ethers.provider.getSigner(0);
 
   let TreasureUnderSea: Tus;
-  const tusSupply = new BigNumber(1_000_000_000).multipliedBy(
+  const tusSupply = new BigNumber(1_000_000_000_000).multipliedBy(
     new BigNumber(10).pow(18)
   );
   if (network.live && network.name === 'avalancheMain') {

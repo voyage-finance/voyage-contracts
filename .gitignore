@@ -79,3 +79,4 @@ artifacts
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+.vscode/slither-results.json

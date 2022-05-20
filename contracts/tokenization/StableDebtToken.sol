@@ -9,18 +9,20 @@ import '../interfaces/IStableDebtToken.sol';
 import '../libraries/types/DataTypes.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeCast.sol';
 import 'openzeppelin-solidity/contracts/utils/Context.sol';
+import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 import '../libraries/helpers/Errors.sol';
-import '../interfaces/IInitializableDebtToken.sol';
+import './base/InitializableToken.sol';
 import 'hardhat/console.sol';
 
 contract StableDebtToken is
     Context,
-    IInitializableDebtToken,
+    InitializableToken,
     IStableDebtToken,
     DebtTokenBase
 {
     using WadRayMath for uint256;
     using SafeCast for uint256;
+    using SafeMath for uint256;
 
     modifier onlyLoanManager() {
         require(
@@ -34,7 +36,7 @@ contract StableDebtToken is
     uint256 public constant SECONDS_PER_DAY = 1 days;
 
     uint256 internal _avgStableRate;
-    mapping(address => uint256) internal _usersStableRate;
+    mapping(address => uint256) internal _vaultRate;
     uint40 internal _totalSupplyTimestamp;
     mapping(address => DataTypes.BorrowData) internal _borrowData;
 
@@ -73,10 +75,10 @@ contract StableDebtToken is
     }
 
     /**
-     * @dev Calculate the current user debt principal
+     * @dev Calculate the current vault debt principal
      **/
-    function principalOf(address _account) public view returns (uint256) {
-        DataTypes.BorrowData storage borrowData = _borrowData[_account];
+    function principalOf(address _vaultAddr) public view returns (uint256) {
+        DataTypes.BorrowData storage borrowData = _borrowData[_vaultAddr];
         uint256 principal;
         for (uint256 i = 0; i < borrowData.drawDownNumber; i++) {
             principal += borrowData.drawDowns[i].amount;
@@ -85,17 +87,63 @@ contract StableDebtToken is
         return principal;
     }
 
+    function drawDoneNumber(address _vaultAddr) public view returns (uint256) {
+        return _borrowData[_vaultAddr].drawDownNumber;
+    }
+
+    function drawDown(address _vaultAddr, uint256 _drawDownNumber)
+        public
+        view
+        returns (DataTypes.DebtDetail memory)
+    {
+        DataTypes.DrawDown storage drawDown = _borrowData[_vaultAddr].drawDowns[
+            _drawDownNumber
+        ];
+        DataTypes.DebtDetail memory debtDetail;
+        debtDetail.amount = drawDown.amount;
+        debtDetail.timestamp = drawDown.timestamp;
+        debtDetail.tenure = drawDown.tenure;
+        debtDetail.borrowRate = drawDown.borrowRate;
+        return debtDetail;
+    }
+
+    function repaymentOverall(address _vaultAddr, uint256 _drawDownNumber)
+        public
+        view
+        returns (DataTypes.RepaymentDetail memory)
+    {
+        DataTypes.DrawDown storage drawDown = _borrowData[_vaultAddr].drawDowns[
+            _drawDownNumber
+        ];
+        DataTypes.RepaymentDetail memory repaymentDetail;
+        repaymentDetail.totalPaid = drawDown.repayment.totalPaid;
+        repaymentDetail.numPayments = drawDown.repayment.numPayments;
+        return repaymentDetail;
+    }
+
+    function repaymentHistory(
+        address _vaultAddr,
+        uint256 _drawDownNumber,
+        uint256 _tenure
+    ) public view returns (uint256) {
+        DataTypes.DrawDown storage drawDown = _borrowData[_vaultAddr].drawDowns[
+            _drawDownNumber
+        ];
+
+        return drawDown.repayment.payments[_drawDownNumber];
+    }
+
     /**
-     * @dev Calculates the current user debt balance
-     * @return The accumulated debt of the user
+     * @dev Calculates the current vault debt balance
+     * @return The accumulated debt of the vault
      **/
-    function balanceOf(address _account)
+    function balanceOf(address _vaultAddr)
         public
         view
         override
         returns (uint256)
     {
-        DataTypes.BorrowData storage borrowData = _borrowData[_account];
+        DataTypes.BorrowData storage borrowData = _borrowData[_vaultAddr];
         uint256 cumulatedBalance;
         for (uint256 i = 0; i < borrowData.drawDownNumber; i++) {
             uint256 stableRate = borrowData.drawDowns[i].borrowRate;
@@ -110,18 +158,22 @@ contract StableDebtToken is
         return cumulatedBalance;
     }
 
-    function _mint(address _account) internal {
-        DataTypes.BorrowData storage borrowData = _borrowData[_account];
-        for (uint256 i = 0; i < borrowData.drawDownNumber; i++) {
-            DataTypes.DrawDown storage drawDown = borrowData.drawDowns[i];
-            uint256 stableRate = drawDown.borrowRate;
-            uint256 cumulatedInterest = MathUtils.calculateCompoundedInterest(
-                stableRate,
-                drawDown.timestamp
-            );
-            drawDown.amount = drawDown.amount.rayMul(cumulatedInterest);
-            drawDown.timestamp = uint40(block.timestamp);
-        }
+    function balanceOfDrawdown(address _vaultAddr, uint256 _drawDown)
+        external
+        view
+        returns (uint256)
+    {
+        DataTypes.BorrowData storage borrowData = _borrowData[_vaultAddr];
+        uint256 cumulatedBalance;
+        uint256 stableRate = borrowData.drawDowns[_drawDown].borrowRate;
+        uint256 cumulatedInterest = MathUtils.calculateCompoundedInterest(
+            stableRate,
+            borrowData.drawDowns[_drawDown].timestamp
+        );
+        cumulatedBalance += borrowData.drawDowns[_drawDown].amount.rayMul(
+            cumulatedInterest
+        );
+        return cumulatedInterest;
     }
 
     /**
@@ -137,51 +189,13 @@ contract StableDebtToken is
         return (_calcTotalSupply(avgRate), avgRate);
     }
 
-    /**
-     * @dev Calculates the total supply
-     * @param avgRate The average rate at which the total supply increases
-     * @return The debt balance of the user since the last burn/mint action
-     **/
-    function _calcTotalSupply(uint256 avgRate)
-        internal
-        view
-        virtual
-        returns (uint256)
-    {
-        uint256 principalSupply = super.totalSupply();
-
-        if (principalSupply == 0) {
-            return 0;
-        }
-
-        uint256 cumulatedInterest = MathUtils.calculateCompoundedInterest(
-            avgRate,
-            _totalSupplyTimestamp
-        );
-
-        return principalSupply.rayMul(cumulatedInterest);
-    }
-
-    function _getUnderlyingAssetAddress()
-        internal
-        view
-        override
-        returns (address)
-    {
-        return underlyingAsset;
-    }
-
-    function getRevision() internal pure virtual override returns (uint256) {
-        return DEBT_TOKEN_REVISION;
-    }
-
-    function getAggregateOptimalRepaymentRate(address _user)
+    function getAggregateOptimalRepaymentRate(address _vaultAddr)
         external
         view
         returns (uint256)
     {
-        DataTypes.BorrowData storage bd = _borrowData[_user];
-        uint256 stableRate = _usersStableRate[_user];
+        DataTypes.BorrowData storage bd = _borrowData[_vaultAddr];
+        uint256 stableRate = _vaultRate[_vaultAddr];
         uint256 aggregateOptimalRepaymentRate;
         for (uint256 i = 0; i < bd.drawDownNumber; i++) {
             DataTypes.DrawDown storage drawDone = bd.drawDowns[i];
@@ -201,12 +215,12 @@ contract StableDebtToken is
         return aggregateOptimalRepaymentRate;
     }
 
-    function getAggregateActualRepaymentRate(address _user)
+    function getAggregateActualRepaymentRate(address _vaultAddr)
         external
         view
         returns (uint256)
     {
-        DataTypes.BorrowData storage bd = _borrowData[_user];
+        DataTypes.BorrowData storage bd = _borrowData[_vaultAddr];
         uint256 aggregateActualRepayment;
         for (uint256 i = 0; i < bd.drawDownNumber; i++) {
             DataTypes.DrawDown storage drawDone = bd.drawDowns[i];
@@ -232,7 +246,7 @@ contract StableDebtToken is
     }
 
     function mint(
-        address _user,
+        address _vaultAddr,
         uint256 _amount,
         uint256 _tenure,
         uint256 _rate
@@ -243,21 +257,22 @@ contract StableDebtToken is
             ,
             uint256 currentBalance,
             uint256 balanceIncrease
-        ) = _calculateBalanceIncrease(_user);
+        ) = _calculateBalanceIncrease(_vaultAddr);
 
         vars.previousSupply = totalSupply();
         vars.currentAvgStableRate = _avgStableRate;
         vars.nextSupply = _totalSupply = vars.previousSupply + _amount;
 
         vars.amountInRay = _amount.wadToRay();
-        vars.currentStableRate = _usersStableRate[_user];
+        vars.currentStableRate = _vaultRate[_vaultAddr];
 
-        DataTypes.BorrowData storage bd = _borrowData[_user];
+        DataTypes.BorrowData storage bd = _borrowData[_vaultAddr];
         uint256 currentDrawDownNumber = bd.drawDownNumber;
         bd.drawDowns[currentDrawDownNumber].amount = _amount;
         bd.drawDowns[currentDrawDownNumber].tenure = _tenure;
         bd.drawDowns[currentDrawDownNumber].borrowRate = _rate;
         bd.drawDowns[currentDrawDownNumber].timestamp = uint40(block.timestamp);
+        bd.mapSize++;
         bd.drawDownNumber++;
 
         vars.nextStableRate = (vars.currentStableRate.rayMul(
@@ -266,7 +281,7 @@ contract StableDebtToken is
                 (currentBalance + _amount).wadToRay()
             );
 
-        _usersStableRate[_user] = vars.nextStableRate.toUint128();
+        _vaultRate[_vaultAddr] = vars.nextStableRate.toUint128();
 
         _totalSupplyTimestamp = uint40(block.timestamp);
 
@@ -277,9 +292,9 @@ contract StableDebtToken is
                     vars.nextSupply.wadToRay()
                 )
         ).toUint128();
-        _mint(_user);
+        _update(_vaultAddr);
         emit Mint(
-            _user,
+            _vaultAddr,
             _amount,
             currentBalance,
             balanceIncrease,
@@ -287,6 +302,60 @@ contract StableDebtToken is
             vars.currentAvgStableRate,
             vars.nextSupply
         );
+    }
+
+    function burn(
+        address _vaultAddr,
+        uint256 _drawDown,
+        uint256 _amount
+    ) external override onlyLoanManager {
+        uint256 previousSupply = totalSupply();
+        uint256 newAvgStableRate = 0;
+        uint256 nextSupply = 0;
+        uint256 vaultRate = _vaultRate[_vaultAddr];
+
+        if (previousSupply <= _amount) {
+            _avgStableRate = 0;
+            _totalSupply = 0;
+        } else {
+            nextSupply = _totalSupply = previousSupply.sub(_amount);
+            // refer to aave protocol v2
+            uint256 firstTerm = _avgStableRate.rayMul(
+                previousSupply.wadToRay()
+            );
+            uint256 secondTerm = vaultRate.rayMul(_amount.wadToRay());
+            if (secondTerm >= firstTerm) {
+                newAvgStableRate = _avgStableRate = _totalSupply = 0;
+            } else {
+                newAvgStableRate = _avgStableRate = firstTerm
+                    .sub(secondTerm)
+                    .rayDiv(nextSupply.wadToRay());
+            }
+        }
+        _update(_vaultAddr);
+        DataTypes.DrawDown storage drawDown = _borrowData[_vaultAddr].drawDowns[
+            _drawDown
+        ];
+
+        // update amount and timestamp
+        drawDown.amount -= _amount;
+        drawDown.timestamp = uint40(block.timestamp);
+
+        // update repayment
+        uint256 numPayment = drawDown.repayment.numPayments;
+        drawDown.repayment.payments[numPayment] = _amount;
+        drawDown.repayment.totalPaid += _amount;
+        drawDown.repayment.numPayments++;
+
+        // clean up date if necessary
+        if (drawDown.amount == 0) {
+            delete _borrowData[_vaultAddr].drawDowns[_drawDown];
+            _borrowData[_vaultAddr].mapSize--;
+            if (_borrowData[_vaultAddr].mapSize == 0) {
+                delete _vaultRate[_vaultAddr];
+                delete _borrowData[_vaultAddr];
+            }
+        }
     }
 
     function totalSupply() public view virtual override returns (uint256) {
@@ -301,14 +370,30 @@ contract StableDebtToken is
         return underlyingAsset;
     }
 
+    /************************************** Private Functions **************************************/
+
+    function _update(address _account) internal {
+        DataTypes.BorrowData storage borrowData = _borrowData[_account];
+        for (uint256 i = 0; i < borrowData.drawDownNumber; i++) {
+            DataTypes.DrawDown storage drawDown = borrowData.drawDowns[i];
+            uint256 stableRate = drawDown.borrowRate;
+            uint256 cumulatedInterest = MathUtils.calculateCompoundedInterest(
+                stableRate,
+                drawDown.timestamp
+            );
+            drawDown.amount = drawDown.amount.rayMul(cumulatedInterest);
+            drawDown.timestamp = uint40(block.timestamp);
+        }
+    }
+
     /**
      * @dev Calculates the increase in balance since the last user interaction
-     * @param _user The address of the user for which the
+     * @param _vaultAddr The address of the value address
      * @return The previous principal balance
      * @return The new principal balance
      * @return The balance increase
      **/
-    function _calculateBalanceIncrease(address _user)
+    function _calculateBalanceIncrease(address _vaultAddr)
         internal
         view
         returns (
@@ -317,16 +402,54 @@ contract StableDebtToken is
             uint256
         )
     {
-        uint256 principal = principalOf(_user);
+        uint256 principal = principalOf(_vaultAddr);
         if (principal == 0) {
             return (0, 0, 0);
         }
 
-        uint256 newPrincipalBalance = balanceOf(_user);
+        uint256 newPrincipalBalance = balanceOf(_vaultAddr);
         return (
             principal,
             newPrincipalBalance,
             newPrincipalBalance - principal
         );
+    }
+
+    function _getUnderlyingAssetAddress()
+        internal
+        view
+        override
+        returns (address)
+    {
+        return underlyingAsset;
+    }
+
+    /**
+     * @dev Calculates the total supply
+     * @param avgRate The average rate at which the total supply increases
+     * @return The debt balance of the vault since the last burn/mint action
+     **/
+    function _calcTotalSupply(uint256 avgRate)
+        internal
+        view
+        virtual
+        returns (uint256)
+    {
+        uint256 principalSupply = super.totalSupply();
+
+        if (principalSupply == 0) {
+            return 0;
+        }
+
+        uint256 cumulatedInterest = MathUtils.calculateCompoundedInterest(
+            avgRate,
+            _totalSupplyTimestamp
+        );
+
+        return principalSupply.rayMul(cumulatedInterest);
+    }
+
+    function getRevision() internal pure virtual override returns (uint256) {
+        return DEBT_TOKEN_REVISION;
     }
 }

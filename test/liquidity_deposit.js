@@ -81,14 +81,14 @@ describe('Reserve Deposit', function () {
   it('Deposit junior liquidity should return correct value', async function () {
     const depositAmount = '1000000000000000000';
     const lm = liquidityManager.attach(liquidityManagerProxy.address);
-    await expect(voyager.deposit(tus.address, 0, depositAmount, owner))
+    await expect(voyager.deposit(tus.address, 0, depositAmount))
       .to.emit(lm, 'Deposit')
       .withArgs(tus.address, owner, 0, depositAmount);
     const juniorTokenAmount = await juniorDepositToken.balanceOf(owner);
     expect(juniorTokenAmount).to.equal(BigNumber.from(depositAmount));
 
     // deposit again
-    await expect(voyager.deposit(tus.address, 0, depositAmount, owner))
+    await expect(voyager.deposit(tus.address, 0, depositAmount))
       .to.emit(lm, 'Deposit')
       .withArgs(tus.address, owner, 0, depositAmount);
     expect(await voyager.liquidityRate(tus.address, '0')).to.equal('0');
@@ -96,13 +96,13 @@ describe('Reserve Deposit', function () {
 
   it('Deposit senior liquidity should return correct value', async function () {
     const depositAmount = '1000000000000000000';
-    await voyager.deposit(tus.address, 1, depositAmount, owner);
+    await voyager.deposit(tus.address, 1, depositAmount);
     const seniorTokenAmount = await seniorDepositToken.balanceOf(owner);
     expect(seniorTokenAmount).to.equal(BigNumber.from(depositAmount));
 
     expect(await voyager.liquidityRate(tus.address, '1')).to.equal('0');
     // deposit again
-    await voyager.deposit(tus.address, 1, depositAmount, owner);
+    await voyager.deposit(tus.address, 1, depositAmount);
     expect(await voyager.liquidityRate(tus.address, '1')).to.equal('0');
   });
 });

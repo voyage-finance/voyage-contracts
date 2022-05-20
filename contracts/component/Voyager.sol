@@ -74,22 +74,17 @@ contract Voyager is MessageBus {
      * @param _asset The address of the underlying asset to deposit
      * @param _tranche The tranche of the liquidity pool the user wants to deposit to
      * @param _amount The amount to be deposited
-     * @param _onBehalfOf The address that will receive the deposit tokens, same as msg.sender if the user
-     *   wants to receive them on his own wallet, or a different address if the beneficiary of deposit token
-     *   is a different wallet
      **/
     function deposit(
         address _asset,
         ReserveLogic.Tranche _tranche,
-        uint256 _amount,
-        address _onBehalfOf
+        uint256 _amount
     ) external {
         LiquidityManager(getLiquidityManagerProxyAddress()).deposit(
             _asset,
             _tranche,
             _amount,
-            msg.sender,
-            _onBehalfOf
+            msg.sender
         );
     }
 
@@ -187,6 +182,21 @@ contract Voyager is MessageBus {
             _amount,
             _vault,
             _grossAssetValue
+        );
+    }
+
+    function repay(
+        address _asset,
+        uint256 _drawDownIdx,
+        uint256 _amount,
+        address payable _vault
+    ) external {
+        LoanManager(addressResolver.getLoanManagerProxy()).repay(
+            msg.sender,
+            _asset,
+            _drawDownIdx,
+            _amount,
+            _vault
         );
     }
 

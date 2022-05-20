@@ -13,8 +13,7 @@ interface ILiquidityManager {
         address _asset,
         ReserveLogic.Tranche _tranche,
         uint256 _amount,
-        address _user,
-        address _onBehalfOf
+        address _user
     ) external;
 
     function withdraw(
@@ -35,4 +34,6 @@ interface ILiquidityManager {
         address _user,
         ReserveLogic.Tranche _tranche
     ) external view returns (uint256);
+
+    function utilizationRate(address _reserve) external view returns (uint256);
 }

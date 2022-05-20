@@ -80,7 +80,7 @@ describe('Withdraw', function () {
     const depositAmount = '100000000000000000000';
     await lm.activeReserve(tus.address);
     vm.setMaxSecurityDeposit(tus.address, '1000000000000000000000');
-    await voyager.deposit(tus.address, 1, depositAmount, owner);
+    await voyager.deposit(tus.address, 1, depositAmount);
     await vm.setSecurityDepositRequirement(
       tus.address,
       '100000000000000000000000000'

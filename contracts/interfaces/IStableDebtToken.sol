@@ -22,6 +22,19 @@ interface IStableDebtToken {
         uint256 newTotalSupply
     );
 
+    function mint(
+        address _user,
+        uint256 _amount,
+        uint256 _tenure,
+        uint256 _rate
+    ) external virtual;
+
+    function burn(
+        address _user,
+        uint256 _drawDown,
+        uint256 _amount
+    ) external virtual;
+
     function getAverageStableRate() external view returns (uint256);
 
     function getTotalSupplyAndAvgRate()
@@ -35,6 +48,11 @@ interface IStableDebtToken {
         returns (uint256);
 
     function getAggregateActualRepaymentRate(address _user)
+        external
+        view
+        returns (uint256);
+
+    function balanceOfDrawdown(address _account, uint256 _drawDown)
         external
         view
         returns (uint256);

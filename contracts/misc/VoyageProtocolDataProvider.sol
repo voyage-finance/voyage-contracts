@@ -102,6 +102,7 @@ contract VoyageProtocolDataProvider {
         }
 
         poolData.decimals = token.decimals();
+        poolData.utilizationRate = lmp.utilizationRate(underlyingAsset);
         poolData.symbol = token.symbol();
         (bool isActive, , ) = lmp.getFlags(underlyingAsset);
         poolData.isActive = isActive;

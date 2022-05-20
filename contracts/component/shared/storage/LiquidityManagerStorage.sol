@@ -126,6 +126,23 @@ contract LiquidityManagerStorage is State {
         );
     }
 
+    function updateStateOnRepayment(address _asset, uint256 _amount)
+        public
+        onlyAssociatedContract
+    {
+        DataTypes.ReserveData storage reserve = _reserves[_asset];
+        reserve.updateState(ReserveLogic.Tranche.SENIOR);
+        reserve.updateInterestRates(
+            _asset,
+            reserve.juniorDepositTokenAddress,
+            reserve.seniorDepositTokenAddress,
+            0,
+            0,
+            _amount,
+            0
+        );
+    }
+
     function activeReserve(address _asset) public onlyAssociatedContract {
         DataTypes.ReserveConfigurationMap
             memory currentConfig = getConfiguration(_asset);

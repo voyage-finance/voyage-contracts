@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-abstract contract IInitializableDebtToken {
+abstract contract InitializableToken {
     /**
      * @dev Indicates that the contract has been initialized.
      */
@@ -65,14 +65,6 @@ abstract contract IInitializableDebtToken {
     function isInitialized() public view returns (bool) {
         return !initializing && getRevision() <= lastInitializedRevision;
     }
-
-    // todo return value
-    function mint(
-        address _user,
-        uint256 _amount,
-        uint256 _tenure,
-        uint256 _rate
-    ) external virtual;
 
     /**
      * @dev Returns true if and only if the function is running in the constructor
