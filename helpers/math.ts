@@ -1,8 +1,15 @@
 import BigNumber from 'bignumber.js';
+import { ethers } from 'ethers';
 
 export const MAX_UINT_256 =
   '115792089237316195423570985008687907853269984665640564039457584007913129639935';
 
-export const WAD = new BigNumber(10 ** 18);
+export const WAD = new BigNumber(10).pow(18);
 
-export const RAY = new BigNumber(10 ** 27);
+export const RAY = new BigNumber(10).pow(27);
+
+export const formatTokenBalance = (n: ethers.BigNumber, decimals: number, precision: number = 5) => {
+  return new BigNumber(n.toString()).shiftedBy(decimals * -1).toFixed(precision);
+}
+
+export const decimals = (n: number) => ethers.BigNumber.from(10).pow(n)
