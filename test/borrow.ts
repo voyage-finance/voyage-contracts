@@ -1,7 +1,12 @@
 import { expect } from 'chai';
 import { ethers, getNamedAccounts } from 'hardhat';
 import { setupDebtTestSuite } from '../helpers/debt';
-import { decimals, formatTokenBalance, MAX_UINT_256, RAY } from '../helpers/math';
+import {
+  decimals,
+  formatTokenBalance,
+  MAX_UINT_256,
+  RAY,
+} from '../helpers/math';
 import { mine, timeTravel } from '../helpers/chain';
 const { BigNumber } = ethers;
 
@@ -65,7 +70,7 @@ describe('Borrow', function () {
     await expect(
       voyager.borrow(tus.address, borrowAmount, vaultAddr, 0)
     ).to.be.revertedWith('71');
-  })
+  });
 
   it('Insufficient credit limit should revert', async function () {
     const { lm, tus, vm, voyager } = await setupDebtTestSuite();
