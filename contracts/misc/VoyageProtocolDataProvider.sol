@@ -96,6 +96,9 @@ contract VoyageProtocolDataProvider {
         }
 
         poolData.decimals = token.decimals();
+        poolData.symbol = token.symbol();
+        (bool isActive, , ) = lmp.getFlags(underlyingAsset);
+        poolData.isActive = isActive;
 
         return poolData;
     }
