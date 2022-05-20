@@ -89,7 +89,7 @@ describe('Data Provider', function () {
     // 100
     const depositAmount = '100000000000000000000';
     await lm.activeReserve(tus.address);
-    await voyager.deposit(tus.address, 1, depositAmount, owner);
+    await voyager.deposit(tus.address, 1, depositAmount);
 
     const DataProvider = await ethers.getContractFactory(
       'VoyageProtocolDataProvider'

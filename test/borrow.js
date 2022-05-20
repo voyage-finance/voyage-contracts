@@ -99,7 +99,7 @@ describe('Borrow', function () {
     // deposit sufficient reserve
     const depositAmount = '100000000000000000000';
     await lm.activeReserve(tus.address);
-    await voyager.deposit(tus.address, 1, depositAmount, owner);
+    await voyager.deposit(tus.address, 1, depositAmount);
 
     await vm.setSecurityDepositRequirement(
       tus.address,
@@ -141,8 +141,8 @@ describe('Borrow', function () {
     const depositAmount = '100000000000000000000';
     await lm.activeReserve(tus.address);
     await vm.setMaxSecurityDeposit(tus.address, '1000000000000000000000');
-    await voyager.deposit(tus.address, 0, depositAmount, owner);
-    await voyager.deposit(tus.address, 1, depositAmount, owner);
+    await voyager.deposit(tus.address, 0, depositAmount);
+    await voyager.deposit(tus.address, 1, depositAmount);
     const seniorLiquidity = await tus.balanceOf(seniorDepositToken.address);
     const juniorLiquidity = await tus.balanceOf(juniorDepositToken.address);
     console.log('senior liquidity: ', seniorLiquidity.toString());

@@ -8,11 +8,14 @@ import '../../libraries/math/WadRayMath.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
 import '../../interfaces/IReserveManager.sol';
 import '../../interfaces/ILiquidityManager.sol';
+import '../../interfaces/IStableDebtToken.sol';
+import '../../tokenization/InitializableDepositToken.sol';
 import '../../tokenization/JuniorDepositToken.sol';
 import '../../tokenization/SeniorDepositToken.sol';
 
 contract LiquidityManager is ReserveManager, ILiquidityManager {
     using WadRayMath for uint256;
+    using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
     constructor(address payable _proxy, address _voyager)
@@ -25,8 +28,7 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
         address _asset,
         ReserveLogic.Tranche _tranche,
         uint256 _amount,
-        address _user,
-        address _onBehalfOf
+        address _user
     ) external onlyProxy {
         LiquidityManagerStorage lms = LiquidityManagerStorage(
             liquidityManagerStorageAddress()
@@ -45,7 +47,7 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
             vToken = reserve.seniorDepositTokenAddress;
             liquidityIndex = getSeniorLiquidityIndex(_asset);
         }
-        IVToken(vToken).mint(_onBehalfOf, _amount, liquidityIndex);
+        IVToken(vToken).mint(_user, _amount, liquidityIndex);
         IERC20(_asset).safeTransferFrom(_user, vToken, _amount);
         emitDeposit(_asset, _user, _tranche, _amount);
     }
@@ -133,6 +135,29 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
                 .getReserveNormalizedIncome(_asset, _tranche);
     }
 
+    function utilizationRate(address _reserve) external view returns (uint256) {
+        DataTypes.ReserveData memory reserve = getReserveData(_reserve);
+
+        uint256 totalDebt;
+        uint256 avgBorrowRate;
+        (totalDebt, avgBorrowRate) = IStableDebtToken(reserve.debtTokenAddress)
+            .getTotalSupplyAndAvgRate();
+
+        uint256 totalPendingWithdrawal = InitializableDepositToken(
+            reserve.seniorDepositTokenAddress
+        ).totalPendingWithdrawal();
+
+        uint256 availableLiquidity = IERC20(_reserve).balanceOf(
+            reserve.seniorDepositTokenAddress
+        ) - totalPendingWithdrawal;
+
+        uint256 utilizationRate = totalDebt == 0
+            ? 0
+            : totalDebt.rayDiv(availableLiquidity.add(totalDebt));
+
+        return utilizationRate;
+    }
+
     /******************************************** Events *******************************************/
 
     function trancheToBytes32(ReserveLogic.Tranche tranche)
@@ -149,6 +174,7 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
         uint8 indexed tranche,
         uint256 amount
     );
+
     bytes32 internal constant DEPOSIT_SIG =
         keccak256('Deposit(address,address,uint8,uint256)');
 

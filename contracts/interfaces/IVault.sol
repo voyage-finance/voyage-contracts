@@ -21,8 +21,6 @@ interface IVault {
         uint256 _amount
     ) external payable;
 
-    function increaseTotalDebt(uint256 _amount) external;
-
     function slash(
         address _reserve,
         address payable _to,

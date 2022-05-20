@@ -96,6 +96,7 @@ contract VoyageProtocolDataProvider {
         }
 
         poolData.decimals = token.decimals();
+        poolData.utilizationRate = lmp.utilizationRate(underlyingAsset);
 
         return poolData;
     }

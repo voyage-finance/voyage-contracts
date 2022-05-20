@@ -3,7 +3,7 @@ pragma solidity ^0.8.9;
 
 import '../../contracts/component/liquidity/LiquidityManagerProxy.sol';
 import '../libraries/helpers/Errors.sol';
-import './IInitializableDepositToken.sol';
+import './InitializableDepositToken.sol';
 import '../interfaces/ILiquidityManagerProxy.sol';
 import './BaseERC20.sol';
 import 'openzeppelin-solidity/contracts/utils/Context.sol';
@@ -16,7 +16,7 @@ import '../interfaces/IVToken.sol';
 
 contract SeniorDepositToken is
     Context,
-    IInitializableDepositToken,
+    InitializableDepositToken,
     BaseERC20('SeniorDepositToken_IMPL', 'SeniorDepositToken_IMPL', 0),
     IVToken
 {
@@ -63,7 +63,6 @@ contract SeniorDepositToken is
 
         emit Initialized(
             _underlyingAsset,
-            addressResolver.getAddress('liquidityManager'),
             _seniorDepositTokenDecimals,
             _seniorDepositTokenName,
             _seniorDepositTokenSymbol,

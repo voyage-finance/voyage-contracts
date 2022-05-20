@@ -6,6 +6,7 @@ let owner;
 let voyager;
 let liquidityManagerProxy;
 let liquidityManager;
+let loanManager;
 let juniorDepositToken;
 let seniorDepositToken;
 let stableDebtToken;
@@ -15,9 +16,9 @@ let addressResolver;
 let vaultManager;
 let tus;
 let vm;
-let vaultAddr;
+let lm;
 
-describe('Withdraw', function () {
+describe('Repayment', function () {
   beforeEach(async function () {
     ({ owner } = await getNamedAccounts());
     await deployments.fixture([
@@ -34,6 +35,7 @@ describe('Withdraw', function () {
     ]);
     liquidityManagerProxy = await ethers.getContract('LiquidityManagerProxy');
     liquidityManager = await ethers.getContract('LiquidityManager');
+    loanManager = await ethers.getContract('LoanManager');
     juniorDepositToken = await ethers.getContract('JuniorDepositToken');
     seniorDepositToken = await ethers.getContract('SeniorDepositToken');
     stableDebtToken = await ethers.getContract('StableDebtToken');
@@ -57,16 +59,38 @@ describe('Withdraw', function () {
       '1000000000000000000000'
     );
 
+    await tus.increaseAllowance(loanManager.address, '1000000000000000000000');
+
     const vaultManagerProxy = await ethers.getContract('VaultManagerProxy');
     const VaultManager = await ethers.getContractFactory('VaultManager');
     vm = await VaultManager.attach(vaultManagerProxy.address);
 
+    const reserveLogic = await ethers.getContract('ReserveLogic');
+    const LM = await ethers.getContractFactory('LiquidityManager', {
+      libraries: { ReserveLogic: reserveLogic.address },
+    });
+    lm = await LM.attach(liquidityManagerProxy.address);
+    await lm.initReserve(
+      tus.address,
+      juniorDepositToken.address,
+      seniorDepositToken.address,
+      stableDebtToken.address,
+      defaultReserveInterestRateStrategy.address,
+      healthStrategyAddress.address,
+      '500000000000000000000000000'
+    );
+  });
+
+  it('Repay should return correct value', async function () {
     // deposit sufficient reserve
     const reserveLogic = await ethers.getContract('ReserveLogic');
     const LM = await ethers.getContractFactory('LiquidityManager', {
       libraries: { ReserveLogic: reserveLogic.address },
     });
     const lm = await LM.attach(liquidityManagerProxy.address);
+    const vaultManagerProxy = await ethers.getContract('VaultManagerProxy');
+    const VaultManager = await ethers.getContract('VaultManager');
+    const vm = VaultManager.attach(vaultManagerProxy.address);
     await lm.initReserve(
       tus.address,
       juniorDepositToken.address,
@@ -79,8 +103,13 @@ describe('Withdraw', function () {
     // 100
     const depositAmount = '100000000000000000000';
     await lm.activeReserve(tus.address);
-    vm.setMaxSecurityDeposit(tus.address, '1000000000000000000000');
+    await vm.setMaxSecurityDeposit(tus.address, '1000000000000000000000');
+    await voyager.deposit(tus.address, 0, depositAmount);
     await voyager.deposit(tus.address, 1, depositAmount);
+    const seniorLiquidity = await tus.balanceOf(seniorDepositToken.address);
+    const juniorLiquidity = await tus.balanceOf(juniorDepositToken.address);
+    console.log('senior liquidity: ', seniorLiquidity.toString());
+    console.log('junior liquidity: ', juniorLiquidity.toString());
     await vm.setSecurityDepositRequirement(
       tus.address,
       '100000000000000000000000000'
@@ -91,7 +120,7 @@ describe('Withdraw', function () {
       (Math.random() + 1).toString(36).substring(7)
     );
     await voyager.createVault(owner, tus.address, salt);
-    vaultAddr = await voyager.getVault(owner);
+    const vaultAddr = await voyager.getVault(owner);
     await voyager.initVault(vaultAddr, tus.address);
 
     // get security deposit escrow address
@@ -102,48 +131,64 @@ describe('Withdraw', function () {
     await tus.increaseAllowance(escrowAddress, '1000000000000000000000');
 
     await voyager.depositSecurity(owner, tus.address, '100000000000000000000');
-  });
+    await voyager.borrow(tus.address, '10000000000000000000', vaultAddr, 0);
 
-  it('Withdraw with no interest should return correct value', async function () {
-    const tenDay = 10 * 24 * 60 * 60;
+    const StableDebtToken = await ethers.getContractFactory('StableDebtToken');
+    const debtToken = await StableDebtToken.attach(stableDebtToken.address);
+    const debtBalance = await debtToken.balanceOf(vaultAddr);
+    console.log('debt balance: ', debtBalance.toString());
 
-    await ethers.provider.send('evm_increaseTime', [tenDay]);
+    // increase seven days
+    const sevenDays = 7 * 24 * 60 * 60;
+    await ethers.provider.send('evm_increaseTime', [sevenDays]);
     await ethers.provider.send('evm_mine');
 
-    const accumulatedBalance = await seniorDepositToken.balanceOf(owner);
-    await expect(accumulatedBalance.toString()).to.equal(
-      '100000000000000000000'
-    );
-
-    await voyager.withdraw(tus.address, 1, '10000000000000000000');
-
-    const accumulatedBalanceAfter = await seniorDepositToken.balanceOf(owner);
-    await expect(accumulatedBalanceAfter.toString()).to.equal(
-      '90000000000000000000'
-    );
-  });
-
-  it('Withdraw with interest should return correct value', async function () {
-    await voyager.borrow(tus.address, '10000000000000000000', vaultAddr, 0);
-    await voyager.borrow(tus.address, '10000000000000000000', vaultAddr, 0);
-    const tenDay = 10 * 24 * 60 * 60;
-
-    await ethers.provider.send('evm_increaseTime', [tenDay]);
-    await ethers.provider.send('evm_mine');
-
-    const originalBalance = await tus.balanceOf(owner);
-    console.log('original balance: ', originalBalance.toString());
-
-    const accumulatedBalance = await seniorDepositToken.balanceOf(owner);
-    console.log('accumulated balance: ', accumulatedBalance.toString());
-    await voyager.withdraw(tus.address, 1, '10000000000000000000');
-    const accumulatedBalanceAfter = await seniorDepositToken.balanceOf(owner);
+    const debtBalanceAfterSevenDays = await debtToken.balanceOf(vaultAddr);
     console.log(
-      'cumulated balance after withdrawing: ',
-      accumulatedBalanceAfter
+      'debt balance after 7 days: ',
+      debtBalanceAfterSevenDays.toString()
     );
 
-    const updatedBalance = await tus.balanceOf(owner);
-    console.log('updated balance: ', updatedBalance.toString());
+    const drawDownNumber = (await debtToken.drawDoneNumber(vaultAddr)) - 1;
+    console.log('draw down number: ', drawDownNumber.toString());
+
+    const drawDown = await debtToken.drawDown(
+      vaultAddr,
+      drawDownNumber.toString()
+    );
+    console.log('debt amount: ', drawDown.amount.toString());
+    await voyager.repay(
+      tus.address,
+      drawDownNumber,
+      '1000000000000000000',
+      vaultAddr
+    );
+
+    await voyager.repay(
+      tus.address,
+      drawDownNumber,
+      '1000000000000000000',
+      vaultAddr
+    );
+
+    const drawDownAfter = await debtToken.drawDown(
+      vaultAddr,
+      drawDownNumber.toString()
+    );
+    console.log('debt amount after: ', drawDownAfter.amount.toString());
+
+    const repaymentOverall = await debtToken.repaymentOverall(
+      vaultAddr,
+      drawDownNumber.toString()
+    );
+    console.log('current total paid: ', repaymentOverall.totalPaid.toString());
+    console.log('current tenure: ', repaymentOverall.numPayments.toString());
+
+    const repaymentRecord = await debtToken.repaymentHistory(
+      vaultAddr,
+      drawDownNumber.toString(),
+      repaymentOverall.numPayments - 1
+    );
+    console.log('repayment record: ', repaymentRecord.toString());
   });
 });

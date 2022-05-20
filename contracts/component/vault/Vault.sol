@@ -27,7 +27,7 @@ contract Vault is ReentrancyGuard, IVault {
     StableDebtToken public stableDebtToken;
     StakingRewards public stakingContract;
 
-    uint256 public totalDebt;
+    //    uint256 public totalDebt;
     // todo oracle
     uint256 public gav;
 
@@ -54,6 +54,9 @@ contract Vault is ReentrancyGuard, IVault {
             voyager = _voyager;
             securityDepositEscrow = _securityDepositEscrow;
             initialized = true;
+            stableDebtToken = StableDebtToken(
+                Voyager(voyager).addressResolver().getStableDebtToken()
+            );
         }
     }
 
@@ -146,13 +149,6 @@ contract Vault is ReentrancyGuard, IVault {
         securityDepositToken.burnOnRedeem(_sponsor, _amount);
     }
 
-    function increaseTotalDebt(uint256 _amount)
-        external
-        onlyVaultManagerContract
-    {
-        totalDebt += _amount;
-    }
-
     // placeholder function
     function slash(
         address _reserve,
@@ -184,11 +180,8 @@ contract Vault is ReentrancyGuard, IVault {
         return ERC20(_reserve).balanceOf(address(securityDepositEscrow));
     }
 
-    /**
-     * @dev Get total debt of the vault
-     **/
     function getTotalDebt() external view returns (uint256) {
-        return totalDebt;
+        return stableDebtToken.balanceOf(address(this));
     }
 
     function getGav() external view returns (uint256) {
@@ -302,6 +295,7 @@ contract Vault is ReentrancyGuard, IVault {
             .getVaultConfig(_reserve);
 
         uint256 securityRequirement = vaultConfig.securityDepositRequirement;
+        uint256 totalDebt = stableDebtToken.balanceOf(address(this));
         return
             securityDepositToken.balanceOf(_sponsor) -
             totalDebt.wadToRay().rayMul(securityRequirement);

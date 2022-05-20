@@ -59,12 +59,12 @@ library DataTypes {
 
     struct BorrowData {
         uint256 drawDownNumber;
-        uint256 totalDebt;
+        uint256 mapSize;
         mapping(uint256 => DrawDown) drawDowns;
-        mapping(uint256 => Repayment) repayments;
     }
 
     struct DrawDown {
+        // remaining amount todo @xiaohuo maybe add initial amount
         uint256 amount;
         uint256 tenure;
         uint40 timestamp;
@@ -72,11 +72,24 @@ library DataTypes {
         Repayment repayment;
     }
 
+    struct DebtDetail {
+        uint256 amount;
+        uint256 tenure;
+        uint40 timestamp;
+        uint256 borrowRate;
+    }
+
     struct Repayment {
         uint256 totalPaid;
+        uint256 numPayments;
         // tenure => amount
         // todo wrapper this in the future
-        mapping(uint256 => uint256) repayment;
+        mapping(uint256 => uint256) payments;
+    }
+
+    struct RepaymentDetail {
+        uint256 totalPaid;
+        uint256 numPayments;
     }
 
     // tmp struct to avoid stack too long
@@ -115,6 +128,7 @@ library DataTypes {
         uint256 seniorLiquidityRate;
         uint256 totalDebt;
         uint256 borrowRate;
+        uint256 utilizationRate;
         uint256 trancheRatio;
         uint256 decimals;
     }

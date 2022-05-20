@@ -98,4 +98,8 @@ contract LiquidityManagerProxy is Proxy, ILiquidityManagerProxy {
                 _tranche
             );
     }
+
+    function utilizationRate(address _reserve) external view returns (uint256) {
+        return ILiquidityManager(address(target)).utilizationRate(_reserve);
+    }
 }

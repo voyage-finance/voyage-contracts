@@ -3,7 +3,7 @@ pragma solidity ^0.8.9;
 
 import '../../contracts/component/liquidity/LiquidityManagerProxy.sol';
 import '../libraries/helpers/Errors.sol';
-import './IInitializableDepositToken.sol';
+import './InitializableDepositToken.sol';
 import '../interfaces/ILiquidityManagerProxy.sol';
 import './BaseERC20.sol';
 import 'openzeppelin-solidity/contracts/utils/Context.sol';
@@ -17,7 +17,7 @@ import 'hardhat/console.sol';
 
 contract JuniorDepositToken is
     Context,
-    IInitializableDepositToken,
+    InitializableDepositToken,
     BaseERC20('JuniorDepositToken_IMPL', 'JuniorDepositToken_IMPL', 0),
     IVToken
 {
@@ -63,7 +63,6 @@ contract JuniorDepositToken is
 
         emit Initialized(
             _underlyingAsset,
-            addressResolver.getAddress('liquidityManager'),
             _juniorDepositTokenDecimals,
             _juniorDepositTokenName,
             _juniorDepositTokenSymbol,
