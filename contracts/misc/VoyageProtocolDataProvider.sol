@@ -39,6 +39,9 @@ contract VoyageProtocolDataProvider {
         IReserveManager rm = IReserveManager(
             addressResolver.getLiquidityManagerProxy()
         );
+        ILiquidityManagerProxy lmp = ILiquidityManagerProxy(
+            addressResolver.getLiquidityManagerProxy()
+        );
         DataTypes.ReserveData memory reserve = rm.getReserveData(_reserve);
         address healthStrategyAddr = reserve.healthStrategyAddress;
         require(healthStrategyAddr != address(0), 'invalid health strategy');
@@ -50,6 +53,9 @@ contract VoyageProtocolDataProvider {
         poolConfiguration.loanTenure = hs.getLoanTenure();
         poolConfiguration.optimalIncomeRatio = reserve.optimalIncomeRatio;
         poolConfiguration.optimalTrancheRatio = reserve.optimalTrancheRatio;
+        (bool isActive, , ) = lmp.getFlags(_reserve);
+        poolConfiguration.isActive = isActive;
+
         return poolConfiguration;
     }
 
@@ -96,6 +102,9 @@ contract VoyageProtocolDataProvider {
         }
 
         poolData.decimals = token.decimals();
+        poolData.symbol = token.symbol();
+        (bool isActive, , ) = lmp.getFlags(underlyingAsset);
+        poolData.isActive = isActive;
 
         return poolData;
     }

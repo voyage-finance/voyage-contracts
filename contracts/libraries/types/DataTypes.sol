@@ -117,6 +117,8 @@ library DataTypes {
         uint256 borrowRate;
         uint256 trancheRatio;
         uint256 decimals;
+        string symbol;
+        bool isActive;
     }
 
     struct VaultData {
