@@ -4,7 +4,7 @@ pragma solidity ^0.8.9;
 import '../libraries/math/WadRayMath.sol';
 import '../libraries/math/MathUtils.sol';
 import '../component/infra/AddressResolver.sol';
-import './DebtTokenBase.sol';
+import './BaseERC20.sol';
 import '../interfaces/IStableDebtToken.sol';
 import '../libraries/types/DataTypes.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeCast.sol';
@@ -18,7 +18,7 @@ contract StableDebtToken is
     Context,
     InitializableToken,
     IStableDebtToken,
-    DebtTokenBase
+    BaseERC20('DEBTTOKEN_IMPL', 'DEBTTOKEN_IMPL', 0)
 {
     using WadRayMath for uint256;
     using SafeCast for uint256;
@@ -415,12 +415,7 @@ contract StableDebtToken is
         );
     }
 
-    function _getUnderlyingAssetAddress()
-        internal
-        view
-        override
-        returns (address)
-    {
+    function _getUnderlyingAssetAddress() internal view returns (address) {
         return underlyingAsset;
     }
 
@@ -451,5 +446,76 @@ contract StableDebtToken is
 
     function getRevision() internal pure virtual override returns (uint256) {
         return DEBT_TOKEN_REVISION;
+    }
+
+    /**
+     * @dev Being non transferrable, the debt token does not implement any of the
+     * standard ERC20 functions for transfer and allowance.
+     **/
+    function transfer(address recipient, uint256 amount)
+        public
+        virtual
+        override
+        returns (bool)
+    {
+        recipient;
+        amount;
+        revert('TRANSFER_NOT_SUPPORTED');
+    }
+
+    function allowance(address owner, address spender)
+        public
+        view
+        virtual
+        override
+        returns (uint256)
+    {
+        owner;
+        spender;
+        revert('ALLOWANCE_NOT_SUPPORTED');
+    }
+
+    function approve(address spender, uint256 amount)
+        public
+        virtual
+        override
+        returns (bool)
+    {
+        spender;
+        amount;
+        revert('APPROVAL_NOT_SUPPORTED');
+    }
+
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) public virtual override returns (bool) {
+        sender;
+        recipient;
+        amount;
+        revert('TRANSFER_NOT_SUPPORTED');
+    }
+
+    function increaseAllowance(address spender, uint256 addedValue)
+        public
+        virtual
+        override
+        returns (bool)
+    {
+        spender;
+        addedValue;
+        revert('ALLOWANCE_NOT_SUPPORTED');
+    }
+
+    function decreaseAllowance(address spender, uint256 subtractedValue)
+        public
+        virtual
+        override
+        returns (bool)
+    {
+        spender;
+        subtractedValue;
+        revert('ALLOWANCE_NOT_SUPPORTED');
     }
 }
