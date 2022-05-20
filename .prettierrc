@@ -1,5 +1,4 @@
 {
-  "plugins": ["prettier-plugin-solidity"],
   "singleQuote": true,
   "arrowParens": "always"
 }
