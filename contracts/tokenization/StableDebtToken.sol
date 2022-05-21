@@ -248,15 +248,12 @@ contract StableDebtToken is
     ) external override onlyLoanManager {
         MintLocalVars memory vars;
 
-        (
-            ,
-            uint256 currentBalance,
-            uint256 balanceIncrease
-        ) = _calculateBalanceIncrease(_vaultAddr);
-
         vars.previousSupply = totalSupply();
         vars.currentAvgStableRate = _avgStableRate;
         vars.nextSupply = _totalSupply = vars.previousSupply + _amount;
+
+        _update(_vaultAddr);
+        uint256 currentBalance = principalOf(_vaultAddr);
 
         vars.amountInRay = _amount.wadToRay();
         vars.currentStableRate = _vaultRate[_vaultAddr];
@@ -288,12 +285,11 @@ contract StableDebtToken is
                     vars.nextSupply.wadToRay()
                 )
         ).toUint128();
-        _update(_vaultAddr);
+
         emit Mint(
             _vaultAddr,
             _amount,
             currentBalance,
-            balanceIncrease,
             vars.nextStableRate,
             vars.currentAvgStableRate,
             vars.nextSupply
@@ -386,35 +382,7 @@ contract StableDebtToken is
             borrowData.totalDebt += balanceIncreased;
         }
     }
-
-    /**
-     * @dev Calculates the increase in balance since the last user interaction
-     * @param _vaultAddr The address of the value address
-     * @return The previous principal balance
-     * @return The new principal balance
-     * @return The balance increase
-     **/
-    function _calculateBalanceIncrease(address _vaultAddr)
-        internal
-        view
-        returns (
-            uint256,
-            uint256,
-            uint256
-        )
-    {
-        uint256 principal = principalOf(_vaultAddr);
-        if (principal == 0) {
-            return (0, 0, 0);
-        }
-
-        uint256 newPrincipalBalance = balanceOf(_vaultAddr);
-        return (
-            principal,
-            newPrincipalBalance,
-            newPrincipalBalance - principal
-        );
-    }
+    
 
     function _getUnderlyingAssetAddress() internal view returns (address) {
         return underlyingAsset;
