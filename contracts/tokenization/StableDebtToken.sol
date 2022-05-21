@@ -79,12 +79,7 @@ contract StableDebtToken is
      **/
     function principalOf(address _vaultAddr) public view returns (uint256) {
         DataTypes.BorrowData storage borrowData = _borrowData[_vaultAddr];
-        uint256 principal;
-        for (uint256 i = 0; i < borrowData.drawDownNumber; i++) {
-            principal += borrowData.drawDowns[i].amount;
-        }
-
-        return principal;
+        return borrowData.totalDebt;
     }
 
     function drawDoneNumber(address _vaultAddr) public view returns (uint256) {
@@ -274,6 +269,7 @@ contract StableDebtToken is
         bd.drawDowns[currentDrawDownNumber].timestamp = uint40(block.timestamp);
         bd.mapSize++;
         bd.drawDownNumber++;
+        bd.totalDebt += _amount;
 
         vars.nextStableRate = (vars.currentStableRate.rayMul(
             currentBalance.wadToRay()
@@ -333,13 +329,13 @@ contract StableDebtToken is
             }
         }
         _update(_vaultAddr);
-        DataTypes.DrawDown storage drawDown = _borrowData[_vaultAddr].drawDowns[
-            _drawDown
-        ];
+        DataTypes.BorrowData storage bd = _borrowData[_vaultAddr];
+        DataTypes.DrawDown storage drawDown = bd.drawDowns[_drawDown];
 
         // update amount and timestamp
         drawDown.amount -= _amount;
         drawDown.timestamp = uint40(block.timestamp);
+        bd.totalDebt -= _amount;
 
         // clean up date if necessary
         if (drawDown.amount == 0) {
@@ -381,8 +377,13 @@ contract StableDebtToken is
                 stableRate,
                 drawDown.timestamp
             );
-            drawDown.amount = drawDown.amount.rayMul(cumulatedInterest);
+            uint256 cumulatedBalance = drawDown.amount.rayMul(
+                cumulatedInterest
+            );
+            uint256 balanceIncreased = cumulatedInterest - drawDown.amount;
+            drawDown.amount = cumulatedBalance;
             drawDown.timestamp = uint40(block.timestamp);
+            borrowData.totalDebt += balanceIncreased;
         }
     }
 
