@@ -108,7 +108,7 @@ contract JuniorDepositToken is
         require(amountScaled != 0, Errors.CT_INVALID_BURN_AMOUNT);
         _burn(_user, amountScaled);
 
-        pushWithdraw(_user, _amount);
+        pushWithdraw(_user, DataTypes.Tranche.JUNIOR, _amount);
         emit Transfer(_user, address(0), _amount);
         emit Burn(_user, _amount, _index);
     }

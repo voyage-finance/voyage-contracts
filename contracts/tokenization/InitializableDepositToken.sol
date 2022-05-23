@@ -2,15 +2,16 @@
 pragma solidity ^0.8.9;
 
 import './base/InitializableToken.sol';
+import '../libraries/types/DataTypes.sol';
 
 /**
  * @title IDepositToken
  * @notice Interface for the initialize function on JuniorDepositToken and SeniorDepositToken
  **/
 abstract contract InitializableDepositToken is InitializableToken {
-    // user address => timestamp => amount
-    // todo amount and tranche
-    mapping(address => mapping(uint256 => uint256)) private withdrawals;
+    // user address => timestamp => (tranche,amount)
+    mapping(address => mapping(uint256 => DataTypes.WithdrawalData))
+        private withdrawals;
 
     // user address => timestamp array
     mapping(address => uint256[]) private pendingTimestamp;
@@ -35,9 +36,19 @@ abstract contract InitializableDepositToken is InitializableToken {
      **/
     event Burn(address indexed from, uint256 value, uint256 index);
 
-    function pushWithdraw(address _user, uint256 _amount) internal {
-        require(withdrawals[_user][block.timestamp] == 0, 'invalid withdraw');
-        withdrawals[_user][block.timestamp] = _amount;
+    function pushWithdraw(
+        address _user,
+        DataTypes.Tranche _tranche,
+        uint256 _amount
+    ) internal {
+        require(
+            withdrawals[_user][block.timestamp].amount == 0,
+            'invalid withdraw'
+        );
+        DataTypes.WithdrawalData memory withdrawData;
+        withdrawData.amount = _amount;
+        withdrawData.tranche = _tranche;
+        withdrawals[_user][block.timestamp] = withdrawData;
         pendingTimestamp[_user].push(block.timestamp);
         totalPending += _amount;
     }
@@ -55,10 +66,10 @@ abstract contract InitializableDepositToken is InitializableToken {
         times[_index] = last;
         times.pop();
 
-        uint256 withdrawable = withdrawals[_user][ts];
+        DataTypes.WithdrawalData storage withdrawable = withdrawals[_user][ts];
         delete withdrawals[_user][ts];
-        totalPending -= withdrawable;
-        return withdrawable;
+        totalPending -= withdrawable.amount;
+        return withdrawable.amount;
     }
 
     function pendingWithdrawal(address _user)
@@ -78,7 +89,7 @@ abstract contract InitializableDepositToken is InitializableToken {
         uint256 withdrawable = 0;
 
         for (uint256 i = 0; i < ts.length; i++) {
-            withdrawable += withdrawals[_user][ts[i]];
+            withdrawable += withdrawals[_user][ts[i]].amount;
         }
         return withdrawable;
     }

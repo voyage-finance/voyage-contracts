@@ -157,4 +157,9 @@ library DataTypes {
         uint256 withdrawableSeniorTrancheBalance;
         uint256 decimals;
     }
+
+    struct WithdrawalData {
+        Tranche tranche;
+        uint256 amount;
+    }
 }
