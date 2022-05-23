@@ -382,7 +382,6 @@ contract StableDebtToken is
             borrowData.totalDebt += balanceIncreased;
         }
     }
-    
 
     function _getUnderlyingAssetAddress() internal view returns (address) {
         return underlyingAsset;
