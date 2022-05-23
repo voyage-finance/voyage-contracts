@@ -79,12 +79,7 @@ contract StableDebtToken is
      **/
     function principalOf(address _vaultAddr) public view returns (uint256) {
         DataTypes.BorrowData storage borrowData = _borrowData[_vaultAddr];
-        uint256 principal;
-        for (uint256 i = 0; i < borrowData.drawDownNumber; i++) {
-            principal += borrowData.drawDowns[i].amount;
-        }
-
-        return principal;
+        return borrowData.totalDebt;
     }
 
     function drawDoneNumber(address _vaultAddr) public view returns (uint256) {
@@ -253,15 +248,12 @@ contract StableDebtToken is
     ) external override onlyLoanManager {
         MintLocalVars memory vars;
 
-        (
-            ,
-            uint256 currentBalance,
-            uint256 balanceIncrease
-        ) = _calculateBalanceIncrease(_vaultAddr);
-
         vars.previousSupply = totalSupply();
         vars.currentAvgStableRate = _avgStableRate;
         vars.nextSupply = _totalSupply = vars.previousSupply + _amount;
+
+        _update(_vaultAddr);
+        uint256 currentBalance = principalOf(_vaultAddr);
 
         vars.amountInRay = _amount.wadToRay();
         vars.currentStableRate = _vaultRate[_vaultAddr];
@@ -274,6 +266,7 @@ contract StableDebtToken is
         bd.drawDowns[currentDrawDownNumber].timestamp = uint40(block.timestamp);
         bd.mapSize++;
         bd.drawDownNumber++;
+        bd.totalDebt += _amount;
 
         vars.nextStableRate = (vars.currentStableRate.rayMul(
             currentBalance.wadToRay()
@@ -292,12 +285,11 @@ contract StableDebtToken is
                     vars.nextSupply.wadToRay()
                 )
         ).toUint128();
-        _update(_vaultAddr);
+
         emit Mint(
             _vaultAddr,
             _amount,
             currentBalance,
-            balanceIncrease,
             vars.nextStableRate,
             vars.currentAvgStableRate,
             vars.nextSupply
@@ -333,13 +325,13 @@ contract StableDebtToken is
             }
         }
         _update(_vaultAddr);
-        DataTypes.DrawDown storage drawDown = _borrowData[_vaultAddr].drawDowns[
-            _drawDown
-        ];
+        DataTypes.BorrowData storage bd = _borrowData[_vaultAddr];
+        DataTypes.DrawDown storage drawDown = bd.drawDowns[_drawDown];
 
         // update amount and timestamp
         drawDown.amount -= _amount;
         drawDown.timestamp = uint40(block.timestamp);
+        bd.totalDebt -= _amount;
 
         // clean up date if necessary
         if (drawDown.amount == 0) {
@@ -381,38 +373,14 @@ contract StableDebtToken is
                 stableRate,
                 drawDown.timestamp
             );
-            drawDown.amount = drawDown.amount.rayMul(cumulatedInterest);
+            uint256 cumulatedBalance = drawDown.amount.rayMul(
+                cumulatedInterest
+            );
+            uint256 balanceIncreased = cumulatedInterest - drawDown.amount;
+            drawDown.amount = cumulatedBalance;
             drawDown.timestamp = uint40(block.timestamp);
+            borrowData.totalDebt += balanceIncreased;
         }
-    }
-
-    /**
-     * @dev Calculates the increase in balance since the last user interaction
-     * @param _vaultAddr The address of the value address
-     * @return The previous principal balance
-     * @return The new principal balance
-     * @return The balance increase
-     **/
-    function _calculateBalanceIncrease(address _vaultAddr)
-        internal
-        view
-        returns (
-            uint256,
-            uint256,
-            uint256
-        )
-    {
-        uint256 principal = principalOf(_vaultAddr);
-        if (principal == 0) {
-            return (0, 0, 0);
-        }
-
-        uint256 newPrincipalBalance = balanceOf(_vaultAddr);
-        return (
-            principal,
-            newPrincipalBalance,
-            newPrincipalBalance - principal
-        );
     }
 
     function _getUnderlyingAssetAddress() internal view returns (address) {

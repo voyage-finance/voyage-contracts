@@ -59,6 +59,7 @@ library DataTypes {
 
     struct BorrowData {
         uint256 drawDownNumber;
+        uint256 totalDebt;
         uint256 mapSize;
         mapping(uint256 => DrawDown) drawDowns;
     }
