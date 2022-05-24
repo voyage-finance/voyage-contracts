@@ -40,6 +40,13 @@ const deployFn: DeployFunction = async (hre) => {
   await execute(
     'ACLManager',
     { from: owner, log: true },
+    'grantOracleManager',
+    owner
+  );
+
+  await execute(
+    'ACLManager',
+    { from: owner, log: true },
     'grantLoanManager',
     owner
   );

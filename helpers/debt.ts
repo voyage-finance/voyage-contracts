@@ -15,6 +15,7 @@ export const setupDebtTestSuite = d.createFixture(
       'SetAddressResolver',
       'LoanManager',
       'VaultManager',
+        'PriceOracle'
     ]);
     const liquidityManagerProxy = await ethers.getContract('LiquidityManagerProxy');
     const liquidityManager = await ethers.getContract('LiquidityManager');
@@ -30,6 +31,7 @@ export const setupDebtTestSuite = d.createFixture(
     const tus = await ethers.getContract('Tus');
     const voyager = await ethers.getContract('Voyager');
     const vaultManager = await ethers.getContract('VaultManager');
+    const priceOracle = await ethers.getContract('PriceOracle');
 
     const decimals = await tus.decimals();
 		const multiplier = ethers.BigNumber.from(10).pow(decimals);
@@ -91,6 +93,7 @@ export const setupDebtTestSuite = d.createFixture(
 			vm,
 			lm,
 			voyager,
+            priceOracle
 		}
 	}
 )

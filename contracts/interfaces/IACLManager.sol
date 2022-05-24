@@ -43,4 +43,8 @@ interface IACLManager {
     function grantVoyagerContract(address _admin) external;
 
     function isVoyagerContract(address _admin) external view returns (bool);
+
+    function grantOracleManager(address _admin) external;
+
+    function isOracleManager(address _admin) external view returns (bool);
 }

@@ -23,6 +23,7 @@ contract AddressResolver is IAddressResolver, Ownable {
     bytes32 public constant securityDepositTokenName = 'securityDepositToken';
     bytes32 public constant stableDebtTokenName = 'stableDebtToken';
     bytes32 public constant extCallACLProxyName = 'extCallACLProxy';
+    bytes32 public constant priceOracleName = 'priceOracle';
 
     mapping(bytes32 => address) public repository;
 
@@ -87,12 +88,16 @@ contract AddressResolver is IAddressResolver, Ownable {
         return repository[stableDebtTokenName];
     }
 
-    function getExtCallProxyName() external view returns (address) {
+    function getExtCallProxy() external view returns (address) {
         return repository[extCallACLProxyName];
     }
 
     function getAclManager() external view returns (address) {
         return repository[aclManagerName];
+    }
+
+    function getPriceOracle() external view returns (address) {
+        return repository[priceOracleName];
     }
 
     function getAddress(bytes32 name) external view returns (address) {

@@ -32,9 +32,11 @@ interface IAddressResolver {
 
     function getStableDebtToken() external view returns (address);
 
-    function getExtCallProxyName() external view returns (address);
+    function getExtCallProxy() external view returns (address);
 
     function getAclManager() external view returns (address);
+
+    function getPriceOracle() external view returns (address);
 
     function getVaultStorage() external view returns (address);
 
