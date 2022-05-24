@@ -6,5 +6,12 @@ interface IPriceOracle {
 
     function updateAssetPrice(address _asset) external;
 
-    function update(address _asset, uint256 _price) external;
+    function updateAssetPrices(address[] calldata _assets) external;
+
+    function updateCumulative(address _asset, uint256 _price) external;
+
+    function updateCumulativeBatch(
+        address[] calldata _assets,
+        uint256[] calldata _prices
+    ) external;
 }

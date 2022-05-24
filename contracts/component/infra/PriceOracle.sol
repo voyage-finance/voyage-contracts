@@ -38,6 +38,41 @@ contract PriceOracle is IPriceOracle {
     }
 
     function updateAssetPrice(address _asset) external onlyAdmin {
+        _updateAssetPrice(_asset);
+    }
+
+    function updateAssetPrices(address[] calldata _assets) external onlyAdmin {
+        for (uint256 i = 0; i < _assets.length; i++) {
+            _updateAssetPrice(_asset);
+        }
+    }
+
+    function updateCumulative(address _asset, uint256 _price)
+        external
+        onlyAdmin
+    {
+        _updateCumulative(_asset, _price);
+    }
+
+    function updateCumulativeBatch(
+        address[] calldata _assets,
+        uint256[] calldata _prices
+    ) external onlyAdmin {
+        for (uint256 i = 0; i < _assets.length; i++) {
+            _updateCumulative(_assets[i], _prices[i]);
+        }
+    }
+
+    function currentCumulativePrice(address _asset)
+        public
+        view
+        returns (uint256, uint256)
+    {
+        PriceData storage pd = ticket[_asset];
+        return (pd.priceCumulative, pd.blockTimestamp);
+    }
+
+    function _updateAssetPrice(address _asset) internal {
         CumulativePrice storage cp = prices[_asset];
         // period check
         (
@@ -53,23 +88,12 @@ contract PriceOracle is IPriceOracle {
         emit AssetPriceUpdated(_asset, cp.priceAverage, block.timestamp);
     }
 
-    function update(address _asset, uint256 _price) external onlyAdmin {
+    function _updateCumulative(address _asset, uint256 _price) internal {
         PriceData storage pd = ticket[_asset];
         uint256 timeElapsed = block.timestamp.sub(pd.blockTimestamp);
         pd.priceCumulative = pd.priceCumulative.add(_price.mul(timeElapsed));
         pd.blockTimestamp = block.timestamp;
     }
-
-    function currentCumulativePrice(address _asset)
-        public
-        view
-        returns (uint256, uint256)
-    {
-        PriceData storage pd = ticket[_asset];
-        return (pd.priceCumulative, pd.blockTimestamp);
-    }
-
-    event AssetPriceUpdated(address _asset, uint256 _price, uint256 timestamp);
 
     function _requireCallerAdmin() internal {
         IACLManager aclManager = IACLManager(
