@@ -43,7 +43,7 @@ contract PriceOracle is IPriceOracle {
 
     function updateAssetPrices(address[] calldata _assets) external onlyAdmin {
         for (uint256 i = 0; i < _assets.length; i++) {
-            _updateAssetPrice(_asset);
+            _updateAssetPrice(_assets[i]);
         }
     }
 
@@ -85,7 +85,6 @@ contract PriceOracle is IPriceOracle {
         );
         cp.priceCumulativeLast = priceCumulative;
         cp.blockTimestampLast = blockTimeStamp;
-        emit AssetPriceUpdated(_asset, cp.priceAverage, block.timestamp);
     }
 
     function _updateCumulative(address _asset, uint256 _price) internal {
