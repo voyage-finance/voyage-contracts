@@ -331,7 +331,7 @@ contract Voyager is MessageBus {
      **/
     function getExtCallACLProxyAddress() public view returns (address payable) {
         address extCallACLProxyAddress = AddressResolver(addressResolver)
-            .getExtCallProxyName();
+            .getExtCallProxy();
         return payable(extCallACLProxyAddress);
     }
 

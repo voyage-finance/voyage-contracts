@@ -31,6 +31,8 @@ contract ACLManager is AccessControl, IACLManager {
     bytes32 public constant VOYAGER_CONTRACT_ROLE =
         keccak256('VOYAGER_CONTRACT');
 
+    bytes32 public constant ORACLE_MANAGER_ROLE = keccak256('ORACLE_MANAGER');
+
     constructor(address _aclAdmin) {
         _setupRole(DEFAULT_ADMIN_ROLE, _aclAdmin);
     }
@@ -117,5 +119,13 @@ contract ACLManager is AccessControl, IACLManager {
 
     function isVoyagerContract(address _admin) external view returns (bool) {
         return hasRole(VOYAGER_CONTRACT_ROLE, _admin);
+    }
+
+    function grantOracleManager(address _admin) external {
+        grantRole(ORACLE_MANAGER_ROLE, _admin);
+    }
+
+    function isOracleManager(address _admin) external view returns (bool) {
+        return hasRole(ORACLE_MANAGER_ROLE, _admin);
     }
 }

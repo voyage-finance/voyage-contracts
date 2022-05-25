@@ -1,6 +1,4 @@
 import { DeployFunction } from 'hardhat-deploy/types';
-import { DefaultHealthStrategy, Tus } from '@contracts';
-import TusABI from '../artifacts/contracts/mock/Tus.sol/Tus.json';
 import { ethers } from 'hardhat';
 
 const LOAN_MANAGER_NAME = 'LoanManager';
