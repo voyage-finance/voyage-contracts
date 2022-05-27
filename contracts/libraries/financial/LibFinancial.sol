@@ -10,6 +10,8 @@ library LibFinancial {
     using WadRayMath for uint256;
 
     uint256 internal constant RAY = 1e27;
+    uint256 internal constant TYEAR = 31536000;
+    uint256 internal constant TMOTH = 2592000;
 
     /**
      * @dev Function to compute the payment against loan principal plus interest
@@ -62,8 +64,10 @@ library LibFinancial {
         uint256 fv = 0;
         if (pvsign && !pmtsign) {
             fv = parta.sub(partb);
-        } else {
+        } else if (!pvsign && pmtsign) {
             fv = partb.sub(parta);
+        } else {
+            fv = parta.add(partb);
         }
         return fv.rayToWad();
     }
@@ -104,5 +108,21 @@ library LibFinancial {
     ) public view returns (uint256) {
         (uint256 totalPmt, bool sign) = pmt(rate, nper, pv);
         return totalPmt.sub(ipmt(rate, per, nper, pv));
+    }
+
+    /**
+     * @dev Function to compute the adjusted equivalent nominal borrow rate
+     * @param rate The interest rate
+     * @param epoch Payment period
+     **/
+    function adjustedAPR(uint256 rate, uint256 epoch)
+        public
+        view
+        returns (uint256)
+    {
+        uint256 temp = rate.div(TYEAR).add(RAY);
+        uint256 a = temp.rayPow(epoch);
+        uint256 epy = TYEAR.rayDiv(epoch);
+        return a.sub(RAY).rayMul(epy);
     }
 }

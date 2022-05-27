@@ -45,7 +45,9 @@ describe('Lib Financial', function () {
         rateRay,
         12 * 10,
         BigNumber.from('100000000000000000000'),
-        BigNumber.from('100000000000000000000')
+        true,
+        BigNumber.from('100000000000000000000'),
+        true
       )) / 1e18;
     expect(fv.toPrecision(10)).to.equal('15692.92889');
   });
@@ -61,7 +63,9 @@ describe('Lib Financial', function () {
         rateRay,
         12 * 10,
         BigNumber.from('100000000000000000000'),
-        BigNumber.from('100000000000000000000')
+        true,
+        BigNumber.from('100000000000000000000'),
+        true
       )) / 1e18;
     expect(fv.toPrecision(10)).to.equal('16569.87435');
   });
@@ -102,5 +106,15 @@ describe('Lib Financial', function () {
         ppmt.toPrecision(10)
       );
     }
+  });
+
+  it('adjusted APR should return correct value', async function () {
+    const { libFinancial } = await setupDebtTestSuite();
+    const rateRay = BigNumber.from(2067)
+      .mul(BigNumber.from('1000000000000000000000000000'))
+      .div(10000);
+    const epoch = 3;
+    const apr = (await libFinancial.adjustedAPR(rateRay, epoch)) / 1e27;
+    console.log(apr.toPrecision(10));
   });
 });
