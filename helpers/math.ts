@@ -8,8 +8,14 @@ export const WAD = new BigNumber(10).pow(18);
 
 export const RAY = new BigNumber(10).pow(27);
 
-export const formatTokenBalance = (n: ethers.BigNumber, decimals: number, precision: number = 5) => {
-  return new BigNumber(n.toString()).shiftedBy(decimals * -1).toFixed(precision);
-}
+export const formatTokenBalance = (
+  n: ethers.BigNumber,
+  decimals: number,
+  precision: number = 5
+) => {
+  return new BigNumber(n.toString())
+    .shiftedBy(decimals * -1)
+    .toFixed(precision);
+};
 
-export const decimals = (n: number) => ethers.BigNumber.from(10).pow(n)
+export const decimals = (n: number) => ethers.BigNumber.from(10).pow(n);

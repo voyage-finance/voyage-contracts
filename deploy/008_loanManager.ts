@@ -5,12 +5,16 @@ const LOAN_MANAGER_NAME = 'LoanManager';
 const LOAN_MANAGER_PROXY_NAME = 'LoanManagerProxy';
 const LM_STORAGE_NAME = 'LiquidityManagerStorage';
 const LM_NAME = 'LiquidityManager';
-const LM_ESCROW_NAME = 'liquidityDepositEscrow';
 
 const deployFn: DeployFunction = async (hre) => {
   const { deployments, ethers, getNamedAccounts, network } = hre;
   const { deploy, execute, read } = deployments;
   const { owner } = await getNamedAccounts();
+
+  const LibFinancial = await deploy('LibFinancial', {
+    from: owner,
+    log: true,
+  });
 
   const LoanManagerProxy = await deploy(LOAN_MANAGER_PROXY_NAME, {
     from: owner,

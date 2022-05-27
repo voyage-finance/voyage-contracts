@@ -345,8 +345,11 @@ contract StableDebtToken is
             // update repayment
             uint256 numPayment = drawDown.repayment.numPayments;
             drawDown.repayment.payments[numPayment] = _amount;
-            drawDown.repayment.totalPaid += _amount;
             drawDown.repayment.numPayments++;
+
+            //            drawDown.repayment.totalPaid += pmt;
+            //            drawDown.repayment.principalPaid += pmt - ipmt();
+            //            drawDown.repayment.interestPaid += ipmt();
         }
     }
 
