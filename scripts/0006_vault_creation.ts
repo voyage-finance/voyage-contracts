@@ -1,5 +1,5 @@
-const { deployments, ethers, getNamedAccounts } = require('hardhat');
-const crypto = require('crypto');
+import { deployments, ethers, getNamedAccounts } from 'hardhat';
+import crypto from 'crypto';
 
 async function main() {
   const { owner } = await getNamedAccounts();
@@ -12,15 +12,18 @@ async function main() {
   const voyager = await ethers.getContract('Voyager', owner);
   const random = crypto.randomUUID().substring(7);
 
-  const salt = ethers.utils.formatBytes32String(random);
-  await voyager.createVault(owner, treasureUnderSea, salt);
-
   const vaultManagerProxy = await ethers.getContract(
     'VaultManagerProxy',
     owner
   );
-  const vaultAddress = await vaultManagerProxy.getVault(owner);
-  console.log('vault created, address is: ', vaultAddress);
+
+  let vaultAddress = await vaultManagerProxy.getVault(owner);
+  if (ethers.BigNumber.from(vaultAddress).isZero()) {
+    const salt = ethers.utils.formatBytes32String(random);
+    vaultAddress = await voyager.createVault(owner, treasureUnderSea, salt);
+    console.log('vault created, address is: ', vaultAddress);
+  }
+  console.log('vault exists, address is: ', vaultAddress);
 
   const vaultStorage = await ethers.getContract('VaultStorage', owner);
   const vaultA = await vaultStorage.getAllVaults();

@@ -14,7 +14,7 @@ async function main() {
   const tus = await ethers.getContract('Tus', owner);
   const depositAmount = new BigNumber(500_000).multipliedBy(WAD).toFixed();
   await grantAllowance();
-  await voyager.deposit(tus.address, '1', depositAmount, owner);
+  await voyager.deposit(tus.address, '1', depositAmount);
 }
 
 main()

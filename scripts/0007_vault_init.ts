@@ -1,5 +1,4 @@
-const hre = require('hardhat');
-const { deployments, ethers, getNamedAccounts } = hre;
+import { deployments, ethers, getNamedAccounts } from 'hardhat';
 
 async function main() {
   const { owner } = await getNamedAccounts();
@@ -15,7 +14,13 @@ async function main() {
   );
   const vaultAddress = await vaultManagerProxy.getVault(owner);
   console.log('vault created, address is: ', vaultAddress);
-  await voyager.initVault(vaultAddress, tus);
+  const vaultFactory = await ethers.getContractFactory('Vault');
+  const vault = vaultFactory.attach(vaultAddress);
+  const isInit = await vault.initialized();
+  if (!isInit) {
+    console.log('vault is not initialized, calling initVault()');
+    await voyager.initVault(vaultAddress, tus);
+  }
 }
 
 main()
