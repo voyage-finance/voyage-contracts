@@ -120,9 +120,8 @@ library LibFinancial {
         view
         returns (uint256)
     {
-        uint256 temp = rate.div(TYEAR).add(RAY);
-        uint256 a = temp.rayPow(epoch);
+        uint256 temp = rate.div(TYEAR).add(RAY).rayPow(epoch);
         uint256 epy = TYEAR.rayDiv(epoch);
-        return a.sub(RAY).rayMul(epy);
+        return temp.sub(RAY).rayMul(epy);
     }
 }
