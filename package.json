@@ -20,7 +20,7 @@
     "node:deploy:interval": "MINING_MODE=interval yarn node:deploy",
     "scripts": "ts-node scripts/runner.ts",
     "test": "hardhat test",
-    "format": "hardhat format && prettier --write test && prettier --write deploy",
+    "format": "hardhat format && prettier --write test && prettier --write deploy && prettier --write helpers",
     "scan": "slither --print human-summary .",
     "postinstall": "husky install"
   },

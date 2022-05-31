@@ -67,10 +67,27 @@ library DataTypes {
     struct DrawDown {
         // remaining amount todo @xiaohuo maybe add initial amount
         uint256 amount;
-        uint256 tenure;
-        uint40 timestamp;
-        uint256 borrowRate;
+        // the total intended length of the loan in seconds - e.g., 90 days
+        uint256 term;
+        // the repayment interval - e.g., 30 days
+        uint256 epoch;
+        // number of instalments, term / epoch
+        uint8 nper;
+        // the amount to be repaid per instalment (principal + interest)
+        // fv (0) + pv (principal) *(1+rate)**nper + pmt*(1 + rate*when)/rate*((1 + rate)**nper – 1)
+        uint256 pmt;
+        // the borrow rate of this loan
+        uint256 vaultBorrowRate;
+        // the adjusted borrow rate
+        // adjustedBorrowRate always > vaultBorrowRate
+        uint256 adjustedBorrowRate;
+        // uint40 timestamp;
+        // uint256 borrowRate;
         Repayment repayment;
+        // about to drop
+        uint40 timestamp;
+        uint256 tenure;
+        uint256 borrowRate;
     }
 
     struct DebtDetail {
@@ -82,6 +99,8 @@ library DataTypes {
 
     struct Repayment {
         uint256 totalPaid;
+        uint256 principalPaid;
+        uint256 interestPaid;
         uint256 numPayments;
         // tenure => amount
         // todo wrapper this in the future
