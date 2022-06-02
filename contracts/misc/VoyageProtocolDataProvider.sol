@@ -262,11 +262,9 @@ contract VoyageProtocolDataProvider {
         );
         DataTypes.ReserveData memory reserve = rm.getReserveData(_reserve);
 
-        (
-            uint256[] memory times,
-            uint256[] memory amounts
-        ) = InitializableDepositToken(reserve.seniorDepositTokenAddress)
-                .pendingWithdrawal(_user);
+        (uint256[] memory times, uint256[] memory amounts) = IVToken(
+            reserve.seniorDepositTokenAddress
+        ).unbonding(_user);
 
         return (times, amounts);
     }
@@ -281,11 +279,9 @@ contract VoyageProtocolDataProvider {
         );
         DataTypes.ReserveData memory reserve = rm.getReserveData(_reserve);
 
-        (
-            uint256[] memory times,
-            uint256[] memory amounts
-        ) = InitializableDepositToken(reserve.juniorDepositTokenAddress)
-                .pendingWithdrawal(_user);
+        (uint256[] memory times, uint256[] memory amounts) = IVToken(
+            reserve.juniorDepositTokenAddress
+        ).unbonding(_user);
 
         return (times, amounts);
     }
