@@ -12,9 +12,9 @@ import '../../interfaces/IMessageBus.sol';
 import '../../interfaces/IHealthStrategy.sol';
 import '../../interfaces/ILoanStrategy.sol';
 import '../../interfaces/IVault.sol';
-import '../../interfaces/IVToken.sol';
 import '../Voyager.sol';
 import 'hardhat/console.sol';
+import {IVToken} from '../../interfaces/IVToken.sol';
 import '../../interfaces/ILoanManager.sol';
 
 contract LoanManager is Proxyable, ILoanManager {
@@ -207,5 +207,33 @@ contract LoanManager is Proxyable, ILoanManager {
             liquidityManagerStorageAddress()
         );
         return lms.getDrawDownDetail(_reserve, _vault, _drawDownId);
+    }
+
+    /// @notice Returns the total outstanding principal debt for a particular underlying asset pool
+    /// @param underlyingAsset the address of the underlying reserve asset
+    /// @return The total outstanding principal owed to depositors.
+    function principalBalance(address underlyingAsset)
+        external
+        view
+        returns (uint256)
+    {
+        DataTypes.BorrowStat memory borrowState = LiquidityManagerStorage(
+            liquidityManagerStorageAddress()
+        ).getBorrowStat(underlyingAsset);
+        return borrowState.totalDebt;
+    }
+
+    /// @notice Returns the total outstanding interest debt for a particular underlying asset pool
+    /// @param underlyingAsset the address of the underlying reserve asset
+    /// @return The total outstanding interest owed to depositors.
+    function interestBalance(address underlyingAsset)
+        external
+        view
+        returns (uint256)
+    {
+        DataTypes.BorrowStat memory borrowState = LiquidityManagerStorage(
+            liquidityManagerStorageAddress()
+        ).getBorrowStat(underlyingAsset);
+        return borrowState.totalInterest;
     }
 }

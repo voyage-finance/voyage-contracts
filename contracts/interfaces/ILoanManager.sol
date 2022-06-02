@@ -19,4 +19,14 @@ interface ILoanManager {
         address _vault,
         uint256 _drawDownId
     ) external view returns (DataTypes.DebtDetail memory);
+
+    function principalBalance(address underlying)
+        external
+        view
+        returns (uint256);
+
+    function interestBalance(address underlying)
+        external
+        view
+        returns (uint256);
 }

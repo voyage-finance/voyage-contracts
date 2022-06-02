@@ -27,7 +27,7 @@ jobs:
       - run: yarn install
       - run: yarn check:hh
       - run: yarn compile
-      - run: yarn hardhat coverage
+      - run: yarn cov 
       - name: Run codacy-coverage-reporter
         uses: codacy/codacy-coverage-reporter-action@v1
         with:

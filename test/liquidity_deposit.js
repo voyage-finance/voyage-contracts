@@ -1,6 +1,7 @@
 const { expect } = require('chai');
 const { BigNumber } = require('ethers');
 const { ethers, deployments, getNamedAccounts } = require('hardhat');
+const { MAX_UINT_256 } = require('../helpers/math');
 
 let owner;
 let voyager;
@@ -69,10 +70,7 @@ describe('Reserve Deposit', function () {
     expect(reserveFlags[1]).to.equal(false);
     expect(reserveFlags[2]).to.equal(false);
 
-    await tus.increaseAllowance(
-      liquidityManager.address,
-      '100000000000000000000'
-    );
+    await tus.approve(liquidityManager.address, MAX_UINT_256);
 
     const aclManager = await ethers.getContract('ACLManager');
     await aclManager.grantLiquidityManager(owner);

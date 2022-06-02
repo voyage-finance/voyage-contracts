@@ -1,4 +1,12 @@
 {
   "singleQuote": true,
-  "arrowParens": "always"
+  "arrowParens": "always",
+  "overrides": [
+    {
+      "files": ["*.sol"],
+      "options": {
+        "singleQuote": true
+      }
+    }
+  ]
 }

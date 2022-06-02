@@ -9,7 +9,7 @@ import '../../libraries/types/DataTypes.sol';
 import '../../libraries/helpers/Errors.sol';
 import '../liquidity/LiquidityManager.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
-import '../vault/VaultManager.sol';
+import {VaultManager} from '../vault/VaultManager.sol';
 import '../vault/VaultManagerProxy.sol';
 
 /**

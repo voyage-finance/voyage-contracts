@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import '../../libraries/math/WadRayMath.sol';
-import '../../interfaces/IReserveInterestRateStrategy.sol';
-import '../../tokenization/InitializableDepositToken.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 import 'hardhat/console.sol';
+import {IVToken} from '../../interfaces/IVToken.sol';
+import '../../libraries/math/WadRayMath.sol';
+import '../../interfaces/IReserveInterestRateStrategy.sol';
 
 contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
     using WadRayMath for uint256;
@@ -62,9 +62,8 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
         uint256 totalStableDebt,
         uint256 averageBorrowRate
     ) external view returns (uint256, uint256) {
-        uint256 totalPendingWithdrawal = InitializableDepositToken(
-            seniorDepositTokenAddress
-        ).totalPendingWithdrawal();
+        uint256 totalPendingWithdrawal = IVToken(seniorDepositTokenAddress)
+            .totalUnbonding();
 
         uint256 availableLiquidity = IERC20(reserve).balanceOf(
             seniorDepositTokenAddress

@@ -34,4 +34,8 @@ contract LoanManagerProxy is ILoanManagerProxy, Proxy {
                 _drawDownId
             );
     }
+
+    function principalBalance(address _asset) external view returns (uint256) {
+        return LoanManager(address(target)).principalBalance(_asset);
+    }
 }

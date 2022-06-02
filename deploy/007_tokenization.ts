@@ -1,8 +1,8 @@
 import { DeployFunction } from 'hardhat-deploy/types';
-import { DefaultHealthStrategy, Tus } from '@contracts';
+import { LiquidityManager, Tus } from '@contracts';
 import TusABI from '../artifacts/contracts/mock/Tus.sol/Tus.json';
-import { ethers } from 'hardhat';
 import BigNumber from 'bignumber.js';
+import { MAX_UINT_256 } from '../helpers/math';
 
 const LM_NAME = 'LiquidityManager';
 const LM_STORAGE_NAME = 'LiquidityManagerStorage';
@@ -18,67 +18,50 @@ const deployFn: DeployFunction = async (hre) => {
   const { deployments, ethers, getNamedAccounts, network } = hre;
   const { deploy, execute, read } = deployments;
   const { owner } = await getNamedAccounts();
-  const signer = ethers.provider.getSigner(0);
 
-  let TreasureUnderSea: Tus;
   const tusSupply = new BigNumber(1_000_000_000_000).multipliedBy(
     new BigNumber(10).pow(18)
   );
-  if (network.live && network.name === 'avalancheMain') {
-    TreasureUnderSea = new ethers.Contract(
-      process.env.TUS || '0x0',
-      TusABI.abi,
-      signer
-    ) as Tus;
-  } else {
-    const TusDeployment = await deploy('Tus', {
+  if (!network.live && network.name !== 'avalancheMain') {
+    await deploy('Tus', {
       from: owner,
       log: true,
       args: [tusSupply.toFixed()],
     });
-    TreasureUnderSea = new ethers.Contract(
-      TusDeployment.address,
-      TusDeployment.abi,
-      signer
-    ) as Tus;
   }
+  const tus = await ethers.getContract<Tus>('Tus');
   const AddressResolver = await deployments.get('AddressResolver');
   const tusInitArgs = await Promise.all([
-    TreasureUnderSea.address,
-    TreasureUnderSea.decimals(),
-    TreasureUnderSea.name(),
-    TreasureUnderSea.symbol(),
+    tus.address,
+    tus.decimals(),
+    tus.name(),
+    tus.symbol(),
   ]);
   const JuniorDepositToken = await deploy(JR_TOKEN_NAME, {
     from: owner,
     log: true,
+    args: [AddressResolver.address, tus.address, 'TUS Junior Tranche', 'jvTUS'],
   });
   const SeniorDepositToken = await deploy(SR_TOKEN_NAME, {
     from: owner,
     log: true,
+    args: [AddressResolver.address, tus.address, 'TUS Senior Tranche', 'svTUS'],
   });
 
-  if (!(await read(JR_TOKEN_NAME, 'isInitialized'))) {
-    await execute(
-      JR_TOKEN_NAME,
-      { from: owner, log: true },
-      'initialize',
-      AddressResolver.address,
-      ...tusInitArgs,
-      ethers.utils.formatBytes32String('')
-    );
-  }
+  const liquidityManager = await ethers.getContract<LiquidityManager>(
+    'LiquidityManager'
+  );
 
-  if (!(await read(SR_TOKEN_NAME, 'isInitialized'))) {
-    await execute(
-      SR_TOKEN_NAME,
-      { from: owner, log: true },
-      'initialize',
-      AddressResolver.address,
-      ...tusInitArgs,
-      ethers.utils.formatBytes32String('')
-    );
-  }
+  await liquidityManager.approve(
+    tus.address,
+    SeniorDepositToken.address,
+    MAX_UINT_256
+  );
+  await liquidityManager.approve(
+    tus.address,
+    JuniorDepositToken.address,
+    MAX_UINT_256
+  );
 
   const WadRayMath = await deploy(WRM_NAME, { from: owner, log: true });
 

@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const { deployments, ethers, getNamedAccounts } = require('hardhat');
-const { BigNumber } = require('ethers');
+const { MAX_UINT_256 } = require('../helpers/math');
 
 let owner;
 let voyager;
@@ -10,8 +10,6 @@ let juniorDepositToken;
 let seniorDepositToken;
 let defaultReserveInterestRateStrategy;
 let healthStrategyAddress;
-let addressResolver;
-let vaultManager;
 let tus;
 let vm;
 let vaultAddr;
@@ -102,6 +100,9 @@ describe('Withdraw', function () {
     await tus.increaseAllowance(escrowAddress, '1000000000000000000000');
 
     await voyager.depositSecurity(owner, tus.address, '100000000000000000000');
+
+    await seniorDepositToken.approve(liquidityManager.address, MAX_UINT_256);
+    await juniorDepositToken.approve(liquidityManager.address, MAX_UINT_256);
   });
 
   it('Withdraw with no interest should return correct value', async function () {

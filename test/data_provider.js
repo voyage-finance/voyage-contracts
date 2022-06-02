@@ -1,6 +1,7 @@
 const { expect } = require('chai');
 const { deployments, ethers, getNamedAccounts } = require('hardhat');
 const { BigNumber } = require('ethers');
+const { MAX_UINT_256 } = require('../helpers/math');
 
 let owner;
 let voyager;
@@ -54,10 +55,7 @@ describe('Data Provider', function () {
       ethers.utils.formatBytes32String('borrow'),
     ]);
     // 1000
-    await tus.increaseAllowance(
-      liquidityManager.address,
-      '1000000000000000000000'
-    );
+    await tus.approve(liquidityManager.address, MAX_UINT_256);
 
     const vaultManagerProxy = await ethers.getContract('VaultManagerProxy');
     const VaultManager = await ethers.getContractFactory('VaultManager');

@@ -5,14 +5,17 @@ import './ReserveManager.sol';
 import '../../libraries/helpers/Errors.sol';
 import '../../libraries/logic/ReserveLogic.sol';
 import '../../libraries/math/WadRayMath.sol';
+import {IERC20} from 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
 import '../../interfaces/IReserveManager.sol';
 import '../../interfaces/ILiquidityManager.sol';
-import '../../tokenization/InitializableDepositToken.sol';
-import '../../tokenization/JuniorDepositToken.sol';
-import '../../tokenization/SeniorDepositToken.sol';
+import {IVToken} from '../../interfaces/IVToken.sol';
+import {JuniorDepositToken} from '../../tokenization/JuniorDepositToken.sol';
+import {SeniorDepositToken} from '../../tokenization/SeniorDepositToken.sol';
+import {Depositor} from '../../libraries/utils/DepositForwarder.sol';
+import 'hardhat/console.sol';
 
-contract LiquidityManager is ReserveManager, ILiquidityManager {
+contract LiquidityManager is Depositor, ReserveManager, ILiquidityManager {
     using WadRayMath for uint256;
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -45,18 +48,12 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
             avgBorrowRate
         );
 
-        address vToken;
-        uint256 liquidityIndex;
-
-        if (ReserveLogic.Tranche.JUNIOR == _tranche) {
-            vToken = reserve.juniorDepositTokenAddress;
-            liquidityIndex = getJuniorLiquidityIndex(_asset);
-        } else {
-            vToken = reserve.seniorDepositTokenAddress;
-            liquidityIndex = getSeniorLiquidityIndex(_asset);
-        }
-        IVToken(vToken).mint(_user, _amount, liquidityIndex);
-        IERC20(_asset).safeTransferFrom(_user, vToken, _amount);
+        IVToken vToken = _tranche == ReserveLogic.Tranche.JUNIOR
+            ? IVToken(reserve.juniorDepositTokenAddress)
+            : IVToken(reserve.seniorDepositTokenAddress);
+        // transfer the underlying tokens to liquidity manager, then do deposit.
+        pullToken(vToken.asset(), _amount, _user, address(this));
+        vToken.deposit(_amount, _user);
         emitDeposit(_asset, _user, _tranche, _amount);
     }
 
@@ -81,7 +78,7 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
             liquidityIndex = getSeniorLiquidityIndex(_asset);
         }
 
-        uint256 userBalance = IERC20(vToken).balanceOf(_user);
+        uint256 userBalance = IVToken(vToken).maxWithdraw(_user);
 
         uint256 amountToWithdraw = _amount;
 
@@ -91,7 +88,7 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
         DataTypes.BorrowStat memory borrowStat = lms.getBorrowStat(_asset);
         uint256 totalDebt = borrowStat.totalDebt.add(borrowStat.totalInterest);
         uint256 avgBorrowRate = borrowStat.avgBorrowRate;
-        IVToken(vToken).burn(_user, amountToWithdraw, liquidityIndex);
+        IVToken(vToken).withdraw(_amount, _user, _user);
         lms.updateStateOnWithdraw(
             _asset,
             _tranche,
@@ -118,7 +115,7 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
         } else {
             vToken = reserve.seniorDepositTokenAddress;
         }
-        return IERC20(vToken).balanceOf(_user);
+        return IVToken(vToken).maxWithdraw(_user);
     }
 
     function balance(
@@ -133,7 +130,7 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
         } else {
             vToken = reserve.seniorDepositTokenAddress;
         }
-        return IERC20(vToken).balanceOf(_user);
+        return IVToken(vToken).maxWithdraw(_user);
     }
 
     function getReserveNormalizedIncome(
@@ -157,9 +154,9 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
         (totalPrincipal, totalInterest) = lms.getTotalDebt(_reserve);
         uint256 totalDebt = totalPrincipal.add(totalInterest);
 
-        uint256 totalPendingWithdrawal = InitializableDepositToken(
+        uint256 totalPendingWithdrawal = IVToken(
             reserve.seniorDepositTokenAddress
-        ).totalPendingWithdrawal();
+        ).totalUnbonding();
 
         uint256 availableLiquidity = IERC20(_reserve).balanceOf(
             reserve.seniorDepositTokenAddress
