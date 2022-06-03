@@ -13,10 +13,7 @@ const deployFn: DeployFunction = async (hre) => {
 
   const Voyager = await deployments.get('Voyager');
 
-  let LMProxy = await deployments.getOrNull(LM_PROXY_NAME);
-  if (!LMProxy) {
-    LMProxy = await deploy(LM_PROXY_NAME, { from: owner, log: true });
-  }
+  const LMProxy = await deploy(LM_PROXY_NAME, { from: owner, log: true });
 
   const ReserveLogic = await deploy(RESERVE_LOGIC_NAME, {
     from: owner,
