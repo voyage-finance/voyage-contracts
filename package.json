@@ -10,7 +10,7 @@
     "build:docker": "./docker/build.sh",
     "compile": "hardhat compile",
     "deploy:local": "hardhat --network localhost deploy",
-    "deploy:testnet": "hardhat --network avalancheFuji deploy",
+    "deploy:fuji": "hardhat --network avalancheFuji deploy",
     "deploy:voyage": "hardhat --network voyage deploy",
     "dev": "hardhat node --hostname 0.0.0.0 --watch --no-deploy",
     "dev:deploy": "hardhat node --hostname 0.0.0.0 --watch",
