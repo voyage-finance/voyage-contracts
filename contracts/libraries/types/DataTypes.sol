@@ -176,7 +176,6 @@ library DataTypes {
         uint256 juniorLiquidityRate;
         uint256 seniorLiquidityRate;
         uint256 totalDebt;
-        uint256 borrowRate;
         uint256 utilizationRate;
         uint256 trancheRatio;
         uint256 decimals;

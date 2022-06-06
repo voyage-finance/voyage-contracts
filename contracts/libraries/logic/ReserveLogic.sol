@@ -121,10 +121,6 @@ library ReserveLogic {
             vars.newLiquidityRate <= type(uint128).max,
             Errors.RL_LIQUIDITY_RATE_OVERFLOW
         );
-        require(
-            vars.newBorrowRate <= type(uint128).max,
-            Errors.RL_STABLE_BORROW_RATE_OVERFLOW
-        );
 
         vars.seniorLiquidity = IERC20(_seniorDepositTokenAddress).totalSupply();
         vars.juniorLiquidity =
@@ -151,7 +147,6 @@ library ReserveLogic {
         }
 
         _reserve.currentOverallLiquidityRate = vars.newLiquidityRate;
-        _reserve.currentBorrowRate = vars.newBorrowRate;
         _reserve.currentJuniorLiquidityRate = vars.effectiveJuniorLiquidityRate;
         _reserve.currentSeniorLiquidityRate = vars.effectSeniorLiquidityRate;
 

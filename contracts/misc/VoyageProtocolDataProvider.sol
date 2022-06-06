@@ -92,7 +92,6 @@ contract VoyageProtocolDataProvider {
             ReserveLogic.Tranche.SENIOR
         );
         poolData.totalDebt = depositAndDebt.totalDebt;
-        poolData.borrowRate = reserve.currentBorrowRate;
         if (depositAndDebt.seniorDepositAmount == 0) {
             poolData.trancheRatio = 0;
         } else {
