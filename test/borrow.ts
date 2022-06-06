@@ -62,13 +62,10 @@ describe('Borrow', function () {
     await tus.increaseAllowance(escrowAddress, MAX_UINT_256);
     await voyager.depositSecurity(owner, tus.address, securityAmount);
 
-    // borrow the maximum amount
     const borrowAmount = securityAmount.mul(10);
     await voyager.borrow(tus.address, borrowAmount, vaultAddr, 0);
-    // mine two blocks
-    await mine(2, 2);
     await expect(
-      voyager.borrow(tus.address, borrowAmount, vaultAddr, 0)
+      voyager.borrow(tus.address, securityAmount.mul(11), vaultAddr, 0)
     ).to.be.revertedWith('71');
   });
 
@@ -102,22 +99,22 @@ describe('Borrow', function () {
     const {
       juniorDepositToken,
       seniorDepositToken,
-      stableDebtToken,
       defaultReserveInterestRateStrategy,
       healthStrategyAddress,
       lm,
       vm,
       tus,
       voyager,
+      loanStrategy,
     } = await setupDebtTestSuite();
     const { owner } = await getNamedAccounts();
     await lm.initReserve(
       tus.address,
       juniorDepositToken.address,
       seniorDepositToken.address,
-      stableDebtToken.address,
       defaultReserveInterestRateStrategy.address,
       healthStrategyAddress.address,
+      loanStrategy.address,
       '500000000000000000000000000'
     );
     // 100
@@ -152,11 +149,6 @@ describe('Borrow', function () {
 
     await voyager.depositSecurity(owner, tus.address, '100000000000000000000');
     await voyager.borrow(tus.address, '10000000000000000000', vaultAddr, 0);
-
-    const StableDebtToken = await ethers.getContractFactory('StableDebtToken');
-    const debtToken = await StableDebtToken.attach(stableDebtToken.address);
-    const debtBalance = await debtToken.balanceOf(vaultAddr);
-    console.log('debt balance: ', debtBalance);
     // await expect(debtBalance).to.equal(BigNumber.from('10000000000000000000'));
     const vaultBalance = await tus.balanceOf(vaultAddr);
     await expect(vaultBalance).to.equal(BigNumber.from('10000000000000000000'));
@@ -175,14 +167,8 @@ describe('Borrow', function () {
   });
 
   it('debt token totalSupply should be equal to the sum of all user debt within 9 DPs of precision', async () => {
-    const {
-      juniorDepositToken,
-      seniorDepositToken,
-      stableDebtToken,
-      tus,
-      vm,
-      voyager,
-    } = await setupDebtTestSuite();
+    const { juniorDepositToken, seniorDepositToken, tus, vm, voyager } =
+      await setupDebtTestSuite();
     const { owner, alice, bob } = await getNamedAccounts();
     const decimals = await tus.decimals();
     const multiplier = BigNumber.from(10).pow(decimals);
@@ -237,23 +223,5 @@ describe('Borrow', function () {
         await mine(5, 2);
       }
     }
-
-    // time travel seven days
-    const sevenDays = 7 * 24 * 60 * 60;
-    await timeTravel(sevenDays);
-
-    const totalSupply = await stableDebtToken.totalSupply();
-    let totalDebt = BigNumber.from(0);
-    for (const user of [owner, alice, bob]) {
-      const vault = vaults[user];
-      const debt = await stableDebtToken.balanceOf(vault.address);
-      totalDebt = totalDebt.add(debt);
-    }
-
-    // we lose some precision because of the algorithm in MathUtils.calculateCompoundedInterest
-    // therefore, use a precision of 9 DPs.
-    expect(formatTokenBalance(totalSupply, decimals, 8)).to.equal(
-      formatTokenBalance(totalDebt, decimals, 8)
-    );
   });
 });

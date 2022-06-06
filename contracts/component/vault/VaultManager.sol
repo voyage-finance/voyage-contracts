@@ -206,7 +206,14 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         returns (uint256)
     {
         uint256 creditLimit = getCreditLimit(_user, _reserve);
-        uint256 accumulatedDebt = IVault(_getVault(_user)).getTotalDebt();
+        uint256 principal;
+        uint256 interest;
+        address vault = _getVault(_user);
+        ILoanManager(addressResolver.getLoanManagerProxy()).getVaultDebt(
+            _reserve,
+            vault
+        );
+        uint256 accumulatedDebt = principal.add(interest);
         if (creditLimit < accumulatedDebt) {
             return 0;
         }

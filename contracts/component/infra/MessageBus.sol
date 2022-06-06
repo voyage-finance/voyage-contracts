@@ -3,7 +3,6 @@ pragma solidity ^0.8.9;
 
 import './AddressResolver.sol';
 import '../../interfaces/IMessageBus.sol';
-import '../../interfaces/IStableDebtToken.sol';
 import '../../interfaces/IVaultManager.sol';
 import '../../libraries/ownership/Ownable.sol';
 import '../../libraries/types/DataTypes.sol';
@@ -104,31 +103,5 @@ contract MessageBus is IMessageBus, Ownable {
         address vaultManagerProxyAddress = addressResolver
             .getVaultManagerProxy();
         return payable(vaultManagerProxyAddress);
-    }
-
-    /************************************** Stable Debt Token Functions **************************************/
-
-    function getCompoundedDebt(address _user) external view returns (uint256) {
-        return IERC20(addressResolver.getStableDebtToken()).balanceOf(_user);
-    }
-
-    function getAggregateOptimalRepaymentRate(address _user)
-        external
-        view
-        returns (uint256)
-    {
-        return
-            IStableDebtToken(addressResolver.getStableDebtToken())
-                .getAggregateOptimalRepaymentRate(_user);
-    }
-
-    function getAggregateActualRepaymentRate(address _user)
-        external
-        view
-        returns (uint256)
-    {
-        return
-            IStableDebtToken(addressResolver.getStableDebtToken())
-                .getAggregateActualRepaymentRate(_user);
     }
 }

@@ -8,7 +8,6 @@ const LM_NAME = 'LiquidityManager';
 const LM_STORAGE_NAME = 'LiquidityManagerStorage';
 const JR_TOKEN_NAME = 'JuniorDepositToken';
 const SR_TOKEN_NAME = 'SeniorDepositToken';
-const DEBT_TOKEN_NAME = 'StableDebtToken';
 const WRM_NAME = 'WadRayMath';
 const INTEREST_STRATEGY_NAME = 'DefaultReserveInterestRateStrategy';
 const HEALTH_STRATEGY_ADDRESS = 'DefaultHealthStrategy';
@@ -81,21 +80,6 @@ const deployFn: DeployFunction = async (hre) => {
     );
   }
 
-  const StableDebtToken = await deploy('StableDebtToken', {
-    from: owner,
-    log: true,
-  });
-  if (!(await read(DEBT_TOKEN_NAME, 'isInitialized'))) {
-    await execute(
-      DEBT_TOKEN_NAME,
-      { from: owner, log: true },
-      'initialize',
-      ...tusInitArgs,
-      AddressResolver.address,
-      ethers.utils.formatBytes32String('')
-    );
-  }
-
   const WadRayMath = await deploy(WRM_NAME, { from: owner, log: true });
 
   const utilisationRate = new BigNumber('0.8').multipliedBy(RAY).toFixed();
@@ -124,15 +108,10 @@ const deployFn: DeployFunction = async (hre) => {
   });
 
   const names = [
-    ethers.utils.formatBytes32String('stableDebtToken'),
     ethers.utils.formatBytes32String('juniorDepositToken'),
     ethers.utils.formatBytes32String('seniorDepositToken'),
   ];
-  const destinations = [
-    StableDebtToken.address,
-    JuniorDepositToken.address,
-    SeniorDepositToken.address,
-  ];
+  const destinations = [JuniorDepositToken.address, SeniorDepositToken.address];
   await execute(
     'AddressResolver',
     { from: owner, log: true },

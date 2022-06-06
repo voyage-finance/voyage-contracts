@@ -5,6 +5,7 @@ const LOAN_MANAGER_NAME = 'LoanManager';
 const LOAN_MANAGER_PROXY_NAME = 'LoanManagerProxy';
 const LM_STORAGE_NAME = 'LiquidityManagerStorage';
 const LM_NAME = 'LiquidityManager';
+const LOAN_STRATEGY_NAME = 'DefaultLoanStrategy';
 
 const deployFn: DeployFunction = async (hre) => {
   const { deployments, ethers, getNamedAccounts, network } = hre;
@@ -26,6 +27,12 @@ const deployFn: DeployFunction = async (hre) => {
   const LoanManager = await deploy(LOAN_MANAGER_NAME, {
     from: owner,
     args: [LoanManagerProxy.address, Voyager.address],
+    log: true,
+  });
+
+  const DefaultLoanStrategy = await deploy(LOAN_STRATEGY_NAME, {
+    from: owner,
+    args: [90, 30],
     log: true,
   });
 

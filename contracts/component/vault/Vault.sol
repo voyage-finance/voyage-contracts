@@ -2,21 +2,23 @@
 pragma solidity ^0.8.9;
 
 import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
 import './SecurityDepositEscrow.sol';
 import '../infra/AddressResolver.sol';
 import '../Voyager.sol';
+import './VaultManager.sol';
 import '../staking/StakingRewards.sol';
+import '../loan/LoanManagerProxy.sol';
 import '../../tokenization/SecurityDepositToken.sol';
-import '../../tokenization/StableDebtToken.sol';
 import '../../libraries/math/WadRayMath.sol';
+import '../../interfaces/IACLManager.sol';
 import '../../interfaces/IVault.sol';
 import '../../interfaces/IVaultManagerProxy.sol';
-import './VaultManager.sol';
-import '../../interfaces/IACLManager.sol';
 import 'hardhat/console.sol';
 
 contract Vault is ReentrancyGuard, IVault {
     using WadRayMath for uint256;
+    using SafeMath for uint256;
     bytes32 public constant BORROWER = keccak256('BORROWER');
 
     address public voyager;
@@ -24,7 +26,6 @@ contract Vault is ReentrancyGuard, IVault {
     bool public initialized;
     SecurityDepositEscrow public securityDepositEscrow;
     SecurityDepositToken public securityDepositToken;
-    StableDebtToken public stableDebtToken;
     StakingRewards public stakingContract;
 
     //    uint256 public totalDebt;
@@ -54,9 +55,6 @@ contract Vault is ReentrancyGuard, IVault {
             voyager = _voyager;
             securityDepositEscrow = _securityDepositEscrow;
             initialized = true;
-            stableDebtToken = StableDebtToken(
-                Voyager(voyager).addressResolver().getStableDebtToken()
-            );
         }
     }
 
@@ -180,10 +178,6 @@ contract Vault is ReentrancyGuard, IVault {
         return ERC20(_reserve).balanceOf(address(securityDepositEscrow));
     }
 
-    function getTotalDebt() external view returns (uint256) {
-        return stableDebtToken.balanceOf(address(this));
-    }
-
     function getGav() external view returns (uint256) {
         return gav;
     }
@@ -278,10 +272,16 @@ contract Vault is ReentrancyGuard, IVault {
         return amountToRedeemInRay.rayToWad();
     }
 
-    function getVaultManagerProxyAddress() private returns (address) {
+    function getVaultManagerProxyAddress() private view returns (address) {
         Voyager voyager = Voyager(voyager);
         address addressResolver = voyager.getAddressResolverAddress();
         return AddressResolver(addressResolver).getVaultManagerProxy();
+    }
+
+    function getLoanManagerProxyAddress() private view returns (address) {
+        Voyager voyager = Voyager(voyager);
+        address addressResolver = voyager.getAddressResolverAddress();
+        return AddressResolver(addressResolver).getLoanManagerProxy();
     }
 
     function _getUnusedDeposits(address _sponsor, address _reserve)
@@ -295,10 +295,15 @@ contract Vault is ReentrancyGuard, IVault {
             .getVaultConfig(_reserve);
 
         uint256 securityRequirement = vaultConfig.securityDepositRequirement;
-        uint256 totalDebt = stableDebtToken.balanceOf(address(this));
+        uint256 principal;
+        uint256 interest;
+        (principal, interest) = ILoanManager(getLoanManagerProxyAddress())
+            .getVaultDebt(_reserve, address(this));
+
+        uint256 totalDebt = principal.add(interest);
         return
             securityDepositToken.balanceOf(_sponsor) -
-            totalDebt.wadToRay().rayMul(securityRequirement);
+            totalDebt.wadToRay().rayMul(securityRequirement).rayToWad();
     }
 
     function _eligibleAmount(address _reserve, address _sponsor)

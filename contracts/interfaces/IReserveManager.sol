@@ -8,9 +8,9 @@ interface IReserveManager {
         address _asset,
         address _juniorDepositTokenAddress,
         address _seniorDepositTokenAddress,
-        address _stableDebtAddress,
         address _interestRateStrategyAddress,
         address _healthStrategyAddress,
+        address _loanStrategyAddress,
         uint256 _optimalIncomeRatio
     ) external;
 

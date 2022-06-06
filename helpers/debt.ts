@@ -1,4 +1,4 @@
-import { deployments as d } from 'hardhat';
+import { deployments as d, ethers } from 'hardhat';
 import { MAX_UINT_256 } from './math';
 
 export const setupDebtTestSuite = d.createFixture(
@@ -17,6 +17,7 @@ export const setupDebtTestSuite = d.createFixture(
       'VaultManager',
       'PriceOracle',
       'LibFinancial',
+      'VoyageProtocolDataProvider',
     ]);
     const liquidityManagerProxy = await ethers.getContract(
       'LiquidityManagerProxy'
@@ -25,7 +26,6 @@ export const setupDebtTestSuite = d.createFixture(
     const loanManager = await ethers.getContract('LoanManager');
     const juniorDepositToken = await ethers.getContract('JuniorDepositToken');
     const seniorDepositToken = await ethers.getContract('SeniorDepositToken');
-    const stableDebtToken = await ethers.getContract('StableDebtToken');
     const defaultReserveInterestRateStrategy = await ethers.getContract(
       'DefaultReserveInterestRateStrategy'
     );
@@ -38,6 +38,9 @@ export const setupDebtTestSuite = d.createFixture(
     const vaultManager = await ethers.getContract('VaultManager');
     const priceOracle = await ethers.getContract('PriceOracle');
     const libFinancial = await ethers.getContract('LibFinancial');
+    const voyageProtocolDataProvider = await ethers.getContract(
+      'VoyageProtocolDataProvider'
+    );
 
     const decimals = await tus.decimals();
     const multiplier = ethers.BigNumber.from(10).pow(decimals);
@@ -71,6 +74,7 @@ export const setupDebtTestSuite = d.createFixture(
     const vaultManagerProxy = await ethers.getContract('VaultManagerProxy');
     const VaultManager = await ethers.getContractFactory('VaultManager');
     const vm = VaultManager.attach(vaultManagerProxy.address);
+    const loanStrategy = await ethers.getContract('DefaultLoanStrategy');
 
     const reserveLogic = await ethers.getContract('ReserveLogic');
     const LM = await ethers.getContractFactory('LiquidityManager', {
@@ -81,9 +85,9 @@ export const setupDebtTestSuite = d.createFixture(
       tus.address,
       juniorDepositToken.address,
       seniorDepositToken.address,
-      stableDebtToken.address,
       defaultReserveInterestRateStrategy.address,
       healthStrategyAddress.address,
+      loanStrategy.address,
       '500000000000000000000000000'
     );
     await lm.activeReserve(tus.address);
@@ -95,7 +99,6 @@ export const setupDebtTestSuite = d.createFixture(
       loanManager,
       juniorDepositToken,
       seniorDepositToken,
-      stableDebtToken,
       defaultReserveInterestRateStrategy,
       healthStrategyAddress,
       addressResolver,
@@ -106,6 +109,8 @@ export const setupDebtTestSuite = d.createFixture(
       voyager,
       priceOracle,
       libFinancial,
+      loanStrategy,
+      voyageProtocolDataProvider,
     };
   }
 );

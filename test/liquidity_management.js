@@ -46,9 +46,14 @@ describe('Reserve Init', function () {
     );
     liquidityManagerProxy.setTarget(liquidityManager.address);
     lm = LiquidityManager.attach(liquidityManagerProxy.address);
+
     // deploy ValidationLogic library
     const ValidationLogic = await ethers.getContractFactory('ValidationLogic');
     const validationLogic = await ValidationLogic.deploy();
+
+    // deploy DebtLogic library
+    const DebtLogic = await ethers.getContractFactory('DebtLogic');
+    const debtLogic = await DebtLogic.deploy();
 
     // deploy LiquidityManagerStorage contract
     const LiquidityManagerStorage = await ethers.getContractFactory(
@@ -57,6 +62,7 @@ describe('Reserve Init', function () {
         libraries: {
           ReserveLogic: reserveLogic.address,
           ValidationLogic: validationLogic.address,
+          DebtLogic: debtLogic.address,
         },
       }
     );
@@ -99,28 +105,16 @@ describe('Reserve Init', function () {
     // deploy mock tus contract as reserve
     const Tus = await ethers.getContractFactory('Tus');
     const tus = await Tus.deploy('1000000000000000000000');
+    lm.initReserve(
+      tus.address,
+      fakeAddress,
+      fakeAddress,
+      fakeAddress,
+      fakeAddress,
+      fakeAddress,
+      '500000000000000000000000000'
+    );
     const optimalIncomeRatio = '500000000000000000000000000';
-    await expect(
-      lm.initReserve(
-        tus.address,
-        fakeAddress,
-        fakeAddress,
-        fakeAddress,
-        fakeAddress,
-        fakeAddress,
-        optimalIncomeRatio
-      )
-    )
-      .to.emit(lm, 'ReserveInitialized')
-      .withArgs(
-        tus.address,
-        fakeAddress,
-        fakeAddress,
-        fakeAddress,
-        fakeAddress,
-        fakeAddress,
-        optimalIncomeRatio
-      );
     const reserveState = await voyager.getReserveData(tus.address);
     expect(reserveState.juniorLiquidityIndex).to.equal(ray);
     expect(reserveState.seniorLiquidityIndex).to.equal(ray);
@@ -140,17 +134,15 @@ describe('Reserve Init', function () {
     // deploy mock tus contract as reserve
     const Tus = await ethers.getContractFactory('Tus');
     const tus = await Tus.deploy('1000000000000000000000');
-    await expect(
-      lm.initReserve(
-        tus.address,
-        fakeAddress,
-        fakeAddress,
-        fakeAddress,
-        fakeAddress,
-        fakeAddress,
-        '500000000000000000000000000'
-      )
-    ).to.emit(lm, 'ReserveInitialized');
+    lm.initReserve(
+      tus.address,
+      fakeAddress,
+      fakeAddress,
+      fakeAddress,
+      fakeAddress,
+      fakeAddress,
+      '500000000000000000000000000'
+    );
     const flags = await voyager.getReserveFlags(tus.address);
     expect(flags[0]).to.equal(false);
 

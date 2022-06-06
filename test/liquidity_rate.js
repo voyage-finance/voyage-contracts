@@ -8,7 +8,6 @@ let liquidityManagerProxy;
 let liquidityManager;
 let juniorDepositToken;
 let seniorDepositToken;
-let stableDebtToken;
 let defaultReserveInterestRateStrategy;
 let healthStrategyAddress;
 let addressResolver;
@@ -18,6 +17,7 @@ let vm;
 let lm;
 let dp;
 let vaultAddr;
+let loanStrategy;
 
 const RAY = BigNumber.from('1000000000000000000000000000');
 
@@ -41,7 +41,6 @@ describe('Liquidity Rate', function () {
     liquidityManager = await ethers.getContract('LiquidityManager');
     juniorDepositToken = await ethers.getContract('JuniorDepositToken');
     seniorDepositToken = await ethers.getContract('SeniorDepositToken');
-    stableDebtToken = await ethers.getContract('StableDebtToken');
     defaultReserveInterestRateStrategy = await ethers.getContract(
       'DefaultReserveInterestRateStrategy'
     );
@@ -71,13 +70,14 @@ describe('Liquidity Rate', function () {
       libraries: { ReserveLogic: reserveLogic.address },
     });
     lm = await LM.attach(liquidityManagerProxy.address);
+    loanStrategy = await ethers.getContract('DefaultLoanStrategy');
     await lm.initReserve(
       tus.address,
       juniorDepositToken.address,
       seniorDepositToken.address,
-      stableDebtToken.address,
       defaultReserveInterestRateStrategy.address,
       healthStrategyAddress.address,
+      loanStrategy.address,
       '500000000000000000000000000'
     );
     const DataProvider = await ethers.getContract('VoyageProtocolDataProvider');

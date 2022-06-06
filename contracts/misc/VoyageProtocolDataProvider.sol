@@ -12,7 +12,7 @@ import '../interfaces/IVaultManager.sol';
 import '../interfaces/IHealthStrategy.sol';
 import '../interfaces/IVaultManagerProxy.sol';
 import '../interfaces/ILiquidityManagerProxy.sol';
-import '../interfaces/IStableDebtToken.sol';
+import '../interfaces/ILoanManagerProxy.sol';
 import '../component/liquidity/LiquidityManager.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 import 'hardhat/console.sol';
@@ -197,12 +197,20 @@ contract VoyageProtocolDataProvider {
         IVaultManagerProxy vmp = IVaultManagerProxy(
             addressResolver.getVaultManagerProxy()
         );
-        IStableDebtToken debtToken = IStableDebtToken(
-            addressResolver.getStableDebtToken()
+        ILoanManagerProxy lmp = ILoanManagerProxy(
+            addressResolver.getLoanManagerProxy()
         );
-        vaultData.borrowRate = debtToken.getAverageStableRate();
-        vaultData.totalDebt = IERC20(addressResolver.getStableDebtToken())
-            .balanceOf(_user);
+        uint256 principal;
+        uint256 interest;
+        DataTypes.DrawDownList memory drawDownList;
+        (drawDownList.head, drawDownList.tail) = lmp.getDrawDownList(
+            _reserve,
+            vault
+        );
+        (principal, interest) = lmp.getVaultDebt(_reserve, vault);
+        vaultData.drawDownList = drawDownList;
+        vaultData.borrowRate = 0;
+        vaultData.totalDebt = principal.add(interest);
         vaultData.totalSecurityDeposit = vmp.getSecurityDeposit(
             _user,
             _reserve
@@ -219,30 +227,29 @@ contract VoyageProtocolDataProvider {
         );
         vaultData.creditLimit = vmp.getCreditLimit(_user, _reserve);
         vaultData.spendableBalance = vmp.getAvailableCredit(_user, _reserve);
-        vaultData.optimalAggregateRepaymentRate = debtToken
-            .getAggregateOptimalRepaymentRate(vault);
-        vaultData.actualAggregateRepaymentRate = debtToken
-            .getAggregateActualRepaymentRate(vault);
         vaultData.ltv = vaultData
             .gav
             .add(vaultData.totalSecurityDeposit)
             .rayDiv(vaultData.totalDebt);
-        DataTypes.HealthRiskParameter memory hrp;
-        hrp.securityDeposit = vaultData.totalSecurityDeposit;
-        hrp.currentBorrowRate = vaultData.borrowRate;
-        hrp.compoundedDebt = vaultData.totalDebt;
-        hrp.grossAssetValue = vaultData.gav;
-        hrp.aggregateOptimalRepaymentRate = vaultData
-            .optimalAggregateRepaymentRate;
-        hrp.aggregateActualRepaymentRate = vaultData
-            .actualAggregateRepaymentRate;
 
         IReserveManager rm = IReserveManager(
             addressResolver.getLiquidityManagerProxy()
         );
         DataTypes.ReserveData memory reserve = rm.getReserveData(_reserve);
-        IHealthStrategy hs = IHealthStrategy(reserve.healthStrategyAddress);
-        vaultData.healthFactor = hs.calculateHealthRisk(hrp);
         return vaultData;
+    }
+
+    function getDrawDownDetail(
+        address _user,
+        address _reserve,
+        uint256 _drawDownId
+    ) external view returns (DataTypes.DebtDetail memory) {
+        ILoanManagerProxy lmp = ILoanManagerProxy(
+            addressResolver.getLoanManagerProxy()
+        );
+        address vault = IVaultManagerProxy(
+            addressResolver.getVaultManagerProxy()
+        ).getVault(_user);
+        return lmp.getDrawDownDetail(_reserve, vault, _drawDownId);
     }
 }

@@ -4,17 +4,28 @@ pragma solidity ^0.8.9;
 import '../../../libraries/state/State.sol';
 import '../../../libraries/types/DataTypes.sol';
 import '../../../libraries/logic/ReserveLogic.sol';
+import '../../../libraries/logic/DebtLogic.sol';
 import '../../../libraries/logic/ValidationLogic.sol';
 import '../../../libraries/configuration/ReserveConfiguration.sol';
+import '../../../libraries/math/WadRayMath.sol';
 import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 
 contract LiquidityManagerStorage is State {
     using ReserveLogic for DataTypes.ReserveData;
+    using DebtLogic for DataTypes.BorrowData;
+    using DebtLogic for DataTypes.BorrowStat;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
     using SafeMath for uint256;
+    using WadRayMath for uint256;
 
     mapping(address => DataTypes.ReserveData) internal _reserves;
+
+    // asset => vault address => borrow data
+    mapping(address => mapping(address => DataTypes.BorrowData))
+        internal _borrowData;
+
+    mapping(address => DataTypes.BorrowStat) internal _borrowStat;
 
     // List of reserves as a map (reserveId => reserve)
     mapping(uint256 => address) internal _reserveList;
@@ -26,21 +37,53 @@ contract LiquidityManagerStorage is State {
 
     constructor(address _liquidityManager) State(_liquidityManager) {}
 
+    function insertDebt(
+        address _reserve,
+        address _vault,
+        uint256 _principal,
+        uint256 _term,
+        uint256 _epoch,
+        uint256 _apr
+    ) external onlyAssociatedContract {
+        _borrowData[_reserve][_vault].insertDrawDown(
+            _borrowStat[_reserve],
+            _principal,
+            _term,
+            _epoch,
+            _apr
+        );
+    }
+
+    function repay(
+        address _reserve,
+        address _vault,
+        uint256 _drawDownNumber,
+        uint256 _principal,
+        uint256 _interest
+    ) external onlyAssociatedContract {
+        _borrowData[_reserve][_vault].repay(
+            _borrowStat[_reserve],
+            _drawDownNumber,
+            _principal,
+            _interest
+        );
+    }
+
     function initReserve(
         address _asset,
         address _juniorDepositTokenAddress,
         address _seniorDepositTokenAddress,
-        address _stableDebtAddress,
         address _interestRateStrategyAddress,
         address _healthStrategyAddress,
+        address _loanStrategyAddress,
         uint256 _optimalIncomeRatio
     ) external onlyAssociatedContract {
         _reserves[_asset].init(
             _juniorDepositTokenAddress,
             _seniorDepositTokenAddress,
-            _stableDebtAddress,
             _interestRateStrategyAddress,
             _healthStrategyAddress,
+            _loanStrategyAddress,
             _optimalIncomeRatio
         );
 
@@ -51,7 +94,9 @@ contract LiquidityManagerStorage is State {
     function updateStateOnDeposit(
         address _asset,
         ReserveLogic.Tranche _tranche,
-        uint256 _amount
+        uint256 _amount,
+        uint256 _totalDebt,
+        uint256 _avgBorrowRate
     ) public onlyAssociatedContract {
         DataTypes.ReserveData storage reserve = _reserves[_asset];
         ValidationLogic.validateDeposit(reserve, _amount);
@@ -64,7 +109,9 @@ contract LiquidityManagerStorage is State {
                 _amount,
                 0,
                 0,
-                0
+                0,
+                _totalDebt,
+                _avgBorrowRate
             );
         } else {
             reserve.updateInterestRates(
@@ -74,7 +121,9 @@ contract LiquidityManagerStorage is State {
                 0,
                 0,
                 _amount,
-                0
+                0,
+                _totalDebt,
+                _avgBorrowRate
             );
         }
     }
@@ -82,7 +131,9 @@ contract LiquidityManagerStorage is State {
     function updateStateOnWithdraw(
         address _asset,
         ReserveLogic.Tranche _tranche,
-        uint256 _amount
+        uint256 _amount,
+        uint256 _totalDebt,
+        uint256 _avgBorrowRate
     ) public onlyAssociatedContract {
         DataTypes.ReserveData storage reserve = _reserves[_asset];
         reserve.updateState(_tranche);
@@ -94,7 +145,9 @@ contract LiquidityManagerStorage is State {
                 0,
                 _amount,
                 0,
-                0
+                0,
+                _totalDebt,
+                _avgBorrowRate
             );
         } else {
             reserve.updateInterestRates(
@@ -104,15 +157,19 @@ contract LiquidityManagerStorage is State {
                 0,
                 0,
                 0,
-                0
+                0,
+                _totalDebt,
+                _avgBorrowRate
             );
         }
     }
 
-    function updateStateOnBorrow(address _asset, uint256 _amount)
-        public
-        onlyAssociatedContract
-    {
+    function updateStateOnBorrow(
+        address _asset,
+        uint256 _amount,
+        uint256 _totalDebt,
+        uint256 _avgBorrowRate
+    ) public onlyAssociatedContract {
         DataTypes.ReserveData storage reserve = _reserves[_asset];
         reserve.updateState(ReserveLogic.Tranche.SENIOR);
         reserve.updateInterestRates(
@@ -122,14 +179,18 @@ contract LiquidityManagerStorage is State {
             0,
             0,
             0,
-            _amount
+            _amount,
+            _totalDebt,
+            _avgBorrowRate
         );
     }
 
-    function updateStateOnRepayment(address _asset, uint256 _amount)
-        public
-        onlyAssociatedContract
-    {
+    function updateStateOnRepayment(
+        address _asset,
+        uint256 _amount,
+        uint256 _totalDebt,
+        uint256 _avgBorrowRate
+    ) public onlyAssociatedContract {
         DataTypes.ReserveData storage reserve = _reserves[_asset];
         reserve.updateState(ReserveLogic.Tranche.SENIOR);
         reserve.updateInterestRates(
@@ -139,7 +200,9 @@ contract LiquidityManagerStorage is State {
             0,
             0,
             _amount,
-            0
+            0,
+            _totalDebt,
+            _avgBorrowRate
         );
     }
 
@@ -243,14 +306,72 @@ contract LiquidityManagerStorage is State {
         returns (DataTypes.DepositAndDebt memory)
     {
         DataTypes.ReserveData storage reserve = _reserves[_reserve];
+        DataTypes.BorrowStat storage borrowStat = _borrowStat[_reserve];
         DataTypes.DepositAndDebt memory res;
         res.juniorDepositAmount = IERC20(reserve.juniorDepositTokenAddress)
             .totalSupply();
         res.seniorDepositAmount = IERC20(reserve.seniorDepositTokenAddress)
             .totalSupply();
-        (res.totalDebt, res.avgStableRate) = IStableDebtToken(
-            reserve.debtTokenAddress
-        ).getTotalSupplyAndAvgRate();
+        (res.totalDebt, res.totalInterest, res.avgBorrowRate) = (
+            borrowStat.totalDebt,
+            borrowStat.totalInterest,
+            borrowStat.avgBorrowRate
+        );
         return res;
+    }
+
+    function getPMT(
+        address _reserve,
+        address _vault,
+        uint256 _drawDown
+    ) public view returns (uint256, uint256) {
+        DataTypes.DrawDown storage dd = _borrowData[_reserve][_vault].drawDowns[
+            _drawDown
+        ];
+        return (dd.pmt.principal, dd.pmt.interest);
+    }
+
+    function getVaultDebt(address _reserve, address _vault)
+        public
+        view
+        returns (uint256, uint256)
+    {
+        DataTypes.BorrowData storage borrowData = _borrowData[_reserve][_vault];
+        return (borrowData.totalPrincipal, borrowData.totalInterest);
+    }
+
+    function getTotalDebt(address _reserve)
+        public
+        view
+        returns (uint256, uint256)
+    {
+        DataTypes.BorrowStat storage borrowStat = _borrowStat[_reserve];
+        return (borrowStat.totalDebt, borrowStat.totalInterest);
+    }
+
+    function getBorrowStat(address _reserve)
+        public
+        view
+        returns (DataTypes.BorrowStat memory)
+    {
+        return _borrowStat[_reserve];
+    }
+
+    function getDrawDownList(address _reserve, address _vault)
+        public
+        view
+        returns (uint256, uint256)
+    {
+        DataTypes.BorrowData storage borrowData = _borrowData[_reserve][_vault];
+        return (borrowData.paidDrawDownNumber, borrowData.nextDrawDownNumber);
+    }
+
+    function getDrawDownDetail(
+        address _reserve,
+        address _vault,
+        uint256 _drawDownId
+    ) public view returns (DataTypes.DebtDetail memory) {
+        DataTypes.BorrowData storage borrowData = _borrowData[_reserve][_vault];
+        return borrowData.getDrawDownDetail(_drawDownId);
     }
 }
