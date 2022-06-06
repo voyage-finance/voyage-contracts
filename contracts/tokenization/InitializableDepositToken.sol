@@ -68,8 +68,8 @@ abstract contract InitializableDepositToken is InitializableToken {
     {
         uint256[] memory times = pendingTimestamp[_user];
         uint256[] memory amounts = new uint256[](times.length);
-        
-        for(uint i=0; i<times.length; i++) {
+
+        for (uint256 i = 0; i < times.length; i++) {
             amounts[i] = withdrawals[_user][times[i]];
         }
 
