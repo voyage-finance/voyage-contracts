@@ -64,9 +64,16 @@ abstract contract InitializableDepositToken is InitializableToken {
     function pendingWithdrawal(address _user)
         public
         view
-        returns (uint256[] memory)
+        returns (uint256[] memory, uint256[] memory)
     {
-        return pendingTimestamp[_user];
+        uint256[] memory times = pendingTimestamp[_user];
+        uint256[] memory amounts = new uint256[](times.length);
+
+        for (uint256 i = 0; i < times.length; i++) {
+            amounts[i] = withdrawals[_user][times[i]];
+        }
+
+        return (times, amounts);
     }
 
     function totalPendingWithdrawal() public view returns (uint256) {
