@@ -100,23 +100,27 @@ library DebtLogic {
         uint256 interest
     ) public {
         DataTypes.DrawDown storage dd = debtData.drawDowns[drawDownNumber];
-        dd.totalPrincipalPaid = dd.totalPrincipalPaid.add(principal);
-        dd.totalInterestPaid = dd.totalInterestPaid.add(interest);
         dd.paidTimes += 1;
-        uint256 interestRay = interest.wadToRay();
-        borrowStat.decrease(principal.wadToRay(), interestRay, dd.apr);
-        DataTypes.RepaymentData memory repayment;
-        repayment.interest = interest;
-        repayment.principal = principal;
-        repayment.total = principal.add(interest);
-        repayment.paidAt = uint40(block.timestamp);
-        dd.repayments.push(repayment);
-        dd.nextPaymentDue = dd.borrowAt.add(
-            dd.nper.sub(dd.paidTimes).mul(dd.epoch.mul(SECOND_PER_MONTH))
-        );
+        if (dd.paidTimes == dd.nper) {
+            delete debtData.drawDowns[drawDownNumber];
+        } else {
+            dd.totalPrincipalPaid = dd.totalPrincipalPaid.add(principal);
+            dd.totalInterestPaid = dd.totalInterestPaid.add(interest);
+            DataTypes.RepaymentData memory repayment;
+            repayment.interest = interest;
+            repayment.principal = principal;
+            repayment.total = principal.add(interest);
+            repayment.paidAt = uint40(block.timestamp);
+            dd.repayments.push(repayment);
+            dd.nextPaymentDue = dd.borrowAt.add(
+                dd.nper.sub(dd.paidTimes).mul(dd.epoch.mul(SECOND_PER_MONTH))
+            );
+        }
 
         debtData.totalPrincipal.sub(principal);
         debtData.totalInterest.sub(interest);
+        uint256 interestRay = interest.wadToRay();
+        borrowStat.decrease(principal.wadToRay(), interestRay, dd.apr);
     }
 
     function increase(
