@@ -145,6 +145,7 @@ contract LoanManager is Proxyable, ILoanManager {
         uint256 principal;
         uint256 interest;
         (principal, interest) = lms.getPMT(_asset, _vault, _drawDown);
+        require(principal.add(interest) != 0, Errors.LOM_INVALID_DEBT);
 
         // 2. update liquidity index and interest rate
         DataTypes.BorrowStat memory borrowStat = lms.getBorrowStat(_asset);
