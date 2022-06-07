@@ -21,7 +21,6 @@ contract AddressResolver is IAddressResolver, Ownable {
     bytes32 public constant juniorDepositTokenName = 'juniorDepositToken';
     bytes32 public constant seniorDepositTokenName = 'seniorDepositToken';
     bytes32 public constant securityDepositTokenName = 'securityDepositToken';
-    bytes32 public constant stableDebtTokenName = 'stableDebtToken';
     bytes32 public constant extCallACLProxyName = 'extCallACLProxy';
     bytes32 public constant priceOracleName = 'priceOracle';
 
@@ -82,10 +81,6 @@ contract AddressResolver is IAddressResolver, Ownable {
 
     function getSeniorDepositToken() external view returns (address) {
         return repository[seniorDepositTokenName];
-    }
-
-    function getStableDebtToken() external view returns (address) {
-        return repository[stableDebtTokenName];
     }
 
     function getExtCallProxy() external view returns (address) {

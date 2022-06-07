@@ -6,13 +6,12 @@ import '../math/WadRayMath.sol';
 import '../math/MathUtils.sol';
 import '../types/DataTypes.sol';
 import '../helpers/Errors.sol';
-import '../../interfaces/IStableDebtToken.sol';
 import '../../component/liquidity/DefaultReserveInterestRateStrategy.sol';
 import 'hardhat/console.sol';
 
 /**
  * @title ReserveLogic library
- * @author Voyager
+ * @author Voyage
  * @notice Implements the logic to update the reserves state
  **/
 library ReserveLogic {
@@ -46,19 +45,19 @@ library ReserveLogic {
         DataTypes.ReserveData storage reserve,
         address _juniorDepositTokenAddress,
         address _seniorDepositTokenAddress,
-        address _debtTokenAddress,
         address _interestRateStrategyAddress,
         address _healthStrategyAddress,
+        address _loanStrategyAddress,
         uint256 _optimalIncomeRatio
     ) external {
         reserve.juniorLiquidityIndex = WadRayMath.ray();
         reserve.seniorLiquidityIndex = WadRayMath.ray();
         reserve.juniorDepositTokenAddress = _juniorDepositTokenAddress;
         reserve.seniorDepositTokenAddress = _seniorDepositTokenAddress;
-        reserve.debtTokenAddress = _debtTokenAddress;
         reserve.interestRateStrategyAddress = _interestRateStrategyAddress;
         reserve.healthStrategyAddress = _healthStrategyAddress;
         reserve.optimalIncomeRatio = _optimalIncomeRatio;
+        reserve.loanStrategyAddress = _loanStrategyAddress;
     }
 
     function updateState(
@@ -76,7 +75,6 @@ library ReserveLogic {
     }
 
     struct UpdateInterestRatesLocalVars {
-        address debtTokenAddress;
         uint256 availableLiquidity;
         uint256 juniorLiquidity;
         uint256 seniorLiquidity;
@@ -99,14 +97,13 @@ library ReserveLogic {
         uint256 _juniorLiquidityAdded,
         uint256 _juniorLiquidityTaken,
         uint256 _seniorLiquidityAdded,
-        uint256 _seniorLiquidityTaken
+        uint256 _seniorLiquidityTaken,
+        uint256 _totalDebt,
+        uint256 _avgBorrowRate
     ) public {
         UpdateInterestRatesLocalVars memory vars;
 
-        vars.debtTokenAddress = _reserve.debtTokenAddress;
-        (vars.totalDebt, vars.avgBorrowRate) = IStableDebtToken(
-            _reserve.debtTokenAddress
-        ).getTotalSupplyAndAvgRate();
+        (vars.totalDebt, vars.avgBorrowRate) = (_totalDebt, _avgBorrowRate);
 
         (
             vars.newLiquidityRate,
@@ -123,10 +120,6 @@ library ReserveLogic {
         require(
             vars.newLiquidityRate <= type(uint128).max,
             Errors.RL_LIQUIDITY_RATE_OVERFLOW
-        );
-        require(
-            vars.newBorrowRate <= type(uint128).max,
-            Errors.RL_STABLE_BORROW_RATE_OVERFLOW
         );
 
         vars.seniorLiquidity = IERC20(_seniorDepositTokenAddress).totalSupply();
@@ -154,7 +147,6 @@ library ReserveLogic {
         }
 
         _reserve.currentOverallLiquidityRate = vars.newLiquidityRate;
-        _reserve.currentBorrowRate = vars.newBorrowRate;
         _reserve.currentJuniorLiquidityRate = vars.effectiveJuniorLiquidityRate;
         _reserve.currentSeniorLiquidityRate = vars.effectSeniorLiquidityRate;
 

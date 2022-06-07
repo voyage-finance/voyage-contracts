@@ -30,8 +30,6 @@ interface IAddressResolver {
 
     function getVaultManager() external view returns (address);
 
-    function getStableDebtToken() external view returns (address);
-
     function getExtCallProxy() external view returns (address);
 
     function getAclManager() external view returns (address);

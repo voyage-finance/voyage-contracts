@@ -2,15 +2,15 @@ import { ethers, getNamedAccounts } from 'hardhat';
 import { setupDebtTestSuite } from '../helpers/debt';
 
 describe('Repayment', function () {
-  it('Repay should return correct value', async function () {
+  it.only('Repay should return correct value', async function () {
     const {
       juniorDepositToken,
       seniorDepositToken,
-      stableDebtToken,
       tus,
       vm,
       lm,
       voyager,
+      voyageProtocolDataProvider,
     } = await setupDebtTestSuite();
 
     const { owner } = await getNamedAccounts();
@@ -48,62 +48,80 @@ describe('Repayment', function () {
     await voyager.depositSecurity(owner, tus.address, '100000000000000000000');
     await voyager.borrow(tus.address, '10000000000000000000', vaultAddr, 0);
 
-    const StableDebtToken = await ethers.getContractFactory('StableDebtToken');
-    const debtToken = await StableDebtToken.attach(stableDebtToken.address);
-    const debtBalance = await debtToken.balanceOf(vaultAddr);
-    console.log('debt balance: ', debtBalance.toString());
-
     // increase seven days
     const sevenDays = 7 * 24 * 60 * 60;
     await ethers.provider.send('evm_increaseTime', [sevenDays]);
     await ethers.provider.send('evm_mine', []);
 
-    const debtBalanceAfterSevenDays = await debtToken.balanceOf(vaultAddr);
+    const vaultData = await voyageProtocolDataProvider.getVaultData(
+      owner,
+      tus.address,
+      owner
+    );
+
+    console.log('total debt: ', vaultData.totalDebt.toString());
     console.log(
-      'debt balance after 7 days: ',
-      debtBalanceAfterSevenDays.toString()
+      'draw down list: [',
+      vaultData.drawDownList.head.toString(),
+      ',',
+      vaultData.drawDownList.tail.toString(),
+      ']'
     );
 
-    const drawDownNumber = (await debtToken.drawDoneNumber(vaultAddr)) - 1;
-    console.log('draw down number: ', drawDownNumber.toString());
-
-    const drawDown = await debtToken.drawDown(
-      vaultAddr,
-      drawDownNumber.toString()
-    );
-    console.log('debt amount: ', drawDown.amount.toString());
-    await voyager.repay(
+    const drawDownDetail = await voyageProtocolDataProvider.getDrawDownDetail(
+      owner,
       tus.address,
-      drawDownNumber,
-      '1000000000000000000',
-      vaultAddr
+      0
     );
+    console.log('draw down 0: ');
+    console.log(
+      'drawDownDetail.nextPaymentDue: ',
+      drawDownDetail.nextPaymentDue.toString()
+    );
+    console.log(
+      'drawDownDetail.principal: ',
+      drawDownDetail.pmt.principal.toString()
+    );
+    console.log(
+      'drawDownDetail.interest: ',
+      drawDownDetail.pmt.interest.toString()
+    );
+    console.log('drawDownDetail.pmt: ', drawDownDetail.pmt.pmt.toString());
 
-    await voyager.repay(
+    await voyager.borrow(tus.address, '10000000000000000000', vaultAddr, 0);
+
+    const vaultData2 = await voyageProtocolDataProvider.getVaultData(
+      owner,
       tus.address,
-      drawDownNumber,
-      '1000000000000000000',
-      vaultAddr
+      owner
     );
 
-    const drawDownAfter = await debtToken.drawDown(
-      vaultAddr,
-      drawDownNumber.toString()
+    console.log('total debt: ', vaultData2.totalDebt.toString());
+    console.log(
+      'draw down list: [',
+      vaultData2.drawDownList.head.toString(),
+      ',',
+      vaultData2.drawDownList.tail.toString(),
+      ']'
     );
-    console.log('debt amount after: ', drawDownAfter.amount.toString());
-
-    const repaymentOverall = await debtToken.repaymentOverall(
-      vaultAddr,
-      drawDownNumber.toString()
+    const drawDownDetail2 = await voyageProtocolDataProvider.getDrawDownDetail(
+      owner,
+      tus.address,
+      1
     );
-    console.log('current total paid: ', repaymentOverall.totalPaid.toString());
-    console.log('current tenure: ', repaymentOverall.numPayments.toString());
-
-    const repaymentRecord = await debtToken.repaymentHistory(
-      vaultAddr,
-      drawDownNumber.toString(),
-      repaymentOverall.numPayments - 1
+    console.log('draw down 1: ');
+    console.log(
+      'drawDownDetail.nextPaymentDue: ',
+      drawDownDetail2.nextPaymentDue.toString()
     );
-    console.log('repayment record: ', repaymentRecord.toString());
+    console.log(
+      'drawDownDetail.principal: ',
+      drawDownDetail2.pmt.principal.toString()
+    );
+    console.log(
+      'drawDownDetail.interest: ',
+      drawDownDetail2.pmt.interest.toString()
+    );
+    console.log('drawDownDetail.pmt: ', drawDownDetail2.pmt.pmt.toString());
   });
 });

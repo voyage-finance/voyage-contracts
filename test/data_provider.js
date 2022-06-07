@@ -8,7 +8,6 @@ let liquidityManagerProxy;
 let liquidityManager;
 let juniorDepositToken;
 let seniorDepositToken;
-let stableDebtToken;
 let defaultReserveInterestRateStrategy;
 let healthStrategyAddress;
 let addressResolver;
@@ -16,6 +15,7 @@ let vaultManager;
 let tus;
 let vm;
 let voyageProtocolDataProvider;
+let loanStrategy;
 
 describe('Data Provider', function () {
   beforeEach(async function () {
@@ -37,11 +37,11 @@ describe('Data Provider', function () {
     liquidityManager = await ethers.getContract('LiquidityManager');
     juniorDepositToken = await ethers.getContract('JuniorDepositToken');
     seniorDepositToken = await ethers.getContract('SeniorDepositToken');
-    stableDebtToken = await ethers.getContract('StableDebtToken');
     defaultReserveInterestRateStrategy = await ethers.getContract(
       'DefaultReserveInterestRateStrategy'
     );
     healthStrategyAddress = await ethers.getContract('DefaultHealthStrategy');
+    loanStrategy = await ethers.getContract('DefaultLoanStrategy');
     addressResolver = await ethers.getContract('AddressResolver');
     tus = await ethers.getContract('Tus');
     voyager = await ethers.getContract('Voyager');
@@ -81,9 +81,9 @@ describe('Data Provider', function () {
       tus.address,
       juniorDepositToken.address,
       seniorDepositToken.address,
-      stableDebtToken.address,
       defaultReserveInterestRateStrategy.address,
       healthStrategyAddress.address,
+      loanStrategy.address,
       '500000000000000000000000000'
     );
     // 100

@@ -9,7 +9,6 @@ import './base/InitializableToken.sol';
  **/
 abstract contract InitializableDepositToken is InitializableToken {
     // user address => timestamp => amount
-    // todo amount and tranche
     mapping(address => mapping(uint256 => uint256)) private withdrawals;
 
     // user address => timestamp array

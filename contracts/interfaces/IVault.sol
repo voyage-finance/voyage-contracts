@@ -38,8 +38,6 @@ interface IVault {
         view
         returns (uint256);
 
-    function getTotalDebt() external view returns (uint256);
-
     function getGav() external view returns (uint256);
 
     function getCurrentSecurityDeposit(address _reserve)

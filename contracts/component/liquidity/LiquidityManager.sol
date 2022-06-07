@@ -8,7 +8,6 @@ import '../../libraries/math/WadRayMath.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
 import '../../interfaces/IReserveManager.sol';
 import '../../interfaces/ILiquidityManager.sol';
-import '../../interfaces/IStableDebtToken.sol';
 import '../../tokenization/InitializableDepositToken.sol';
 import '../../tokenization/JuniorDepositToken.sol';
 import '../../tokenization/SeniorDepositToken.sol';
@@ -34,8 +33,17 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
             liquidityManagerStorageAddress()
         );
         DataTypes.ReserveData memory reserve = getReserveData(_asset);
+        DataTypes.BorrowStat memory borrowStat = lms.getBorrowStat(_asset);
+        uint256 totalDebt = borrowStat.totalDebt.add(borrowStat.totalInterest);
+        uint256 avgBorrowRate = borrowStat.avgBorrowRate;
 
-        lms.updateStateOnDeposit(_asset, _tranche, _amount);
+        lms.updateStateOnDeposit(
+            _asset,
+            _tranche,
+            _amount,
+            totalDebt,
+            avgBorrowRate
+        );
 
         address vToken;
         uint256 liquidityIndex;
@@ -80,9 +88,17 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
         if (_amount == type(uint256).max) {
             amountToWithdraw = userBalance;
         }
-
+        DataTypes.BorrowStat memory borrowStat = lms.getBorrowStat(_asset);
+        uint256 totalDebt = borrowStat.totalDebt.add(borrowStat.totalInterest);
+        uint256 avgBorrowRate = borrowStat.avgBorrowRate;
         IVToken(vToken).burn(_user, amountToWithdraw, liquidityIndex);
-        lms.updateStateOnWithdraw(_asset, _tranche, amountToWithdraw);
+        lms.updateStateOnWithdraw(
+            _asset,
+            _tranche,
+            amountToWithdraw,
+            totalDebt,
+            avgBorrowRate
+        );
 
         emitWithdraw(_asset, _user, _tranche, _amount);
     }
@@ -103,11 +119,6 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
             vToken = reserve.seniorDepositTokenAddress;
         }
         return IERC20(vToken).balanceOf(_user);
-    }
-
-    function totalDepositAndDebt() external {
-        AddressResolver addressResolver = voyager.addressResolver();
-        addressResolver.getStableDebtToken();
     }
 
     function balance(
@@ -138,10 +149,13 @@ contract LiquidityManager is ReserveManager, ILiquidityManager {
     function utilizationRate(address _reserve) external view returns (uint256) {
         DataTypes.ReserveData memory reserve = getReserveData(_reserve);
 
-        uint256 totalDebt;
-        uint256 avgBorrowRate;
-        (totalDebt, avgBorrowRate) = IStableDebtToken(reserve.debtTokenAddress)
-            .getTotalSupplyAndAvgRate();
+        uint256 totalPrincipal;
+        uint256 totalInterest;
+        LiquidityManagerStorage lms = LiquidityManagerStorage(
+            liquidityManagerStorageAddress()
+        );
+        (totalPrincipal, totalInterest) = lms.getTotalDebt(_reserve);
+        uint256 totalDebt = totalPrincipal.add(totalInterest);
 
         uint256 totalPendingWithdrawal = InitializableDepositToken(
             reserve.seniorDepositTokenAddress

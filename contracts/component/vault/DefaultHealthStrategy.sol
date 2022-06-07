@@ -54,9 +54,8 @@ contract DefaultHealthStrategy is IHealthStrategy {
         uint256 ltvRatio = hrp.grossAssetValue.add(hrp.securityDeposit).rayDiv(
             hrp.compoundedDebt
         );
-        uint256 repaymentRatio = hrp.aggregateActualRepaymentRate.rayDiv(
-            hrp.aggregateOptimalRepaymentRate
-        );
+        // todo
+        uint256 repaymentRatio = 1;
         return
             ltvRatio
                 .rayMul(weightedLTV)

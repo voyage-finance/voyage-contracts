@@ -10,7 +10,6 @@ import '../../libraries/proxy/Proxyable.sol';
 import '../../libraries/logic/ReserveLogic.sol';
 import '../../interfaces/IReserveManager.sol';
 import '../../interfaces/IVoyagerComponent.sol';
-import '../../interfaces/IStableDebtToken.sol';
 import '../../interfaces/IACLManager.sol';
 
 abstract contract ReserveManager is Proxyable, IReserveManager {
@@ -45,7 +44,6 @@ abstract contract ReserveManager is Proxyable, IReserveManager {
      * @param _asset The address of the underlying asset of the reserve
      * @param _juniorDepositTokenAddress The address of the junior deposit token that will be assigned to the reserve
      * @param _seniorDepositTokenAddress The address of the senior deposit token that will be assigned to the reserve
-     * @param _stableDebtAddress The address of the StableDebtToken that will be assigned to the reserve
      * @param _interestRateStrategyAddress The address of the interest rate strategy contract
      * @param _optimalIncomeRatio The ratio of income ratio
      **/
@@ -53,9 +51,9 @@ abstract contract ReserveManager is Proxyable, IReserveManager {
         address _asset,
         address _juniorDepositTokenAddress,
         address _seniorDepositTokenAddress,
-        address _stableDebtAddress,
         address _interestRateStrategyAddress,
         address _healthStrategyAddress,
+        address _loanStrategyAddress,
         uint256 _optimalIncomeRatio
     ) external onlyProxy onlyAdmin {
         require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
@@ -63,16 +61,15 @@ abstract contract ReserveManager is Proxyable, IReserveManager {
             _asset,
             _juniorDepositTokenAddress,
             _seniorDepositTokenAddress,
-            _stableDebtAddress,
             _interestRateStrategyAddress,
             _healthStrategyAddress,
+            _loanStrategyAddress,
             _optimalIncomeRatio
         );
         emitReserveInitialized(
             _asset,
             _juniorDepositTokenAddress,
             _seniorDepositTokenAddress,
-            _stableDebtAddress,
             _interestRateStrategyAddress,
             _healthStrategyAddress,
             _optimalIncomeRatio
@@ -197,14 +194,13 @@ abstract contract ReserveManager is Proxyable, IReserveManager {
     );
     bytes32 internal constant RESERVE_INITIALIZED_SIG =
         keccak256(
-            'ReserveInitialized(address,address,address,address,address,address,uint256)'
+            'ReserveInitialized(address,address,address,address,address,uint256)'
         );
 
     function emitReserveInitialized(
         address _asset,
         address _juniorDepositTokenAddress,
         address _seniorDepositTokenAddress,
-        address _stableDebtAddress,
         address _interestRateStrategyAddress,
         address _healthStrategyAddress,
         uint256 _optimalIncomeRatio
@@ -213,7 +209,6 @@ abstract contract ReserveManager is Proxyable, IReserveManager {
             abi.encode(
                 _juniorDepositTokenAddress,
                 _seniorDepositTokenAddress,
-                _stableDebtAddress,
                 _interestRateStrategyAddress,
                 _healthStrategyAddress,
                 _optimalIncomeRatio

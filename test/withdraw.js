@@ -8,7 +8,6 @@ let liquidityManagerProxy;
 let liquidityManager;
 let juniorDepositToken;
 let seniorDepositToken;
-let stableDebtToken;
 let defaultReserveInterestRateStrategy;
 let healthStrategyAddress;
 let addressResolver;
@@ -16,6 +15,7 @@ let vaultManager;
 let tus;
 let vm;
 let vaultAddr;
+let loanStrategy;
 
 describe('Withdraw', function () {
   beforeEach(async function () {
@@ -36,7 +36,6 @@ describe('Withdraw', function () {
     liquidityManager = await ethers.getContract('LiquidityManager');
     juniorDepositToken = await ethers.getContract('JuniorDepositToken');
     seniorDepositToken = await ethers.getContract('SeniorDepositToken');
-    stableDebtToken = await ethers.getContract('StableDebtToken');
     defaultReserveInterestRateStrategy = await ethers.getContract(
       'DefaultReserveInterestRateStrategy'
     );
@@ -60,6 +59,7 @@ describe('Withdraw', function () {
     const vaultManagerProxy = await ethers.getContract('VaultManagerProxy');
     const VaultManager = await ethers.getContractFactory('VaultManager');
     vm = await VaultManager.attach(vaultManagerProxy.address);
+    loanStrategy = await ethers.getContract('DefaultLoanStrategy');
 
     // deposit sufficient reserve
     const reserveLogic = await ethers.getContract('ReserveLogic');
@@ -71,9 +71,9 @@ describe('Withdraw', function () {
       tus.address,
       juniorDepositToken.address,
       seniorDepositToken.address,
-      stableDebtToken.address,
       defaultReserveInterestRateStrategy.address,
       healthStrategyAddress.address,
+      loanStrategy.address,
       '500000000000000000000000000'
     );
     // 100

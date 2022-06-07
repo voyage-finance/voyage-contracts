@@ -3,6 +3,7 @@ import { DeployFunction } from 'hardhat-deploy/types';
 const LM_PROXY_NAME = 'LiquidityManagerProxy';
 const LM_NAME = 'LiquidityManager';
 const RESERVE_LOGIC_NAME = 'ReserveLogic';
+const DEBT_LOGIC_NAME = 'DebtLogic';
 const VALIDATION_LOGIC_NAME = 'ValidationLogic';
 const LM_STORAGE_NAME = 'LiquidityManagerStorage';
 
@@ -19,6 +20,12 @@ const deployFn: DeployFunction = async (hre) => {
     from: owner,
     log: true,
   });
+
+  const DebtLogic = await deploy(DEBT_LOGIC_NAME, {
+    from: owner,
+    log: true,
+  });
+
   const ValidationLogic = await deploy(VALIDATION_LOGIC_NAME, {
     from: owner,
     log: true,
@@ -38,6 +45,7 @@ const deployFn: DeployFunction = async (hre) => {
     args: [LiquidityManager.address],
     libraries: {
       ReserveLogic: ReserveLogic.address,
+      DebtLogic: DebtLogic.address,
       ValidationLogic: ValidationLogic.address,
     },
     log: true,

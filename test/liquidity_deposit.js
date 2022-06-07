@@ -10,9 +10,9 @@ let tus;
 let escrowContract;
 let juniorDepositToken;
 let seniorDepositToken;
-let stableDebtToken;
 let defaultReserveInterestRateStrategy;
 let healthStrategyAddress;
+let loanStrategy;
 
 describe('Reserve Deposit', function () {
   beforeEach(async function () {
@@ -26,6 +26,7 @@ describe('Reserve Deposit', function () {
       'LiquidityManagerStorage',
       'Tokenization',
       'SetAddressResolver',
+      'LoanManager',
     ]);
     const addressResolver = await ethers.getContract('AddressResolver');
 
@@ -37,11 +38,11 @@ describe('Reserve Deposit', function () {
     liquidityManager = await ethers.getContract('LiquidityManager');
     juniorDepositToken = await ethers.getContract('JuniorDepositToken');
     seniorDepositToken = await ethers.getContract('SeniorDepositToken');
-    stableDebtToken = await ethers.getContract('StableDebtToken');
     defaultReserveInterestRateStrategy = await ethers.getContract(
       'DefaultReserveInterestRateStrategy'
     );
     healthStrategyAddress = await ethers.getContract('DefaultHealthStrategy');
+    loanStrategy = await ethers.getContract('DefaultLoanStrategy');
 
     await liquidityManager.deployed();
 
@@ -54,9 +55,9 @@ describe('Reserve Deposit', function () {
       tus.address,
       juniorDepositToken.address,
       seniorDepositToken.address,
-      stableDebtToken.address,
       defaultReserveInterestRateStrategy.address,
       healthStrategyAddress.address,
+      loanStrategy.address,
       '500000000000000000000000000'
     );
     await expect(lm.activeReserve(tus.address))
