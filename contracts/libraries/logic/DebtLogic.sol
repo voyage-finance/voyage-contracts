@@ -88,6 +88,7 @@ library DebtLogic {
         debtDetail.nextPaymentDue = dd.nextPaymentDue;
         debtDetail.totalInterestPaid = dd.totalInterestPaid;
         debtDetail.totalPrincipalPaid = dd.totalPrincipalPaid;
+        debtDetail.paidTimes = dd.paidTimes;
         return debtDetail;
     }
 
@@ -99,8 +100,8 @@ library DebtLogic {
         uint256 interest
     ) public {
         DataTypes.DrawDown storage dd = debtData.drawDowns[drawDownNumber];
-        dd.totalPrincipalPaid.add(principal);
-        dd.totalInterestPaid.add(interest);
+        dd.totalPrincipalPaid = dd.totalPrincipalPaid.add(principal);
+        dd.totalInterestPaid = dd.totalInterestPaid.add(interest);
         dd.paidTimes += 1;
         uint256 interestRay = interest.wadToRay();
         borrowStat.decrease(principal.wadToRay(), interestRay, dd.apr);

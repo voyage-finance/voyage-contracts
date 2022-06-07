@@ -2,6 +2,15 @@ import { ethers, getNamedAccounts } from 'hardhat';
 import { setupDebtTestSuite } from '../helpers/debt';
 
 describe('Repayment', function () {
+  function showDrawDown(drawDown: any) {
+    console.log('principal: ', drawDown.principal.toString());
+    console.log('totalPrincipalPaid', drawDown.totalPrincipalPaid.toString());
+    console.log('totalInterestPaid', drawDown.totalInterestPaid.toString());
+    console.log('pmt.principal: ', drawDown.pmt.principal.toString());
+    console.log('pmt.interest: ', drawDown.pmt.interest.toString());
+    console.log('pmt: ', drawDown.pmt.pmt.toString());
+  }
+
   it('Repay should return correct value', async function () {
     const {
       juniorDepositToken,
@@ -74,19 +83,7 @@ describe('Repayment', function () {
       0
     );
     console.log('draw down 0: ');
-    console.log(
-      'drawDownDetail.nextPaymentDue: ',
-      drawDownDetail.nextPaymentDue.toString()
-    );
-    console.log(
-      'drawDownDetail.principal: ',
-      drawDownDetail.pmt.principal.toString()
-    );
-    console.log(
-      'drawDownDetail.interest: ',
-      drawDownDetail.pmt.interest.toString()
-    );
-    console.log('drawDownDetail.pmt: ', drawDownDetail.pmt.pmt.toString());
+    showDrawDown(drawDownDetail);
 
     await voyager.borrow(tus.address, '10000000000000000000', vaultAddr, 0);
 
@@ -110,18 +107,16 @@ describe('Repayment', function () {
       1
     );
     console.log('draw down 1: ');
-    console.log(
-      'drawDownDetail.nextPaymentDue: ',
-      drawDownDetail2.nextPaymentDue.toString()
+    showDrawDown(drawDownDetail2);
+
+    // repay the first draw down
+    await voyager.repay(tus.address, 0, vaultAddr);
+    const drawDownDetail3 = await voyageProtocolDataProvider.getDrawDownDetail(
+      owner,
+      tus.address,
+      0
     );
-    console.log(
-      'drawDownDetail.principal: ',
-      drawDownDetail2.pmt.principal.toString()
-    );
-    console.log(
-      'drawDownDetail.interest: ',
-      drawDownDetail2.pmt.interest.toString()
-    );
-    console.log('drawDownDetail.pmt: ', drawDownDetail2.pmt.pmt.toString());
+    console.log('draw down 0: ');
+    showDrawDown(drawDownDetail3);
   });
 });

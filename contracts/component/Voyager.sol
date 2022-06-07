@@ -188,8 +188,6 @@ contract Voyager is MessageBus {
     function repay(
         address _asset,
         uint256 _drawDownIdx,
-        uint256 _principal,
-        uint256 _interest,
         address payable _vault
     ) external {
         LoanManager(addressResolver.getLoanManagerProxy()).repay(

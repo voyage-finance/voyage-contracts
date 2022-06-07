@@ -114,6 +114,7 @@ library DataTypes {
         uint256 nextPaymentDue;
         uint256 totalPrincipalPaid;
         uint256 totalInterestPaid;
+        uint256 paidTimes;
     }
 
     struct RepaymentData {
