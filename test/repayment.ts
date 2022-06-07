@@ -2,7 +2,7 @@ import { ethers, getNamedAccounts } from 'hardhat';
 import { setupDebtTestSuite } from '../helpers/debt';
 
 describe('Repayment', function () {
-  it.only('Repay should return correct value', async function () {
+  it('Repay should return correct value', async function () {
     const {
       juniorDepositToken,
       seniorDepositToken,
