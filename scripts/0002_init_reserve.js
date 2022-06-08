@@ -16,7 +16,7 @@ async function main() {
   const treasureUnderSea = await getAddress('Tus');
   const juniorDepositToken = await getAddress('JuniorDepositToken');
   const seniorDepositToken = await getAddress('SeniorDepositToken');
-  const stableDebtToken = await getAddress('StableDebtToken');
+  const loanStrategy = await getAddress('DefaultLoanStrategy');
   const interestStrategy = await getAddress(
     'DefaultReserveInterestRateStrategy'
   );
@@ -26,9 +26,9 @@ async function main() {
     treasureUnderSea,
     juniorDepositToken,
     seniorDepositToken,
-    stableDebtToken,
     interestStrategy,
     healthStrategy,
+      loanStrategy,
       '500000000000000000000000000'
   );
 }

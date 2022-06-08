@@ -1,0 +1,112 @@
+{
+  "address": "0xF305A355f032a1Fc08082c2BD692C8BDd73Ee964",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_term",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_epoch",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "epoch",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getEpoch",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getTerm",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "term",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x9e0d123803286bfb5b8fe40ad40faf3f2c65d9630ee7cbb69c30f82336c15346",
+  "receipt": {
+    "to": null,
+    "from": "0x4C616d9377Fa8d928385F0b11Ab16D4bf0f2d544",
+    "contractAddress": "0xF305A355f032a1Fc08082c2BD692C8BDd73Ee964",
+    "transactionIndex": 2,
+    "gasUsed": "117688",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0xb77af022d68ddd106281cbd277ae6403c4f5031272aef95f148308ffe8fa1dc9",
+    "transactionHash": "0x9e0d123803286bfb5b8fe40ad40faf3f2c65d9630ee7cbb69c30f82336c15346",
+    "logs": [],
+    "blockNumber": 10476333,
+    "cumulativeGasUsed": "198928",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    90,
+    30
+  ],
+  "numDeployments": 1,
+  "solcInputHash": "5581b7bd0906416eb346441aec54c4cd",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.9+commit.e5eed63a\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_term\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_epoch\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"epoch\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getEpoch\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getTerm\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"term\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/component/loan/DefaultLoanStrategy.sol\":\"DefaultLoanStrategy\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":2000},\"remappings\":[]},\"sources\":{\"contracts/component/loan/DefaultLoanStrategy.sol\":{\"content\":\"// SPDX-License-Identifier: GPL-3.0\\npragma solidity ^0.8.9;\\n\\nimport '../../interfaces/ILoanStrategy.sol';\\n\\ncontract DefaultLoanStrategy is ILoanStrategy {\\n    uint256 public immutable term;\\n\\n    uint256 public immutable epoch;\\n\\n    constructor(uint256 _term, uint256 _epoch) public {\\n        term = _term;\\n        epoch = _epoch;\\n    }\\n\\n    function getTerm() external view returns (uint256) {\\n        return term;\\n    }\\n\\n    function getEpoch() external view returns (uint256) {\\n        return epoch;\\n    }\\n}\\n\",\"keccak256\":\"0xd62206fa1aa235db2d68559092b60bbe5fc4848db468f826888c185918fafa6b\",\"license\":\"GPL-3.0\"},\"contracts/interfaces/ILoanStrategy.sol\":{\"content\":\"// SPDX-License-Identifier: GPL-3.0\\npragma solidity ^0.8.9;\\n\\ninterface ILoanStrategy {\\n    function getTerm() external view returns (uint256);\\n\\n    function getEpoch() external view returns (uint256);\\n}\\n\",\"keccak256\":\"0xd01cc4078b1c729f2d09edcb3b408c43acda8c9fff75fef32b969f7fefb21ffe\",\"license\":\"GPL-3.0\"}},\"version\":1}",
+  "bytecode": "0x60c060405234801561001057600080fd5b506040516101b63803806101b683398101604081905261002f9161003d565b60809190915260a052610061565b6000806040838503121561005057600080fd5b505080516020909101519092909150565b60805160a051610126610090600039600081816081015260a8015260008181604d015260ce01526101266000f3fe6080604052348015600f57600080fd5b506004361060465760003560e01c8063124b65b414604b578063757991a814607f578063900cf0cf1460a4578063a10ffbed1460ca575b600080fd5b7f00000000000000000000000000000000000000000000000000000000000000005b60405190815260200160405180910390f35b7f0000000000000000000000000000000000000000000000000000000000000000606d565b606d7f000000000000000000000000000000000000000000000000000000000000000081565b606d7f00000000000000000000000000000000000000000000000000000000000000008156fea2646970667358221220fa94adced331ed96d2b246a00377e2665cf867003cc61ad0700d12ee0a3b7b6c64736f6c63430008090033",
+  "deployedBytecode": "0x6080604052348015600f57600080fd5b506004361060465760003560e01c8063124b65b414604b578063757991a814607f578063900cf0cf1460a4578063a10ffbed1460ca575b600080fd5b7f00000000000000000000000000000000000000000000000000000000000000005b60405190815260200160405180910390f35b7f0000000000000000000000000000000000000000000000000000000000000000606d565b606d7f000000000000000000000000000000000000000000000000000000000000000081565b606d7f00000000000000000000000000000000000000000000000000000000000000008156fea2646970667358221220fa94adced331ed96d2b246a00377e2665cf867003cc61ad0700d12ee0a3b7b6c64736f6c63430008090033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [],
+    "types": null
+  }
+}
