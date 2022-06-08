@@ -1,6 +1,6 @@
 import { ethers, getNamedAccounts } from 'hardhat';
 import { setupDebtTestSuite } from '../helpers/debt';
-import {expect} from "chai";
+import { expect } from 'chai';
 
 describe('Repayment', function () {
   function showDrawDown(drawDown: any) {
@@ -122,18 +122,18 @@ describe('Repayment', function () {
 
     await voyager.repay(tus.address, 0, vaultAddr);
     const drawDownDetail4 = await voyageProtocolDataProvider.getDrawDownDetail(
-        owner,
-        tus.address,
-        0
+      owner,
+      tus.address,
+      0
     );
     console.log('draw down 0: ');
     showDrawDown(drawDownDetail4);
 
     await voyager.repay(tus.address, 0, vaultAddr);
     const drawDownDetail5 = await voyageProtocolDataProvider.getDrawDownDetail(
-        owner,
-        tus.address,
-        0
+      owner,
+      tus.address,
+      0
     );
     console.log('draw down 0: ');
     showDrawDown(drawDownDetail5);
@@ -163,13 +163,13 @@ describe('Repayment', function () {
     console.log('senior liquidity: ', seniorLiquidity.toString());
     console.log('junior liquidity: ', juniorLiquidity.toString());
     await vm.setSecurityDepositRequirement(
-        tus.address,
-        '100000000000000000000000000'
+      tus.address,
+      '100000000000000000000000000'
     ); // 0.1
 
     // create an empty vault
     const salt = ethers.utils.formatBytes32String(
-        (Math.random() + 1).toString(36).substring(7)
+      (Math.random() + 1).toString(36).substring(7)
     );
     await voyager.createVault(owner, tus.address, salt);
     const vaultAddr = await voyager.getVault(owner);
@@ -178,7 +178,7 @@ describe('Repayment', function () {
     // get security deposit escrow address
     const Vault = await ethers.getContractFactory('Vault');
     const escrowAddress = await Vault.attach(
-        vaultAddr
+      vaultAddr
     ).getSecurityDepositEscrowAddress();
     await tus.increaseAllowance(escrowAddress, '1000000000000000000000');
 
@@ -191,9 +191,9 @@ describe('Repayment', function () {
     await ethers.provider.send('evm_mine', []);
 
     const drawDownDetail = await voyageProtocolDataProvider.getDrawDownDetail(
-        owner,
-        tus.address,
-        0
+      owner,
+      tus.address,
+      0
     );
 
     await voyager.borrow(tus.address, '10000000000000000000', vaultAddr, 0);
@@ -202,12 +202,8 @@ describe('Repayment', function () {
     await voyager.repay(tus.address, 0, vaultAddr);
     await voyager.repay(tus.address, 0, vaultAddr);
     await voyager.repay(tus.address, 0, vaultAddr);
-    await expect(
-        voyager.repay(tus.address, 0, vaultAddr)
-    ).to.be.revertedWith(
-        '75'
+    await expect(voyager.repay(tus.address, 0, vaultAddr)).to.be.revertedWith(
+      '75'
     );
   });
-
-
 });
