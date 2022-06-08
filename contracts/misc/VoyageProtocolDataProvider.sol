@@ -251,4 +251,42 @@ contract VoyageProtocolDataProvider {
         ).getVault(_user);
         return lmp.getDrawDownDetail(_reserve, vault, _drawDownId);
     }
+
+    function pendingSeniorWithdrawals(address _user, address _reserve)
+        public
+        view
+        returns (uint256[] memory, uint256[] memory)
+    {
+        IReserveManager rm = IReserveManager(
+            addressResolver.getLiquidityManagerProxy()
+        );
+        DataTypes.ReserveData memory reserve = rm.getReserveData(_reserve);
+
+        (
+            uint256[] memory times,
+            uint256[] memory amounts
+        ) = InitializableDepositToken(reserve.seniorDepositTokenAddress)
+                .pendingWithdrawal(_user);
+
+        return (times, amounts);
+    }
+
+    function pendingJuniorWithdrawals(address _user, address _reserve)
+        public
+        view
+        returns (uint256[] memory, uint256[] memory)
+    {
+        IReserveManager rm = IReserveManager(
+            addressResolver.getLiquidityManagerProxy()
+        );
+        DataTypes.ReserveData memory reserve = rm.getReserveData(_reserve);
+
+        (
+            uint256[] memory times,
+            uint256[] memory amounts
+        ) = InitializableDepositToken(reserve.juniorDepositTokenAddress)
+                .pendingWithdrawal(_user);
+
+        return (times, amounts);
+    }
 }
