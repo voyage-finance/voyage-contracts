@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.9;
 
-import '../ownership/Ownable.sol';
+import "../ownership/Ownable.sol";
 
 abstract contract Pausable is Ownable {
     uint256 public lastPauseTime;
@@ -9,7 +9,7 @@ abstract contract Pausable is Ownable {
 
     constructor() {
         // This contract is abstract, and thus cannot be instantiated directly
-        require(owner != address(0), 'Owner must be set');
+        require(owner != address(0), "Owner must be set");
         // Paused will be false, and lastPauseTime will be 0 upon initialisation
     }
 
@@ -40,7 +40,7 @@ abstract contract Pausable is Ownable {
     modifier notPaused() {
         require(
             !paused,
-            'This action cannot be performed while the contract is paused'
+            "This action cannot be performed while the contract is paused"
         );
         _;
     }

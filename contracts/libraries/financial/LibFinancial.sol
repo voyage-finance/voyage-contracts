@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.9;
 
-import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
-import {WadRayMath} from '../math/WadRayMath.sol';
-import 'hardhat/console.sol';
+import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
+import {WadRayMath} from "../math/WadRayMath.sol";
+import "hardhat/console.sol";
 
 library LibFinancial {
     using SafeMath for uint256;

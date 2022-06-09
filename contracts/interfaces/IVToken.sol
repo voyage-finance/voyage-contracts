@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-import {ERC20, ERC4626} from '@rari-capital/solmate/src/mixins/ERC4626.sol';
+import {ERC20, ERC4626} from "@rari-capital/solmate/src/mixins/ERC4626.sol";
 
 abstract contract IVToken is ERC4626 {
     constructor(

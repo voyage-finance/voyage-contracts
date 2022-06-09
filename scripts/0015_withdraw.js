@@ -7,11 +7,11 @@ const getAddress = (contract) =>
 async function main() {
   const { owner } = await getNamedAccounts();
   const voyager = await ethers.getContract('Voyager', owner);
-  
+
   const tus = await deployments.get('Tus');
 
   await voyager.withdraw(tus.address, '1', '10000000000000000000');
-  
+
   /*
   const SeniorDepositToken = await ethers.getContract('SeniorDepositToken');
   const [times, amounts] = await SeniorDepositToken.pendingWithdrawal(owner);

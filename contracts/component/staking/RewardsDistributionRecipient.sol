@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import '../../libraries/ownership/Ownable.sol';
+import "../../libraries/ownership/Ownable.sol";
 
 abstract contract RewardsDistributionRecipient is Ownable {
     address public rewardsDistribution;
@@ -11,7 +11,7 @@ abstract contract RewardsDistributionRecipient is Ownable {
     modifier onlyRewardsDistribution() {
         require(
             msg.sender == rewardsDistribution,
-            'Caller is not RewardsDistribution contract'
+            "Caller is not RewardsDistribution contract"
         );
         _;
     }

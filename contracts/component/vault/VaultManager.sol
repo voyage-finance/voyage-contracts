@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
-import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
-import '../../libraries/proxy/Proxyable.sol';
-import '../../libraries/math/WadRayMath.sol';
-import '../../interfaces/IVaultManager.sol';
-import '../../interfaces/IAddressResolver.sol';
-import '../../interfaces/IVaultFactory.sol';
-import '../../interfaces/IVault.sol';
-import '../../interfaces/IACLManager.sol';
-import './VaultStorage.sol';
-import './VaultFactory.sol';
+import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
+import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
+import "../../libraries/proxy/Proxyable.sol";
+import "../../libraries/math/WadRayMath.sol";
+import "../../interfaces/IVaultManager.sol";
+import "../../interfaces/IAddressResolver.sol";
+import "../../interfaces/IVaultFactory.sol";
+import "../../interfaces/IVault.sol";
+import "../../interfaces/IACLManager.sol";
+import "./VaultStorage.sol";
+import "./VaultFactory.sol";
 
 contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
     using WadRayMath for uint256;
@@ -48,7 +48,7 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         bytes32 _salt
     ) external onlyProxy returns (address) {
         address vault = VaultFactory(vaultFactory).createVault(_salt);
-        require(vault != address(0), 'deploy vault failed');
+        require(vault != address(0), "deploy vault failed");
         uint256 len = VaultStorage(getVaultStorageAddress()).pushNewVault(
             _user,
             vault
@@ -56,7 +56,7 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         proxy._emit(
             abi.encode(vault, len),
             2,
-            keccak256('VaultCreated(address, address, uint256)'),
+            keccak256("VaultCreated(address, address, uint256)"),
             bytes32(abi.encodePacked(_user)),
             0,
             0
@@ -95,7 +95,7 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
             _vaultUser,
             _reserve,
             _amount,
-            keccak256('SecurityDeposited(address, address, address, uint256)')
+            keccak256("SecurityDeposited(address, address, address, uint256)")
         );
     }
 
@@ -117,7 +117,7 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         proxy._emit(
             abi.encode(_vaultUser, _reserve, _amount),
             2,
-            keccak256('SecurityRedeemed(address, address, address, uint256)'),
+            keccak256("SecurityRedeemed(address, address, address, uint256)"),
             bytes32(abi.encodePacked(_sponsor)),
             0,
             0
@@ -236,7 +236,7 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         uint256 securityDepositRequirement = vc.securityDepositRequirement;
         require(
             securityDepositRequirement != 0,
-            'security deposit requirement cannot be 0'
+            "security deposit requirement cannot be 0"
         );
         uint256 creditLimitInRay = currentSecurityDeposit.wadToRay().rayDiv(
             securityDepositRequirement
@@ -309,9 +309,9 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
 
     function _requireCallerAdmin() internal {
         IACLManager aclManager = IACLManager(
-            addressResolver.getAddress('aclManager')
+            addressResolver.getAddress("aclManager")
         );
-        require(aclManager.isVaultManager(messageSender), 'Not vault admin');
+        require(aclManager.isVaultManager(messageSender), "Not vault admin");
     }
 
     function _emit(

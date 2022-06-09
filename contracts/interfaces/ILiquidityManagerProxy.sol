@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import '../libraries/logic/ReserveLogic.sol';
+import "../libraries/logic/ReserveLogic.sol";
 
 interface ILiquidityManagerProxy {
     function getLiquidityRate(address _reserve, ReserveLogic.Tranche _tranche)

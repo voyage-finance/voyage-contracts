@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.9;
-import {ERC20, SafeTransferLib} from '@rari-capital/solmate/src/utils/SafeTransferLib.sol';
+import {ERC20, SafeTransferLib} from "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
 
 /// @title Depositor
 /// @author Voyage Finance

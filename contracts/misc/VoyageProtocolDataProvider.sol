@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import '../libraries/types/DataTypes.sol';
-import '../interfaces/IAddressResolver.sol';
-import '../interfaces/IReserveManager.sol';
-import 'openzeppelin-solidity/contracts/token/ERC20/extensions/IERC20Metadata.sol';
-import '../libraries/types/DataTypes.sol';
-import '../libraries/logic/ReserveLogic.sol';
-import '../libraries/math/WadRayMath.sol';
-import '../interfaces/IVaultManager.sol';
-import '../interfaces/IHealthStrategy.sol';
-import '../interfaces/IVaultManagerProxy.sol';
-import '../interfaces/ILiquidityManagerProxy.sol';
-import '../interfaces/ILoanManagerProxy.sol';
-import '../component/liquidity/LiquidityManager.sol';
-import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
-import 'hardhat/console.sol';
+import "../libraries/types/DataTypes.sol";
+import "../interfaces/IAddressResolver.sol";
+import "../interfaces/IReserveManager.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "../libraries/types/DataTypes.sol";
+import "../libraries/logic/ReserveLogic.sol";
+import "../libraries/math/WadRayMath.sol";
+import "../interfaces/IVaultManager.sol";
+import "../interfaces/IHealthStrategy.sol";
+import "../interfaces/IVaultManagerProxy.sol";
+import "../interfaces/ILiquidityManagerProxy.sol";
+import "../interfaces/ILoanManagerProxy.sol";
+import "../component/liquidity/LiquidityManager.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
+import "hardhat/console.sol";
 
 contract VoyageProtocolDataProvider {
     using SafeMath for uint256;
@@ -44,7 +44,7 @@ contract VoyageProtocolDataProvider {
         );
         DataTypes.ReserveData memory reserve = rm.getReserveData(_reserve);
         address healthStrategyAddr = reserve.healthStrategyAddress;
-        require(healthStrategyAddr != address(0), 'invalid health strategy');
+        require(healthStrategyAddr != address(0), "invalid health strategy");
         IHealthStrategy hs = IHealthStrategy(healthStrategyAddr);
         DataTypes.VaultConfig memory vc = vm.getVaultConfig(_reserve);
         poolConfiguration.securityRequirement = vc.securityDepositRequirement;

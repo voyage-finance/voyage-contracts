@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import '../../libraries/state/State.sol';
-import '../../libraries/types/DataTypes.sol';
-import '../../libraries/math/WadRayMath.sol';
-import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
+import "../../libraries/state/State.sol";
+import "../../libraries/types/DataTypes.sol";
+import "../../libraries/math/WadRayMath.sol";
+import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
 
 // central storage for all vaults
 contract VaultStorage is State {
@@ -25,7 +25,7 @@ contract VaultStorage is State {
         returns (uint256)
     {
         allVaults.push(vault);
-        require(getVault[_player] == address(0), 'vault exists');
+        require(getVault[_player] == address(0), "vault exists");
         getVault[_player] = vault;
         return allVaults.length;
     }

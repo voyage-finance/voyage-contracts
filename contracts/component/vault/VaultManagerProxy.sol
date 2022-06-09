@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import '../../libraries/proxy/Proxy.sol';
-import '../../interfaces/IVaultManager.sol';
-import '../../interfaces/IVaultManagerProxy.sol';
+import "../../libraries/proxy/Proxy.sol";
+import "../../interfaces/IVaultManager.sol";
+import "../../interfaces/IVaultManagerProxy.sol";
 
 contract VaultManagerProxy is Proxy, IVaultManagerProxy {
     /************************** Immutable static call for target contract **************************/

@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import './ReserveManager.sol';
-import '../../libraries/helpers/Errors.sol';
-import '../../libraries/logic/ReserveLogic.sol';
-import '../../libraries/math/WadRayMath.sol';
-import {IERC20} from 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
-import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
-import '../../interfaces/IReserveManager.sol';
-import '../../interfaces/ILiquidityManager.sol';
-import {IVToken} from '../../interfaces/IVToken.sol';
-import {JuniorDepositToken} from '../../tokenization/JuniorDepositToken.sol';
-import {SeniorDepositToken} from '../../tokenization/SeniorDepositToken.sol';
-import {PeripheryPayments} from '../../libraries/utils/PeripheryPayments.sol';
+import "./ReserveManager.sol";
+import "../../libraries/helpers/Errors.sol";
+import "../../libraries/logic/ReserveLogic.sol";
+import "../../libraries/math/WadRayMath.sol";
+import {IERC20} from "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
+import "../../interfaces/IReserveManager.sol";
+import "../../interfaces/ILiquidityManager.sol";
+import {IVToken} from "../../interfaces/IVToken.sol";
+import {JuniorDepositToken} from "../../tokenization/JuniorDepositToken.sol";
+import {SeniorDepositToken} from "../../tokenization/SeniorDepositToken.sol";
+import {PeripheryPayments} from "../../libraries/utils/PeripheryPayments.sol";
 
 contract LiquidityManager is
     PeripheryPayments,
@@ -174,10 +174,10 @@ contract LiquidityManager is
     );
 
     bytes32 internal constant DEPOSIT_SIG =
-        keccak256('Deposit(address,address,uint8,uint256)');
+        keccak256("Deposit(address,address,uint8,uint256)");
 
     bytes32 internal constant WITHDRAW_SIG =
-        keccak256('Withdraw(address,address,uint8,uint256)');
+        keccak256("Withdraw(address,address,uint8,uint256)");
 
     function emitDeposit(
         address asset,

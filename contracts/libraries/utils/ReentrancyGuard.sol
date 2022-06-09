@@ -35,7 +35,7 @@ contract ReentrancyGuard {
         _;
         require(
             localCounter == _guardCounter,
-            'ReentrancyGuard: reentrant call'
+            "ReentrancyGuard: reentrant call"
         );
     }
 }

@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
-import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
-import 'hardhat/console.sol';
-import {IVToken} from '../../interfaces/IVToken.sol';
-import '../../libraries/math/WadRayMath.sol';
-import '../../interfaces/IReserveInterestRateStrategy.sol';
+import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
+import "hardhat/console.sol";
+import {IVToken} from "../../interfaces/IVToken.sol";
+import "../../libraries/math/WadRayMath.sol";
+import "../../interfaces/IReserveInterestRateStrategy.sol";
 
 contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
     using WadRayMath for uint256;

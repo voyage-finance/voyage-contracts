@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import 'openzeppelin-solidity/contracts/access/AccessControl.sol';
-import '../libraries/acl/ExtCallACL.sol';
-import '../libraries/acl/ExtCallACLProxy.sol';
-import '../libraries/ownership/Ownable.sol';
-import '../libraries/types/DataTypes.sol';
-import '../libraries/logic/ReserveLogic.sol';
-import '../component/infra/AddressResolver.sol';
-import '../component/vault/VaultManager.sol';
-import '../component/vault/VaultManagerProxy.sol';
-import {LiquidityManager} from '../component/liquidity/LiquidityManager.sol';
-import '../component/loan/LoanManager.sol';
-import '../interfaces/IACLManager.sol';
-import {MessageBus} from './infra/MessageBus.sol';
-import 'hardhat/console.sol';
+import "openzeppelin-solidity/contracts/access/AccessControl.sol";
+import "../libraries/acl/ExtCallACL.sol";
+import "../libraries/acl/ExtCallACLProxy.sol";
+import "../libraries/ownership/Ownable.sol";
+import "../libraries/types/DataTypes.sol";
+import "../libraries/logic/ReserveLogic.sol";
+import "../component/infra/AddressResolver.sol";
+import "../component/vault/VaultManager.sol";
+import "../component/vault/VaultManagerProxy.sol";
+import {LiquidityManager} from "../component/liquidity/LiquidityManager.sol";
+import "../component/loan/LoanManager.sol";
+import "../interfaces/IACLManager.sol";
+import {MessageBus} from "./infra/MessageBus.sol";
+import "hardhat/console.sol";
 
 contract Voyager is MessageBus {
     modifier onlyWhitelisted(bytes32 func) {
@@ -22,11 +22,11 @@ contract Voyager is MessageBus {
             ExtCallACL(getExtCallACLProxyAddress()).isWhitelistedAddress(
                 msg.sender
             ),
-            'Voyager: not whitelisted address'
+            "Voyager: not whitelisted address"
         );
         require(
             ExtCallACL(getExtCallACLProxyAddress()).isWhitelistedFunction(func),
-            'Voyager: not whitelisted functions'
+            "Voyager: not whitelisted functions"
         );
         _;
     }
@@ -160,7 +160,7 @@ contract Voyager is MessageBus {
         uint256 _amount,
         address payable _vault,
         uint256 _grossAssetValue
-    ) external onlyWhitelisted('borrow') {
+    ) external onlyWhitelisted("borrow") {
         LoanManager(addressResolver.getLoanManagerProxy()).borrow(
             msg.sender,
             _asset,
@@ -194,7 +194,7 @@ contract Voyager is MessageBus {
         address _to,
         address _reserve,
         bytes32 _salt
-    ) external onlyWhitelisted('createVault') returns (address) {
+    ) external onlyWhitelisted("createVault") returns (address) {
         address vaultManagerProxy = getVaultManagerProxyAddress();
         VaultManager vaultManager = VaultManager(vaultManagerProxy);
         return vaultManager.createVault(_to, _reserve, _salt);
@@ -216,7 +216,7 @@ contract Voyager is MessageBus {
         address _vaultUser,
         address _reserve,
         uint256 _amount
-    ) external onlyWhitelisted('depositSecurity') {
+    ) external onlyWhitelisted("depositSecurity") {
         VaultManager(getVaultManagerProxyAddress()).depositSecurity(
             msg.sender,
             _vaultUser,
@@ -235,7 +235,7 @@ contract Voyager is MessageBus {
         address _vaultUser,
         address _reserve,
         uint256 _amount
-    ) external onlyWhitelisted('redeemSecurity') {
+    ) external onlyWhitelisted("redeemSecurity") {
         VaultManager(getVaultManagerProxyAddress()).redeemSecurity(
             payable(msg.sender),
             _vaultUser,
@@ -322,6 +322,6 @@ contract Voyager is MessageBus {
 
     function _requireCallerAdmin() internal view {
         IACLManager aclManager = IACLManager(addressResolver.getAclManager());
-        require(aclManager.isProtocolManager(tx.origin), 'Not vault admin');
+        require(aclManager.isProtocolManager(tx.origin), "Not vault admin");
     }
 }

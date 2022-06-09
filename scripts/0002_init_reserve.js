@@ -28,8 +28,8 @@ async function main() {
     seniorDepositToken,
     interestStrategy,
     healthStrategy,
-      loanStrategy,
-      '500000000000000000000000000'
+    loanStrategy,
+    '500000000000000000000000000'
   );
 }
 

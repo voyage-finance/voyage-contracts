@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import '../ownership/Ownable.sol';
+import "../ownership/Ownable.sol";
 
 abstract contract State is Ownable {
     mapping(address => bool) public associatedContracts;
 
     constructor(address _associatedContract) {
         // This contract is abstract, and thus cannot be instantiated directly
-        require(owner != address(0), 'Owner must be set');
+        require(owner != address(0), "Owner must be set");
 
         associatedContracts[_associatedContract] = true;
         emit AssociatedContractUpdated(_associatedContract);
@@ -19,7 +19,7 @@ abstract contract State is Ownable {
     modifier onlyAssociatedContract() {
         require(
             associatedContracts[msg.sender],
-            'Only the associated contract can perform this action'
+            "Only the associated contract can perform this action"
         );
         _;
     }

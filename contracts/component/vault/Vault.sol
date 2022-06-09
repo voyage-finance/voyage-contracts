@@ -1,25 +1,25 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
-import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
-import './SecurityDepositEscrow.sol';
-import '../infra/AddressResolver.sol';
-import '../Voyager.sol';
-import './VaultManager.sol';
-import '../staking/StakingRewards.sol';
-import '../loan/LoanManagerProxy.sol';
-import '../../tokenization/SecurityDepositToken.sol';
-import '../../libraries/math/WadRayMath.sol';
-import '../../interfaces/IACLManager.sol';
-import '../../interfaces/IVault.sol';
-import '../../interfaces/IVaultManagerProxy.sol';
-import 'hardhat/console.sol';
+import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
+import "./SecurityDepositEscrow.sol";
+import "../infra/AddressResolver.sol";
+import "../Voyager.sol";
+import "./VaultManager.sol";
+import "../staking/StakingRewards.sol";
+import "../loan/LoanManagerProxy.sol";
+import "../../tokenization/SecurityDepositToken.sol";
+import "../../libraries/math/WadRayMath.sol";
+import "../../interfaces/IACLManager.sol";
+import "../../interfaces/IVault.sol";
+import "../../interfaces/IVaultManagerProxy.sol";
+import "hardhat/console.sol";
 
 contract Vault is ReentrancyGuard, IVault {
     using WadRayMath for uint256;
     using SafeMath for uint256;
-    bytes32 public constant BORROWER = keccak256('BORROWER');
+    bytes32 public constant BORROWER = keccak256("BORROWER");
 
     address public voyager;
     address[] public players;
@@ -64,7 +64,7 @@ contract Vault is ReentrancyGuard, IVault {
     {
         require(
             address(securityDepositToken) == address(0),
-            'Vault: security deposit token has been initialized'
+            "Vault: security deposit token has been initialized"
         );
         ERC20 token = ERC20(_reserve);
         securityDepositToken = new SecurityDepositToken(
@@ -78,11 +78,11 @@ contract Vault is ReentrancyGuard, IVault {
     function initStakingContract(address _reserve) external onlyVaultManager {
         require(
             address(stakingContract) == address(0),
-            'Vault: staking contract has been initialized'
+            "Vault: staking contract has been initialized"
         );
         require(
             address(securityDepositToken) != address(0),
-            'Vault: security deposit token has not been initialized'
+            "Vault: security deposit token has not been initialized"
         );
         stakingContract = new StakingRewards(
             address(securityDepositToken),
@@ -113,12 +113,12 @@ contract Vault is ReentrancyGuard, IVault {
         );
         require(
             depositedAmount + _amount < maxAllowedAmount,
-            'Vault: deposit amount exceed'
+            "Vault: deposit amount exceed"
         );
 
         // check min security deposit amount for this _reserve
         uint256 minAllowedAmount = vaultConfig.minSecurityDeposit;
-        require(minAllowedAmount <= _amount, 'Vault: deposit too small');
+        require(minAllowedAmount <= _amount, "Vault: deposit too small");
 
         securityDepositEscrow.deposit(_reserve, _sponsor, _amount);
         securityDepositToken.mintOnDeposit(_sponsor, _amount);
@@ -137,7 +137,7 @@ contract Vault is ReentrancyGuard, IVault {
     ) external payable nonReentrant onlyVaultManager {
         require(
             _amount <= _getWithdrawableDeposit(_sponsor, _reserve),
-            'Vault: cannot redeem more than withdrawable deposit amount'
+            "Vault: cannot redeem more than withdrawable deposit amount"
         );
         securityDepositEscrow.withdraw(
             _reserve,
@@ -215,7 +215,7 @@ contract Vault is ReentrancyGuard, IVault {
     }
 
     function getVersion() external view returns (string memory) {
-        string memory version = 'Vault 0.0.1';
+        string memory version = "Vault 0.0.1";
         return version;
     }
 
@@ -228,7 +228,7 @@ contract Vault is ReentrancyGuard, IVault {
         );
         require(
             aclManager.isLoanManager(msg.sender),
-            'Not loan manager contract'
+            "Not loan manager contract"
         );
     }
 
@@ -239,7 +239,7 @@ contract Vault is ReentrancyGuard, IVault {
         );
         require(
             aclManager.isLoanManagerContract(msg.sender),
-            'Not loan manager'
+            "Not loan manager"
         );
     }
 
@@ -250,7 +250,7 @@ contract Vault is ReentrancyGuard, IVault {
         );
         require(
             aclManager.isVaultManagerContract(msg.sender),
-            'Not vault manager contract'
+            "Not vault manager contract"
         );
     }
 

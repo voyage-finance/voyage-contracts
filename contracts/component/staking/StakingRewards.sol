@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
-import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
-import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
-import '../../libraries/helpers/Pausable.sol';
-import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
-import './RewardsDistributionRecipient.sol';
+import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
+import "../../libraries/helpers/Pausable.sol";
+import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
+import "./RewardsDistributionRecipient.sol";
 
 contract StakingRewards is
     ReentrancyGuard,
@@ -84,7 +84,7 @@ contract StakingRewards is
         notPaused
         updateReward(msg.sender)
     {
-        require(amount > 0, 'Cannot stake 0');
+        require(amount > 0, "Cannot stake 0");
         _totalSupply = _totalSupply.add(amount);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
         stakingToken.safeTransferFrom(msg.sender, address(this), amount);
@@ -96,7 +96,7 @@ contract StakingRewards is
         nonReentrant
         updateReward(msg.sender)
     {
-        require(amount > 0, 'Cannot withdraw 0');
+        require(amount > 0, "Cannot withdraw 0");
         _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
         stakingToken.safeTransfer(msg.sender, amount);
@@ -145,7 +145,7 @@ contract StakingRewards is
         uint256 balance = rewardsToken.balanceOf(address(this));
         require(
             rewardRate <= balance.div(rewardsDuration),
-            'Provided reward too high'
+            "Provided reward too high"
         );
 
         lastUpdateTime = block.timestamp;
@@ -156,7 +156,7 @@ contract StakingRewards is
     function setRewardsDuration(uint256 _rewardsDuration) external onlyOwner {
         require(
             block.timestamp > periodFinish,
-            'Previous rewards period must be complete before changing the duration for the new period'
+            "Previous rewards period must be complete before changing the duration for the new period"
         );
         rewardsDuration = _rewardsDuration;
         emit RewardsDurationUpdated(rewardsDuration);

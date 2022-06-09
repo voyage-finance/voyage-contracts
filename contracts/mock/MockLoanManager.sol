@@ -1,8 +1,8 @@
 pragma solidity ^0.8.9;
 
-import {Proxyable} from '../libraries/proxy/Proxyable.sol';
-import {ILoanManager} from '../interfaces/ILoanManager.sol';
-import {DataTypes} from '../libraries/types/DataTypes.sol';
+import {Proxyable} from "../libraries/proxy/Proxyable.sol";
+import {ILoanManager} from "../interfaces/ILoanManager.sol";
+import {DataTypes} from "../libraries/types/DataTypes.sol";
 
 contract MockLoanManager is ILoanManager, Proxyable {
     uint256 internal _principalBalance;

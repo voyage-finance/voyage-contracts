@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import '../component/Voyager.sol';
-import '../component/infra/AddressResolver.sol';
-import '../component/shared/storage/LiquidityManagerStorage.sol';
-import '../libraries/types/DataTypes.sol';
+import "../component/Voyager.sol";
+import "../component/infra/AddressResolver.sol";
+import "../component/shared/storage/LiquidityManagerStorage.sol";
+import "../libraries/types/DataTypes.sol";
 
 abstract contract IVoyagerComponent {
     Voyager public voyager;
