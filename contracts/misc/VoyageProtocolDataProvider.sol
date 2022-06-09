@@ -169,16 +169,6 @@ contract VoyageProtocolDataProvider {
             _user,
             ReserveLogic.Tranche.SENIOR
         );
-        userPoolData.withdrawableJuniorTrancheBalance = lmp.withdrawAbleAmount(
-            _reserve,
-            _user,
-            ReserveLogic.Tranche.JUNIOR
-        );
-        userPoolData.withdrawableSeniorTrancheBalance = lmp.withdrawAbleAmount(
-            _reserve,
-            _user,
-            ReserveLogic.Tranche.SENIOR
-        );
         userPoolData.decimals = token.decimals();
 
         return userPoolData;

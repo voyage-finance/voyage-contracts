@@ -102,8 +102,7 @@ contract LiquidityManager is Depositor, ReserveManager, ILiquidityManager {
 
     /************************************** View Functions **************************************/
 
-    // todo @ian @xiaohuo this case, total balance should be the same as withdrawable amount
-    function withdrawAbleAmount(
+    function unbonding(
         address _reserve,
         address _user,
         ReserveLogic.Tranche _tranche
@@ -115,7 +114,12 @@ contract LiquidityManager is Depositor, ReserveManager, ILiquidityManager {
         } else {
             vToken = reserve.seniorDepositTokenAddress;
         }
-        return IVToken(vToken).maxWithdraw(_user);
+        (, uint256[] memory amounts) = IVToken(vToken).unbonding(_user);
+        uint256 unbondingBalance = 0;
+        for (uint8 i = 0; i < amounts.length; i++) {
+            unbondingBalance += amounts[i];
+        }
+        return unbondingBalance;
     }
 
     function balance(
@@ -131,16 +135,6 @@ contract LiquidityManager is Depositor, ReserveManager, ILiquidityManager {
             vToken = reserve.seniorDepositTokenAddress;
         }
         return IVToken(vToken).maxWithdraw(_user);
-    }
-
-    function getReserveNormalizedIncome(
-        address _asset,
-        ReserveLogic.Tranche _tranche
-    ) external view returns (uint256) {
-        require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
-        return
-            LiquidityManagerStorage(liquidityManagerStorageAddress())
-                .getReserveNormalizedIncome(_asset, _tranche);
     }
 
     function utilizationRate(address _reserve) external view returns (uint256) {

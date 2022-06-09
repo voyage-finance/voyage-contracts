@@ -4,11 +4,6 @@ pragma solidity ^0.8.9;
 import '../libraries/logic/ReserveLogic.sol';
 
 interface ILiquidityManager {
-    function getReserveNormalizedIncome(
-        address _asset,
-        ReserveLogic.Tranche _tranche
-    ) external view returns (uint256);
-
     function deposit(
         address _asset,
         ReserveLogic.Tranche _tranche,
@@ -23,7 +18,7 @@ interface ILiquidityManager {
         address payable _user
     ) external;
 
-    function withdrawAbleAmount(
+    function unbonding(
         address _reserve,
         address _user,
         ReserveLogic.Tranche _tranche

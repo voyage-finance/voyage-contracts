@@ -33,17 +33,6 @@ interface ILiquidityManagerProxy {
         view
         returns (DataTypes.ReserveConfigurationMap memory);
 
-    function getReserveNormalizedIncome(
-        address _asset,
-        ReserveLogic.Tranche _tranche
-    ) external view returns (uint256);
-
-    function withdrawAbleAmount(
-        address _reserve,
-        address _user,
-        ReserveLogic.Tranche _tranche
-    ) external view returns (uint256);
-
     function balance(
         address _reserve,
         address _user,

@@ -102,21 +102,6 @@ contract Voyager is MessageBus {
     }
 
     /**
-     * @dev Returns the normalized income per unit of asset
-     * @param _asset The address of the underlying asset of the reserve
-     * @param _tranche The tranche of the reserve, either Junior or Senior
-     * @return The reserve's normalized income
-     **/
-    function getReserveNormalizedIncome(
-        address _asset,
-        ReserveLogic.Tranche _tranche
-    ) external view returns (uint256) {
-        return
-            LiquidityManager(getLiquidityManagerProxyAddress())
-                .getReserveNormalizedIncome(_asset, _tranche);
-    }
-
-    /**
      * @dev Returns the reserve flags
      * @param _asset The address of asset
      * @return The state flags representing active, frozen, borrowing enabled

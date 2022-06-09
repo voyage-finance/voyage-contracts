@@ -22,6 +22,4 @@ abstract contract IVToken is ERC4626 {
         returns (uint256[] memory, uint256[] memory);
 
     function totalUnbonding() external view virtual returns (uint256);
-
-    function claimable(address _user) external view virtual returns (uint256);
 }
