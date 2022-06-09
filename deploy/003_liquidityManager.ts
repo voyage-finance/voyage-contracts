@@ -51,7 +51,9 @@ const deployFn: DeployFunction = async (hre) => {
     log: true,
   });
 
-  const isOwner = await read(LM_PROXY_NAME, { from: owner }, 'isOwner');
+  const lmProxyOwner = await read(LM_PROXY_NAME, { from: owner }, 'owner');
+
+  const isOwner = lmProxyOwner === owner;
 
   if (isOwner) {
     await execute(

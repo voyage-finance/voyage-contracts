@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
-import "../math/WadRayMath.sol";
-import "../math/MathUtils.sol";
-import "../types/DataTypes.sol";
-import "../helpers/Errors.sol";
-import "../../component/liquidity/DefaultReserveInterestRateStrategy.sol";
-import "hardhat/console.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {WadRayMath} from "../math/WadRayMath.sol";
+import {DataTypes} from "../types/DataTypes.sol";
+import {Errors} from "../helpers/Errors.sol";
+import {IReserveInterestRateStrategy} from "../../interfaces/IReserveInterestRateStrategy.sol";
+import {DefaultReserveInterestRateStrategy} from "../../component/liquidity/DefaultReserveInterestRateStrategy.sol";
 
 /**
  * @title ReserveLogic library

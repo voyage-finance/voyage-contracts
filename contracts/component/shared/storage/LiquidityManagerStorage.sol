@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import "../../../libraries/state/State.sol";
-import "../../../libraries/types/DataTypes.sol";
-import "../../../libraries/logic/ReserveLogic.sol";
-import "../../../libraries/logic/DebtLogic.sol";
-import "../../../libraries/logic/ValidationLogic.sol";
-import "../../../libraries/configuration/ReserveConfiguration.sol";
-import "../../../libraries/math/WadRayMath.sol";
-import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
+import {Errors} from "../../../libraries/helpers/Errors.sol";
+import {State} from "../../../libraries/state/State.sol";
+import {DataTypes} from "../../../libraries/types/DataTypes.sol";
+import {ReserveLogic} from "../../../libraries/logic/ReserveLogic.sol";
+import {DebtLogic} from "../../../libraries/logic/DebtLogic.sol";
+import {ValidationLogic} from "../../../libraries/logic/ValidationLogic.sol";
+import {ReserveConfiguration} from "../../../libraries/configuration/ReserveConfiguration.sol";
+import {WadRayMath} from "../../../libraries/math/WadRayMath.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract LiquidityManagerStorage is State {
     using ReserveLogic for DataTypes.ReserveData;

@@ -1,17 +1,22 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
-import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
-import "../../libraries/proxy/Proxyable.sol";
-import "../../libraries/math/WadRayMath.sol";
-import "../../interfaces/IVaultManager.sol";
-import "../../interfaces/IAddressResolver.sol";
-import "../../interfaces/IVaultFactory.sol";
-import "../../interfaces/IVault.sol";
-import "../../interfaces/IACLManager.sol";
-import "./VaultStorage.sol";
-import "./VaultFactory.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {SecurityDepositEscrow} from "../../component/vault/SecurityDepositEscrow.sol";
+import {Proxyable} from "../../libraries/proxy/Proxyable.sol";
+import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
+import {DataTypes} from "../../libraries/types/DataTypes.sol";
+import {IVaultManager} from "../../interfaces/IVaultManager.sol";
+import {IAddressResolver} from "../../interfaces/IAddressResolver.sol";
+import {ILoanManager} from "../../interfaces/ILoanManager.sol";
+import {IVaultFactory} from "../../interfaces/IVaultFactory.sol";
+import {IVault} from "../../interfaces/IVault.sol";
+import {IACLManager} from "../../interfaces/IACLManager.sol";
+import {Voyager} from "../../component/Voyager.sol";
+import {Vault} from "./Vault.sol";
+import {VaultStorage} from "./VaultStorage.sol";
+import {VaultFactory} from "./VaultFactory.sol";
 
 contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
     using WadRayMath for uint256;

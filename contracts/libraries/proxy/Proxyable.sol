@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import "./Proxy.sol";
-import "../ownership/Ownable.sol";
-import "hardhat/console.sol";
-import "../../interfaces/IVoyagerComponent.sol";
+import {Proxy} from "./Proxy.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {IVoyagerComponent} from "../../interfaces/IVoyagerComponent.sol";
 
 abstract contract Proxyable is Ownable, IVoyagerComponent {
     /* The proxy this contract exists behind. */
@@ -29,7 +28,7 @@ abstract contract Proxyable is Ownable, IVoyagerComponent {
 
     constructor(address payable _proxy) internal {
         // This contract is abstract, and thus cannot be instantiated directly
-        require(owner != address(0), "Owner must be set");
+        require(owner() != address(0), "Owner must be set");
 
         proxy = Proxy(_proxy);
         emit ProxyUpdated(_proxy);
@@ -53,6 +52,6 @@ abstract contract Proxyable is Ownable, IVoyagerComponent {
         if (msg.sender != address(proxy) && messageSender != msg.sender) {
             messageSender = msg.sender;
         }
-        require(messageSender == owner, "Owner only function");
+        require(messageSender == owner(), "Owner only function");
     }
 }

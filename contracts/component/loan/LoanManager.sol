@@ -1,21 +1,23 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
-import "../../libraries/proxy/Proxyable.sol";
-import "../../interfaces/IVoyagerComponent.sol";
-import "../../libraries/helpers/Errors.sol";
-import "../../libraries/math/WadRayMath.sol";
-import "../../libraries/types/DataTypes.sol";
-import "../../interfaces/IMessageBus.sol";
-import "../../interfaces/IHealthStrategy.sol";
-import "../../interfaces/ILoanStrategy.sol";
-import "../../interfaces/IVault.sol";
-import "../Voyager.sol";
-import "hardhat/console.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {LiquidityManagerStorage} from "../../component/shared/storage/LiquidityManagerStorage.sol";
+import {Proxyable} from "../../libraries/proxy/Proxyable.sol";
+import {Errors} from "../../libraries/helpers/Errors.sol";
+import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
+import {DataTypes} from "../../libraries/types/DataTypes.sol";
+import {IVoyagerComponent} from "../../interfaces/IVoyagerComponent.sol";
+import {IMessageBus} from "../../interfaces/IMessageBus.sol";
+import {IHealthStrategy} from "../../interfaces/IHealthStrategy.sol";
+import {IReserveInterestRateStrategy} from "../../interfaces/IReserveInterestRateStrategy.sol";
+import {ILoanStrategy} from "../../interfaces/ILoanStrategy.sol";
+import {IVault} from "../../interfaces/IVault.sol";
 import {IVToken} from "../../interfaces/IVToken.sol";
-import "../../interfaces/ILoanManager.sol";
+import {ILoanManager} from "../../interfaces/ILoanManager.sol";
+import {Voyager} from "../Voyager.sol";
 
 contract LoanManager is Proxyable, ILoanManager {
     using SafeMath for uint256;

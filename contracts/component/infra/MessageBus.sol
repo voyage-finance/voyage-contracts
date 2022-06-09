@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import "./AddressResolver.sol";
-import "../../interfaces/IMessageBus.sol";
-import "../../interfaces/IVaultManager.sol";
-import "../../libraries/ownership/Ownable.sol";
-import "../../libraries/types/DataTypes.sol";
-import "../../libraries/helpers/Errors.sol";
-import "../liquidity/LiquidityManager.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
+import {AddressResolver} from "./AddressResolver.sol";
+import {IMessageBus} from "../../interfaces/IMessageBus.sol";
+import {IVaultManager} from "../../interfaces/IVaultManager.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {DataTypes} from "../../libraries/types/DataTypes.sol";
+import {Errors} from "../../libraries/helpers/Errors.sol";
+import {LiquidityManager} from "../liquidity/LiquidityManager.sol";
 import {VaultManager} from "../vault/VaultManager.sol";
-import "../vault/VaultManagerProxy.sol";
+import {VaultManagerProxy} from "../vault/VaultManagerProxy.sol";
 
 /**
  * todo it might be a bad name here, it actually performs as the centralise place

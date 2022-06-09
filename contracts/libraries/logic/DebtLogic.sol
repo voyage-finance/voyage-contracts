@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
-import "../math/WadRayMath.sol";
-import "../math/MathUtils.sol";
-import "../types/DataTypes.sol";
-import "../helpers/Errors.sol";
-import "../../component/liquidity/DefaultReserveInterestRateStrategy.sol";
-import "hardhat/console.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {WadRayMath} from "../math/WadRayMath.sol";
+import {MathUtils} from "../math/MathUtils.sol";
+import {DataTypes} from "../types/DataTypes.sol";
+import {Errors} from "../helpers/Errors.sol";
+import {DefaultReserveInterestRateStrategy} from "../../component/liquidity/DefaultReserveInterestRateStrategy.sol";
 
 /**
  * @title DebtLogic library

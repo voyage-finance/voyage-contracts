@@ -2,13 +2,13 @@
 pragma solidity ^0.8.9;
 
 import "./ReserveManager.sol";
-import "../../libraries/helpers/Errors.sol";
-import "../../libraries/logic/ReserveLogic.sol";
-import "../../libraries/math/WadRayMath.sol";
-import {IERC20} from "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
-import "../../interfaces/IReserveManager.sol";
-import "../../interfaces/ILiquidityManager.sol";
+import {Errors} from "../../libraries/helpers/Errors.sol";
+import {ReserveLogic} from "../../libraries/logic/ReserveLogic.sol";
+import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IReserveManager} from "../../interfaces/IReserveManager.sol";
+import {ILiquidityManager} from "../../interfaces/ILiquidityManager.sol";
 import {IVToken} from "../../interfaces/IVToken.sol";
 import {JuniorDepositToken} from "../../tokenization/JuniorDepositToken.sol";
 import {SeniorDepositToken} from "../../tokenization/SeniorDepositToken.sol";

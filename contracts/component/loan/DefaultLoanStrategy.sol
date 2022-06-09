@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import "../../interfaces/ILoanStrategy.sol";
+import {ILoanStrategy} from "../../interfaces/ILoanStrategy.sol";
 
 contract DefaultLoanStrategy is ILoanStrategy {
     uint256 public immutable term;

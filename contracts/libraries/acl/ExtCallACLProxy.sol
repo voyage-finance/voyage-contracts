@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import "../proxy/Proxy.sol";
-import "./IExtCallACL.sol";
+import {Proxy} from "../proxy/Proxy.sol";
+import {IExtCallACL} from "./IExtCallACL.sol";
 
 contract ExtCallACLProxy is Proxy {
     function isWhitelistedAddress(address _address) public view returns (bool) {

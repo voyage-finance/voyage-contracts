@@ -1,20 +1,21 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import "../libraries/types/DataTypes.sol";
-import "../interfaces/IAddressResolver.sol";
-import "../interfaces/IReserveManager.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import "../libraries/types/DataTypes.sol";
-import "../libraries/logic/ReserveLogic.sol";
-import "../libraries/math/WadRayMath.sol";
-import "../interfaces/IVaultManager.sol";
-import "../interfaces/IHealthStrategy.sol";
-import "../interfaces/IVaultManagerProxy.sol";
-import "../interfaces/ILiquidityManagerProxy.sol";
-import "../interfaces/ILoanManagerProxy.sol";
-import "../component/liquidity/LiquidityManager.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {DataTypes} from "../libraries/types/DataTypes.sol";
+import {IAddressResolver} from "../interfaces/IAddressResolver.sol";
+import {IReserveManager} from "../interfaces/IReserveManager.sol";
+import {ReserveLogic} from "../libraries/logic/ReserveLogic.sol";
+import {WadRayMath} from "../libraries/math/WadRayMath.sol";
+import {IVaultManager} from "../interfaces/IVaultManager.sol";
+import {IHealthStrategy} from "../interfaces/IHealthStrategy.sol";
+import {IVaultManagerProxy} from "../interfaces/IVaultManagerProxy.sol";
+import {IVToken} from "../interfaces/IVToken.sol";
+import {ILiquidityManagerProxy} from "../interfaces/ILiquidityManagerProxy.sol";
+import {ILoanManagerProxy} from "../interfaces/ILoanManagerProxy.sol";
+import {LiquidityManager} from "../component/liquidity/LiquidityManager.sol";
 import "hardhat/console.sol";
 
 contract VoyageProtocolDataProvider {
