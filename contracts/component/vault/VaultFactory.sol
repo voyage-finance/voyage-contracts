@@ -7,7 +7,6 @@ import 'openzeppelin-solidity/contracts/utils/Create2.sol';
 
 contract VaultFactory is IVaultFactory {
     function createVault(bytes32 salt) external returns (address) {
-        bytes memory bytecode = type(Vault).creationCode;
         return Create2.deploy(0, salt, type(Vault).creationCode);
     }
 }

@@ -166,9 +166,6 @@ contract LoanManager is Proxyable, ILoanManager {
             _asset
         );
 
-        uint256 bal = IERC20(_asset).balanceOf(
-            reserveData.seniorDepositTokenAddress
-        );
         IERC20(_asset).safeTransferFrom(
             _user,
             reserveData.seniorDepositTokenAddress,
