@@ -4,7 +4,7 @@ pragma solidity ^0.8.9;
 import "../../libraries/state/State.sol";
 import "../../libraries/types/DataTypes.sol";
 import "../../libraries/math/WadRayMath.sol";
-import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 // central storage for all vaults
 contract VaultStorage is State {

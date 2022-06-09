@@ -1,20 +1,21 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import "openzeppelin-solidity/contracts/access/AccessControl.sol";
-import "../libraries/acl/ExtCallACL.sol";
-import "../libraries/acl/ExtCallACLProxy.sol";
-import "../libraries/ownership/Ownable.sol";
-import "../libraries/types/DataTypes.sol";
-import "../libraries/logic/ReserveLogic.sol";
-import "../component/infra/AddressResolver.sol";
-import "../component/vault/VaultManager.sol";
-import "../component/vault/VaultManagerProxy.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
+import {ExtCallACL} from "../libraries/acl/ExtCallACL.sol";
+import {ExtCallACLProxy} from "../libraries/acl/ExtCallACLProxy.sol";
+import {DataTypes} from "../libraries/types/DataTypes.sol";
+import {ReserveLogic} from "../libraries/logic/ReserveLogic.sol";
+import {Errors} from "../libraries/helpers/Errors.sol";
+import {AddressResolver} from "../component/infra/AddressResolver.sol";
+import {VaultManager} from "../component/vault/VaultManager.sol";
+import {VaultManagerProxy} from "../component/vault/VaultManagerProxy.sol";
 import {LiquidityManager} from "../component/liquidity/LiquidityManager.sol";
-import "../component/loan/LoanManager.sol";
-import "../interfaces/IACLManager.sol";
+import {LoanManager} from "../component/loan/LoanManager.sol";
+import {IACLManager} from "../interfaces/IACLManager.sol";
 import {MessageBus} from "./infra/MessageBus.sol";
-import "hardhat/console.sol";
 
 contract Voyager is MessageBus {
     modifier onlyWhitelisted(bytes32 func) {

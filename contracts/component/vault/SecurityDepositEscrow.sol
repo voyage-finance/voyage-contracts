@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import "../../libraries/ownership/Ownable.sol";
-import "./BaseSecurityEscrow.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {BaseSecurityEscrow} from "./BaseSecurityEscrow.sol";
 
 contract SecurityDepositEscrow is BaseSecurityEscrow {
     address public vault;

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import "../libraries/types/DataTypes.sol";
+import {DataTypes} from "../libraries/types/DataTypes.sol";
 
 interface ILoanManager {
     function getVaultDebt(address _reserve, address _vault)

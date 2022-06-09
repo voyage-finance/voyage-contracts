@@ -1,20 +1,23 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
-import "./SecurityDepositEscrow.sol";
-import "../infra/AddressResolver.sol";
-import "../Voyager.sol";
-import "./VaultManager.sol";
-import "../staking/StakingRewards.sol";
-import "../loan/LoanManagerProxy.sol";
-import "../../tokenization/SecurityDepositToken.sol";
-import "../../libraries/math/WadRayMath.sol";
-import "../../interfaces/IACLManager.sol";
-import "../../interfaces/IVault.sol";
-import "../../interfaces/IVaultManagerProxy.sol";
-import "hardhat/console.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {SecurityDepositEscrow} from "./SecurityDepositEscrow.sol";
+import {AddressResolver} from "../infra/AddressResolver.sol";
+import {Voyager} from "../Voyager.sol";
+import {VaultManager} from "./VaultManager.sol";
+import {StakingRewards} from "../staking/StakingRewards.sol";
+import {LoanManagerProxy} from "../loan/LoanManagerProxy.sol";
+import {SecurityDepositToken} from "../../tokenization/SecurityDepositToken.sol";
+import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
+import {IACLManager} from "../../interfaces/IACLManager.sol";
+import {IVault} from "../../interfaces/IVault.sol";
+import {ILoanManager} from "../../interfaces/ILoanManager.sol";
+import {IVaultManagerProxy} from "../../interfaces/IVaultManagerProxy.sol";
+import {DataTypes} from "../../libraries/types/DataTypes.sol";
 
 contract Vault is ReentrancyGuard, IVault {
     using WadRayMath for uint256;

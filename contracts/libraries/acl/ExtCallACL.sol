@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import "../proxy/Proxyable.sol";
-import "./IExtCallACL.sol";
-import "../../component/Voyager.sol";
+import {Proxyable} from "../proxy/Proxyable.sol";
+import {IExtCallACL} from "./IExtCallACL.sol";
+import {Voyager} from "../../component/Voyager.sol";
 
 contract ExtCallACL is Proxyable, IExtCallACL {
     mapping(address => bool) public whitelistedAddress;

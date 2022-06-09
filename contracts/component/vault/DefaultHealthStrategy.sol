@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import "../../interfaces/IHealthStrategy.sol";
-import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
-import "../../libraries/math/WadRayMath.sol";
-import "../../libraries/math/MathUtils.sol";
-import "../../libraries/types/DataTypes.sol";
-import "hardhat/console.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {IHealthStrategy} from "../../interfaces/IHealthStrategy.sol";
+import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
+import {DataTypes} from "../../libraries/types/DataTypes.sol";
 
 contract DefaultHealthStrategy is IHealthStrategy {
     using WadRayMath for uint256;

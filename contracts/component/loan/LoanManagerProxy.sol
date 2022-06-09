@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import "../../libraries/proxy/Proxy.sol";
-import "./LoanManager.sol";
-import "../../interfaces/ILoanManagerProxy.sol";
+import {DataTypes} from "../../libraries/types/DataTypes.sol";
+import {Proxy} from "../../libraries/proxy/Proxy.sol";
+import {LoanManager} from "./LoanManager.sol";
+import {ILoanManager} from "../../interfaces/ILoanManager.sol";
+import {ILoanManagerProxy} from "../../interfaces/ILoanManagerProxy.sol";
 
 contract LoanManagerProxy is ILoanManagerProxy, Proxy {
     function getVaultDebt(address _reserve, address _vault)

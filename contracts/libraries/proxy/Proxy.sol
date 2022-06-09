@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import "../ownership/Ownable.sol";
-import "./Proxyable.sol";
-import "../../interfaces/IACLManager.sol";
-import "hardhat/console.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Proxyable} from "./Proxyable.sol";
+import {IACLManager} from "../../interfaces/IACLManager.sol";
 
 contract Proxy is Ownable {
     Proxyable public target;

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import "openzeppelin-solidity/contracts/access/AccessControl.sol";
-import "../../interfaces/IACLManager.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {IACLManager} from "../../interfaces/IACLManager.sol";
 
 contract ACLManager is AccessControl, IACLManager {
     bytes32 public constant VOYAGER_ADMIN_ROLE = keccak256("VOYAGER_ADMIN");

@@ -74,6 +74,9 @@ const config: HardhatUserConfig = {
       tasks: ['test'],
       files: ['./contracts', './test'],
     },
+    compile: {
+      tasks: ['compile'],
+    },
   },
   namedAccounts: {
     // deployer/owner signer can now be accessed as accounts[0]

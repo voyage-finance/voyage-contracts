@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import "../Voyager.sol";
-import "../../libraries/helpers/Errors.sol";
-import "openzeppelin-solidity/contracts/utils/Address.sol";
-import "../shared/storage/LiquidityManagerStorage.sol";
-import "../infra/AddressResolver.sol";
-import "../../libraries/proxy/Proxyable.sol";
-import "../../libraries/logic/ReserveLogic.sol";
-import "../../interfaces/IReserveManager.sol";
-import "../../interfaces/IVoyagerComponent.sol";
-import "../../interfaces/IACLManager.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {Voyager} from "../Voyager.sol";
+import {Errors} from "../../libraries/helpers/Errors.sol";
+import {LiquidityManagerStorage} from "../shared/storage/LiquidityManagerStorage.sol";
+import {AddressResolver} from "../infra/AddressResolver.sol";
+import {Proxyable} from "../../libraries/proxy/Proxyable.sol";
+import {ReserveLogic} from "../../libraries/logic/ReserveLogic.sol";
+import {DataTypes} from "../../libraries/types/DataTypes.sol";
+import {IReserveManager} from "../../interfaces/IReserveManager.sol";
+import {IVoyagerComponent} from "../../interfaces/IVoyagerComponent.sol";
+import {IACLManager} from "../../interfaces/IACLManager.sol";
 
 abstract contract ReserveManager is Proxyable, IReserveManager {
     constructor(address payable _proxy, address _voyager) Proxyable(_proxy) {

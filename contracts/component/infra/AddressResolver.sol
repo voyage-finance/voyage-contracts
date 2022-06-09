@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import "../../interfaces/IAddressResolver.sol";
-import "../../libraries/ownership/Ownable.sol";
+import {IAddressResolver} from "../../interfaces/IAddressResolver.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract AddressResolver is IAddressResolver, Ownable {
     bytes32 public constant voyageName = "voyager";
