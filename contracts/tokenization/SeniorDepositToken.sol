@@ -21,6 +21,6 @@ contract SeniorDepositToken is BaseDepositToken {
         uint256 underlyingBalance = asset.balanceOf(address(this));
         ILoanManager lm = ILoanManager(addressResolver.getLoanManagerProxy());
         uint256 outstandingPrincipal = lm.principalBalance(address(asset));
-        return underlyingBalance + outstandingPrincipal;
+        return underlyingBalance + outstandingPrincipal - totalUnbonding;
     }
 }

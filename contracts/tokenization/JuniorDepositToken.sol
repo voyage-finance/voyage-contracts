@@ -17,6 +17,6 @@ contract JuniorDepositToken is BaseDepositToken {
     ) BaseDepositToken(_addressResolver, _underlyingAsset, _name, _symbol) {}
 
     function totalAssets() public view override returns (uint256) {
-        return asset.balanceOf(address(this));
+        return asset.balanceOf(address(this)) - totalUnbonding;
     }
 }

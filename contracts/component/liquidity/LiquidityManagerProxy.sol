@@ -62,30 +62,6 @@ contract LiquidityManagerProxy is Proxy, ILiquidityManagerProxy {
         return IReserveManager(address(target)).getFlags(_asset);
     }
 
-    function getReserveNormalizedIncome(
-        address _asset,
-        ReserveLogic.Tranche _tranche
-    ) external view returns (uint256) {
-        return
-            ILiquidityManager(address(target)).getReserveNormalizedIncome(
-                _asset,
-                _tranche
-            );
-    }
-
-    function withdrawAbleAmount(
-        address _reserve,
-        address _user,
-        ReserveLogic.Tranche _tranche
-    ) external view returns (uint256) {
-        return
-            ILiquidityManager(address(target)).withdrawAbleAmount(
-                _reserve,
-                _user,
-                _tranche
-            );
-    }
-
     function balance(
         address _reserve,
         address _user,

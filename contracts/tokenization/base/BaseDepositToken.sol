@@ -131,18 +131,4 @@ abstract contract BaseDepositToken is Context, IVToken {
 
         return (times, amounts);
     }
-
-    function claimable(address _user)
-        public
-        view
-        override
-        returns (uint256 amount)
-    {
-        uint256[] storage ts = pendingTimestamp[_user];
-        amount = 0;
-
-        for (uint256 i = 0; i < ts.length; i++) {
-            amount += withdrawals[_user][ts[i]];
-        }
-    }
 }
