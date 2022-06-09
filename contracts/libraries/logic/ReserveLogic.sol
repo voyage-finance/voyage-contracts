@@ -32,13 +32,11 @@ library ReserveLogic {
      * @param asset The address of the underlying asset of the reserve
      * @param liquidityRate The new liquidity rate
      * @param stableBorrowRate The new stable borrow rate
-     * @param liquidityIndex The new liquidity index
      **/
     event ReserveDataUpdated(
         address indexed asset,
         uint256 liquidityRate,
-        uint256 stableBorrowRate,
-        uint256 liquidityIndex
+        uint256 stableBorrowRate
     );
 
     function init(
@@ -50,21 +48,12 @@ library ReserveLogic {
         address _loanStrategyAddress,
         uint256 _optimalIncomeRatio
     ) external {
-        reserve.juniorLiquidityIndex = WadRayMath.ray();
-        reserve.seniorLiquidityIndex = WadRayMath.ray();
         reserve.juniorDepositTokenAddress = _juniorDepositTokenAddress;
         reserve.seniorDepositTokenAddress = _seniorDepositTokenAddress;
         reserve.interestRateStrategyAddress = _interestRateStrategyAddress;
         reserve.healthStrategyAddress = _healthStrategyAddress;
         reserve.optimalIncomeRatio = _optimalIncomeRatio;
         reserve.loanStrategyAddress = _loanStrategyAddress;
-    }
-
-    function updateState(
-        DataTypes.ReserveData storage reserve,
-        Tranche _tranche
-    ) public {
-        _updateIndexes(reserve, _tranche);
     }
 
     function getLiquidityRate(
@@ -153,37 +142,8 @@ library ReserveLogic {
         emit ReserveDataUpdated(
             _reserveAddress,
             vars.newLiquidityRate,
-            vars.newBorrowRate,
-            vars.newLiquidityRate
+            vars.newBorrowRate
         );
-    }
-
-    function getNormalizedIncome(
-        DataTypes.ReserveData storage reserve,
-        Tranche _tranche
-    ) internal view returns (uint256) {
-        uint40 timestamp;
-        uint256 liquidityIndex;
-        if (_tranche == Tranche.JUNIOR) {
-            timestamp = reserve.juniorLastUpdateTimestamp;
-            liquidityIndex = reserve.juniorLiquidityIndex;
-        } else {
-            timestamp = reserve.seniorLastUpdateTimestamp;
-            liquidityIndex = reserve.seniorLiquidityIndex;
-        }
-
-        //solium-disable-next-line
-        if (timestamp == uint40(block.timestamp)) {
-            return liquidityIndex;
-        }
-
-        uint256 cumulated = MathUtils
-            .calculateLinearInterest(
-                reserve._getLiquidityRate(_tranche),
-                timestamp
-            )
-            .rayMul(liquidityIndex);
-        return cumulated;
     }
 
     function _getLiquidityRate(
@@ -195,71 +155,6 @@ library ReserveLogic {
         } else {
             return reserve.currentSeniorLiquidityRate;
         }
-    }
-
-    function _updateIndexes(
-        DataTypes.ReserveData storage reserve,
-        Tranche _tranche
-    ) internal {
-        if (_tranche == Tranche.JUNIOR) {
-            uint256 previousJuniorLiquidityIndex = reserve.juniorLiquidityIndex;
-            uint256 lastJuniorUpdatedTimestamp = reserve
-                .juniorLastUpdateTimestamp;
-            reserve._updateJuniorLiquidityIndex(
-                previousJuniorLiquidityIndex,
-                uint40(lastJuniorUpdatedTimestamp)
-            );
-        } else {
-            uint256 previousSeniorLiquidityIndex = reserve.seniorLiquidityIndex;
-            uint256 lastSeniorUpdatedTimestamp = reserve
-                .seniorLastUpdateTimestamp;
-            reserve._updateSeniorLiquidityIndex(
-                previousSeniorLiquidityIndex,
-                uint40(lastSeniorUpdatedTimestamp)
-            );
-        }
-    }
-
-    function _updateJuniorLiquidityIndex(
-        DataTypes.ReserveData storage reserve,
-        uint256 juniorLiquidityIndex,
-        uint40 timestamp
-    ) internal returns (uint256) {
-        uint256 juniorLiquidityRate = reserve._getLiquidityRate(Tranche.JUNIOR);
-        uint256 newJuniorLiquidityIndex = juniorLiquidityIndex;
-
-        // only cumulating if there is any income being produced
-        if (juniorLiquidityRate > 0) {
-            uint256 cumulatedLiquidityInterest = MathUtils
-                .calculateLinearInterest(juniorLiquidityRate, timestamp);
-            newJuniorLiquidityIndex = cumulatedLiquidityInterest.rayMul(
-                juniorLiquidityIndex
-            );
-            reserve.juniorLiquidityIndex = newJuniorLiquidityIndex;
-        }
-
-        reserve.juniorLastUpdateTimestamp = uint40(block.timestamp);
-        return newJuniorLiquidityIndex;
-    }
-
-    function _updateSeniorLiquidityIndex(
-        DataTypes.ReserveData storage reserve,
-        uint256 seniorLiquidityIndex,
-        uint40 timestamp
-    ) internal returns (uint256) {
-        uint256 seniorLiquidityRate = reserve._getLiquidityRate(Tranche.SENIOR);
-        uint256 newSeniorLiquidityIndex = seniorLiquidityIndex;
-
-        if (seniorLiquidityRate > 0) {
-            uint256 cumulatedLiquidityInterest = MathUtils
-                .calculateLinearInterest(seniorLiquidityRate, timestamp);
-            newSeniorLiquidityIndex = cumulatedLiquidityInterest.rayMul(
-                seniorLiquidityIndex
-            );
-            reserve.seniorLiquidityIndex = newSeniorLiquidityIndex;
-        }
-        reserve.seniorLastUpdateTimestamp = uint40(block.timestamp);
-        return newSeniorLiquidityIndex;
     }
 
     function trancheToBytes32(Tranche tranche) public view returns (bytes32) {

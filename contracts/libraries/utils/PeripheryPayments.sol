@@ -6,7 +6,7 @@ import {ERC20, SafeTransferLib} from '@rari-capital/solmate/src/utils/SafeTransf
 /// @author Voyage Finance
 /// @notice Forwards calls to ERC-4626 compliant Vaults, but with the actual depositor appended to the encoded call data.
 /// @dev This does not work if the receiving contract does not implement ERC-4626!
-abstract contract Depositor {
+abstract contract PeripheryPayments {
     using SafeTransferLib for *;
 
     function pullToken(

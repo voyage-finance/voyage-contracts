@@ -100,7 +100,6 @@ describe('Reserve Init', function () {
   });
 
   it('Init reserve should return correct value', async function () {
-    const ray = '1000000000000000000000000000';
     const fakeAddress = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D';
     // deploy mock tus contract as reserve
     const Tus = await ethers.getContractFactory('Tus');
@@ -114,10 +113,6 @@ describe('Reserve Init', function () {
       fakeAddress,
       '500000000000000000000000000'
     );
-    const optimalIncomeRatio = '500000000000000000000000000';
-    const reserveState = await voyager.getReserveData(tus.address);
-    expect(reserveState.juniorLiquidityIndex).to.equal(ray);
-    expect(reserveState.seniorLiquidityIndex).to.equal(ray);
 
     // 0 represents junior
     const juniorLiquidityRate = await voyager.liquidityRate(tus.address, '0');

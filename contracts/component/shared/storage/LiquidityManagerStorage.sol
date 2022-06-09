@@ -100,7 +100,6 @@ contract LiquidityManagerStorage is State {
     ) public onlyAssociatedContract {
         DataTypes.ReserveData storage reserve = _reserves[_asset];
         ValidationLogic.validateDeposit(reserve, _amount);
-        reserve.updateState(_tranche);
         if (ReserveLogic.Tranche.JUNIOR == _tranche) {
             reserve.updateInterestRates(
                 _asset,
@@ -136,7 +135,6 @@ contract LiquidityManagerStorage is State {
         uint256 _avgBorrowRate
     ) public onlyAssociatedContract {
         DataTypes.ReserveData storage reserve = _reserves[_asset];
-        reserve.updateState(_tranche);
         if (ReserveLogic.Tranche.JUNIOR == _tranche) {
             reserve.updateInterestRates(
                 _asset,
@@ -171,7 +169,6 @@ contract LiquidityManagerStorage is State {
         uint256 _avgBorrowRate
     ) public onlyAssociatedContract {
         DataTypes.ReserveData storage reserve = _reserves[_asset];
-        reserve.updateState(ReserveLogic.Tranche.SENIOR);
         reserve.updateInterestRates(
             _asset,
             reserve.juniorDepositTokenAddress,
@@ -192,7 +189,6 @@ contract LiquidityManagerStorage is State {
         uint256 _avgBorrowRate
     ) public onlyAssociatedContract {
         DataTypes.ReserveData storage reserve = _reserves[_asset];
-        reserve.updateState(ReserveLogic.Tranche.SENIOR);
         reserve.updateInterestRates(
             _asset,
             reserve.juniorDepositTokenAddress,
@@ -271,29 +267,6 @@ contract LiquidityManagerStorage is State {
         returns (uint256)
     {
         return _reserves[_asset].getLiquidityRate(_tranche);
-    }
-
-    function getJuniorLiquidityIndex(address _asset)
-        public
-        view
-        returns (uint256)
-    {
-        return _reserves[_asset].juniorLiquidityIndex;
-    }
-
-    function getSeniorLiquidityIndex(address _asset)
-        public
-        view
-        returns (uint256)
-    {
-        return _reserves[_asset].seniorLiquidityIndex;
-    }
-
-    function getReserveNormalizedIncome(
-        address _asset,
-        ReserveLogic.Tranche _tranche
-    ) public view returns (uint256) {
-        return _reserves[_asset].getNormalizedIncome(_tranche);
     }
 
     function paused() public view returns (bool) {
