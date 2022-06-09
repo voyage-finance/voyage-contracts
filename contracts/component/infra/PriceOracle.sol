@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import '../../interfaces/IPriceOracle.sol';
-import '../Voyager.sol';
+import "../../interfaces/IPriceOracle.sol";
+import "../Voyager.sol";
 
 contract PriceOracle is IPriceOracle {
     using SafeMath for uint256;
@@ -98,6 +98,6 @@ contract PriceOracle is IPriceOracle {
         IACLManager aclManager = IACLManager(
             voyager.addressResolver().getAclManager()
         );
-        require(aclManager.isOracleManager(msg.sender), 'Not oracle admin');
+        require(aclManager.isOracleManager(msg.sender), "Not oracle admin");
     }
 }

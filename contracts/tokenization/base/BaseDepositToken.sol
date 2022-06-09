@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import {Context} from 'openzeppelin-solidity/contracts/utils/Context.sol';
-import {SafeMath} from 'openzeppelin-solidity/contracts/utils/math/SafeMath.sol';
-import {IERC20Metadata} from 'openzeppelin-solidity/contracts/token/ERC20/extensions/IERC20Metadata.sol';
-import {ERC20} from '@rari-capital/solmate/src/tokens/ERC20.sol';
-import {SafeTransferLib} from '@rari-capital/solmate/src/utils/SafeTransferLib.sol';
-import {Errors} from '../../libraries/helpers/Errors.sol';
-import {IVToken} from '../../interfaces/IVToken.sol';
-import {AddressResolver} from '../../component/infra/AddressResolver.sol';
+import {Context} from "openzeppelin-solidity/contracts/utils/Context.sol";
+import {SafeMath} from "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
+import {IERC20Metadata} from "openzeppelin-solidity/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {ERC20} from "@rari-capital/solmate/src/tokens/ERC20.sol";
+import {SafeTransferLib} from "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
+import {Errors} from "../../libraries/helpers/Errors.sol";
+import {IVToken} from "../../interfaces/IVToken.sol";
+import {AddressResolver} from "../../component/infra/AddressResolver.sol";
 
 abstract contract BaseDepositToken is Context, IVToken {
     using SafeMath for uint256;
@@ -29,8 +29,8 @@ abstract contract BaseDepositToken is Context, IVToken {
 
     modifier onlyAdmin() {
         require(
-            _msgSender() == addressResolver.getAddress('liquidityManager') ||
-                _msgSender() == addressResolver.getAddress('loanManager'),
+            _msgSender() == addressResolver.getAddress("liquidityManager") ||
+                _msgSender() == addressResolver.getAddress("loanManager"),
             Errors.CT_CALLER_MUST_BE_LIQUIDITY_MANAGER_POOL
         );
         _;
@@ -45,7 +45,6 @@ abstract contract BaseDepositToken is Context, IVToken {
         addressResolver = _addressResolver;
     }
 
-    // TODO: @ian withdrawal logic will not work with ERC4626. Override `withdraw` instead.
     function withdraw(
         uint256 _amount,
         address _receiver,
@@ -66,18 +65,13 @@ abstract contract BaseDepositToken is Context, IVToken {
         pushWithdraw(_owner, _amount);
 
         emit Withdraw(msg.sender, _receiver, _owner, _amount, shares);
-        // asset.safeTransfer(receiver, assets);
-        // _burn(_user, amountScaled);
-        // pushWithdraw(_user, _amount);
-        // emit Transfer(_user, address(0), _amount);
-        // emit Burn(_user, _amount, _index);
     }
 
     function claim(uint256 _index) public override {
         uint256 amount = popWithdraw(msg.sender, _index);
         require(
             asset.balanceOf(address(this)) >= amount,
-            'Insufficient liquidity available'
+            "Insufficient liquidity available"
         );
         asset.safeTransfer(msg.sender, amount);
     }
@@ -91,7 +85,7 @@ abstract contract BaseDepositToken is Context, IVToken {
     }
 
     function pushWithdraw(address _user, uint256 _amount) internal {
-        require(withdrawals[_user][block.timestamp] == 0, 'invalid withdraw');
+        require(withdrawals[_user][block.timestamp] == 0, "invalid withdraw");
         withdrawals[_user][block.timestamp] = _amount;
         pendingTimestamp[_user].push(block.timestamp);
         totalUnbonding += _amount;
@@ -102,9 +96,9 @@ abstract contract BaseDepositToken is Context, IVToken {
         returns (uint256)
     {
         uint256[] storage times = pendingTimestamp[_user];
-        require(_index < times.length, 'invalid index');
+        require(_index < times.length, "invalid index");
         uint256 ts = times[_index];
-        require(block.timestamp - ts > cooldown, 'cool down error');
+        require(block.timestamp - ts > cooldown, "cool down error");
 
         uint256 last = times[times.length - 1];
         times[_index] = last;

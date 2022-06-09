@@ -1,28 +1,28 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import '../../interfaces/IAddressResolver.sol';
-import '../../libraries/ownership/Ownable.sol';
+import "../../interfaces/IAddressResolver.sol";
+import "../../libraries/ownership/Ownable.sol";
 
 contract AddressResolver is IAddressResolver, Ownable {
-    bytes32 public constant voyageName = 'voyager';
-    bytes32 public constant aclManagerName = 'aclManager';
-    bytes32 public constant liquidityManagerProxyName = 'liquidityManagerProxy';
-    bytes32 public constant liquidityManagerName = 'liquidityManager';
+    bytes32 public constant voyageName = "voyager";
+    bytes32 public constant aclManagerName = "aclManager";
+    bytes32 public constant liquidityManagerProxyName = "liquidityManagerProxy";
+    bytes32 public constant liquidityManagerName = "liquidityManager";
     bytes32 public constant liquidityManagerStorageName =
-        'liquidityManagerStorage';
+        "liquidityManagerStorage";
     bytes32 public constant liquidityDepositEscrowName =
-        'liquidityDepositEscrow';
-    bytes32 public constant loanManagerProxyName = 'loanManagerProxy';
-    bytes32 public constant loanManagerName = 'loanManager';
-    bytes32 public constant vaultManagerProxyName = 'vaultManagerProxy';
-    bytes32 public constant vaultManagerName = 'vaultManager';
-    bytes32 public constant vaultStorageName = 'vaultStorage';
-    bytes32 public constant juniorDepositTokenName = 'juniorDepositToken';
-    bytes32 public constant seniorDepositTokenName = 'seniorDepositToken';
-    bytes32 public constant securityDepositTokenName = 'securityDepositToken';
-    bytes32 public constant extCallACLProxyName = 'extCallACLProxy';
-    bytes32 public constant priceOracleName = 'priceOracle';
+        "liquidityDepositEscrow";
+    bytes32 public constant loanManagerProxyName = "loanManagerProxy";
+    bytes32 public constant loanManagerName = "loanManager";
+    bytes32 public constant vaultManagerProxyName = "vaultManagerProxy";
+    bytes32 public constant vaultManagerName = "vaultManager";
+    bytes32 public constant vaultStorageName = "vaultStorage";
+    bytes32 public constant juniorDepositTokenName = "juniorDepositToken";
+    bytes32 public constant seniorDepositTokenName = "seniorDepositToken";
+    bytes32 public constant securityDepositTokenName = "securityDepositToken";
+    bytes32 public constant extCallACLProxyName = "extCallACLProxy";
+    bytes32 public constant priceOracleName = "priceOracle";
 
     mapping(bytes32 => address) public repository;
 
@@ -32,7 +32,7 @@ contract AddressResolver is IAddressResolver, Ownable {
     ) external onlyOwner {
         require(
             names.length == destinations.length,
-            'Input lengths must match'
+            "Input lengths must match"
         );
 
         for (uint256 i = 0; i < names.length; i++) {

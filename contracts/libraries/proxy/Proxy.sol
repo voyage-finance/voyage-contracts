@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import '../ownership/Ownable.sol';
-import './Proxyable.sol';
-import '../../interfaces/IACLManager.sol';
-import 'hardhat/console.sol';
+import "../ownership/Ownable.sol";
+import "./Proxyable.sol";
+import "../../interfaces/IACLManager.sol";
+import "hardhat/console.sol";
 
 contract Proxy is Ownable {
     Proxyable public target;
@@ -12,7 +12,7 @@ contract Proxy is Ownable {
     event TargetUpdated(Proxyable newTarget);
 
     modifier onlyTarget() {
-        require(Proxyable(msg.sender) == target, 'Must be proxy target');
+        require(Proxyable(msg.sender) == target, "Must be proxy target");
         _;
     }
 
@@ -99,7 +99,7 @@ contract Proxy is Ownable {
             msg.sender == target.voyager().addressResolver().getVoyage() ||
                 aclManager.isLiquidityManager(msg.sender) ||
                 aclManager.isLoanManager(msg.sender),
-            'Voyager or admin only function'
+            "Voyager or admin only function"
         );
     }
 }

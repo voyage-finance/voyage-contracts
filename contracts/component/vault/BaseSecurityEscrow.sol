@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import 'openzeppelin-solidity/contracts/utils/Address.sol';
-import 'openzeppelin-solidity/contracts/security/ReentrancyGuard.sol';
-import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
-import 'openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol';
-import '../../libraries/EthAddressLib.sol';
-import 'hardhat/console.sol';
+import "openzeppelin-solidity/contracts/utils/Address.sol";
+import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
+import "../../libraries/EthAddressLib.sol";
+import "hardhat/console.sol";
 
 contract BaseSecurityEscrow is ReentrancyGuard {
     using Address for address payable;
@@ -41,13 +41,13 @@ contract BaseSecurityEscrow is ReentrancyGuard {
         if (_reserve != EthAddressLib.ethAddress()) {
             require(
                 msg.value == 0,
-                'User is sending ETH along with the ERC20 transfer.'
+                "User is sending ETH along with the ERC20 transfer."
             );
             ERC20(_reserve).safeTransferFrom(_user, address(this), _amount);
         } else {
             require(
                 msg.value == _amount,
-                'The amount and the value sent to deposit do not match'
+                "The amount and the value sent to deposit do not match"
             );
         }
         _deposits[_reserve] += _amount;
@@ -100,7 +100,7 @@ contract BaseSecurityEscrow is ReentrancyGuard {
 
         require(
             eligibleAmount >= _amount,
-            'Do not have enough amount to withdraw'
+            "Do not have enough amount to withdraw"
         );
         // todo check borrow amount
         // if there is any amount left from eligible amount, push it back
@@ -154,8 +154,8 @@ contract BaseSecurityEscrow is ReentrancyGuard {
             ERC20(_reserve).safeTransfer(_user, _amount);
         } else {
             //solium-disable-next-line
-            (bool result, ) = _user.call{value: _amount}('');
-            require(result, 'Transfer of ETH failed');
+            (bool result, ) = _user.call{value: _amount}("");
+            require(result, "Transfer of ETH failed");
         }
     }
 }

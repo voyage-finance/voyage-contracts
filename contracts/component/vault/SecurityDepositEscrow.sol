@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import '../../libraries/ownership/Ownable.sol';
-import './BaseSecurityEscrow.sol';
+import "../../libraries/ownership/Ownable.sol";
+import "./BaseSecurityEscrow.sol";
 
 contract SecurityDepositEscrow is BaseSecurityEscrow {
     address public vault;
 
     modifier onlyOwner() {
-        require(msg.sender == vault, 'Not vault');
+        require(msg.sender == vault, "Not vault");
         _;
     }
 
@@ -17,7 +17,7 @@ contract SecurityDepositEscrow is BaseSecurityEscrow {
     }
 
     function getVersion() external view returns (string memory) {
-        string memory version = 'SecurityDepositEscrow 0.0.1';
+        string memory version = "SecurityDepositEscrow 0.0.1";
         return version;
     }
 

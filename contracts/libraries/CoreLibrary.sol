@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import './math/WadRayMath.sol';
+import "./math/WadRayMath.sol";
 
 library CoreLibrary {
     using SafeMath for uint256;
@@ -66,7 +66,7 @@ library CoreLibrary {
     ) external {
         require(
             _self.jdTokenAddress == address(0),
-            'Reserve has already been initialized'
+            "Reserve has already been initialized"
         );
         _self.jdTokenAddress = _jdTokenAddress;
         _self.sdTokenAddress = _sdTokenAddress;

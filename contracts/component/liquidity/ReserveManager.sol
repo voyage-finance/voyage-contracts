@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import '../Voyager.sol';
-import '../../libraries/helpers/Errors.sol';
-import 'openzeppelin-solidity/contracts/utils/Address.sol';
-import '../shared/storage/LiquidityManagerStorage.sol';
-import '../infra/AddressResolver.sol';
-import '../../libraries/proxy/Proxyable.sol';
-import '../../libraries/logic/ReserveLogic.sol';
-import '../../interfaces/IReserveManager.sol';
-import '../../interfaces/IVoyagerComponent.sol';
-import '../../interfaces/IACLManager.sol';
+import "../Voyager.sol";
+import "../../libraries/helpers/Errors.sol";
+import "openzeppelin-solidity/contracts/utils/Address.sol";
+import "../shared/storage/LiquidityManagerStorage.sol";
+import "../infra/AddressResolver.sol";
+import "../../libraries/proxy/Proxyable.sol";
+import "../../libraries/logic/ReserveLogic.sol";
+import "../../interfaces/IReserveManager.sol";
+import "../../interfaces/IVoyagerComponent.sol";
+import "../../interfaces/IACLManager.sol";
 
 abstract contract ReserveManager is Proxyable, IReserveManager {
     constructor(address payable _proxy, address _voyager) Proxyable(_proxy) {
@@ -151,7 +151,7 @@ abstract contract ReserveManager is Proxyable, IReserveManager {
         IACLManager aclManager = IACLManager(aclAddress);
         require(
             aclManager.isLiquidityManager(messageSender),
-            'Not vault admin'
+            "Not vault admin"
         );
     }
 
@@ -172,7 +172,7 @@ abstract contract ReserveManager is Proxyable, IReserveManager {
     );
     bytes32 internal constant RESERVE_INITIALIZED_SIG =
         keccak256(
-            'ReserveInitialized(address,address,address,address,address,uint256)'
+            "ReserveInitialized(address,address,address,address,address,uint256)"
         );
 
     function emitReserveInitialized(
@@ -201,7 +201,7 @@ abstract contract ReserveManager is Proxyable, IReserveManager {
 
     event ReserveActivated(address indexed _asset);
     bytes32 internal constant RESERVE_ACTIVATED_SIG =
-        keccak256('ReserveActivated(address)');
+        keccak256("ReserveActivated(address)");
 
     function emitReserveActivated(address _asset) internal {
         bytes memory data;
