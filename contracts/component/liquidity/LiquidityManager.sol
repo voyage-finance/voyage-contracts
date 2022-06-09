@@ -12,10 +12,13 @@ import '../../interfaces/ILiquidityManager.sol';
 import {IVToken} from '../../interfaces/IVToken.sol';
 import {JuniorDepositToken} from '../../tokenization/JuniorDepositToken.sol';
 import {SeniorDepositToken} from '../../tokenization/SeniorDepositToken.sol';
-import {Depositor} from '../../libraries/utils/DepositForwarder.sol';
-import 'hardhat/console.sol';
+import {PeripheryPayments} from '../../libraries/utils/PeripheryPayments.sol';
 
-contract LiquidityManager is Depositor, ReserveManager, ILiquidityManager {
+contract LiquidityManager is
+    PeripheryPayments,
+    ReserveManager,
+    ILiquidityManager
+{
     using WadRayMath for uint256;
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -67,21 +70,11 @@ contract LiquidityManager is Depositor, ReserveManager, ILiquidityManager {
             liquidityManagerStorageAddress()
         );
         DataTypes.ReserveData memory reserve = getReserveData(_asset);
-
-        address vToken;
-        uint256 liquidityIndex;
-        if (ReserveLogic.Tranche.JUNIOR == _tranche) {
-            vToken = reserve.juniorDepositTokenAddress;
-            liquidityIndex = getJuniorLiquidityIndex(_asset);
-        } else {
-            vToken = reserve.seniorDepositTokenAddress;
-            liquidityIndex = getSeniorLiquidityIndex(_asset);
-        }
-
-        uint256 userBalance = IVToken(vToken).maxWithdraw(_user);
-
+        IVToken vToken = ReserveLogic.Tranche.JUNIOR == _tranche
+            ? IVToken(reserve.juniorDepositTokenAddress)
+            : IVToken(reserve.seniorDepositTokenAddress);
+        uint256 userBalance = vToken.maxWithdraw(_user);
         uint256 amountToWithdraw = _amount;
-
         if (_amount == type(uint256).max) {
             amountToWithdraw = userBalance;
         }

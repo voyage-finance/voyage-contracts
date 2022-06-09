@@ -1,9 +1,7 @@
 import { expect } from 'chai';
-import { deployments, ethers, getNamedAccounts } from 'hardhat';
-import { decimals, MAX_UINT_256 } from '../helpers/math';
+import { ethers } from 'hardhat';
+import { decimals } from '../helpers/math';
 import { setupWithdrawalTestSuite } from '../helpers/withdraw';
-import { LiquidityManager } from '../typechain/LiquidityManager';
-import { Voyager } from '../typechain/Voyager';
 
 describe('Withdraw', function () {
   it('Withdraw with no interest should return correct value', async function () {

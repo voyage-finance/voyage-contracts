@@ -15,8 +15,6 @@ library DataTypes {
         uint256 currentOverallLiquidityRate;
         uint256 currentJuniorLiquidityRate;
         uint256 currentSeniorLiquidityRate;
-        uint256 juniorLiquidityIndex;
-        uint256 seniorLiquidityIndex;
         uint256 currentBorrowRate;
         // Expressed in ray
         uint256 securityRequirement;

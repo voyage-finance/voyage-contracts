@@ -144,28 +144,6 @@ abstract contract ReserveManager is Proxyable, IReserveManager {
                 .getLiquidityRate(_asset, _tranche);
     }
 
-    function getJuniorLiquidityIndex(address _asset)
-        public
-        view
-        returns (uint256)
-    {
-        return
-            LiquidityManagerStorage(liquidityManagerStorageAddress())
-                .getJuniorLiquidityIndex(_asset);
-    }
-
-    function getSeniorLiquidityIndex(address _asset)
-        public
-        view
-        returns (uint256)
-    {
-        return
-            LiquidityManagerStorage(liquidityManagerStorageAddress())
-                .getSeniorLiquidityIndex(_asset);
-    }
-
-    /************************************** Private Functions **************************************/
-
     function _requireCallerAdmin() internal {
         Voyager v = Voyager(voyager);
         AddressResolver addressResolver = v.addressResolver();
