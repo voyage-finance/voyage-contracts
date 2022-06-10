@@ -24,7 +24,9 @@ contract LoanManager is Proxyable, ILoanManager {
     using WadRayMath for uint256;
     using SafeERC20 for IERC20;
 
-    constructor(address payable _proxy, address _voyager) Proxyable(_proxy) {
+    constructor(address payable _proxy, address payable _voyager)
+        Proxyable(_proxy)
+    {
         voyager = Voyager(_voyager);
     }
 

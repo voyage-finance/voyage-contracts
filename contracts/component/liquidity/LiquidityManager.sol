@@ -23,7 +23,7 @@ contract LiquidityManager is
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    constructor(address payable _proxy, address _voyager)
+    constructor(address payable _proxy, address payable _voyager)
         ReserveManager(_proxy, _voyager)
     {}
 

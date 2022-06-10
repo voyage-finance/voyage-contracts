@@ -15,7 +15,9 @@ import {IVoyagerComponent} from "../../interfaces/IVoyagerComponent.sol";
 import {IACLManager} from "../../interfaces/IACLManager.sol";
 
 abstract contract ReserveManager is Proxyable, IReserveManager {
-    constructor(address payable _proxy, address _voyager) Proxyable(_proxy) {
+    constructor(address payable _proxy, address payable _voyager)
+        Proxyable(_proxy)
+    {
         voyager = Voyager(_voyager);
     }
 

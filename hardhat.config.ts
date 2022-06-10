@@ -48,7 +48,7 @@ const config: HardhatUserConfig = {
         process.env.MINING_MODE !== 'interval'
           ? { auto: true }
           : {
-              interval: parseInt(process.env.MIN_INTERVAL || '2000', 10),
+              interval: parseInt(process.env.MIN_INTERVAL || '500', 10),
             },
     },
     avalancheMain: {

@@ -160,16 +160,39 @@ contract VoyageProtocolDataProvider {
         DataTypes.UserPoolData memory userPoolData;
         IERC20Metadata token = IERC20Metadata(_reserve);
 
-        userPoolData.juniorTrancheBalance = lmp.balance(
-            _reserve,
-            _user,
-            ReserveLogic.Tranche.JUNIOR
-        );
-        userPoolData.seniorTrancheBalance = lmp.balance(
+        uint256 seniorTrancheWithdrawable = lmp.balance(
             _reserve,
             _user,
             ReserveLogic.Tranche.SENIOR
         );
+        uint256 seniorTrancheUnbonding = lmp.unbonding(
+            _reserve,
+            _user,
+            ReserveLogic.Tranche.SENIOR
+        );
+        uint256 seniorTrancheTotalBalance = seniorTrancheWithdrawable.add(
+            seniorTrancheUnbonding
+        );
+        uint256 juniorTrancheWithdrawable = lmp.balance(
+            _reserve,
+            _user,
+            ReserveLogic.Tranche.JUNIOR
+        );
+        uint256 juniorTrancheUnbonding = lmp.unbonding(
+            _reserve,
+            _user,
+            ReserveLogic.Tranche.JUNIOR
+        );
+        uint256 juniorTrancheTotalBalance = juniorTrancheWithdrawable.add(
+            juniorTrancheUnbonding
+        );
+
+        userPoolData.juniorTrancheBalance = juniorTrancheTotalBalance;
+        userPoolData
+            .withdrawableJuniorTrancheBalance = juniorTrancheWithdrawable;
+        userPoolData.seniorTrancheBalance = seniorTrancheTotalBalance;
+        userPoolData
+            .withdrawableSeniorTrancheBalance = seniorTrancheWithdrawable;
         userPoolData.decimals = token.decimals();
 
         return userPoolData;

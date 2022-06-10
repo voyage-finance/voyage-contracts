@@ -16,7 +16,7 @@ import {VaultManagerProxy} from "../vault/VaultManagerProxy.sol";
  * todo it might be a bad name here, it actually performs as the centralise place
  * for querying each other among the internal components
  **/
-contract MessageBus is IMessageBus, Ownable {
+contract MessageBus is IMessageBus {
     AddressResolver public addressResolver;
 
     /**
