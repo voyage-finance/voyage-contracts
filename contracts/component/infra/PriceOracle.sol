@@ -32,7 +32,7 @@ contract PriceOracle is IPriceOracle {
 
     Voyager voyager;
 
-    constructor(address _voyager) {
+    constructor(address payable _voyager) {
         voyager = Voyager(_voyager);
     }
 

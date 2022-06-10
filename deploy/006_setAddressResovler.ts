@@ -3,7 +3,7 @@ import { ethers } from 'hardhat';
 
 const deployFn: DeployFunction = async (hre) => {
   const { deployments, getNamedAccounts } = hre;
-  const { deploy, execute } = deployments;
+  const { execute } = deployments;
   const { owner } = await getNamedAccounts();
 
   const Voyager = await deployments.get('Voyager');

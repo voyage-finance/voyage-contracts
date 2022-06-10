@@ -9,7 +9,7 @@ contract ExtCallACL is Proxyable, IExtCallACL {
     mapping(address => bool) public whitelistedAddress;
     mapping(bytes32 => bool) public whitelistedFunctions;
 
-    constructor(address payable _proxy, address _voyage)
+    constructor(address payable _proxy, address payable _voyage)
         public
         Proxyable(_proxy)
     {

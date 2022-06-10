@@ -28,7 +28,7 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
     constructor(
         address payable _proxy,
         address _addressResolver,
-        address _voyager,
+        address payable _voyager,
         address _vaultFactory
     ) public Proxyable(_proxy) {
         addressResolver = IAddressResolver(_addressResolver);

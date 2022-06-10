@@ -1,6 +1,5 @@
 import { DeployFunction } from 'hardhat-deploy/types';
 import { LiquidityManager, Tus } from '@contracts';
-import TusABI from '../artifacts/contracts/mock/Tus.sol/Tus.json';
 import BigNumber from 'bignumber.js';
 import { MAX_UINT_256 } from '../helpers/math';
 
@@ -31,12 +30,6 @@ const deployFn: DeployFunction = async (hre) => {
   }
   const tus = await ethers.getContract<Tus>('Tus');
   const AddressResolver = await deployments.get('AddressResolver');
-  const tusInitArgs = await Promise.all([
-    tus.address,
-    tus.decimals(),
-    tus.name(),
-    tus.symbol(),
-  ]);
   const JuniorDepositToken = await deploy(JR_TOKEN_NAME, {
     from: owner,
     log: true,
@@ -52,18 +45,24 @@ const deployFn: DeployFunction = async (hre) => {
     'LiquidityManager'
   );
 
-  await liquidityManager.approve(
+  await execute(
+    LM_NAME,
+    { from: owner, log: true },
+    'approve',
     tus.address,
     SeniorDepositToken.address,
     MAX_UINT_256
   );
-  await liquidityManager.approve(
+  await execute(
+    LM_NAME,
+    { from: owner, log: true },
+    'approve',
     tus.address,
     JuniorDepositToken.address,
     MAX_UINT_256
   );
 
-  const WadRayMath = await deploy(WRM_NAME, { from: owner, log: true });
+  const wadRayMath = await deploy(WRM_NAME, { from: owner, log: true });
 
   const utilisationRate = new BigNumber('0.8').multipliedBy(RAY).toFixed();
   const slope1 = new BigNumber('0.04').multipliedBy(RAY).toFixed();
@@ -73,14 +72,14 @@ const deployFn: DeployFunction = async (hre) => {
   await deploy(INTEREST_STRATEGY_NAME, {
     from: owner,
     log: true,
-    libraries: { WadRayMath: WadRayMath.address },
+    libraries: { WadRayMath: wadRayMath.address },
     args: [utilisationRate, slope1, slope2, baseInterest],
   });
 
   await deploy(HEALTH_STRATEGY_ADDRESS, {
     from: owner,
     log: true,
-    libraries: { WadRayMath: WadRayMath.address },
+    libraries: { WadRayMath: wadRayMath.address },
     // 5, 5, 2,8
     args: [
       '5000000000000000000000000000',

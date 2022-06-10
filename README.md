@@ -14,6 +14,7 @@
 
 ![contract architecture](https://github.com/halcyon-project/voyage-contracts/blob/main/doc/voyage_arch.png)
 
+
 ## Docker
 
 There is a docker image available for use.
@@ -28,6 +29,18 @@ docker run -d -it --rm --name hh-voyage -p 8545:8545 596511190950.dkr.ecr.us-wes
 # to run on port 8545 without deploying contracts
 docker run -d -it --rm --name hh-voyage -p 8545:8545 596511190950.dkr.ecr.us-west-2.amazonaws.com/voyage-core-contracts:latest 'node'
 ```
+## Getting started
+
+To run deploy and run the contracts against a local hardhat node:
+
+```shell
+# runs hardhat in automine mode and runs all deployments.
+yarn node:deploy
+# or in interval mode
+yarn node:deploy:interval
+```
+
+This should listen on `localhost:8545` as expected.
 
 ## Run scripts
 

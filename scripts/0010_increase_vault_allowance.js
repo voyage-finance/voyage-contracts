@@ -19,7 +19,7 @@ async function main() {
 
   // grant max uint
   const tus = await ethers.getContract('Tus', owner);
-  await tus.increaseAllowance(escrowAddress, MAX_UINT_256);
+  await tus.approve(escrowAddress, MAX_UINT_256);
 }
 
 main()

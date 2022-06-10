@@ -75,6 +75,19 @@ contract LiquidityManagerProxy is Proxy, ILiquidityManagerProxy {
             );
     }
 
+    function unbonding(
+        address _reserve,
+        address _user,
+        ReserveLogic.Tranche _tranche
+    ) external view returns (uint256) {
+        return
+            ILiquidityManager(address(target)).unbonding(
+                _reserve,
+                _user,
+                _tranche
+            );
+    }
+
     function utilizationRate(address _reserve) external view returns (uint256) {
         return ILiquidityManager(address(target)).utilizationRate(_reserve);
     }

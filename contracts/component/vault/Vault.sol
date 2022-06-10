@@ -24,7 +24,7 @@ contract Vault is ReentrancyGuard, IVault {
     using SafeMath for uint256;
     bytes32 public constant BORROWER = keccak256("BORROWER");
 
-    address public voyager;
+    address payable public voyager;
     address[] public players;
     bool public initialized;
     SecurityDepositEscrow public securityDepositEscrow;
@@ -55,7 +55,7 @@ contract Vault is ReentrancyGuard, IVault {
         SecurityDepositEscrow _securityDepositEscrow
     ) external {
         if (!initialized) {
-            voyager = _voyager;
+            voyager = payable(_voyager);
             securityDepositEscrow = _securityDepositEscrow;
             initialized = true;
         }

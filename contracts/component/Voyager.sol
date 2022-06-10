@@ -17,7 +17,9 @@ import {LoanManager} from "../component/loan/LoanManager.sol";
 import {IACLManager} from "../interfaces/IACLManager.sol";
 import {MessageBus} from "./infra/MessageBus.sol";
 
-contract Voyager is MessageBus {
+import {Diamond, IDiamondCut, LibDiamond} from "../diamond/Diamond.sol";
+
+contract Voyager is Diamond, MessageBus {
     modifier onlyWhitelisted(bytes32 func) {
         require(
             ExtCallACL(getExtCallACLProxyAddress()).isWhitelistedAddress(
@@ -37,7 +39,17 @@ contract Voyager is MessageBus {
         _;
     }
 
+    modifier onlyOwner() {
+        require(msg.sender == LibDiamond.contractOwner());
+        _;
+    }
+
     event CallResult(bool, bytes);
+
+    constructor(
+        IDiamondCut.FacetCut[] memory _diamondCut,
+        DiamondArgs memory _args
+    ) Diamond(_diamondCut, _args) {}
 
     /************************************** HouseKeeping Interfaces **************************************/
     /**
