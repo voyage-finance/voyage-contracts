@@ -17,7 +17,8 @@ import {LoanManager} from "../component/loan/LoanManager.sol";
 import {IACLManager} from "../interfaces/IACLManager.sol";
 import {MessageBus} from "./infra/MessageBus.sol";
 
-import {Diamond, IDiamondCut, LibDiamond} from "../diamond/Diamond.sol";
+import {Diamond} from "../diamond/Diamond.sol";
+import {LibDiamond} from "../diamond/libraries/LibDiamond.sol";
 
 contract Voyager is Diamond, MessageBus {
     modifier onlyWhitelisted(bytes32 func) {
@@ -46,10 +47,7 @@ contract Voyager is Diamond, MessageBus {
 
     event CallResult(bool, bytes);
 
-    constructor(
-        IDiamondCut.FacetCut[] memory _diamondCut,
-        DiamondArgs memory _args
-    ) Diamond(_diamondCut, _args) {}
+    constructor(address _owner) Diamond(_owner) {}
 
     /************************************** HouseKeeping Interfaces **************************************/
     /**

@@ -13,15 +13,8 @@ describe('Repayment', function () {
   }
 
   it('Repay should return correct value', async function () {
-    const {
-      juniorDepositToken,
-      seniorDepositToken,
-      tus,
-      vm,
-      lm,
-      voyager,
-      voyageProtocolDataProvider,
-    } = await setupDebtTestSuite();
+    const { juniorDepositToken, seniorDepositToken, tus, vm, lm, voyager } =
+      await setupDebtTestSuite();
 
     const { owner } = await getNamedAccounts();
 
@@ -63,11 +56,7 @@ describe('Repayment', function () {
     await ethers.provider.send('evm_increaseTime', [sevenDays]);
     await ethers.provider.send('evm_mine', []);
 
-    const vaultData = await voyageProtocolDataProvider.getVaultData(
-      owner,
-      tus.address,
-      owner
-    );
+    const vaultData = await voyager.getVaultData(owner, tus.address, owner);
 
     console.log('total debt: ', vaultData.totalDebt.toString());
     console.log(
@@ -78,7 +67,7 @@ describe('Repayment', function () {
       ']'
     );
 
-    const drawDownDetail = await voyageProtocolDataProvider.getDrawDownDetail(
+    const drawDownDetail = await voyager.getDrawDownDetail(
       owner,
       tus.address,
       0
@@ -88,11 +77,7 @@ describe('Repayment', function () {
 
     await voyager.borrow(tus.address, '10000000000000000000', vaultAddr, 0);
 
-    const vaultData2 = await voyageProtocolDataProvider.getVaultData(
-      owner,
-      tus.address,
-      owner
-    );
+    const vaultData2 = await voyager.getVaultData(owner, tus.address, owner);
 
     console.log('total debt: ', vaultData2.totalDebt.toString());
     console.log(
@@ -102,7 +87,7 @@ describe('Repayment', function () {
       vaultData2.drawDownList.tail.toString(),
       ']'
     );
-    const drawDownDetail2 = await voyageProtocolDataProvider.getDrawDownDetail(
+    const drawDownDetail2 = await voyager.getDrawDownDetail(
       owner,
       tus.address,
       1
@@ -112,7 +97,7 @@ describe('Repayment', function () {
 
     // repay the first draw down
     await voyager.repay(tus.address, 0, vaultAddr);
-    const drawDownDetail3 = await voyageProtocolDataProvider.getDrawDownDetail(
+    const drawDownDetail3 = await voyager.getDrawDownDetail(
       owner,
       tus.address,
       0
@@ -121,7 +106,7 @@ describe('Repayment', function () {
     showDrawDown(drawDownDetail3);
 
     await voyager.repay(tus.address, 0, vaultAddr);
-    const drawDownDetail4 = await voyageProtocolDataProvider.getDrawDownDetail(
+    const drawDownDetail4 = await voyager.getDrawDownDetail(
       owner,
       tus.address,
       0
@@ -130,7 +115,7 @@ describe('Repayment', function () {
     showDrawDown(drawDownDetail4);
 
     await voyager.repay(tus.address, 0, vaultAddr);
-    const drawDownDetail5 = await voyageProtocolDataProvider.getDrawDownDetail(
+    const drawDownDetail5 = await voyager.getDrawDownDetail(
       owner,
       tus.address,
       0
@@ -140,15 +125,8 @@ describe('Repayment', function () {
   });
 
   it('Repay a non-debt should revert', async function () {
-    const {
-      juniorDepositToken,
-      seniorDepositToken,
-      tus,
-      vm,
-      lm,
-      voyager,
-      voyageProtocolDataProvider,
-    } = await setupDebtTestSuite();
+    const { juniorDepositToken, seniorDepositToken, tus, vm, lm, voyager } =
+      await setupDebtTestSuite();
 
     const { owner } = await getNamedAccounts();
 
@@ -190,7 +168,7 @@ describe('Repayment', function () {
     await ethers.provider.send('evm_increaseTime', [sevenDays]);
     await ethers.provider.send('evm_mine', []);
 
-    const drawDownDetail = await voyageProtocolDataProvider.getDrawDownDetail(
+    const drawDownDetail = await voyager.getDrawDownDetail(
       owner,
       tus.address,
       0

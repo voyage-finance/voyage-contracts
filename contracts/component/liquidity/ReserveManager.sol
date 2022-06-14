@@ -176,7 +176,7 @@ abstract contract ReserveManager is Proxyable, IReserveManager {
     );
     bytes32 internal constant RESERVE_INITIALIZED_SIG =
         keccak256(
-            "ReserveInitialized(address,address,address,address,address,uint256)"
+            "ReserveInitialized(address,address,address,address,address,address,uint256)"
         );
 
     function emitReserveInitialized(

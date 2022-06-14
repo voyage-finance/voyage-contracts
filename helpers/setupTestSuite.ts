@@ -15,7 +15,6 @@ export const setupTestSuite = d.createFixture(
       'VaultManager',
       'PriceOracle',
       'LibFinancial',
-      'VoyageProtocolDataProvider',
     ]);
     const { owner } = await getNamedAccounts();
 
@@ -54,13 +53,8 @@ export const setupTestSuite = d.createFixture(
       'ExtCallACL',
       extCallACLProxy.address
     );
-
     const priceOracle = await ethers.getContract('PriceOracle');
     const libFinancial = await ethers.getContract('LibFinancial');
-    const voyageProtocolDataProvider = await ethers.getContract(
-      'VoyageProtocolDataProvider'
-    );
-
     await aclManager.grantLiquidityManager(owner);
     await aclManager.grantVaultManager(owner);
     await aclManager.grantPoolManager(owner);
@@ -102,7 +96,6 @@ export const setupTestSuite = d.createFixture(
       vaultManager,
       vaultStorage,
       voyager,
-      voyageProtocolDataProvider,
     };
   }
 );

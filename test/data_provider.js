@@ -1,6 +1,5 @@
 const { expect } = require('chai');
 const { deployments, ethers, getNamedAccounts } = require('hardhat');
-const { BigNumber } = require('ethers');
 const { MAX_UINT_256 } = require('../helpers/math');
 
 let owner;
@@ -11,11 +10,7 @@ let juniorDepositToken;
 let seniorDepositToken;
 let defaultReserveInterestRateStrategy;
 let healthStrategyAddress;
-let addressResolver;
-let vaultManager;
 let tus;
-let vm;
-let voyageProtocolDataProvider;
 let loanStrategy;
 
 describe('Data Provider', function () {
@@ -32,7 +27,6 @@ describe('Data Provider', function () {
       'SetAddressResolver',
       'LoanManager',
       'VaultManager',
-      'VoyageProtocolDataProvider',
     ]);
     liquidityManagerProxy = await ethers.getContract('LiquidityManagerProxy');
     liquidityManager = await ethers.getContract('LiquidityManager');
@@ -60,10 +54,6 @@ describe('Data Provider', function () {
     const vaultManagerProxy = await ethers.getContract('VaultManagerProxy');
     const VaultManager = await ethers.getContractFactory('VaultManager');
     vm = await VaultManager.attach(vaultManagerProxy.address);
-
-    voyageProtocolDataProvider = await ethers.getContract(
-      'VoyageProtocolDataProvider'
-    );
   });
 
   it('Get pool data should return correct value', async function () {
@@ -72,9 +62,6 @@ describe('Data Provider', function () {
       libraries: { ReserveLogic: reserveLogic.address },
     });
     const lm = await LM.attach(liquidityManagerProxy.address);
-    const vaultManagerProxy = await ethers.getContract('VaultManagerProxy');
-    const VaultManager = await ethers.getContract('VaultManager');
-    const vm = VaultManager.attach(vaultManagerProxy.address);
     await lm.initReserve(
       tus.address,
       juniorDepositToken.address,
@@ -89,11 +76,7 @@ describe('Data Provider', function () {
     await lm.activeReserve(tus.address);
     await voyager.deposit(tus.address, 1, depositAmount);
 
-    const DataProvider = await ethers.getContractFactory(
-      'VoyageProtocolDataProvider'
-    );
-    const dp = await DataProvider.attach(voyageProtocolDataProvider.address);
-    const poolData = await dp.getPoolData(tus.address);
+    const poolData = await voyager.getPoolData(tus.address);
     expect(poolData.seniorLiquidity).to.equal(depositAmount);
   });
 });
