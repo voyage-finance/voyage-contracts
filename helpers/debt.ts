@@ -17,7 +17,6 @@ export const setupDebtTestSuite = d.createFixture(
       'VaultManager',
       'PriceOracle',
       'LibFinancial',
-      'VoyageProtocolDataProvider',
     ]);
     const liquidityManagerProxy = await ethers.getContract(
       'LiquidityManagerProxy'
@@ -38,10 +37,6 @@ export const setupDebtTestSuite = d.createFixture(
     const vaultManager = await ethers.getContract('VaultManager');
     const priceOracle = await ethers.getContract('PriceOracle');
     const libFinancial = await ethers.getContract('LibFinancial');
-    const voyageProtocolDataProvider = await ethers.getContract(
-      'VoyageProtocolDataProvider'
-    );
-
     const decimals = await tus.decimals();
     const multiplier = ethers.BigNumber.from(10).pow(decimals);
     // send some TUS to other accounts for testing
@@ -110,7 +105,6 @@ export const setupDebtTestSuite = d.createFixture(
       priceOracle,
       libFinancial,
       loanStrategy,
-      voyageProtocolDataProvider,
     };
   }
 );

@@ -1,5 +1,4 @@
-import { expect } from 'chai';
-import { ethers, getNamedAccounts } from 'hardhat';
+import { ethers } from 'hardhat';
 import { setupDebtTestSuite } from '../helpers/debt';
 
 describe('Price Oracle', function () {

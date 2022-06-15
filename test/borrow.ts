@@ -1,13 +1,8 @@
 import { expect } from 'chai';
 import { ethers, getNamedAccounts } from 'hardhat';
+import { mine } from '../helpers/chain';
 import { setupDebtTestSuite } from '../helpers/debt';
-import {
-  decimals,
-  formatTokenBalance,
-  MAX_UINT_256,
-  RAY,
-} from '../helpers/math';
-import { mine, timeTravel } from '../helpers/chain';
+import { decimals, MAX_UINT_256, RAY } from '../helpers/math';
 const { BigNumber } = ethers;
 
 describe('Borrow', function () {

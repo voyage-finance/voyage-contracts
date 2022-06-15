@@ -1,42 +1,30 @@
 import { ethers } from 'hardhat';
 import { DeployFunction, Facet, FacetCut } from 'hardhat-deploy/types';
-import pino from 'pino';
-import pretty from 'pino-pretty';
-import { mergeABIs, FacetCutAction, deployFacets } from '../helpers/diamond';
-
-const logLevel = process.env.DEBUG === 'true' ? 'debug' : 'info';
-const log = pino(
-  {
-    level: logLevel,
-  },
-  pretty({
-    colorize: true,
-    singleLine: true,
-  })
-);
-log.level = logLevel;
+import { deployFacets, FacetCutAction, mergeABIs } from '../helpers/diamond';
+import { log } from '../helpers/logger';
 
 const deployFn: DeployFunction = async (hre) => {
   const { deployments, getNamedAccounts } = hre;
   const { deploy, execute, getOrNull, save } = deployments;
   const { owner } = await getNamedAccounts();
+  const addressResolver = await deployments.get('AddressResolver');
 
   const diamondABI: any[] = [];
 
   // This only returns the bare diamond proxy.
-  let existingProxyDeployment = await getOrNull('VoyageDiamondProxy');
+  let existingProxyDeployment = await getOrNull('VoyagerDiamondProxy');
   let existingFacets: Facet[] = [];
   const existingSelectors: string[] = [];
   const selectorFacetMap: { [selector: string]: Facet } = {};
   if (existingProxyDeployment) {
     log.debug(
-      'existing voyage diamond proxy: ',
+      'existing voyage diamond proxy %s: ',
       existingProxyDeployment?.address
     );
     // this returns the diamond with merged ABI.
-    const diamond = await ethers.getContract('Voyage');
+    const diamond = await ethers.getContract('Voyager');
     existingFacets = await diamond.facets();
-    log.debug('existing facets:', existingFacets);
+    log.debug('existing facets: %o', existingFacets);
     diamondABI.push(existingProxyDeployment.abi);
   }
 
@@ -48,12 +36,22 @@ const deployFn: DeployFunction = async (hre) => {
     }
   }
 
-  const [facets, _, facetABIs] = await deployFacets();
+  await deploy('SafeMath', {
+    contract: '@openzeppelin/contracts/utils/math/SafeMath.sol:SafeMath',
+    from: owner,
+    log: true,
+  });
+  await deploy('WadRayMath', { from: owner, log: true });
+
+  const [facets, _, facetABIs] = await deployFacets({
+    name: 'VoyageDataProviderFacet',
+    from: owner,
+    log: true,
+  });
   const newSelectors: string[] = facets.reduce<string[]>(
     (acc, { functionSelectors }) => [...acc, ...functionSelectors],
     []
   );
-
   const cuts: FacetCut[] = [];
   for (const facet of facets) {
     const add: string[] = [];
@@ -110,7 +108,7 @@ const deployFn: DeployFunction = async (hre) => {
   if (changesDetected) {
     if (!existingProxyDeployment) {
       log.debug('No existing diamond proxy found. Deploying a fresh diamond.');
-      log.debug('Initialising with diamond cuts: ', cuts);
+      log.debug('Initialising with diamond cuts: %s', cuts);
       // TODO: check if there is already a diamond at this address, e.g., in case `deployments` folder was wiped.
       // if there is one, it can actually be re-used
       try {
@@ -118,7 +116,7 @@ const deployFn: DeployFunction = async (hre) => {
           contract: 'Voyager',
           from: owner,
           log: true,
-          args: [cuts, { owner }],
+          args: [owner],
         });
         log.debug(
           'Deployed fresh diamond proxy at: ',
@@ -128,27 +126,6 @@ const deployFn: DeployFunction = async (hre) => {
         log.error(err);
         log.fatal('Failed to deploy diamond proxy.');
         process.exit(1);
-      }
-    } else {
-      if (cuts.length > 0) {
-        log.debug('Executing upgrade with cuts: ', cuts);
-        await execute(
-          'Voyager',
-          {
-            from: owner,
-            log: true,
-          },
-          'diamondCut',
-          cuts,
-          // TODO: might have initialisation data here.
-          ethers.constants.AddressZero,
-          ethers.constants.HashZero
-        );
-      } else {
-        log.debug(
-          'No facets to update for diamond at ',
-          existingProxyDeployment.address
-        );
       }
     }
 
@@ -162,14 +139,47 @@ const deployFn: DeployFunction = async (hre) => {
       abi: mergedABI,
       facets,
     });
+
+    if (cuts.length > 0) {
+      log.debug('Deploying InitDiamond');
+      await deploy('InitDiamond', {
+        from: owner,
+        log: true,
+        args: [],
+      });
+      const initDiamond = await ethers.getContract('InitDiamond');
+      log.debug('Preparing InitDiamond call data');
+      const initArgs = initDiamond.interface.encodeFunctionData('init', [
+        {
+          addressResolver: addressResolver.address,
+        },
+      ]);
+
+      log.debug('Executing cuts: %o', cuts);
+      await execute(
+        'Voyager',
+        {
+          from: owner,
+          log: true,
+        },
+        'diamondCut',
+        cuts,
+        initDiamond.address,
+        initArgs
+      );
+    } else {
+      log.debug(
+        'No facets to update for diamond at %s',
+        existingProxyDeployment.address
+      );
+    }
   }
 
-  const AddressResolver = await deployments.get('AddressResolver');
   await execute(
     'Voyager',
     { from: owner, log: true },
     'setAddressResolverAddress',
-    AddressResolver.address
+    addressResolver.address
   );
 };
 

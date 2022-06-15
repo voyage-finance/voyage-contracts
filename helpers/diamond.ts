@@ -1,7 +1,6 @@
-import { Interface, Fragment, FunctionFragment } from '@ethersproject/abi';
+import { Fragment, FunctionFragment, Interface } from '@ethersproject/abi';
+import { deployments, getNamedAccounts } from 'hardhat';
 import { ABI, DeployOptions, DeployResult, Facet } from 'hardhat-deploy/types';
-import { uniqBy as uniq } from 'lodash';
-import { getNamedAccounts, deployments } from 'hardhat';
 const { deploy } = deployments;
 
 export enum FacetCutAction {
@@ -100,25 +99,29 @@ export function mergeABIs(
 type FacetDeploymentOptions = { name: string } & Partial<
   Pick<DeployOptions, 'contract' | 'args' | 'libraries' | 'from' | 'log'>
 >;
-const DEFAULT_FACET_DEPLOYMENTS: FacetDeploymentOptions[] = [
-  { name: 'DiamondCutFacet', log: true },
-  { name: 'OwnershipFacet', log: true },
-  { name: 'DiamondLoupeFacet', log: true },
+
+export const DEFAULT_FACETS: string[] = [
+  'DiamondCutFacet',
+  'DiamondLoupeFacet',
+  'OwnershipFacet',
 ];
 
+async function getDefaultABIs() {
+  const artifacts = await Promise.all(
+    DEFAULT_FACETS.map((facetName) => deployments.getArtifact(facetName))
+  );
+  return artifacts.map(({ abi }) => abi);
+}
+
 export async function deployFacets(
-  facetDeployments: FacetDeploymentOptions[] = []
+  ...facetDeployments: FacetDeploymentOptions[]
 ): Promise<[Facet[], DeployResult[], ABI[]]> {
   const { owner } = await getNamedAccounts();
   const cuts: Facet[] = [];
-  const abis: any[][] = [];
+  const abis: any[][] = await getDefaultABIs();
   const deployments: DeployResult[] = [];
-  const toDeploy = uniq(
-    [...DEFAULT_FACET_DEPLOYMENTS, ...facetDeployments],
-    ({ name }) => name
-  );
 
-  for (const facet of toDeploy) {
+  for (const facet of facetDeployments) {
     const { name, contract, from, ...options } = facet;
     const res = await deploy(name, {
       ...options,

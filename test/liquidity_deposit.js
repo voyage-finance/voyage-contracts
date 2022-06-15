@@ -8,7 +8,6 @@ let voyager;
 let liquidityManager;
 let liquidityManagerProxy;
 let tus;
-let escrowContract;
 let juniorDepositToken;
 let seniorDepositToken;
 let defaultReserveInterestRateStrategy;

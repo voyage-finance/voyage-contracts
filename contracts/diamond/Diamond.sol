@@ -9,11 +9,10 @@ pragma experimental ABIEncoderV2;
 * Implementation of a diamond.
 /******************************************************************************/
 
-import "./libraries/LibDiamond.sol";
-import "./interfaces/IDiamondLoupe.sol";
-import "./interfaces/IDiamondCut.sol";
-import "./interfaces/IERC173.sol";
-import "./interfaces/IERC165.sol";
+import {LibDiamond} from "./libraries/LibDiamond.sol";
+import {DiamondCutFacet} from "./facets/DiamondCutFacet.sol";
+import {DiamondLoupeFacet} from "./facets/DiamondLoupeFacet.sol";
+import {OwnershipFacet} from "./facets/OwnershipFacet.sol";
 
 contract Diamond {
     // more arguments are added to this struct
@@ -22,20 +21,13 @@ contract Diamond {
         address owner;
     }
 
-    constructor(
-        IDiamondCut.FacetCut[] memory _diamondCut,
-        DiamondArgs memory _args
-    ) payable {
-        LibDiamond.diamondCut(_diamondCut, address(0), new bytes(0));
-        LibDiamond.setContractOwner(_args.owner);
-
-        LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
-
-        // adding ERC165 data
-        ds.supportedInterfaces[type(IERC165).interfaceId] = true;
-        ds.supportedInterfaces[type(IDiamondCut).interfaceId] = true;
-        ds.supportedInterfaces[type(IDiamondLoupe).interfaceId] = true;
-        ds.supportedInterfaces[type(IERC173).interfaceId] = true;
+    constructor(address _owner) payable {
+        LibDiamond.setContractOwner(_owner);
+        LibDiamond.addDiamondFunctions(
+            address(new DiamondCutFacet()),
+            address(new DiamondLoupeFacet()),
+            address(new OwnershipFacet())
+        );
     }
 
     // Find facet for function that is called and execute the
