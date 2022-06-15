@@ -228,7 +228,6 @@ contract VoyageDataProviderFacet {
             _reserve,
             _sponsor
         );
-        vaultData.gav = vmp.getGav(_user);
         vaultData.totalSecurityDeposit = vmp.getSecurityDeposit(
             _user,
             _reserve
