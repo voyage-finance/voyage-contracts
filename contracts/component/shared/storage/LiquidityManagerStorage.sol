@@ -60,13 +60,15 @@ contract LiquidityManagerStorage is State {
         address _vault,
         uint256 _drawDownNumber,
         uint256 _principal,
-        uint256 _interest
+        uint256 _interest,
+        bool isLiquidated
     ) external onlyAssociatedContract {
         _borrowData[_reserve][_vault].repay(
             _borrowStat[_reserve],
             _drawDownNumber,
             _principal,
-            _interest
+            _interest,
+            isLiquidated
         );
     }
 
@@ -303,6 +305,17 @@ contract LiquidityManagerStorage is State {
             _drawDown
         ];
         return (dd.pmt.principal, dd.pmt.interest);
+    }
+
+    function getTPD(
+        address _reserve,
+        address _vault,
+        uint256 _drawDown
+    ) public view returns (uint256) {
+        DataTypes.DrawDown storage dd = _borrowData[_reserve][_vault].drawDowns[
+            _drawDown
+        ];
+        return block.timestamp.sub(dd.nextPaymentDue);
     }
 
     function getVaultDebt(address _reserve, address _vault)

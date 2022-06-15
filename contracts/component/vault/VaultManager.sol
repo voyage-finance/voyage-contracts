@@ -14,7 +14,6 @@ import {IVaultFactory} from "../../interfaces/IVaultFactory.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {IACLManager} from "../../interfaces/IACLManager.sol";
 import {Voyager} from "../../component/Voyager.sol";
-import {Vault} from "./Vault.sol";
 import {VaultStorage} from "./VaultStorage.sol";
 import {VaultFactory} from "./VaultFactory.sol";
 
@@ -118,7 +117,7 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         uint256 _amount
     ) external onlyProxy {
         address vaultAddress = _getVault(_vaultUser);
-        Vault(vaultAddress).redeemSecurity(_sponsor, _reserve, _amount);
+        IVault(vaultAddress).redeemSecurity(_sponsor, _reserve, _amount);
         proxy._emit(
             abi.encode(_vaultUser, _reserve, _amount),
             2,
@@ -127,17 +126,6 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
             0,
             0
         );
-    }
-
-    // placeholder function
-    function slash(
-        address _vaultUser,
-        address _reserve,
-        address payable _to,
-        uint256 _amount
-    ) public nonReentrant onlyProxy {
-        address vaultAddress = _getVault(_vaultUser);
-        return Vault(vaultAddress).slash(_reserve, _to, _amount);
     }
 
     /************************ HouseKeeping Function ******************************/
@@ -289,10 +277,6 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
     ) public view returns (uint256) {
         address vaultAddress = _getVault(_vaultUser);
         return IVault(vaultAddress).getWithdrawableDeposit(_sponsor, _reserve);
-    }
-
-    function getGav(address _user) external view returns (uint256) {
-        return IVault(_getVault(_user)).getGav();
     }
 
     /************************************** Private Functions **************************************/

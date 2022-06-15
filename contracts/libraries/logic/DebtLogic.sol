@@ -96,7 +96,8 @@ library DebtLogic {
         DataTypes.BorrowStat storage borrowStat,
         uint256 drawDownNumber,
         uint256 principal,
-        uint256 interest
+        uint256 interest,
+        bool isLiquidated
     ) public {
         DataTypes.DrawDown storage dd = debtData.drawDowns[drawDownNumber];
         dd.paidTimes += 1;

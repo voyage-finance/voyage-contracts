@@ -170,29 +170,6 @@ contract VoyageProtocolDataProvider {
             _user,
             ReserveLogic.Tranche.SENIOR
         );
-        uint256 seniorTrancheTotalBalance = seniorTrancheWithdrawable.add(
-            seniorTrancheUnbonding
-        );
-        uint256 juniorTrancheWithdrawable = lmp.balance(
-            _reserve,
-            _user,
-            ReserveLogic.Tranche.JUNIOR
-        );
-        uint256 juniorTrancheUnbonding = lmp.unbonding(
-            _reserve,
-            _user,
-            ReserveLogic.Tranche.JUNIOR
-        );
-        uint256 juniorTrancheTotalBalance = juniorTrancheWithdrawable.add(
-            juniorTrancheUnbonding
-        );
-
-        userPoolData.juniorTrancheBalance = juniorTrancheTotalBalance;
-        userPoolData
-            .withdrawableJuniorTrancheBalance = juniorTrancheWithdrawable;
-        userPoolData.seniorTrancheBalance = seniorTrancheTotalBalance;
-        userPoolData
-            .withdrawableSeniorTrancheBalance = seniorTrancheWithdrawable;
         userPoolData.decimals = token.decimals();
 
         return userPoolData;
@@ -233,7 +210,6 @@ contract VoyageProtocolDataProvider {
             _reserve,
             _sponsor
         );
-        vaultData.gav = vmp.getGav(_user);
         vaultData.totalSecurityDeposit = vmp.getSecurityDeposit(
             _user,
             _reserve

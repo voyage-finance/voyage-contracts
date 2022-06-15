@@ -17,7 +17,9 @@ import {ILoanStrategy} from "../../interfaces/ILoanStrategy.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {IVToken} from "../../interfaces/IVToken.sol";
 import {ILoanManager} from "../../interfaces/ILoanManager.sol";
+import {IPriceOracle} from "../../interfaces/IPriceOracle.sol";
 import {Voyager} from "../Voyager.sol";
+import {ERC4626} from "@rari-capital/solmate/src/mixins/ERC4626.sol";
 
 contract LoanManager is Proxyable, ILoanManager {
     using SafeMath for uint256;
@@ -38,6 +40,26 @@ contract LoanManager is Proxyable, ILoanManager {
         uint256 epoch;
         uint256 liquidityRate;
         uint256 borrowRate;
+    }
+
+    struct ExecuteLiquidateParams {
+        address reserve;
+        address vault;
+        uint256 drawDownId;
+        uint256 principal;
+        uint256 interest;
+        uint256 totalDebt;
+        uint256 totalFromMargin;
+        uint256 totalToLiquidate;
+        uint256 discount;
+        uint256 totalSlash;
+        address liquidator;
+        uint256 floorPrice;
+        uint256 totalNFTNums;
+        uint256 numNFTsToLiquidate;
+        uint256 gracePeriod;
+        uint256 liquidationBonus;
+        uint256 marginRequirement;
     }
 
     function borrow(
@@ -163,7 +185,7 @@ contract LoanManager is Proxyable, ILoanManager {
         );
 
         // 3. update repay data
-        lms.repay(_asset, _vault, _drawDown, principal, interest);
+        lms.repay(_asset, _vault, _drawDown, principal, interest, false);
 
         // 4. transfer underlying asset
         DataTypes.ReserveData memory reserveData = voyager.getReserveData(
@@ -174,6 +196,146 @@ contract LoanManager is Proxyable, ILoanManager {
             _user,
             reserveData.seniorDepositTokenAddress,
             principal.add(interest)
+        );
+    }
+
+    function liquidate(
+        address _liquidator,
+        address _reserve,
+        address _vault,
+        uint256 _drawDownId
+    ) external requireNotPaused onlyProxy {
+        ExecuteLiquidateParams memory param;
+        DataTypes.ReserveData memory reserveData = voyager.getReserveData(
+            param.reserve
+        );
+        LiquidityManagerStorage lms = LiquidityManagerStorage(
+            liquidityManagerStorageAddress()
+        );
+
+        // 1. prepare basic info and some strategy parameters
+        param.reserve = _reserve;
+        param.vault = _vault;
+        param.drawDownId = _drawDownId;
+        param.liquidator = _liquidator;
+        (
+            param.gracePeriod,
+            param.liquidationBonus,
+            param.marginRequirement
+        ) = ILoanStrategy(reserveData.loanStrategyAddress)
+            .getLiquidationParams();
+        param.totalNFTNums = IVault(param.vault).getTotalNFTNumbers(
+            reserveData.nftAddress
+        );
+
+        DataTypes.DebtDetail memory debtDetail = lms.getDrawDownDetail(
+            param.reserve,
+            param.vault,
+            param.drawDownId
+        );
+
+        // 2. check if the debt is qualified to be liquidated
+        require(
+            block.timestamp.sub(debtDetail.nextPaymentDue) > param.gracePeriod,
+            Errors.LOM_INVALID_LIQUIDATE
+        );
+
+        // 3.1 if it is, get debt info
+        (param.principal, param.interest) = lms.getPMT(
+            param.reserve,
+            param.vault,
+            param.drawDownId
+        );
+        param.totalDebt = param.principal.add(param.interest);
+        param.totalFromMargin = param
+            .totalDebt
+            .wadToRay()
+            .rayMul(param.marginRequirement)
+            .rayToWad();
+        param.totalToLiquidate = param.totalDebt.sub(param.totalFromMargin);
+        param.discount = getDiscount(
+            param.totalToLiquidate,
+            param.liquidationBonus
+        );
+
+        // 3.2 get floor price from oracle contract
+        param.floorPrice = IPriceOracle(getPriceOracleAddress()).getAssetPrice(
+            reserveData.nftAddress
+        );
+
+        param.numNFTsToLiquidate = param
+            .totalToLiquidate
+            .sub(param.discount)
+            .div(param.floorPrice);
+        param.totalSlash = param.totalFromMargin.add(param.discount);
+
+        // 4.1 slash margin account
+        uint256 amountSlashed = IVault(param.vault).slash(
+            param.reserve,
+            payable(address(this)),
+            param.totalSlash
+        );
+
+        uint256 amountNeedExtra = param.totalSlash.sub(amountSlashed);
+
+        // 4.2 transfer from liquidator
+        IERC20(param.reserve).safeTransferFrom(
+            param.liquidator,
+            address(this),
+            param.totalToLiquidate
+        );
+
+        if (param.totalNFTNums < param.numNFTsToLiquidate) {
+            uint256 missingNFTNums = param.numNFTsToLiquidate.sub(
+                param.totalNFTNums
+            );
+            amountNeedExtra = missingNFTNums.mul(param.floorPrice).add(
+                amountNeedExtra
+            );
+            param.numNFTsToLiquidate = param.totalNFTNums;
+        }
+
+        // 4.3 sell nft
+        IVault(param.vault).transferNFT(
+            reserveData.nftAddress,
+            param.liquidator,
+            param.numNFTsToLiquidate
+        );
+
+        // 4.4 transfer from junior tranche
+        uint256 totalAssetFromJuniorTranche = ERC4626(
+            reserveData.juniorDepositTokenAddress
+        ).totalAssets();
+
+        if (totalAssetFromJuniorTranche >= amountNeedExtra) {
+            IVToken(reserveData.juniorDepositTokenAddress).transferUnderlyingTo(
+                    address(this),
+                    amountNeedExtra
+                );
+        } else {
+            IVToken(reserveData.juniorDepositTokenAddress).transferUnderlyingTo(
+                    address(this),
+                    totalAssetFromJuniorTranche
+                );
+
+            uint256 amountToWriteDown = amountNeedExtra.sub(
+                totalAssetFromJuniorTranche
+            );
+            // todo write down to somewhere
+        }
+
+        lms.repay(
+            param.reserve,
+            param.vault,
+            param.drawDownId,
+            param.principal,
+            param.interest,
+            true
+        );
+
+        IERC20(param.reserve).safeTransfer(
+            reserveData.seniorDepositTokenAddress,
+            param.totalDebt
         );
     }
 
@@ -236,5 +398,15 @@ contract LoanManager is Proxyable, ILoanManager {
             liquidityManagerStorageAddress()
         ).getBorrowStat(underlyingAsset);
         return borrowState.totalInterest;
+    }
+
+    function getDiscount(uint256 _value, uint256 _liquidationBonus)
+        private
+        view
+        returns (uint256)
+    {
+        uint256 valueInRay = _value.wadToRay();
+        uint256 discountValueInRay = valueInRay.rayMul(_liquidationBonus);
+        return discountValueInRay.rayToWad();
     }
 }
