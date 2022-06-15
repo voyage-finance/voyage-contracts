@@ -25,11 +25,22 @@ interface IVault {
         address _reserve,
         address payable _to,
         uint256 _amount
+    ) external returns (uint256);
+
+    function transferNFT(
+        address _erc721Addr,
+        address _to,
+        uint256 _num
     ) external;
 
-    function initStakingContract(address _reserve) external;
-
     function getSecurityDepositTokenAddress() external view returns (address);
+
+    function getTotalNFTNumbers(address _erc721Addr)
+        external
+        view
+        returns (uint256);
+
+    function insertNFT(address _erc721Addr, uint256 tokenId) external;
 
     function initSecurityDepositToken(address _reserve) external;
 
@@ -37,8 +48,6 @@ interface IVault {
         external
         view
         returns (uint256);
-
-    function getGav() external view returns (uint256);
 
     function getCurrentSecurityDeposit(address _reserve)
         external

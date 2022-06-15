@@ -115,26 +115,4 @@ describe('Security Redeem', function () {
     expect(eligibleAmount).to.equal('10000000000000000000');
     await voyager.redeemSecurity(owner, tus.address, '1000000000000000000');
   });
-
-  it('Security redeem with slash should return correct value', async function () {
-    const tenDay = 10 * 24 * 60 * 60;
-
-    await ethers.provider.send('evm_increaseTime', [tenDay]);
-    await ethers.provider.send('evm_mine');
-
-    const beforeSlashing = await tus.balanceOf(securityDepositEscrow.address);
-    expect(beforeSlashing).to.equal('10000000000000000000');
-
-    await voyager.slash(owner, tus.address, owner, '1000000000000000000');
-
-    const afterSlashing = await tus.balanceOf(securityDepositEscrow.address);
-    expect(afterSlashing).to.equal('9000000000000000000');
-
-    const eligibleAmount = await voyager.eligibleAmount(
-      owner,
-      tus.address,
-      owner
-    );
-    expect(eligibleAmount).to.equal('10000000000000000000');
-  });
 });

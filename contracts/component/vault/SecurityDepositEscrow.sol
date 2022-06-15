@@ -3,6 +3,7 @@ pragma solidity ^0.8.9;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {BaseSecurityEscrow} from "./BaseSecurityEscrow.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract SecurityDepositEscrow is BaseSecurityEscrow {
     address public vault;
@@ -26,8 +27,13 @@ contract SecurityDepositEscrow is BaseSecurityEscrow {
         address _reserve,
         address payable _to,
         uint256 _amount
-    ) public payable nonReentrant onlyOwner {
+    ) public payable nonReentrant onlyOwner returns (uint256) {
+        uint256 balance = IERC20(_reserve).balanceOf(address(this));
+        if (balance < _amount) {
+            _amount = balance;
+        }
         transferToUser(_reserve, _to, _amount);
+        return _amount;
     }
 
     function deposit(

@@ -257,21 +257,6 @@ contract Voyager is Diamond, MessageBus {
         );
     }
 
-    // todo placeholder functions, more detail should be impl in the future
-    function slash(
-        address _vaultUser,
-        address _reserve,
-        address payable _to,
-        uint256 _amount
-    ) external {
-        VaultManager(getVaultManagerProxyAddress()).slash(
-            _vaultUser,
-            _reserve,
-            _to,
-            _amount
-        );
-    }
-
     /**
      * @dev Get maximum reserve amount the use can borrow
      * @param _user user address

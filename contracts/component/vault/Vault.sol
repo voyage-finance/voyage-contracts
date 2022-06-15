@@ -4,49 +4,58 @@ pragma solidity ^0.8.9;
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {SecurityDepositEscrow} from "./SecurityDepositEscrow.sol";
 import {AddressResolver} from "../infra/AddressResolver.sol";
 import {Voyager} from "../Voyager.sol";
 import {VaultManager} from "./VaultManager.sol";
-import {StakingRewards} from "../staking/StakingRewards.sol";
 import {LoanManagerProxy} from "../loan/LoanManagerProxy.sol";
 import {SecurityDepositToken} from "../../tokenization/SecurityDepositToken.sol";
 import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
 import {IACLManager} from "../../interfaces/IACLManager.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILoanManager} from "../../interfaces/ILoanManager.sol";
+import {IAddressResolver} from "../../interfaces/IAddressResolver.sol";
 import {IVaultManagerProxy} from "../../interfaces/IVaultManagerProxy.sol";
 import {DataTypes} from "../../libraries/types/DataTypes.sol";
+import {PriorityQueue} from "../../libraries/logic/PriorityQueue.sol";
 
 contract Vault is ReentrancyGuard, IVault {
     using WadRayMath for uint256;
     using SafeMath for uint256;
-    bytes32 public constant BORROWER = keccak256("BORROWER");
+    using PriorityQueue for DataTypes.Heap;
 
-    address payable public voyager;
+    IAddressResolver addressResolver;
+    IACLManager aclManager;
     address[] public players;
     bool public initialized;
     SecurityDepositEscrow public securityDepositEscrow;
     SecurityDepositToken public securityDepositToken;
-    StakingRewards public stakingContract;
 
-    //    uint256 public totalDebt;
-    // todo oracle
-    uint256 public gav;
+    mapping(address => DataTypes.Heap) nfts;
 
     modifier onlyLoanManager() {
-        _requireCallerLoanManager();
+        require(
+            aclManager.isLoanManager(msg.sender),
+            "Not loan manager contract"
+        );
         _;
     }
 
     modifier onlyVaultManager() {
-        _requireVaultManager();
+        require(
+            aclManager.isVaultManagerContract(msg.sender),
+            "Not vault manager contract"
+        );
         _;
     }
 
     modifier onlyVaultManagerContract() {
-        _requireCallerLoanManagerContract();
+        require(
+            aclManager.isLoanManagerContract(msg.sender),
+            "Not loan manager"
+        );
         _;
     }
 
@@ -55,7 +64,8 @@ contract Vault is ReentrancyGuard, IVault {
         SecurityDepositEscrow _securityDepositEscrow
     ) external {
         if (!initialized) {
-            voyager = payable(_voyager);
+            addressResolver = Voyager(payable(_voyager)).addressResolver();
+            aclManager = IACLManager(addressResolver.getAclManager());
             securityDepositEscrow = _securityDepositEscrow;
             initialized = true;
         }
@@ -78,33 +88,16 @@ contract Vault is ReentrancyGuard, IVault {
         );
     }
 
-    function initStakingContract(address _reserve) external onlyVaultManager {
-        require(
-            address(stakingContract) == address(0),
-            "Vault: staking contract has been initialized"
-        );
-        require(
-            address(securityDepositToken) != address(0),
-            "Vault: security deposit token has not been initialized"
-        );
-        stakingContract = new StakingRewards(
-            address(securityDepositToken),
-            _reserve
-        );
-    }
-
-    /**
-     * @dev Transfer some deposit security
-     * @param _sponsor user address who deposit to this escrow
-     * @param _reserve reserve address
-     * @param _amount deposit amount
-     **/
+    /// @notice Transfer some deposit security
+    /// @param _sponsor user address who deposit to this escrow
+    /// @param _reserve reserve address
+    /// @param _amount deposit amount
     function depositSecurity(
         address _sponsor,
         address _reserve,
         uint256 _amount
     ) external payable nonReentrant onlyVaultManager {
-        address vmp = Voyager(voyager).addressResolver().getVaultManagerProxy();
+        address vmp = addressResolver.getVaultManagerProxy();
         IVaultManagerProxy vaultManagerProxy = IVaultManagerProxy(vmp);
         DataTypes.VaultConfig memory vaultConfig = vaultManagerProxy
             .getVaultConfig(_reserve);
@@ -127,12 +120,10 @@ contract Vault is ReentrancyGuard, IVault {
         securityDepositToken.mintOnDeposit(_sponsor, _amount);
     }
 
-    /**
-     * @dev Redeem underlying reserve
-     * @param _sponsor sponsor address
-     * @param _reserve reserve address
-     * @param _amount redeem amount
-     **/
+    /// @notice Redeem underlying reserve
+    /// @param _sponsor sponsor address
+    /// @param _reserve reserve address
+    /// @param _amount redeem amount
     function redeemSecurity(
         address payable _sponsor,
         address _reserve,
@@ -150,21 +141,44 @@ contract Vault is ReentrancyGuard, IVault {
         securityDepositToken.burnOnRedeem(_sponsor, _amount);
     }
 
-    // placeholder function
+    /// @return Returns the actual value that has been transferred
     function slash(
         address _reserve,
         address payable _to,
         uint256 _amount
-    ) external nonReentrant onlyVaultManager {
-        securityDepositEscrow.slash(_reserve, _to, _amount);
+    ) external nonReentrant onlyVaultManager returns (uint256) {
+        return securityDepositEscrow.slash(_reserve, _to, _amount);
+    }
+
+    /// @notice Insert new NFT
+    /// @param _erc721Addr NFT address
+    /// @param _tokenId Token id
+    function insertNFT(address _erc721Addr, uint256 _tokenId)
+        external
+        onlyVaultManager
+    {
+        nfts[_erc721Addr].insert(_tokenId, block.timestamp);
+    }
+
+    /// @notice Transfer nft out
+    /// @param _erc721Addr NFT address
+    /// @param _to whom to transfer
+    /// @param _num Number of nfts to transfer
+    function transferNFT(
+        address _erc721Addr,
+        address _to,
+        uint256 _num
+    ) external nonReentrant onlyLoanManager {
+        for (uint256 i = 0; i < _num; i++) {
+            uint256 tokenId;
+            uint256 timestamp;
+            (tokenId, timestamp) = nfts[_erc721Addr].delMin();
+            IERC721(_erc721Addr).transferFrom(address(this), _to, tokenId);
+        }
     }
 
     /************************************** View Functions **************************************/
 
-    /**
-     * @dev get current security amount
-     * @param _reserve underlying asset address
-     **/
     function getCurrentSecurityDeposit(address _reserve)
         external
         view
@@ -179,10 +193,6 @@ contract Vault is ReentrancyGuard, IVault {
         returns (uint256)
     {
         return ERC20(_reserve).balanceOf(address(securityDepositEscrow));
-    }
-
-    function getGav() external view returns (uint256) {
-        return gav;
     }
 
     function getWithdrawableDeposit(address _sponsor, address _reserve)
@@ -205,10 +215,6 @@ contract Vault is ReentrancyGuard, IVault {
         return address(securityDepositToken);
     }
 
-    function getStakingContractAddress() external view returns (address) {
-        return address(stakingContract);
-    }
-
     /**
      * @dev Get SecurityDepositEscrow contract address
      * @return address
@@ -217,50 +223,20 @@ contract Vault is ReentrancyGuard, IVault {
         return address(securityDepositEscrow);
     }
 
+    function getTotalNFTNumbers(address _erc721Addr)
+        external
+        view
+        returns (uint256)
+    {
+        return nfts[_erc721Addr].currentSize;
+    }
+
     function getVersion() external view returns (string memory) {
         string memory version = "Vault 0.0.1";
         return version;
     }
 
     /************************************** Internal Functions **************************************/
-
-    function _requireCallerLoanManager() internal {
-        Voyager v = Voyager(voyager);
-        IACLManager aclManager = IACLManager(
-            v.addressResolver().getAclManager()
-        );
-        require(
-            aclManager.isLoanManager(msg.sender),
-            "Not loan manager contract"
-        );
-    }
-
-    function _requireCallerLoanManagerContract() internal {
-        Voyager v = Voyager(voyager);
-        IACLManager aclManager = IACLManager(
-            v.addressResolver().getAclManager()
-        );
-        require(
-            aclManager.isLoanManagerContract(msg.sender),
-            "Not loan manager"
-        );
-    }
-
-    function _requireVaultManager() internal {
-        Voyager v = Voyager(voyager);
-        IACLManager aclManager = IACLManager(
-            v.addressResolver().getAclManager()
-        );
-        require(
-            aclManager.isVaultManagerContract(msg.sender),
-            "Not vault manager contract"
-        );
-    }
-
-    function _getVaultManagerAddress() internal view returns (address) {
-        Voyager v = Voyager(voyager);
-        return v.addressResolver().getVaultManager();
-    }
 
     function _underlyingBalance(address _sponsor, address _reserve)
         internal
@@ -275,24 +251,12 @@ contract Vault is ReentrancyGuard, IVault {
         return amountToRedeemInRay.rayToWad();
     }
 
-    function getVaultManagerProxyAddress() private view returns (address) {
-        Voyager voyager = Voyager(voyager);
-        address addressResolver = voyager.getAddressResolverAddress();
-        return AddressResolver(addressResolver).getVaultManagerProxy();
-    }
-
-    function getLoanManagerProxyAddress() private view returns (address) {
-        Voyager voyager = Voyager(voyager);
-        address addressResolver = voyager.getAddressResolverAddress();
-        return AddressResolver(addressResolver).getLoanManagerProxy();
-    }
-
     function _getUnusedDeposits(address _sponsor, address _reserve)
         internal
         view
         returns (uint256)
     {
-        address vmp = Voyager(voyager).addressResolver().getVaultManagerProxy();
+        address vmp = addressResolver.getVaultManagerProxy();
         IVaultManagerProxy vaultManagerProxy = IVaultManagerProxy(vmp);
         DataTypes.VaultConfig memory vaultConfig = vaultManagerProxy
             .getVaultConfig(_reserve);
@@ -300,8 +264,9 @@ contract Vault is ReentrancyGuard, IVault {
         uint256 securityRequirement = vaultConfig.securityDepositRequirement;
         uint256 principal;
         uint256 interest;
-        (principal, interest) = ILoanManager(getLoanManagerProxyAddress())
-            .getVaultDebt(_reserve, address(this));
+        (principal, interest) = ILoanManager(
+            addressResolver.getLoanManagerProxy()
+        ).getVaultDebt(_reserve, address(this));
 
         uint256 totalDebt = principal.add(interest);
         return

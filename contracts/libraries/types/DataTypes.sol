@@ -30,6 +30,7 @@ library DataTypes {
         uint256 optimalTrancheRatio;
         uint256 currentIncomeRatio;
         uint256 optimalIncomeRatio;
+        address nftAddress;
     }
 
     struct ReserveConfigurationMap {
@@ -121,6 +122,7 @@ library DataTypes {
         // principal + interest
         uint256 total;
         uint40 paidAt;
+        bool isLiquidated;
     }
 
     struct Repayment {
@@ -206,5 +208,10 @@ library DataTypes {
         uint256 seniorTrancheBalance;
         uint256 withdrawableSeniorTrancheBalance;
         uint256 decimals;
+    }
+
+    struct Heap {
+        uint256[] heapList;
+        uint256 currentSize;
     }
 }

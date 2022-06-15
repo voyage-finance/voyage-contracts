@@ -1,5 +1,7 @@
 import { DeployFunction } from 'hardhat-deploy/types';
 import { ethers } from 'hardhat';
+import BigNumber from 'bignumber.js';
+import { RAY } from '../helpers/math';
 
 const LOAN_MANAGER_NAME = 'LoanManager';
 const LOAN_MANAGER_PROXY_NAME = 'LoanManagerProxy';
@@ -30,9 +32,12 @@ const deployFn: DeployFunction = async (hre) => {
     log: true,
   });
 
+  const liquidationBonus = new BigNumber('0.1').multipliedBy(RAY).toFixed();
+  const marginRequirement = new BigNumber('0.3').multipliedBy(RAY).toFixed();
+
   const DefaultLoanStrategy = await deploy(LOAN_STRATEGY_NAME, {
     from: owner,
-    args: [90, 30],
+    args: [90, 30, 10, liquidationBonus, marginRequirement],
     log: true,
   });
 

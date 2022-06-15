@@ -21,6 +21,12 @@ abstract contract IVoyagerComponent {
                 .getLiquidityManagerStorage();
     }
 
+    function getPriceOracleAddress() internal view returns (address) {
+        return
+            AddressResolver(voyager.getAddressResolverAddress())
+                .getPriceOracle();
+    }
+
     function _whenNotPaused() internal view {
         require(!paused(), Errors.LP_IS_PAUSED);
     }
