@@ -4,10 +4,10 @@ pragma solidity ^0.8.9;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {WadRayMath} from "../math/WadRayMath.sol";
-import {DataTypes} from "../types/DataTypes.sol";
 import {Errors} from "../helpers/Errors.sol";
 import {IReserveInterestRateStrategy} from "../../interfaces/IReserveInterestRateStrategy.sol";
 import {DefaultReserveInterestRateStrategy} from "../../component/liquidity/DefaultReserveInterestRateStrategy.sol";
+import {ReserveData, Tranche} from "../LibAppStorage.sol";
 
 /**
  * @title ReserveLogic library
@@ -20,12 +20,7 @@ library ReserveLogic {
 
     uint256 internal constant RAY = 1e27;
 
-    using ReserveLogic for DataTypes.ReserveData;
-
-    enum Tranche {
-        JUNIOR,
-        SENIOR
-    }
+    using ReserveLogic for ReserveData;
 
     /**
      * @dev Emitted when the state of a reserve is updated
@@ -40,7 +35,7 @@ library ReserveLogic {
     );
 
     function init(
-        DataTypes.ReserveData storage reserve,
+        ReserveData storage reserve,
         address _juniorDepositTokenAddress,
         address _seniorDepositTokenAddress,
         address _interestRateStrategyAddress,
@@ -56,10 +51,11 @@ library ReserveLogic {
         reserve.loanStrategyAddress = _loanStrategyAddress;
     }
 
-    function getLiquidityRate(
-        DataTypes.ReserveData storage reserve,
-        Tranche _tranche
-    ) public view returns (uint256) {
+    function getLiquidityRate(ReserveData storage reserve, Tranche _tranche)
+        public
+        view
+        returns (uint256)
+    {
         return reserve._getLiquidityRate(_tranche);
     }
 
@@ -79,7 +75,7 @@ library ReserveLogic {
 
     // for the purposes of updating interest rates, we only care about senior tranche liquidity.
     function updateInterestRates(
-        DataTypes.ReserveData storage _reserve,
+        ReserveData storage _reserve,
         address _reserveAddress,
         address _juniorDepositTokenAddress,
         address _seniorDepositTokenAddress,
@@ -146,10 +142,11 @@ library ReserveLogic {
         );
     }
 
-    function _getLiquidityRate(
-        DataTypes.ReserveData storage reserve,
-        Tranche _tranche
-    ) internal view returns (uint256) {
+    function _getLiquidityRate(ReserveData storage reserve, Tranche _tranche)
+        internal
+        view
+        returns (uint256)
+    {
         if (_tranche == Tranche.JUNIOR) {
             return reserve.currentJuniorLiquidityRate;
         } else {

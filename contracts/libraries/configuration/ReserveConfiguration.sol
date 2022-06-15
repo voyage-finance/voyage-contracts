@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import {DataTypes} from "../types/DataTypes.sol";
+import {ReserveData, ReserveConfigurationMap} from "../LibAppStorage.sol";
 
 /**
  * @title ReserveConfiguration library
@@ -31,7 +31,7 @@ library ReserveConfiguration {
      * @param self The reserve configuration
      * @return The state flags representing active, frozen, borrowing enabled
      **/
-    function getFlags(DataTypes.ReserveConfigurationMap memory self)
+    function getFlags(ReserveConfigurationMap memory self)
         internal
         view
         returns (
@@ -54,16 +54,16 @@ library ReserveConfiguration {
      * @param self The reserve configuration
      * @param active The active state
      **/
-    function setActive(
-        DataTypes.ReserveConfigurationMap memory self,
-        bool active
-    ) internal pure {
+    function setActive(ReserveConfigurationMap memory self, bool active)
+        internal
+        pure
+    {
         self.data =
             (self.data & ACTIVE_MASK) |
             (uint256(active ? 1 : 0) << ACTIVE_MASK_BIT_POSITION);
     }
 
-    function getActive(DataTypes.ReserveConfigurationMap storage self)
+    function getActive(ReserveConfigurationMap storage self)
         internal
         view
         returns (bool)

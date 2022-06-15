@@ -12,9 +12,11 @@ import {ILiquidityManager} from "../../interfaces/ILiquidityManager.sol";
 import {IVToken} from "../../interfaces/IVToken.sol";
 import {JuniorDepositToken} from "../../tokenization/JuniorDepositToken.sol";
 import {SeniorDepositToken} from "../../tokenization/SeniorDepositToken.sol";
+import {LibAppStorage, AppStorage, ReserveData, BorrowState} from "../../libraries/LibAppStorage.sol";
+import {LibLiquidity} from "../../libraries/LibLiquidity.sol";
 import {PeripheryPayments} from "../../libraries/utils/PeripheryPayments.sol";
 
-contract LiquidityManager is
+contract LiquidityFacet is
     PeripheryPayments,
     ReserveManager,
     ILiquidityManager
@@ -22,6 +24,21 @@ contract LiquidityManager is
     using WadRayMath for uint256;
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
+
+    AppStorage internal s;
+
+    event Deposit(
+        address indexed asset,
+        address indexed user,
+        uint8 indexed tranche,
+        uint256 amount
+    );
+    event Withdraw(
+        address indexed asset,
+        address indexed user,
+        uint8 indexed tranche,
+        uint256 amount
+    );
 
     constructor(address payable _proxy, address payable _voyager)
         ReserveManager(_proxy, _voyager)
@@ -34,16 +51,15 @@ contract LiquidityManager is
         ReserveLogic.Tranche _tranche,
         uint256 _amount,
         address _user
-    ) external onlyProxy {
-        LiquidityManagerStorage lms = LiquidityManagerStorage(
-            liquidityManagerStorageAddress()
+    ) external {
+        ReserveData memory reserve = s._reserves[_asset];
+        BorrowState memory borrowState = s._borrowState[_asset];
+        uint256 totalDebt = borrowState.totalDebt.add(
+            borrowState.totalInterest
         );
-        DataTypes.ReserveData memory reserve = getReserveData(_asset);
-        DataTypes.BorrowStat memory borrowStat = lms.getBorrowStat(_asset);
-        uint256 totalDebt = borrowStat.totalDebt.add(borrowStat.totalInterest);
-        uint256 avgBorrowRate = borrowStat.avgBorrowRate;
+        uint256 avgBorrowRate = borrowState.avgBorrowRate;
 
-        lms.updateStateOnDeposit(
+        LibLiquidity.updateStateOnDeposit(
             _asset,
             _tranche,
             _amount,
@@ -57,7 +73,7 @@ contract LiquidityManager is
         // transfer the underlying tokens to liquidity manager, then do deposit.
         pullToken(vToken.asset(), _amount, _user, address(this));
         vToken.deposit(_amount, _user);
-        emitDeposit(_asset, _user, _tranche, _amount);
+        emit Deposit(_asset, _user, _tranche, _amount);
     }
 
     function withdraw(
@@ -65,11 +81,8 @@ contract LiquidityManager is
         ReserveLogic.Tranche _tranche,
         uint256 _amount,
         address payable _user
-    ) external onlyProxy {
-        LiquidityManagerStorage lms = LiquidityManagerStorage(
-            liquidityManagerStorageAddress()
-        );
-        DataTypes.ReserveData memory reserve = getReserveData(_asset);
+    ) external {
+        ReserveData memory reserve = s._reserves[_asset];
         IVToken vToken = ReserveLogic.Tranche.JUNIOR == _tranche
             ? IVToken(reserve.juniorDepositTokenAddress)
             : IVToken(reserve.seniorDepositTokenAddress);
@@ -78,11 +91,13 @@ contract LiquidityManager is
         if (_amount == type(uint256).max) {
             amountToWithdraw = userBalance;
         }
-        DataTypes.BorrowStat memory borrowStat = lms.getBorrowStat(_asset);
-        uint256 totalDebt = borrowStat.totalDebt.add(borrowStat.totalInterest);
-        uint256 avgBorrowRate = borrowStat.avgBorrowRate;
+        BorrowState memory borrowState = s._borrowState[_asset];
+        uint256 totalDebt = borrowState.totalDebt.add(
+            borrowState.totalInterest
+        );
+        uint256 avgBorrowRate = borrowState.avgBorrowRate;
         IVToken(vToken).withdraw(_amount, _user, _user);
-        lms.updateStateOnWithdraw(
+        LibLiquidity.updateStateOnWithdraw(
             _asset,
             _tranche,
             amountToWithdraw,
@@ -90,7 +105,7 @@ contract LiquidityManager is
             avgBorrowRate
         );
 
-        emitWithdraw(_asset, _user, _tranche, _amount);
+        emit Withdraw(_asset, _user, _tranche, _amount);
     }
 
     /************************************** View Functions **************************************/
@@ -166,34 +181,11 @@ contract LiquidityManager is
         return ReserveLogic.trancheToBytes32(tranche);
     }
 
-    event Deposit(
-        address indexed asset,
-        address indexed user,
-        uint8 indexed tranche,
-        uint256 amount
-    );
-
     bytes32 internal constant DEPOSIT_SIG =
         keccak256("Deposit(address,address,uint8,uint256)");
 
     bytes32 internal constant WITHDRAW_SIG =
         keccak256("Withdraw(address,address,uint8,uint256)");
-
-    function emitDeposit(
-        address asset,
-        address user,
-        ReserveLogic.Tranche tranche,
-        uint256 amount
-    ) internal {
-        proxy._emit(
-            abi.encode(amount),
-            4,
-            DEPOSIT_SIG,
-            addressToBytes32(asset),
-            addressToBytes32(user),
-            trancheToBytes32(tranche)
-        );
-    }
 
     function emitWithdraw(
         address asset,
