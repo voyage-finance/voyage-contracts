@@ -7,16 +7,13 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {ExtCallACL} from "../libraries/acl/ExtCallACL.sol";
 import {ExtCallACLProxy} from "../libraries/acl/ExtCallACLProxy.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
-import {ReserveLogic} from "../libraries/logic/ReserveLogic.sol";
 import {Errors} from "../libraries/helpers/Errors.sol";
 import {AddressResolver} from "../component/infra/AddressResolver.sol";
 import {VaultManager} from "../component/vault/VaultManager.sol";
 import {VaultManagerProxy} from "../component/vault/VaultManagerProxy.sol";
-import {LiquidityManager} from "../component/liquidity/LiquidityManager.sol";
-import {LoanManager} from "../component/loan/LoanManager.sol";
+// import {LoanManager} from "../component/loan/LoanManager.sol";
 import {IACLManager} from "../interfaces/IACLManager.sol";
 import {MessageBus} from "./infra/MessageBus.sol";
-
 import {Diamond} from "../diamond/Diamond.sol";
 import {LibDiamond} from "../diamond/libraries/LibDiamond.sol";
 
@@ -49,18 +46,6 @@ contract Voyager is Diamond, MessageBus {
 
     constructor(address _owner) Diamond(_owner) {}
 
-    /************************************** HouseKeeping Interfaces **************************************/
-    /**
-     * @dev Update addressResolver contract address
-     * @param _addressResolver address of the resolver contract
-     **/
-    function setAddressResolverAddress(address _addressResolver)
-        external
-        onlyOwner
-    {
-        addressResolver = AddressResolver(_addressResolver);
-    }
-
     function whitelistAddress(address[] calldata _address)
         external
         onlyProtocolManager
@@ -77,122 +62,36 @@ contract Voyager is Diamond, MessageBus {
         extCallACL.whitelistFunction(_function);
     }
 
-    /************************************** Liquidity Manager Interfaces **************************************/
-
-    /**
-     * @dev Deposits an `amount` of underlying asset into the reserve, receiving in return overlying tokens: Either
-     * Junior Deposit Token or Senior Deposit token
-     * @param _asset The address of the underlying asset to deposit
-     * @param _tranche The tranche of the liquidity pool the user wants to deposit to
-     * @param _amount The amount to be deposited
-     **/
-    function deposit(
-        address _asset,
-        ReserveLogic.Tranche _tranche,
-        uint256 _amount
-    ) external {
-        LiquidityManager(getLiquidityManagerProxyAddress()).deposit(
-            _asset,
-            _tranche,
-            _amount,
-            msg.sender
-        );
-    }
-
-    function withdraw(
-        address _asset,
-        ReserveLogic.Tranche _tranche,
-        uint256 _amount
-    ) external {
-        LiquidityManager(getLiquidityManagerProxyAddress()).withdraw(
-            _asset,
-            _tranche,
-            _amount,
-            payable(msg.sender)
-        );
-    }
-
-    /**
-     * @dev Returns the reserve flags
-     * @param _asset The address of asset
-     * @return The state flags representing active, frozen, borrowing enabled
-     **/
-    function getReserveFlags(address _asset)
-        external
-        view
-        returns (
-            bool,
-            bool,
-            bool
-        )
-    {
-        return
-            LiquidityManager(getLiquidityManagerProxyAddress()).getFlags(
-                _asset
-            );
-    }
-
-    /**
-     * @dev Returns the configuration of the reserve
-     * @param _asset The address of the underlying asset of the reserve
-     * @return The state of the reserve
-     **/
-    function getConfiguration(address _asset)
-        external
-        view
-        returns (DataTypes.ReserveConfigurationMap memory)
-    {
-        require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
-        return
-            LiquidityManager(getLiquidityManagerProxyAddress())
-                .getConfiguration(_asset);
-    }
-
-    /**
-     * @dev Get current liquidity rate for a specific reserve for it junior tranche or senior tranche
-     * @param _asset The address of the underlying asset of the reserve
-     * @param _tranche Either junior tranche or senior tranche
-     **/
-    function liquidityRate(address _asset, ReserveLogic.Tranche _tranche)
-        external
-        view
-        returns (uint256)
-    {
-        return
-            LiquidityManager(getLiquidityManagerProxyAddress())
-                .getLiquidityRate(_asset, _tranche);
-    }
-
     /************************************** Loan Manager Interfaces **************************************/
 
     // todo remove _grossAssetValue
-    function borrow(
-        address _asset,
-        uint256 _amount,
-        address payable _vault,
-        uint256 _grossAssetValue
-    ) external onlyWhitelisted("borrow") {
-        LoanManager(addressResolver.getLoanManagerProxy()).borrow(
-            msg.sender,
-            _asset,
-            _amount,
-            _vault,
-            _grossAssetValue
-        );
-    }
+    // function borrow(
+    //     address _asset,
+    //     uint256 _amount,
+    //     address payable _vault,
+    //     uint256 _grossAssetValue
+    // ) external onlyWhitelisted("borrow") {
+    //     LoanManager(this.addressResolver().getLoanManagerProxy()).borrow(
+    //         msg.sender,
+    //         _asset,
+    //         _amount,
+    //         _vault,
+    //         _grossAssetValue
+    //     );
+    // }
 
-    function repay(
-        address _asset,
-        uint256 _drawDownIdx,
-        address payable _vault
-    ) external {
-        LoanManager(addressResolver.getLoanManagerProxy()).repay(
-            msg.sender,
-            _asset,
-            _drawDownIdx,
-            _vault
-        );
-    }
+    // function repay(
+    //     address _asset,
+    //     uint256 _drawDownIdx,
+    //     address payable _vault
+    // ) external {
+    //     LoanManager(this.addressResolver().getLoanManagerProxy()).repay(
+    //         msg.sender,
+    //         _asset,
+    //         _drawDownIdx,
+    //         _vault
+    //     );
+    // }
 
     /************************************** Vault Manager Interfaces **************************************/
 
@@ -309,7 +208,7 @@ contract Voyager is Diamond, MessageBus {
      * @dev Get ExtCallACLProxy contract address
      **/
     function getExtCallACLProxyAddress() public view returns (address payable) {
-        address extCallACLProxyAddress = AddressResolver(addressResolver)
+        address extCallACLProxyAddress = AddressResolver(_addressResolver())
             .getExtCallProxy();
         return payable(extCallACLProxyAddress);
     }
@@ -317,7 +216,9 @@ contract Voyager is Diamond, MessageBus {
     /************************************** Internal Interfaces **************************************/
 
     function _requireCallerAdmin() internal view {
-        IACLManager aclManager = IACLManager(addressResolver.getAclManager());
+        IACLManager aclManager = IACLManager(
+            this.addressResolver().getAclManager()
+        );
         require(aclManager.isProtocolManager(tx.origin), "Not vault admin");
     }
 }

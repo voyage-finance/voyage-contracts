@@ -4,33 +4,26 @@ pragma solidity ^0.8.9;
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {LiquidityManagerStorage} from "../../component/shared/storage/LiquidityManagerStorage.sol";
-import {Proxyable} from "../../libraries/proxy/Proxyable.sol";
 import {Errors} from "../../libraries/helpers/Errors.sol";
 import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
-import {DataTypes} from "../../libraries/types/DataTypes.sol";
-import {IVoyagerComponent} from "../../interfaces/IVoyagerComponent.sol";
-import {IMessageBus} from "../../interfaces/IMessageBus.sol";
 import {IHealthStrategy} from "../../interfaces/IHealthStrategy.sol";
 import {IReserveInterestRateStrategy} from "../../interfaces/IReserveInterestRateStrategy.sol";
 import {ILoanStrategy} from "../../interfaces/ILoanStrategy.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {IVToken} from "../../interfaces/IVToken.sol";
-import {ILoanManager} from "../../interfaces/ILoanManager.sol";
 import {IPriceOracle} from "../../interfaces/IPriceOracle.sol";
 import {Voyager} from "../Voyager.sol";
+import {LibLiquidity} from "../../libraries/LibLiquidity.sol";
+import {LibLoan} from "../../libraries/LibLoan.sol";
+import {LibVault} from "../../libraries/LibVault.sol";
+import {LibAppStorage, AppStorage, Storage, BorrowData, BorrowState, DrawDown, ReserveData} from "../../libraries/LibAppStorage.sol";
 import {ERC4626} from "@rari-capital/solmate/src/mixins/ERC4626.sol";
+import {AddressResolver} from "../infra/AddressResolver.sol";
 
-contract LoanManager is Proxyable, ILoanManager {
+contract LoanFacet is Storage {
     using SafeMath for uint256;
     using WadRayMath for uint256;
     using SafeERC20 for IERC20;
-
-    constructor(address payable _proxy, address payable _voyager)
-        Proxyable(_proxy)
-    {
-        voyager = Voyager(_voyager);
-    }
 
     struct ExecuteBorrowParams {
         address asset;
@@ -62,13 +55,15 @@ contract LoanManager is Proxyable, ILoanManager {
         uint256 marginRequirement;
     }
 
+    Voyager private voyager;
+
     function borrow(
         address _user,
         address _asset,
         uint256 _amount,
         address payable _vault,
         uint256 _grossAssetValue
-    ) external requireNotPaused onlyProxy {
+    ) external whenNotPaused {
         ExecuteBorrowParams memory executeBorrowParams;
         // todo use min security deposit
         require(_amount >= 1e19, Errors.LOM_INVALID_AMOUNT);
@@ -77,9 +72,7 @@ contract LoanManager is Proxyable, ILoanManager {
         require(voyager.getVault(_user) == _vault, Errors.LOM_NOT_VAULT_OWNER);
 
         // 1. check if pool liquidity is sufficient
-        DataTypes.ReserveData memory reserveData = voyager.getReserveData(
-            _asset
-        );
+        ReserveData memory reserveData = LibLiquidity.getReserveData(_asset);
 
         uint256 availableSeniorLiquidity = IERC20(_asset).balanceOf(
             reserveData.seniorDepositTokenAddress
@@ -113,12 +106,8 @@ contract LoanManager is Proxyable, ILoanManager {
             reserveData.loanStrategyAddress
         ).getEpoch();
 
-        LiquidityManagerStorage lms = LiquidityManagerStorage(
-            liquidityManagerStorageAddress()
-        );
-
         // 5. update liquidity index and interest rate
-        DataTypes.BorrowStat memory borrowStat = lms.getBorrowStat(_asset);
+        BorrowState memory borrowStat = LibLoan.getBorrowState(_asset);
         (
             executeBorrowParams.liquidityRate,
             executeBorrowParams.borrowRate
@@ -132,14 +121,15 @@ contract LoanManager is Proxyable, ILoanManager {
                 borrowStat.totalDebt,
                 borrowStat.avgBorrowRate
             );
-        lms.updateStateOnBorrow(
+
+        LibLoan.updateStateOnBorrow(
             _asset,
             _amount,
             borrowStat.totalDebt.add(borrowStat.totalInterest),
             executeBorrowParams.borrowRate
         );
 
-        lms.insertDebt(
+        LibLoan.insertDebt(
             _asset,
             _vault,
             _amount,
@@ -159,25 +149,20 @@ contract LoanManager is Proxyable, ILoanManager {
         address _asset,
         uint256 _drawDown,
         address payable _vault
-    ) external requireNotPaused onlyProxy {
+    ) external whenNotPaused {
         // 0. check if the user owns the vault
         require(voyager.getVault(_user) == _vault, Errors.LOM_NOT_VAULT_OWNER);
-
-        LiquidityManagerStorage lms = LiquidityManagerStorage(
-            liquidityManagerStorageAddress()
-        );
-
         // 1. check draw down to get principal and interest
         uint256 principal;
         uint256 interest;
-        (principal, interest) = lms.getPMT(_asset, _vault, _drawDown);
+        (principal, interest) = LibLoan.getPMT(_asset, _vault, _drawDown);
         require(principal.add(interest) != 0, Errors.LOM_INVALID_DEBT);
 
         // 2. update liquidity index and interest rate
-        DataTypes.BorrowStat memory borrowStat = lms.getBorrowStat(_asset);
+        BorrowState memory borrowStat = LibLoan.getBorrowState(_asset);
         uint256 totalDebt = borrowStat.totalDebt.add(borrowStat.totalInterest);
         uint256 avgBorrowRate = borrowStat.avgBorrowRate;
-        lms.updateStateOnRepayment(
+        LibLoan.updateStateOnRepayment(
             _asset,
             principal.add(interest),
             totalDebt,
@@ -185,12 +170,10 @@ contract LoanManager is Proxyable, ILoanManager {
         );
 
         // 3. update repay data
-        lms.repay(_asset, _vault, _drawDown, principal, interest, false);
+        LibLoan.repay(_asset, _vault, _drawDown, principal, interest, false);
 
         // 4. transfer underlying asset
-        DataTypes.ReserveData memory reserveData = voyager.getReserveData(
-            _asset
-        );
+        ReserveData memory reserveData = LibLiquidity.getReserveData(_asset);
 
         IERC20(_asset).safeTransferFrom(
             _user,
@@ -204,13 +187,10 @@ contract LoanManager is Proxyable, ILoanManager {
         address _reserve,
         address _vault,
         uint256 _drawDownId
-    ) external requireNotPaused onlyProxy {
+    ) external whenNotPaused {
         ExecuteLiquidateParams memory param;
-        DataTypes.ReserveData memory reserveData = voyager.getReserveData(
+        ReserveData memory reserveData = LibLiquidity.getReserveData(
             param.reserve
-        );
-        LiquidityManagerStorage lms = LiquidityManagerStorage(
-            liquidityManagerStorageAddress()
         );
 
         // 1. prepare basic info and some strategy parameters
@@ -228,7 +208,7 @@ contract LoanManager is Proxyable, ILoanManager {
             reserveData.nftAddress
         );
 
-        DataTypes.DebtDetail memory debtDetail = lms.getDrawDownDetail(
+        LibLoan.DebtDetail memory debtDetail = LibLoan.getDrawDownDetail(
             param.reserve,
             param.vault,
             param.drawDownId
@@ -241,7 +221,7 @@ contract LoanManager is Proxyable, ILoanManager {
         );
 
         // 3.1 if it is, get debt info
-        (param.principal, param.interest) = lms.getPMT(
+        (param.principal, param.interest) = LibLoan.getPMT(
             param.reserve,
             param.vault,
             param.drawDownId
@@ -259,9 +239,10 @@ contract LoanManager is Proxyable, ILoanManager {
         );
 
         // 3.2 get floor price from oracle contract
-        param.floorPrice = IPriceOracle(getPriceOracleAddress()).getAssetPrice(
-            reserveData.nftAddress
+        IPriceOracle priceOracle = IPriceOracle(
+            AddressResolver(_addressResolver()).getPriceOracle()
         );
+        param.floorPrice = priceOracle.getAssetPrice(reserveData.nftAddress);
 
         param.numNFTsToLiquidate = param
             .totalToLiquidate
@@ -324,7 +305,7 @@ contract LoanManager is Proxyable, ILoanManager {
             // todo write down to somewhere
         }
 
-        lms.repay(
+        LibLoan.repay(
             param.reserve,
             param.vault,
             param.drawDownId,
@@ -340,36 +321,11 @@ contract LoanManager is Proxyable, ILoanManager {
     }
 
     function getVaultDebt(address _reserve, address _vault)
-        external
+        public
         view
         returns (uint256, uint256)
     {
-        LiquidityManagerStorage lms = LiquidityManagerStorage(
-            liquidityManagerStorageAddress()
-        );
-        return lms.getVaultDebt(_reserve, _vault);
-    }
-
-    function getDrawDownList(address _reserve, address _vault)
-        external
-        view
-        returns (uint256, uint256)
-    {
-        LiquidityManagerStorage lms = LiquidityManagerStorage(
-            liquidityManagerStorageAddress()
-        );
-        return lms.getDrawDownList(_reserve, _vault);
-    }
-
-    function getDrawDownDetail(
-        address _reserve,
-        address _vault,
-        uint256 _drawDownId
-    ) external view returns (DataTypes.DebtDetail memory) {
-        LiquidityManagerStorage lms = LiquidityManagerStorage(
-            liquidityManagerStorageAddress()
-        );
-        return lms.getDrawDownDetail(_reserve, _vault, _drawDownId);
+        return LibVault.getVaultDebt(_reserve, _vault);
     }
 
     /// @notice Returns the total outstanding principal debt for a particular underlying asset pool
@@ -380,9 +336,9 @@ contract LoanManager is Proxyable, ILoanManager {
         view
         returns (uint256)
     {
-        DataTypes.BorrowStat memory borrowState = LiquidityManagerStorage(
-            liquidityManagerStorageAddress()
-        ).getBorrowStat(underlyingAsset);
+        BorrowState memory borrowState = LibLoan.getBorrowState(
+            underlyingAsset
+        );
         return borrowState.totalDebt;
     }
 
@@ -394,15 +350,15 @@ contract LoanManager is Proxyable, ILoanManager {
         view
         returns (uint256)
     {
-        DataTypes.BorrowStat memory borrowState = LiquidityManagerStorage(
-            liquidityManagerStorageAddress()
-        ).getBorrowStat(underlyingAsset);
+        BorrowState memory borrowState = LibLoan.getBorrowState(
+            underlyingAsset
+        );
         return borrowState.totalInterest;
     }
 
     function getDiscount(uint256 _value, uint256 _liquidationBonus)
         private
-        view
+        pure
         returns (uint256)
     {
         uint256 valueInRay = _value.wadToRay();

@@ -12,12 +12,11 @@ import {SecurityDepositEscrow} from "./SecurityDepositEscrow.sol";
 import {AddressResolver} from "../infra/AddressResolver.sol";
 import {Voyager} from "../Voyager.sol";
 import {VaultManager} from "./VaultManager.sol";
-import {LoanManagerProxy} from "../loan/LoanManagerProxy.sol";
+import {LoanFacet} from "../facets/LoanFacet.sol";
 import {SecurityDepositToken} from "../../tokenization/SecurityDepositToken.sol";
 import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
 import {IACLManager} from "../../interfaces/IACLManager.sol";
 import {IVault} from "../../interfaces/IVault.sol";
-import {ILoanManager} from "../../interfaces/ILoanManager.sol";
 import {IAddressResolver} from "../../interfaces/IAddressResolver.sol";
 import {IVaultManagerProxy} from "../../interfaces/IVaultManagerProxy.sol";
 import {DataTypes} from "../../libraries/types/DataTypes.sol";
@@ -31,6 +30,11 @@ contract Vault is ReentrancyGuard, IVault, IERC1271, IERC165 {
     // about to remove or refactor
     IAddressResolver addressResolver;
     IACLManager aclManager;
+    LoanFacet loanFacet;
+    address[] public players;
+    bool public initialized;
+    SecurityDepositEscrow public securityDepositEscrow;
+    SecurityDepositToken public securityDepositToken;
 
     struct VaultStorageV1 {
         bool initialized;
@@ -72,6 +76,7 @@ contract Vault is ReentrancyGuard, IVault, IERC1271, IERC165 {
     ) external {
         if (!diamondStorage().initialized) {
             addressResolver = Voyager(payable(_voyager)).addressResolver();
+            loanFacet = LoanFacet(_voyager);
             aclManager = IACLManager(addressResolver.getAclManager());
             diamondStorage().securityDepositEscrow = _securityDepositEscrow;
             diamondStorage().initialized = true;
@@ -424,9 +429,7 @@ contract Vault is ReentrancyGuard, IVault, IERC1271, IERC165 {
         uint256 securityRequirement = vaultConfig.securityDepositRequirement;
         uint256 principal;
         uint256 interest;
-        (principal, interest) = ILoanManager(
-            addressResolver.getLoanManagerProxy()
-        ).getVaultDebt(_reserve, address(this));
+        (principal, interest) = loanFacet.getVaultDebt(_reserve, address(this));
 
         uint256 totalDebt = principal.add(interest);
         uint256 withdrawableAmount = diamondStorage()

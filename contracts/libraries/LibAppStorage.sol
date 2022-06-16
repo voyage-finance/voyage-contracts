@@ -1,7 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
+import {IACLManager} from "../interfaces/IACLManager.sol";
+import {AddressResolver} from "../component/infra/AddressResolver.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+
 bytes32 constant ADDRESS_RESOLVER = "address_resolver";
+bytes32 constant ACL = "ACL";
 
 enum Tranche {
     JUNIOR,
@@ -85,6 +90,11 @@ struct DrawDown {
     uint256 paidTimes;
 }
 
+struct DrawDownList {
+    uint256 head;
+    uint256 tail;
+}
+
 struct BorrowData {
     uint256 paidDrawDownNumber;
     // next draw down number
@@ -99,6 +109,25 @@ struct BorrowState {
     uint256 totalDebt;
     uint256 totalInterest;
     uint256 avgBorrowRate;
+}
+
+struct VaultConfig {
+    uint256 minSecurityDeposit;
+    uint256 maxSecurityDeposit;
+    uint256 securityDepositRequirement;
+}
+
+struct VaultData {
+    uint256 borrowRate;
+    uint256 totalDebt;
+    DrawDownList drawDownList;
+    uint256 totalSecurityDeposit;
+    uint256 withdrawableSecurityDeposit;
+    uint256 creditLimit;
+    uint256 spendableBalance;
+    uint256 gav;
+    uint256 ltv;
+    uint256 healthFactor;
 }
 
 struct AppStorage {
@@ -120,5 +149,31 @@ library LibAppStorage {
         assembly {
             ds.slot := 0
         }
+    }
+}
+
+contract Storage is Context {
+    AppStorage internal s;
+
+    modifier whenPaused() {
+        require(s._paused, "Pausable: not paused");
+        _;
+    }
+
+    modifier whenNotPaused() {
+        require(!s._paused, "Pausable: paused");
+        _;
+    }
+
+    modifier onlyAdmin() {
+        IACLManager aclManager = IACLManager(
+            AddressResolver(_addressResolver()).getAclManager()
+        );
+        require(aclManager.isLiquidityManager(msg.sender), "Not vault admin");
+        _;
+    }
+
+    function _addressResolver() internal view returns (address) {
+        return s._addresses[ADDRESS_RESOLVER];
     }
 }

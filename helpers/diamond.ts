@@ -82,6 +82,9 @@ export function mergeABIs(
           )
         ) {
           if (fragment.type === 'function') {
+            console.log('fragment: ', fragment);
+            console.log('conflict: ', foundSameSig);
+            console.log('conflig parent: ', result);
             throw new Error(
               `function "${fragment.name}" will shadow "${foundSameSig.name}". Please update code to avoid conflict.`
             );

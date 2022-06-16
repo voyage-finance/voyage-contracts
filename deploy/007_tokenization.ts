@@ -1,10 +1,8 @@
 import { DeployFunction } from 'hardhat-deploy/types';
-import { LiquidityManager, Tus } from '@contracts';
+import { Tus } from '@contracts';
 import BigNumber from 'bignumber.js';
 import { MAX_UINT_256 } from '../helpers/math';
 
-const LM_NAME = 'LiquidityManager';
-const LM_STORAGE_NAME = 'LiquidityManagerStorage';
 const JR_TOKEN_NAME = 'JuniorDepositToken';
 const SR_TOKEN_NAME = 'SeniorDepositToken';
 const WRM_NAME = 'WadRayMath';
@@ -30,23 +28,20 @@ const deployFn: DeployFunction = async (hre) => {
   }
   const tus = await ethers.getContract<Tus>('Tus');
   const AddressResolver = await deployments.get('AddressResolver');
+  const voyager = await deployments.get('Voyager');
   const JuniorDepositToken = await deploy(JR_TOKEN_NAME, {
     from: owner,
     log: true,
-    args: [AddressResolver.address, tus.address, 'TUS Junior Tranche', 'jvTUS'],
+    args: [voyager.address, tus.address, 'TUS Junior Tranche', 'jvTUS'],
   });
   const SeniorDepositToken = await deploy(SR_TOKEN_NAME, {
     from: owner,
     log: true,
-    args: [AddressResolver.address, tus.address, 'TUS Senior Tranche', 'svTUS'],
+    args: [voyager.address, tus.address, 'TUS Senior Tranche', 'svTUS'],
   });
 
-  const liquidityManager = await ethers.getContract<LiquidityManager>(
-    'LiquidityManager'
-  );
-
   await execute(
-    LM_NAME,
+    'Voyager',
     { from: owner, log: true },
     'approve',
     tus.address,
@@ -54,7 +49,7 @@ const deployFn: DeployFunction = async (hre) => {
     MAX_UINT_256
   );
   await execute(
-    LM_NAME,
+    'Voyager',
     { from: owner, log: true },
     'approve',
     tus.address,
@@ -103,12 +98,7 @@ const deployFn: DeployFunction = async (hre) => {
   );
 };
 
-deployFn.dependencies = [
-  'AddressResolver',
-  'Voyager',
-  LM_NAME,
-  LM_STORAGE_NAME,
-];
+deployFn.dependencies = ['AddressResolver', 'Voyager'];
 deployFn.tags = ['Tokenization'];
 
 export default deployFn;

@@ -9,13 +9,13 @@ import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
 import {DataTypes} from "../../libraries/types/DataTypes.sol";
 import {IVaultManager} from "../../interfaces/IVaultManager.sol";
 import {IAddressResolver} from "../../interfaces/IAddressResolver.sol";
-import {ILoanManager} from "../../interfaces/ILoanManager.sol";
 import {IVaultFactory} from "../../interfaces/IVaultFactory.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {IACLManager} from "../../interfaces/IACLManager.sol";
 import {Voyager} from "../../component/Voyager.sol";
 import {VaultStorage} from "./VaultStorage.sol";
 import {VaultFactory} from "./VaultFactory.sol";
+import {LibVault} from "../../libraries/LibVault.sol";
 
 contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
     using WadRayMath for uint256;
@@ -202,10 +202,7 @@ contract VaultManager is ReentrancyGuard, Proxyable, IVaultManager {
         uint256 principal;
         uint256 interest;
         address vault = _getVault(_user);
-        ILoanManager(addressResolver.getLoanManagerProxy()).getVaultDebt(
-            _reserve,
-            vault
-        );
+        LibVault.getVaultDebt(_reserve, vault);
         uint256 accumulatedDebt = principal.add(interest);
         if (creditLimit < accumulatedDebt) {
             return 0;

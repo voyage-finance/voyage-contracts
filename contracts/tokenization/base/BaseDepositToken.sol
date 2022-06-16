@@ -14,7 +14,7 @@ abstract contract BaseDepositToken is Context, IVToken {
     using SafeMath for uint256;
     using SafeTransferLib for ERC20;
 
-    AddressResolver internal immutable addressResolver;
+    address internal immutable voyager;
     // user address => timestamp => amount
     mapping(address => mapping(uint256 => uint256)) private withdrawals;
 
@@ -29,20 +29,19 @@ abstract contract BaseDepositToken is Context, IVToken {
 
     modifier onlyAdmin() {
         require(
-            _msgSender() == addressResolver.getAddress("liquidityManager") ||
-                _msgSender() == addressResolver.getAddress("loanManager"),
+            _msgSender() == voyager,
             Errors.CT_CALLER_MUST_BE_LIQUIDITY_MANAGER_POOL
         );
         _;
     }
 
     constructor(
-        AddressResolver _addressResolver,
+        address _voyager,
         ERC20 _underlyingAsset,
         string memory _name,
         string memory _symbol
     ) IVToken(_underlyingAsset, _name, _symbol) {
-        addressResolver = _addressResolver;
+        voyager = _voyager;
     }
 
     function withdraw(

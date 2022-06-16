@@ -18,13 +18,13 @@ interface IAddressResolver {
 
     function getVoyage() external view returns (address);
 
-    function getLiquidityManagerProxy() external view returns (address);
+    // function getLiquidityManagerProxy() external view returns (address);
 
-    function getLiquidityManagerStorage() external view returns (address);
+    // function getLiquidityManagerStorage() external view returns (address);
 
-    function getLoanManagerProxy() external view returns (address);
+    // function getLoanManagerProxy() external view returns (address);
 
-    function getLoanManager() external view returns (address);
+    // function getLoanManager() external view returns (address);
 
     function getVaultManagerProxy() external view returns (address);
 

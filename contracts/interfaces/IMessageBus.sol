@@ -3,15 +3,12 @@ pragma solidity ^0.8.9;
 
 import {DataTypes} from "../libraries/types/DataTypes.sol";
 
+import {AddressResolver} from "../component/infra/AddressResolver.sol";
+
 interface IMessageBus {
-    function getAddressResolverAddress() external view returns (address);
+    function addressResolver() external view returns (AddressResolver);
 
     function getVault(address _user) external view returns (address);
-
-    function getReserveData(address _asset)
-        external
-        view
-        returns (DataTypes.ReserveData memory);
 
     function getSecurityDeposit(address _user, address _reserve)
         external

@@ -7,14 +7,8 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 contract AddressResolver is IAddressResolver, Ownable {
     bytes32 public constant voyageName = "voyager";
     bytes32 public constant aclManagerName = "aclManager";
-    bytes32 public constant liquidityManagerProxyName = "liquidityManagerProxy";
-    bytes32 public constant liquidityManagerName = "liquidityManager";
-    bytes32 public constant liquidityManagerStorageName =
-        "liquidityManagerStorage";
     bytes32 public constant liquidityDepositEscrowName =
         "liquidityDepositEscrow";
-    bytes32 public constant loanManagerProxyName = "loanManagerProxy";
-    bytes32 public constant loanManagerName = "loanManager";
     bytes32 public constant vaultManagerProxyName = "vaultManagerProxy";
     bytes32 public constant vaultManagerName = "vaultManager";
     bytes32 public constant vaultStorageName = "vaultStorage";
@@ -47,21 +41,21 @@ contract AddressResolver is IAddressResolver, Ownable {
         return repository[voyageName];
     }
 
-    function getLiquidityManagerProxy() external view returns (address) {
-        return repository[liquidityManagerProxyName];
-    }
+    // function getLiquidityManagerProxy() external view returns (address) {
+    //     return repository[liquidityManagerProxyName];
+    // }
 
-    function getLiquidityManagerStorage() external view returns (address) {
-        return repository[liquidityManagerStorageName];
-    }
+    // function getLiquidityManagerStorage() external view returns (address) {
+    //     return repository[liquidityManagerStorageName];
+    // }
 
-    function getLoanManagerProxy() external view returns (address) {
-        return repository[loanManagerProxyName];
-    }
+    // function getLoanManagerProxy() external view returns (address) {
+    //     return repository[loanManagerProxyName];
+    // }
 
-    function getLoanManager() external view returns (address) {
-        return repository[loanManagerName];
-    }
+    // function getLoanManager() external view returns (address) {
+    //     return repository[loanManagerName];
+    // }
 
     function getVaultManagerProxy() external view returns (address) {
         return repository[vaultManagerProxyName];

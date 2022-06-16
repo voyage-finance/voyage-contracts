@@ -33,7 +33,7 @@ library ReserveConfiguration {
      **/
     function getFlags(ReserveConfigurationMap memory self)
         internal
-        view
+        pure
         returns (
             bool,
             bool,
