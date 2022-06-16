@@ -15,7 +15,7 @@ library ValidationLogic {
      * @param amount The amount to be deposited
      **/
     function validateDeposit(ReserveData storage reserve, uint256 amount)
-        external
+        internal
         view
     {
         (bool isActive, bool isFrozen, ) = reserve.configuration.getFlags();

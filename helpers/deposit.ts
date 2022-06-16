@@ -2,7 +2,6 @@ import { BigNumber } from 'ethers';
 import { deployments as d } from 'hardhat';
 import { AddressResolver } from '../typechain/AddressResolver';
 import { ERC20 } from '../typechain/ERC20';
-import { LoanManagerProxy } from '../typechain/LoanManagerProxy';
 import { SeniorDepositToken } from '../typechain/SeniorDepositToken';
 import { decimals } from './math';
 
@@ -22,20 +21,15 @@ export const setupDepositTestSuite = d.createFixture<any, Args>(
       from: owner,
       log: true,
     });
-    const loanManagerProxy = await ethers.getContract<LoanManagerProxy>(
-      'LoanManagerProxy'
-    );
     await d.deploy('MockLoanManager', {
       from: owner,
       args: [
         BigNumber.from(principalBalance).mul(dec),
         BigNumber.from(interestBalance).mul(dec),
-        loanManagerProxy.address,
       ],
       log: true,
     });
     const loanManager = await ethers.getContract('MockLoanManager');
-    await loanManagerProxy.setTarget(loanManager.address);
 
     const addressResolver = await ethers.getContract<AddressResolver>(
       'AddressResolver'
@@ -45,7 +39,7 @@ export const setupDepositTestSuite = d.createFixture<any, Args>(
         ethers.utils.formatBytes32String('loanManager'),
         ethers.utils.formatBytes32String('loanManagerProxy'),
       ],
-      [loanManager.address, loanManagerProxy.address]
+      [loanManager.address]
     );
 
     await d.deploy('Tus', {

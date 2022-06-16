@@ -2,12 +2,22 @@ import { ethers } from 'hardhat';
 import { DeployFunction, Facet, FacetCut } from 'hardhat-deploy/types';
 import { deployFacets, FacetCutAction, mergeABIs } from '../helpers/diamond';
 import { log } from '../helpers/logger';
+import { RAY } from '../helpers/math';
+import BigNumber from 'bignumber.js';
 
 const deployFn: DeployFunction = async (hre) => {
   const { deployments, getNamedAccounts } = hre;
   const { deploy, execute, getOrNull, save } = deployments;
   const { owner } = await getNamedAccounts();
   const addressResolver = await deployments.get('AddressResolver');
+
+  const liquidationBonus = new BigNumber('0.1').multipliedBy(RAY).toFixed();
+  const marginRequirement = new BigNumber('0.3').multipliedBy(RAY).toFixed();
+  await deploy('DefaultLoanStrategy', {
+    from: owner,
+    args: [90, 30, 10, liquidationBonus, marginRequirement],
+    log: true,
+  });
 
   const diamondABI: any[] = [];
 
@@ -36,18 +46,28 @@ const deployFn: DeployFunction = async (hre) => {
     }
   }
 
-  await deploy('SafeMath', {
-    contract: '@openzeppelin/contracts/utils/math/SafeMath.sol:SafeMath',
-    from: owner,
-    log: true,
-  });
-  await deploy('WadRayMath', { from: owner, log: true });
-
-  const [facets, _, facetABIs] = await deployFacets({
-    name: 'VoyageDataProviderFacet',
-    from: owner,
-    log: true,
-  });
+  const [facets, _, facetABIs] = await deployFacets(
+    {
+      name: 'SecurityFacet',
+      from: owner,
+      log: true,
+    },
+    {
+      name: 'LiquidityFacet',
+      from: owner,
+      log: true,
+    },
+    {
+      name: 'LoanFacet',
+      from: owner,
+      log: true,
+    },
+    {
+      name: 'DataProviderFacet',
+      from: owner,
+      log: true,
+    }
+  );
   const newSelectors: string[] = facets.reduce<string[]>(
     (acc, { functionSelectors }) => [...acc, ...functionSelectors],
     []
@@ -174,13 +194,6 @@ const deployFn: DeployFunction = async (hre) => {
       );
     }
   }
-
-  await execute(
-    'Voyager',
-    { from: owner, log: true },
-    'setAddressResolverAddress',
-    addressResolver.address
-  );
 };
 
 deployFn.dependencies = ['AddressResolver'];

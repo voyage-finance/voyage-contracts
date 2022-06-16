@@ -4,8 +4,8 @@ import { expect } from 'chai';
 describe('Reserve Init', function () {
   it('Init reserve should return correct value', async function () {
     const fakeAddress = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D';
-    const { liquidityManager, voyager, tus } = await setupTestSuite();
-    liquidityManager.initReserve(
+    const { voyager, tus } = await setupTestSuite();
+    await voyager.initReserve(
       tus.address,
       fakeAddress,
       fakeAddress,
@@ -26,9 +26,9 @@ describe('Reserve Init', function () {
   });
 
   it('Active reserve should return correct value', async function () {
-    const { liquidityManager, voyager, tus } = await setupTestSuite();
+    const { voyager, tus } = await setupTestSuite();
     const fakeAddress = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D';
-    liquidityManager.initReserve(
+    voyager.initReserve(
       tus.address,
       fakeAddress,
       fakeAddress,
@@ -40,8 +40,8 @@ describe('Reserve Init', function () {
     const flags = await voyager.getReserveFlags(tus.address);
     expect(flags[0]).to.equal(false);
 
-    await expect(liquidityManager.activeReserve(tus.address))
-      .to.emit(liquidityManager, 'ReserveActivated')
+    await expect(voyager.activateReserve(tus.address))
+      .to.emit(voyager, 'ReserveActivated')
       .withArgs(tus.address);
     const newFlags = await voyager.getReserveFlags(tus.address);
     expect(newFlags[0]).to.equal(true);

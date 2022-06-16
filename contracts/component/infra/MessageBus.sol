@@ -6,9 +6,9 @@ import {AddressResolver} from "./AddressResolver.sol";
 import {IMessageBus} from "../../interfaces/IMessageBus.sol";
 import {IVaultManager} from "../../interfaces/IVaultManager.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Storage, ADDRESS_RESOLVER} from "../../libraries/LibAppStorage.sol";
 import {DataTypes} from "../../libraries/types/DataTypes.sol";
 import {Errors} from "../../libraries/helpers/Errors.sol";
-import {LiquidityManager} from "../liquidity/LiquidityManager.sol";
 import {VaultManager} from "../vault/VaultManager.sol";
 import {VaultManagerProxy} from "../vault/VaultManagerProxy.sol";
 
@@ -16,47 +16,20 @@ import {VaultManagerProxy} from "../vault/VaultManagerProxy.sol";
  * todo it might be a bad name here, it actually performs as the centralise place
  * for querying each other among the internal components
  **/
-contract MessageBus is IMessageBus {
-    AddressResolver public addressResolver;
+contract MessageBus is Storage, IMessageBus {
+    /************************************** LiquidityManager Functions **************************************/
 
     /**
      * @dev Get addressResolver contract address
      * @return address of the resolver contract
      **/
-    function getAddressResolverAddress() external view returns (address) {
-        return address(addressResolver);
-    }
-
-    /************************************** LiquidityManager Functions **************************************/
-
-    /**
-     * @dev Get LiquidityManagerProxy contract address
-     **/
-    function getLiquidityManagerProxyAddress()
-        public
-        view
-        returns (address payable)
-    {
-        address liquidityManagerProxyAddress = addressResolver
-            .getLiquidityManagerProxy();
-        return payable(liquidityManagerProxyAddress);
-    }
-
-    /**
-     * @dev Returns the state and configuration of the reserve
-     * @param _asset The address of the underlying asset of the reserve
-     * @return The state of the reserve
-     **/
-    function getReserveData(address _asset)
+    function addressResolver()
         external
         view
-        returns (DataTypes.ReserveData memory)
+        override
+        returns (AddressResolver)
     {
-        require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
-        return
-            LiquidityManager(getLiquidityManagerProxyAddress()).getReserveData(
-                _asset
-            );
+        return AddressResolver(_addressResolver());
     }
 
     /************************************** Vault Functions **************************************/
@@ -100,7 +73,8 @@ contract MessageBus is IMessageBus {
         view
         returns (address payable)
     {
-        address vaultManagerProxyAddress = addressResolver
+        address vaultManagerProxyAddress = this
+            .addressResolver()
             .getVaultManagerProxy();
         return payable(vaultManagerProxyAddress);
     }

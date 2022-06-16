@@ -51,11 +51,6 @@ library DataTypes {
         uint256 securityDepositRequirement;
     }
 
-    struct FungibleTokenData {
-        string symbol;
-        address tokenAddress;
-    }
-
     struct BorrowData {
         uint256 paidDrawDownNumber;
         // next draw down number

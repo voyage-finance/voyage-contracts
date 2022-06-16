@@ -4,41 +4,71 @@ pragma solidity ^0.8.9;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import {DataTypes} from "../libraries/types/DataTypes.sol";
-import {IAddressResolver} from "../interfaces/IAddressResolver.sol";
-import {IReserveManager} from "../interfaces/IReserveManager.sol";
-import {ReserveLogic} from "../libraries/logic/ReserveLogic.sol";
-import {WadRayMath} from "../libraries/math/WadRayMath.sol";
-import {IVaultManager} from "../interfaces/IVaultManager.sol";
-import {IHealthStrategy} from "../interfaces/IHealthStrategy.sol";
-import {IVaultManagerProxy} from "../interfaces/IVaultManagerProxy.sol";
-import {IVToken} from "../interfaces/IVToken.sol";
-import {ILiquidityManagerProxy} from "../interfaces/ILiquidityManagerProxy.sol";
-import {ILoanManagerProxy} from "../interfaces/ILoanManagerProxy.sol";
-import {LiquidityManager} from "../component/liquidity/LiquidityManager.sol";
-import {AppStorage, ADDRESS_RESOLVER} from "../libraries/LibAppStorage.sol";
+import {DataTypes} from "../../libraries/types/DataTypes.sol";
+import {IAddressResolver} from "../../interfaces/IAddressResolver.sol";
+import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
+import {IVaultManager} from "../../interfaces/IVaultManager.sol";
+import {IHealthStrategy} from "../../interfaces/IHealthStrategy.sol";
+import {IVaultManagerProxy} from "../../interfaces/IVaultManagerProxy.sol";
+import {IVToken} from "../../interfaces/IVToken.sol";
+import {AppStorage, ADDRESS_RESOLVER, ReserveData, Tranche, VaultConfig} from "../../libraries/LibAppStorage.sol";
+import {LibLiquidity} from "../../libraries/LibLiquidity.sol";
+import {LibLoan} from "../../libraries/LibLoan.sol";
+import {LibVault} from "../../libraries/LibVault.sol";
 
-contract VoyageDataProviderFacet {
+contract DataProviderFacet {
     using SafeMath for uint256;
     using WadRayMath for uint256;
+
     AppStorage internal s;
+
+    struct PoolData {
+        uint256 totalLiquidity;
+        uint256 juniorLiquidity;
+        uint256 seniorLiquidity;
+        uint256 juniorLiquidityRate;
+        uint256 seniorLiquidityRate;
+        uint256 totalDebt;
+        uint256 utilizationRate;
+        uint256 trancheRatio;
+        uint256 decimals;
+        string symbol;
+        bool isActive;
+    }
+
+    struct UserPoolData {
+        uint256 juniorTrancheBalance;
+        uint256 withdrawableJuniorTrancheBalance;
+        uint256 seniorTrancheBalance;
+        uint256 withdrawableSeniorTrancheBalance;
+        uint256 decimals;
+    }
+
+    struct PoolConfiguration {
+        uint256 securityRequirement;
+        uint256 minSecurity;
+        uint256 maxSecurity;
+        uint256 loanTenure;
+        uint256 optimalTrancheRatio;
+        uint256 optimalIncomeRatio;
+        bool isActive;
+    }
+
+    struct FungibleTokenData {
+        string symbol;
+        address tokenAddress;
+    }
 
     function getPoolConfiguration(address _reserve)
         external
         view
-        returns (DataTypes.PoolConfiguration memory)
+        returns (PoolConfiguration memory)
     {
-        DataTypes.PoolConfiguration memory poolConfiguration;
+        PoolConfiguration memory poolConfiguration;
         IVaultManager vm = IVaultManager(
             addressResolver().getVaultManagerProxy()
         );
-        IReserveManager rm = IReserveManager(
-            addressResolver().getLiquidityManagerProxy()
-        );
-        ILiquidityManagerProxy lmp = ILiquidityManagerProxy(
-            addressResolver().getLiquidityManagerProxy()
-        );
-        DataTypes.ReserveData memory reserve = rm.getReserveData(_reserve);
+        ReserveData memory reserve = LibLiquidity.getReserveData(_reserve);
         address healthStrategyAddr = reserve.healthStrategyAddress;
         require(healthStrategyAddr != address(0), "invalid health strategy");
         IHealthStrategy hs = IHealthStrategy(healthStrategyAddr);
@@ -49,7 +79,7 @@ contract VoyageDataProviderFacet {
         poolConfiguration.loanTenure = hs.getLoanTenure();
         poolConfiguration.optimalIncomeRatio = reserve.optimalIncomeRatio;
         poolConfiguration.optimalTrancheRatio = reserve.optimalTrancheRatio;
-        (bool isActive, , ) = lmp.getFlags(_reserve);
+        (bool isActive, , ) = LibLiquidity.getFlags(_reserve);
         poolConfiguration.isActive = isActive;
 
         return poolConfiguration;
@@ -58,34 +88,25 @@ contract VoyageDataProviderFacet {
     function getPoolData(address underlyingAsset)
         external
         view
-        returns (DataTypes.PoolData memory)
+        returns (PoolData memory)
     {
-        IReserveManager rm = IReserveManager(
-            addressResolver().getLiquidityManagerProxy()
-        );
-        DataTypes.ReserveData memory reserve = rm.getReserveData(
-            underlyingAsset
-        );
-        ILiquidityManagerProxy lmp = ILiquidityManagerProxy(
-            addressResolver().getLiquidityManagerProxy()
-        );
-        DataTypes.DepositAndDebt memory depositAndDebt = lmp
-            .getLiquidityAndDebt(underlyingAsset);
+        LibLiquidity.DepositAndDebt memory depositAndDebt = LibLiquidity
+            .getDepositAndDebt(underlyingAsset);
         IERC20Metadata token = IERC20Metadata(underlyingAsset);
 
-        DataTypes.PoolData memory poolData;
+        PoolData memory poolData;
         poolData.juniorLiquidity = depositAndDebt.juniorDepositAmount;
         poolData.seniorLiquidity = depositAndDebt.seniorDepositAmount;
         poolData.totalLiquidity = depositAndDebt.seniorDepositAmount.add(
             depositAndDebt.juniorDepositAmount
         );
-        poolData.juniorLiquidityRate = lmp.getLiquidityRate(
+        poolData.juniorLiquidityRate = LibLiquidity.getLiquidityRate(
             underlyingAsset,
-            ReserveLogic.Tranche.JUNIOR
+            Tranche.JUNIOR
         );
-        poolData.seniorLiquidityRate = lmp.getLiquidityRate(
+        poolData.seniorLiquidityRate = LibLiquidity.getLiquidityRate(
             underlyingAsset,
-            ReserveLogic.Tranche.SENIOR
+            Tranche.SENIOR
         );
         poolData.totalDebt = depositAndDebt.totalDebt;
         if (depositAndDebt.seniorDepositAmount == 0) {
@@ -97,9 +118,11 @@ contract VoyageDataProviderFacet {
         }
 
         poolData.decimals = token.decimals();
-        poolData.utilizationRate = lmp.utilizationRate(underlyingAsset);
+        poolData.utilizationRate = LibLiquidity.utilizationRate(
+            underlyingAsset
+        );
         poolData.symbol = token.symbol();
-        (bool isActive, , ) = lmp.getFlags(underlyingAsset);
+        (bool isActive, , ) = LibLiquidity.getFlags(underlyingAsset);
         poolData.isActive = isActive;
 
         return poolData;
@@ -122,20 +145,17 @@ contract VoyageDataProviderFacet {
     function getPoolTokens()
         external
         view
-        returns (DataTypes.FungibleTokenData[] memory tokens)
+        returns (FungibleTokenData[] memory tokens)
     {
-        address[] memory reserveList = IReserveManager(
-            addressResolver().getLiquidityManagerProxy()
-        ).getReserveList();
+        address[] memory reserveList = LibLiquidity.getReserveList();
 
-        DataTypes.FungibleTokenData[]
-            memory reserves = new DataTypes.FungibleTokenData[](
-                reserveList.length
-            );
+        FungibleTokenData[] memory reserves = new FungibleTokenData[](
+            reserveList.length
+        );
 
         for (uint256 i = 0; i < reserveList.length; i++) {
             address reserveAddress = reserveList[i];
-            reserves[i] = DataTypes.FungibleTokenData({
+            reserves[i] = FungibleTokenData({
                 symbol: IERC20Metadata(reserveAddress).symbol(),
                 tokenAddress: reserveAddress
             });
@@ -147,36 +167,33 @@ contract VoyageDataProviderFacet {
     function getUserPoolData(address _reserve, address _user)
         external
         view
-        returns (DataTypes.UserPoolData memory)
+        returns (UserPoolData memory)
     {
-        ILiquidityManagerProxy lmp = ILiquidityManagerProxy(
-            addressResolver().getLiquidityManagerProxy()
-        );
-        DataTypes.UserPoolData memory userPoolData;
+        UserPoolData memory userPoolData;
         IERC20Metadata token = IERC20Metadata(_reserve);
 
-        uint256 seniorTrancheWithdrawable = lmp.balance(
+        uint256 seniorTrancheWithdrawable = LibLiquidity.balance(
             _reserve,
             _user,
-            ReserveLogic.Tranche.SENIOR
+            Tranche.SENIOR
         );
-        uint256 seniorTrancheUnbonding = lmp.unbonding(
+        uint256 seniorTrancheUnbonding = LibLiquidity.unbonding(
             _reserve,
             _user,
-            ReserveLogic.Tranche.SENIOR
+            Tranche.SENIOR
         );
         uint256 seniorTrancheTotalBalance = seniorTrancheWithdrawable.add(
             seniorTrancheUnbonding
         );
-        uint256 juniorTrancheWithdrawable = lmp.balance(
+        uint256 juniorTrancheWithdrawable = LibLiquidity.balance(
             _reserve,
             _user,
-            ReserveLogic.Tranche.JUNIOR
+            Tranche.JUNIOR
         );
-        uint256 juniorTrancheUnbonding = lmp.unbonding(
+        uint256 juniorTrancheUnbonding = LibLiquidity.unbonding(
             _reserve,
             _user,
-            ReserveLogic.Tranche.JUNIOR
+            Tranche.JUNIOR
         );
         uint256 juniorTrancheTotalBalance = juniorTrancheWithdrawable.add(
             juniorTrancheUnbonding
@@ -205,17 +222,14 @@ contract VoyageDataProviderFacet {
         IVaultManagerProxy vmp = IVaultManagerProxy(
             addressResolver().getVaultManagerProxy()
         );
-        ILoanManagerProxy lmp = ILoanManagerProxy(
-            addressResolver().getLoanManagerProxy()
-        );
         uint256 principal;
         uint256 interest;
         DataTypes.DrawDownList memory drawDownList;
-        (drawDownList.head, drawDownList.tail) = lmp.getDrawDownList(
+        (drawDownList.head, drawDownList.tail) = LibLoan.getDrawDownList(
             _reserve,
             vault
         );
-        (principal, interest) = lmp.getVaultDebt(_reserve, vault);
+        (principal, interest) = LibVault.getVaultDebt(_reserve, vault);
         vaultData.drawDownList = drawDownList;
         vaultData.borrowRate = 0;
         vaultData.totalDebt = principal.add(interest);
@@ -239,10 +253,6 @@ contract VoyageDataProviderFacet {
             .add(vaultData.totalSecurityDeposit)
             .rayDiv(vaultData.totalDebt);
 
-        IReserveManager rm = IReserveManager(
-            addressResolver().getLiquidityManagerProxy()
-        );
-        DataTypes.ReserveData memory reserve = rm.getReserveData(_reserve);
         return vaultData;
     }
 
@@ -250,14 +260,11 @@ contract VoyageDataProviderFacet {
         address _user,
         address _reserve,
         uint256 _drawDownId
-    ) external view returns (DataTypes.DebtDetail memory) {
-        ILoanManagerProxy lmp = ILoanManagerProxy(
-            addressResolver().getLoanManagerProxy()
-        );
+    ) external view returns (LibLoan.DebtDetail memory) {
         address vault = IVaultManagerProxy(
             addressResolver().getVaultManagerProxy()
         ).getVault(_user);
-        return lmp.getDrawDownDetail(_reserve, vault, _drawDownId);
+        return LibLoan.getDrawDownDetail(_reserve, vault, _drawDownId);
     }
 
     function pendingSeniorWithdrawals(address _user, address _reserve)
@@ -265,10 +272,7 @@ contract VoyageDataProviderFacet {
         view
         returns (uint256[] memory, uint256[] memory)
     {
-        IReserveManager rm = IReserveManager(
-            addressResolver().getLiquidityManagerProxy()
-        );
-        DataTypes.ReserveData memory reserve = rm.getReserveData(_reserve);
+        ReserveData memory reserve = LibLiquidity.getReserveData(_reserve);
 
         (uint256[] memory times, uint256[] memory amounts) = IVToken(
             reserve.seniorDepositTokenAddress
@@ -282,10 +286,7 @@ contract VoyageDataProviderFacet {
         view
         returns (uint256[] memory, uint256[] memory)
     {
-        IReserveManager rm = IReserveManager(
-            addressResolver().getLiquidityManagerProxy()
-        );
-        DataTypes.ReserveData memory reserve = rm.getReserveData(_reserve);
+        ReserveData memory reserve = LibLiquidity.getReserveData(_reserve);
 
         (uint256[] memory times, uint256[] memory amounts) = IVToken(
             reserve.juniorDepositTokenAddress

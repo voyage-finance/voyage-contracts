@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import {AppStorage, ADDRESS_RESOLVER} from "../libraries/LibAppStorage.sol";
+import {AppStorage, ACL, ADDRESS_RESOLVER} from "../libraries/LibAppStorage.sol";
 import {LibDiamond} from "../diamond/libraries/LibDiamond.sol";
 import {IDiamondLoupe} from "../diamond/interfaces/IDiamondLoupe.sol";
 import {IDiamondCut} from "../diamond/interfaces/IDiamondCut.sol";
@@ -25,5 +25,6 @@ contract InitDiamond {
 
         // initialise app storage stuff
         s._addresses[ADDRESS_RESOLVER] = _args.addressResolver;
+        s._paused = false;
     }
 }
