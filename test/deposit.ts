@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { setupTestSuite } from '../helpers/setupTestSuite';
 
-describe.only('Reserve Deposit', function () {
+describe('Reserve Deposit', function () {
   it('Deposit junior liquidity should return correct value', async function () {
     const { owner, juniorDepositToken, tus, voyager } = await setupTestSuite();
     const depositAmount = '1000000000000000000';

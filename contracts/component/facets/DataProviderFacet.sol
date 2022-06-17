@@ -128,13 +128,6 @@ contract DataProviderFacet {
         return poolData;
     }
 
-    function getAllVaults() external view returns (address[] memory) {
-        IVaultManagerProxy vmp = IVaultManagerProxy(
-            addressResolver().getVaultManagerProxy()
-        );
-        return vmp.getAllVaults();
-    }
-
     function getUserVault(address _user) external view returns (address) {
         IVaultManagerProxy vmp = IVaultManagerProxy(
             addressResolver().getVaultManagerProxy()

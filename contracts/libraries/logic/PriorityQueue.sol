@@ -1,8 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import "../types/DataTypes.sol";
 import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
+
+struct Heap {
+    uint256[] heapList;
+    uint256 currentSize;
+}
 
 library PriorityQueue {
     using SafeMath for uint256;
@@ -11,7 +15,7 @@ library PriorityQueue {
      * @dev Returns the top element of the heap.
      * @return The smallest element in the priority queue.
      */
-    function getMin(DataTypes.Heap storage heap)
+    function getMin(Heap storage heap)
         internal
         view
         returns (uint256, uint256)
@@ -25,7 +29,7 @@ library PriorityQueue {
      * @param _timestamp Timestamp.
      */
     function insert(
-        DataTypes.Heap storage heap,
+        Heap storage heap,
         uint256 _tokenId,
         uint256 _timestamp
     ) internal {
@@ -39,10 +43,7 @@ library PriorityQueue {
      * @dev Deletes the top element of the heap and shifts everything up.
      * @return The smallest element in the priorty queue.
      */
-    function delMin(DataTypes.Heap storage heap)
-        internal
-        returns (uint256, uint256)
-    {
+    function delMin(Heap storage heap) internal returns (uint256, uint256) {
         uint256 retVal = heap.heapList[1];
         heap.heapList[1] = heap.heapList[heap.currentSize];
         delete heap.heapList[heap.currentSize];
@@ -55,7 +56,7 @@ library PriorityQueue {
     /**
      * @dev Bubbles the element at some index up.
      */
-    function _percUp(DataTypes.Heap storage heap, uint256 _index) internal {
+    function _percUp(Heap storage heap, uint256 _index) internal {
         uint256 index = _index;
         uint256 j = index;
         uint256 newVal = heap.heapList[index];
@@ -71,7 +72,7 @@ library PriorityQueue {
      * @param _index Index of the node in the tree.
      * @return The smallest child node.
      */
-    function _minChild(DataTypes.Heap storage heap, uint256 _index)
+    function _minChild(Heap storage heap, uint256 _index)
         internal
         view
         returns (uint256)
@@ -93,7 +94,7 @@ library PriorityQueue {
     /**
      * @dev Bubbles the element at some index down.
      */
-    function _percDown(DataTypes.Heap storage heap, uint256 _index) internal {
+    function _percDown(Heap storage heap, uint256 _index) internal {
         uint256 index = _index;
         uint256 j = index;
         uint256 newVal = heap.heapList[index];

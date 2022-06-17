@@ -12,13 +12,13 @@ import {ILoanStrategy} from "../../interfaces/ILoanStrategy.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {IVToken} from "../../interfaces/IVToken.sol";
 import {IPriceOracle} from "../../interfaces/IPriceOracle.sol";
-import {Voyager} from "../Voyager.sol";
 import {LibLiquidity} from "../../libraries/LibLiquidity.sol";
 import {LibLoan} from "../../libraries/LibLoan.sol";
 import {LibVault} from "../../libraries/LibVault.sol";
 import {LibAppStorage, AppStorage, Storage, BorrowData, BorrowState, DrawDown, ReserveData} from "../../libraries/LibAppStorage.sol";
 import {ERC4626} from "@rari-capital/solmate/src/mixins/ERC4626.sol";
 import {AddressResolver} from "../infra/AddressResolver.sol";
+import "hardhat/console.sol";
 
 contract LoanFacet is Storage {
     using SafeMath for uint256;
@@ -55,21 +55,20 @@ contract LoanFacet is Storage {
         uint256 marginRequirement;
     }
 
-    Voyager private voyager;
-
     function borrow(
-        address _user,
         address _asset,
         uint256 _amount,
-        address payable _vault,
-        uint256 _grossAssetValue
+        address payable _vault
     ) external whenNotPaused {
         ExecuteBorrowParams memory executeBorrowParams;
         // todo use min security deposit
         require(_amount >= 1e19, Errors.LOM_INVALID_AMOUNT);
 
         // 0. check if the user owns the vault
-        require(voyager.getVault(_user) == _vault, Errors.LOM_NOT_VAULT_OWNER);
+        require(
+            LibVault.getVaultAddress(_msgSender()) == _vault,
+            Errors.LOM_NOT_VAULT_OWNER
+        );
 
         // 1. check if pool liquidity is sufficient
         ReserveData memory reserveData = LibLiquidity.getReserveData(_asset);
@@ -88,10 +87,11 @@ contract LoanFacet is Storage {
         //        );
 
         // 3. check credit limit
-        uint256 availableCreditLimit = voyager.getAvailableCredit(
-            _user,
+        uint256 availableCreditLimit = LibVault.getAvailableCredit(
+            _msgSender(),
             _asset
         );
+        console.log("credit limit: %s", availableCreditLimit);
 
         require(
             availableCreditLimit >= _amount,
@@ -151,7 +151,10 @@ contract LoanFacet is Storage {
         address payable _vault
     ) external whenNotPaused {
         // 0. check if the user owns the vault
-        require(voyager.getVault(_user) == _vault, Errors.LOM_NOT_VAULT_OWNER);
+        require(
+            LibVault.getVaultAddress(_msgSender()) == _vault,
+            Errors.LOM_NOT_VAULT_OWNER
+        );
         // 1. check draw down to get principal and interest
         uint256 principal;
         uint256 interest;

@@ -4,20 +4,16 @@ import { setupTestSuite } from '../helpers/setupTestSuite';
 
 describe('Security Deposit', function () {
   it('Non Voyager call VaultManager should throw error', async function () {
-    const { tus } = await setupTestSuite();
-    const vaultManager = await ethers.getContract('VaultManager');
+    const { tus, voyager } = await setupTestSuite();
 
     await expect(
-      vaultManager.setMaxSecurityDeposit(tus.address, '100000000000000000000')
+      voyager.setMaxSecurityDeposit(tus.address, '100000000000000000000')
     ).to.be.revertedWith('Only the proxy can call');
   });
 
   it('Security deposit setup should return correct value', async function () {
-    const { vaultManager, tus, voyager } = await setupTestSuite();
-    await vaultManager.setMaxSecurityDeposit(
-      tus.address,
-      '100000000000000000000'
-    );
+    const { tus, voyager } = await setupTestSuite();
+    await voyager.setMaxSecurityDeposit(tus.address, '100000000000000000000');
     const amountAfterSetting = await voyager.getVaultConfig(tus.address);
     expect(amountAfterSetting.maxSecurityDeposit.toString()).to.equal(
       '100000000000000000000'
@@ -25,7 +21,7 @@ describe('Security Deposit', function () {
   });
 
   it('Security deposit should return correct value', async function () {
-    const { owner, tus, vaultManager, voyager } = await setupTestSuite();
+    const { owner, tus, voyager } = await setupTestSuite();
     // create vault
     const salt = ethers.utils.formatBytes32String(
       (Math.random() + 1).toString(36).substring(7)
@@ -42,10 +38,7 @@ describe('Security Deposit', function () {
       '10000000000000000000000'
     );
 
-    await vaultManager.setMaxSecurityDeposit(
-      tus.address,
-      '100000000000000000000'
-    );
+    await voyager.setMaxSecurityDeposit(tus.address, '100000000000000000000');
     const SecurityDepositEscrow = await ethers.getContractFactory(
       'SecurityDepositEscrow'
     );

@@ -17,20 +17,8 @@ export const setupTestSuite = d.createFixture(
 
     /* --------------------------------- voyager -------------------------------- */
     const voyager = await ethers.getContract('Voyager');
-    await voyager.whitelistAddress([owner]);
-    await voyager.whitelistFunction([
-      ethers.utils.formatBytes32String('createVault'),
-      ethers.utils.formatBytes32String('depositSecurity'),
-      ethers.utils.formatBytes32String('redeemSecurity'),
-    ]);
 
     /* ---------------------------- vault management ---------------------------- */
-    const vaultManagerProxy = await ethers.getContract('VaultManagerProxy');
-    const vaultManager = await ethers.getContractAt(
-      'VaultManager',
-      vaultManagerProxy.address
-    );
-    const vaultStorage = await ethers.getContract('VaultStorage');
     const extCallACLProxy = await ethers.getContract('ExtCallACLProxy');
     const extCallACL = await ethers.getContractAt(
       'ExtCallACL',
@@ -42,7 +30,6 @@ export const setupTestSuite = d.createFixture(
     await aclManager.grantLiquidityManager(owner);
     await aclManager.grantVaultManager(owner);
     await aclManager.grantPoolManager(owner);
-    await aclManager.grantVaultManagerContract(vaultManager.address);
 
     const priceOracle = await ethers.getContract('PriceOracle');
     // TODO: deploy this in a separate libraries script
@@ -53,15 +40,11 @@ export const setupTestSuite = d.createFixture(
       ethers.utils.formatBytes32String('voyager'),
       ethers.utils.formatBytes32String('aclManager'),
       ethers.utils.formatBytes32String('extCallACLProxy'),
-      ethers.utils.formatBytes32String('vaultManagerProxy'),
-      ethers.utils.formatBytes32String('vaultStorage'),
     ];
     const destinations = [
       voyager.address,
       aclManager.address,
       extCallACLProxy.address,
-      vaultManagerProxy.address,
-      vaultStorage.address,
     ];
     await addressResolver.importAddresses(names, destinations);
 
@@ -75,6 +58,7 @@ export const setupTestSuite = d.createFixture(
     const defaultLoanStrategy = await ethers.getContract('DefaultLoanStrategy');
     const healthStrategy = await ethers.getContract('DefaultHealthStrategy');
 
+    /* ------------------------- reserve initialisation ------------------------- */
     await voyager.initReserve(
       tus.address,
       juniorDepositToken.address,
@@ -84,9 +68,29 @@ export const setupTestSuite = d.createFixture(
       defaultLoanStrategy.address,
       '500000000000000000000000000'
     );
-    // 100
     await voyager.activateReserve(tus.address);
     await tus.approve(voyager.address, MAX_UINT_256);
+
+    /* -------------------------- vault initialisation -------------------------- */
+    await voyager.setMaxSecurityDeposit(tus.address, '1000000000000000000000');
+    await voyager.setSecurityDepositRequirement(
+      tus.address,
+      '100000000000000000000000000'
+    ); // 0.1
+
+    // create an empty vault
+    const salt = ethers.utils.formatBytes32String(
+      (Math.random() + 1).toString(36).substring(7)
+    );
+    await voyager.createVault(salt);
+    const vaultAddr = await voyager.getVault(owner);
+    console.log('vault address: ', vaultAddr);
+    await voyager.initVault(vaultAddr, tus.address);
+
+    // get security deposit escrow address
+    const vault = await ethers.getContractAt('Vault', vaultAddr);
+    const escrowAddress = await vault.getSecurityDepositEscrowAddress();
+    await tus.increaseAllowance(escrowAddress, MAX_UINT_256);
 
     return {
       owner,
@@ -97,8 +101,7 @@ export const setupTestSuite = d.createFixture(
       tus,
       juniorDepositToken,
       seniorDepositToken,
-      vaultManager,
-      vaultStorage,
+      vault,
       voyager,
     };
   }

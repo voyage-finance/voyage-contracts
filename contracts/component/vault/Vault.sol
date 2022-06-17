@@ -11,26 +11,24 @@ import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {SecurityDepositEscrow} from "./SecurityDepositEscrow.sol";
 import {AddressResolver} from "../infra/AddressResolver.sol";
 import {Voyager} from "../Voyager.sol";
-import {VaultManager} from "./VaultManager.sol";
+import {VaultFacet} from "../facets/VaultFacet.sol";
 import {LoanFacet} from "../facets/LoanFacet.sol";
+import {VaultConfig} from "../../libraries/LibAppStorage.sol";
 import {SecurityDepositToken} from "../../tokenization/SecurityDepositToken.sol";
 import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
 import {IACLManager} from "../../interfaces/IACLManager.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {IAddressResolver} from "../../interfaces/IAddressResolver.sol";
 import {IVaultManagerProxy} from "../../interfaces/IVaultManagerProxy.sol";
-import {DataTypes} from "../../libraries/types/DataTypes.sol";
-import {PriorityQueue} from "../../libraries/logic/PriorityQueue.sol";
+import {PriorityQueue, Heap} from "../../libraries/logic/PriorityQueue.sol";
 
 contract Vault is ReentrancyGuard, IVault, IERC1271, IERC165 {
     using WadRayMath for uint256;
     using SafeMath for uint256;
-    using PriorityQueue for DataTypes.Heap;
+    using PriorityQueue for Heap;
 
     // about to remove or refactor
-    IAddressResolver addressResolver;
-    IACLManager aclManager;
-    LoanFacet loanFacet;
+    address voyager;
     address[] public players;
     bool public initialized;
     SecurityDepositEscrow public securityDepositEscrow;
@@ -41,30 +39,27 @@ contract Vault is ReentrancyGuard, IVault, IERC1271, IERC165 {
         address owner;
         SecurityDepositEscrow securityDepositEscrow;
         SecurityDepositToken securityDepositToken;
-        mapping(address => DataTypes.Heap) nfts;
+        mapping(address => Heap) nfts;
         /// @dev You must not set element 0xffffffff to true
         mapping(bytes4 => bool) supportedInterfaces;
     }
 
     modifier onlyLoanManager() {
         require(
-            aclManager.isLoanManager(msg.sender),
+            aclManager().isLoanManager(msg.sender),
             "Not loan manager contract"
         );
         _;
     }
 
-    modifier onlyVaultManager() {
-        require(
-            aclManager.isVaultManagerContract(msg.sender),
-            "Not vault manager contract"
-        );
+    modifier onlyVoyager() {
+        require(msg.sender == voyager, "Not Voyager");
         _;
     }
 
-    modifier onlyVaultManagerContract() {
+    modifier onlyVoyagerContract() {
         require(
-            aclManager.isLoanManagerContract(msg.sender),
+            aclManager().isLoanManagerContract(msg.sender),
             "Not loan manager"
         );
         _;
@@ -75,9 +70,7 @@ contract Vault is ReentrancyGuard, IVault, IERC1271, IERC165 {
         SecurityDepositEscrow _securityDepositEscrow
     ) external {
         if (!diamondStorage().initialized) {
-            addressResolver = Voyager(payable(_voyager)).addressResolver();
-            loanFacet = LoanFacet(_voyager);
-            aclManager = IACLManager(addressResolver.getAclManager());
+            voyager = _voyager;
             diamondStorage().securityDepositEscrow = _securityDepositEscrow;
             diamondStorage().initialized = true;
             ERC165MappingImplementation();
@@ -85,10 +78,7 @@ contract Vault is ReentrancyGuard, IVault, IERC1271, IERC165 {
         }
     }
 
-    function initSecurityDepositToken(address _reserve)
-        external
-        onlyVaultManager
-    {
+    function initSecurityDepositToken(address _reserve) external onlyVoyager {
         require(
             address(diamondStorage().securityDepositToken) == address(0),
             "Vault: security deposit token has been initialized"
@@ -110,11 +100,8 @@ contract Vault is ReentrancyGuard, IVault, IERC1271, IERC165 {
         address _sponsor,
         address _reserve,
         uint256 _amount
-    ) external payable nonReentrant onlyVaultManager {
-        address vmp = addressResolver.getVaultManagerProxy();
-        IVaultManagerProxy vaultManagerProxy = IVaultManagerProxy(vmp);
-        DataTypes.VaultConfig memory vaultConfig = vaultManagerProxy
-            .getVaultConfig(_reserve);
+    ) external payable nonReentrant onlyVoyager {
+        VaultConfig memory vaultConfig = vaultFacet().getVaultConfig(_reserve);
 
         // check max security deposit amount for this _reserve
         uint256 maxAllowedAmount = vaultConfig.maxSecurityDeposit;
@@ -122,7 +109,7 @@ contract Vault is ReentrancyGuard, IVault, IERC1271, IERC165 {
             .securityDepositEscrow
             .getDepositAmount(_reserve);
         require(
-            depositedAmount + _amount < maxAllowedAmount,
+            depositedAmount + _amount <= maxAllowedAmount,
             "Vault: deposit amount exceed"
         );
 
@@ -146,7 +133,7 @@ contract Vault is ReentrancyGuard, IVault, IERC1271, IERC165 {
         address payable _sponsor,
         address _reserve,
         uint256 _amount
-    ) external payable nonReentrant onlyVaultManager {
+    ) external payable nonReentrant onlyVoyager {
         require(
             _amount <= getWithdrawableDepositInternal(_sponsor, _reserve),
             "Vault: cannot redeem more than withdrawable deposit amount"
@@ -164,7 +151,7 @@ contract Vault is ReentrancyGuard, IVault, IERC1271, IERC165 {
         address _reserve,
         address payable _to,
         uint256 _amount
-    ) external nonReentrant onlyVaultManager returns (uint256) {
+    ) external nonReentrant onlyVoyager returns (uint256) {
         return
             diamondStorage().securityDepositEscrow.slash(
                 _reserve,
@@ -178,7 +165,7 @@ contract Vault is ReentrancyGuard, IVault, IERC1271, IERC165 {
     /// @param _tokenId Token id
     function insertNFT(address _erc721Addr, uint256 _tokenId)
         external
-        onlyVaultManager
+        onlyVoyager
     {
         diamondStorage().nfts[_erc721Addr].insert(_tokenId, block.timestamp);
     }
@@ -248,6 +235,22 @@ contract Vault is ReentrancyGuard, IVault, IERC1271, IERC165 {
         assembly {
             ds.slot := storagePosition
         }
+    }
+
+    function addressResolver() internal view returns (IAddressResolver) {
+        return Voyager(payable(voyager)).addressResolver();
+    }
+
+    function aclManager() internal view returns (IACLManager) {
+        return IACLManager(addressResolver().getAclManager());
+    }
+
+    function loanFacet() internal view returns (LoanFacet) {
+        return LoanFacet(voyager);
+    }
+
+    function vaultFacet() internal view returns (VaultFacet) {
+        return VaultFacet(voyager);
     }
 
     function getCurrentSecurityDeposit(address _reserve)
@@ -421,15 +424,14 @@ contract Vault is ReentrancyGuard, IVault, IERC1271, IERC165 {
         view
         returns (uint256)
     {
-        address vmp = addressResolver.getVaultManagerProxy();
-        IVaultManagerProxy vaultManagerProxy = IVaultManagerProxy(vmp);
-        DataTypes.VaultConfig memory vaultConfig = vaultManagerProxy
-            .getVaultConfig(_reserve);
-
+        VaultConfig memory vaultConfig = vaultFacet().getVaultConfig(_reserve);
         uint256 securityRequirement = vaultConfig.securityDepositRequirement;
         uint256 principal;
         uint256 interest;
-        (principal, interest) = loanFacet.getVaultDebt(_reserve, address(this));
+        (principal, interest) = loanFacet().getVaultDebt(
+            _reserve,
+            address(this)
+        );
 
         uint256 totalDebt = principal.add(interest);
         uint256 withdrawableAmount = diamondStorage()
