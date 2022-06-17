@@ -3,6 +3,7 @@ import { config as dotenvConfig } from 'dotenv';
 import { ethers } from 'ethers';
 import { task } from 'hardhat/config';
 import { HardhatUserConfig } from 'hardhat/types';
+// import 'hardhat-diamond-abi';
 import '@typechain/hardhat';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
@@ -17,7 +18,7 @@ dotenvConfig({ path: resolve(__dirname, './.env') });
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || '';
 // TODO @ian.tan these transactions should at some point be signed by a ledger in production.
 const DEPLOYER_PRIVATE_KEY =
-    process.env.DEPLOYER_PRIVATE_KEY || ethers.Wallet.createRandom().privateKey;
+  process.env.DEPLOYER_PRIVATE_KEY || ethers.Wallet.createRandom().privateKey;
 
 const cov = process.env.COVERAGE === 'true';
 if (cov) {
@@ -45,11 +46,11 @@ const config: HardhatUserConfig = {
     hardhat: {
       allowUnlimitedContractSize: true,
       mining:
-          process.env.MINING_MODE !== 'interval'
-              ? { auto: true }
-              : {
-                interval: parseInt(process.env.MIN_INTERVAL || '500', 10),
-              },
+        process.env.MINING_MODE !== 'interval'
+          ? { auto: true }
+          : {
+              interval: parseInt(process.env.MIN_INTERVAL || '500', 10),
+            },
     },
     avalancheMain: {
       url: 'https://avax-c.staging.voyage.finance/rpc',
@@ -84,6 +85,10 @@ const config: HardhatUserConfig = {
     alice: 1,
     bob: 2,
   },
+  // diamondAbi: {
+  //   name: 'Voyager',
+  //   include: ['contracts/component/facets'],
+  // },
   solidity: {
     compilers: [
       {

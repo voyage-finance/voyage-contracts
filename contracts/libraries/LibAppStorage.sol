@@ -142,6 +142,12 @@ struct AppStorage {
     mapping(address => mapping(address => BorrowData)) _borrowData;
     mapping(address => BorrowState) _borrowState;
     bool _paused;
+    /* ---------------------------------- vault --------------------------------- */
+    address[] vaults;
+    // mapping of vault owner to vault instance address
+    mapping(address => address) vaultMap;
+    // mapping of vault instance to vault configuration
+    mapping(address => VaultConfig) vaultConfigMap;
 }
 
 library LibAppStorage {

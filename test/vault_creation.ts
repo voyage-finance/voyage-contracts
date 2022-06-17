@@ -4,8 +4,8 @@ import { setupTestSuite } from '../helpers/setupTestSuite';
 
 describe('Vault Creation', function () {
   it('New user should have zero address vault', async function () {
-    const { owner, vaultManager } = await setupTestSuite();
-    expect(await vaultManager.getVault(owner)).to.equal(
+    const { owner, voyager } = await setupTestSuite();
+    expect(await voyager.getVault(owner)).to.equal(
       '0x0000000000000000000000000000000000000000'
     );
   });
@@ -23,13 +23,13 @@ describe('Vault Creation', function () {
   });
 
   it('Created Vault should have own a valid escrow contract', async function () {
-    const { owner, tus, vaultStorage, voyager } = await setupTestSuite();
+    const { owner, tus, voyager } = await setupTestSuite();
     // create vault
     const salt = ethers.utils.formatBytes32String(
       (Math.random() + 1).toString(36).substring(7)
     );
     await voyager.createVault(owner, tus.address, salt);
-    const vaultAddress = await vaultStorage.getVaultAddress(owner);
+    const vaultAddress = await voyager.getVault(owner);
     await voyager.initVault(vaultAddress, tus.address);
     const Vault = await ethers.getContractFactory('Vault');
     const vault = Vault.attach(vaultAddress);

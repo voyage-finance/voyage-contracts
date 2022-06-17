@@ -204,9 +204,4 @@ library DataTypes {
         uint256 withdrawableSeniorTrancheBalance;
         uint256 decimals;
     }
-
-    struct Heap {
-        uint256[] heapList;
-        uint256 currentSize;
-    }
 }

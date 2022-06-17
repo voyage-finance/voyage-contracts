@@ -4958,6 +4958,14 @@ hardhat-deploy@^0.11.4:
     murmur-128 "^0.2.1"
     qs "^6.9.4"
 
+hardhat-diamond-abi@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/hardhat-diamond-abi/-/hardhat-diamond-abi-3.0.0.tgz#592f5a886f08f70cc3f852354e0e58981deb128f"
+  integrity sha512-+DefFeIi0+jsVSb03tW0aXyfe0ewGUQ2Poh8wQUFF4ys20qoRqC/KunrJw/T9No18Vnu18jVJyOGFu7p8fF9OA==
+  dependencies:
+    debug "^4.3.3"
+    ethers "^5.5.2"
+
 hardhat-gas-reporter@^1.0.4:
   version "1.0.8"
   resolved "https://registry.yarnpkg.com/hardhat-gas-reporter/-/hardhat-gas-reporter-1.0.8.tgz#93ce271358cd748d9c4185dbb9d1d5525ec145e0"

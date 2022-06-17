@@ -63,6 +63,11 @@ const deployFn: DeployFunction = async (hre) => {
       log: true,
     },
     {
+      name: 'VaultFacet',
+      from: owner,
+      log: true,
+    },
+    {
       name: 'DataProviderFacet',
       from: owner,
       log: true,

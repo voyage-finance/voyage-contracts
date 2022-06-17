@@ -7,8 +7,6 @@ const deployFn: DeployFunction = async (hre) => {
   const { deploy, execute } = deployments;
   const { owner } = await getNamedAccounts();
 
-  const VaultManager = await deployments.get('VaultManager');
-
   await deploy(ACLMANAGER_NAME, {
     from: owner,
     args: [owner],
@@ -34,13 +32,6 @@ const deployFn: DeployFunction = async (hre) => {
     { from: owner, log: true },
     'grantOracleManager',
     owner
-  );
-
-  await execute(
-    'ACLManager',
-    { from: owner, log: true },
-    'grantVaultManagerContract',
-    VaultManager.address
   );
 };
 
