@@ -14,6 +14,7 @@ import {LibAppStorage, AppStorage, Storage, Tranche, ReserveData, BorrowState, R
 import {ReserveConfiguration} from "../../libraries/configuration/ReserveConfiguration.sol";
 import {LibLiquidity} from "../../libraries/LibLiquidity.sol";
 import {PeripheryPayments} from "../../libraries/utils/PeripheryPayments.sol";
+import "hardhat/console.sol";
 
 contract LiquidityFacet is Storage, PeripheryPayments {
     using LibLiquidity for ReserveData;
@@ -57,6 +58,7 @@ contract LiquidityFacet is Storage, PeripheryPayments {
     ) external onlyAdmin {
         require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
         ReserveData storage reserveData = LibLiquidity.getReserveData(_asset);
+        require(reserveData.initialized == false, "cannot initialize twice");
         reserveData.init(
             _juniorDepositTokenAddress,
             _seniorDepositTokenAddress,
@@ -133,12 +135,16 @@ contract LiquidityFacet is Storage, PeripheryPayments {
         if (_amount == type(uint256).max) {
             amountToWithdraw = userBalance;
         }
+        console.log("amount to withdraw: %s", amountToWithdraw);
         BorrowState memory borrowState = s._borrowState[_asset];
         uint256 totalDebt = borrowState.totalDebt.add(
             borrowState.totalInterest
         );
+        console.log("total debt: %s", totalDebt);
         uint256 avgBorrowRate = borrowState.avgBorrowRate;
+        console.log("avg borrow rate: %s", borrowState.avgBorrowRate);
         IVToken(vToken).withdraw(_amount, _user, _user);
+        console.log("withdrew");
         LibLiquidity.updateStateOnWithdraw(
             _asset,
             _tranche,
@@ -152,12 +158,28 @@ contract LiquidityFacet is Storage, PeripheryPayments {
 
     /* ---------------------------------- views --------------------------------- */
 
+    function balance(
+        address _reserve,
+        address _user,
+        Tranche _tranche
+    ) public view returns (uint256) {
+        return LibLiquidity.balance(_reserve, _user, _tranche);
+    }
+
     function liquidityRate(address _asset, Tranche _tranche)
         public
         view
         returns (uint256)
     {
         return LibLiquidity.getLiquidityRate(_asset, _tranche);
+    }
+
+    function unbonding(
+        address _reserve,
+        address _user,
+        Tranche _tranche
+    ) public view returns (uint256) {
+        return LibLiquidity.unbonding(_reserve, _user, _tranche);
     }
 
     function utilizationRate(address _reserve) external view returns (uint256) {
@@ -179,5 +201,17 @@ contract LiquidityFacet is Storage, PeripheryPayments {
             totalDebt == 0
                 ? 0
                 : totalDebt.rayDiv(availableLiquidity.add(totalDebt));
+    }
+
+    function getReserveFlags(address _reserve)
+        external
+        view
+        returns (
+            bool,
+            bool,
+            bool
+        )
+    {
+        return LibLiquidity.getFlags(_reserve);
     }
 }

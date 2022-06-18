@@ -1,9 +1,9 @@
 import { ethers } from 'hardhat';
-import { setupDebtTestSuite } from '../helpers/debt';
+import { setupTestSuite } from '../helpers/setupTestSuite';
 
 describe('Price Oracle', function () {
   it('Constant price should return same vaule', async function () {
-    const { tus, priceOracle } = await setupDebtTestSuite();
+    const { tus, priceOracle } = await setupTestSuite();
 
     await priceOracle.updateCumulative(tus.address, '100');
 
@@ -41,7 +41,7 @@ describe('Price Oracle', function () {
   });
 
   it('Set price should return correct value', async function () {
-    const { tus, priceOracle } = await setupDebtTestSuite();
+    const { tus, priceOracle } = await setupTestSuite();
 
     await priceOracle.updateCumulative(tus.address, '100');
 

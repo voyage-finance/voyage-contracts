@@ -1,12 +1,12 @@
 import { expect } from 'chai';
 import { ethers, getNamedAccounts } from 'hardhat';
-import { setupDepositTestSuite } from '../helpers/deposit';
 import { MAX_UINT_256 } from '../helpers/math';
+import { setupTestSuiteWithMocks } from '../helpers/setupTestSuite';
 
 describe('SeniorDepositToken', async () => {
   it('totalAssets should return underlying balance when there is no outstanding debt', async () => {
     const { seniorDepositToken, underlying, decimals } =
-      await setupDepositTestSuite({ principalBalance: 0 });
+      await setupTestSuiteWithMocks({ principalBalance: 0 });
     const amount = ethers.BigNumber.from(100).mul(decimals);
     await underlying.transfer(seniorDepositToken.address, amount);
     const totalAssets = await seniorDepositToken.totalAssets();
@@ -17,7 +17,7 @@ describe('SeniorDepositToken', async () => {
     const principalBalance = 100;
     const interestBalance = 100;
     const { seniorDepositToken, underlying, decimals } =
-      await setupDepositTestSuite({
+      await setupTestSuiteWithMocks({
         principalBalance,
         interestBalance,
       });
@@ -35,7 +35,7 @@ describe('SeniorDepositToken', async () => {
 
   it('exchange rate goes up when underlying balance goes up', async () => {
     const { seniorDepositToken, underlying, decimals } =
-      await setupDepositTestSuite();
+      await setupTestSuiteWithMocks();
     const { owner } = await getNamedAccounts();
 
     await underlying.increaseAllowance(
@@ -62,7 +62,7 @@ describe('SeniorDepositToken', async () => {
 
   it('should use msg.sender as depositor when calling deposit directly', async () => {
     const { seniorDepositToken, underlying, decimals } =
-      await setupDepositTestSuite();
+      await setupTestSuiteWithMocks();
     const { owner } = await getNamedAccounts();
     await underlying.increaseAllowance(
       seniorDepositToken.address,

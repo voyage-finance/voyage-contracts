@@ -31,11 +31,15 @@ contract VaultFacet is Storage, ReentrancyGuard {
     );
 
     /* ----------------------------- admin interface ---------------------------- */
-    function createVault(bytes32 _salt) external onlyAdmin returns (address) {
+    function createVault(address owner, bytes32 _salt)
+        external
+        onlyAdmin
+        returns (address)
+    {
         address vault;
         uint256 numVaults;
-        (vault, numVaults) = LibVault.deployVault(_msgSender(), _salt);
-        emit VaultCreated(vault, _msgSender(), numVaults);
+        (vault, numVaults) = LibVault.deployVault(owner, _salt);
+        emit VaultCreated(vault, owner, numVaults);
         return vault;
     }
 

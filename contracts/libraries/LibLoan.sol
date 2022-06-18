@@ -118,7 +118,7 @@ library LibLoan {
         uint256 totalDebtRay = borrowStat.totalDebt.wadToRay();
         borrowStat.avgBorrowRate = totalDebtRay
             .rayMul(borrowStat.avgBorrowRate)
-            .sub(principalRay.rayMul(interestRay))
+            .sub(principalRay.rayMul(dd.apr))
             .rayDiv(totalDebtRay.sub(principalRay));
         borrowStat.totalDebt = borrowStat.totalDebt.sub(
             principalRay.rayToWad()
