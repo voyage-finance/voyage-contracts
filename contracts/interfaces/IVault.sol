@@ -6,6 +6,7 @@ import {SecurityDepositEscrow} from "../component/vault/SecurityDepositEscrow.so
 interface IVault {
     function initialize(
         address _voyager,
+        address _owner,
         SecurityDepositEscrow _securityDepositEscrow
     ) external;
 

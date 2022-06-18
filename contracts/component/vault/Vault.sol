@@ -44,35 +44,22 @@ contract Vault is ReentrancyGuard, IVault, IERC1271, IERC165 {
         mapping(bytes4 => bool) supportedInterfaces;
     }
 
-    modifier onlyLoanManager() {
-        require(
-            aclManager().isLoanManager(msg.sender),
-            "Not loan manager contract"
-        );
-        _;
-    }
-
     modifier onlyVoyager() {
         require(msg.sender == voyager, "Not Voyager");
         _;
     }
 
-    modifier onlyVoyagerContract() {
-        require(
-            aclManager().isLoanManagerContract(msg.sender),
-            "Not loan manager"
-        );
-        _;
-    }
-
     function initialize(
         address _voyager,
+        address _owner,
         SecurityDepositEscrow _securityDepositEscrow
     ) external {
+        VaultStorageV1 storage s = diamondStorage();
         if (!diamondStorage().initialized) {
             voyager = _voyager;
-            diamondStorage().securityDepositEscrow = _securityDepositEscrow;
-            diamondStorage().initialized = true;
+            s.owner = _owner;
+            s.securityDepositEscrow = _securityDepositEscrow;
+            s.initialized = true;
             ERC165MappingImplementation();
             vaultMappingImplementation();
         }
@@ -178,7 +165,7 @@ contract Vault is ReentrancyGuard, IVault, IERC1271, IERC165 {
         address _erc721Addr,
         address _to,
         uint256 _num
-    ) external nonReentrant onlyLoanManager {
+    ) external nonReentrant onlyVoyager {
         for (uint256 i = 0; i < _num; i++) {
             uint256 tokenId;
             uint256 timestamp;
@@ -196,7 +183,6 @@ contract Vault is ReentrancyGuard, IVault, IERC1271, IERC165 {
         returns (bytes4 magicValue)
     {
         address sender = recoverSigner(hash, signature);
-
         if (diamondStorage().owner == sender) {
             return 0x1626ba7e;
         }

@@ -50,6 +50,7 @@ library LibLiquidity {
         reserve.healthStrategyAddress = _healthStrategyAddress;
         reserve.optimalIncomeRatio = _optimalIncomeRatio;
         reserve.loanStrategyAddress = _loanStrategyAddress;
+        reserve.initialized = true;
     }
 
     struct UpdateInterestRatesLocalVars {

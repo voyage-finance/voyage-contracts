@@ -1,12 +1,12 @@
 import { expect } from 'chai';
-import { setupDebtTestSuite } from '../helpers/debt';
 import { BigNumber } from 'ethers';
+import { setupTestSuite } from '../helpers/setupTestSuite';
 
 describe('Lib Financial', function () {
   it('pmt function should return correct value', async function () {
     //  >>> npf.pmt(0.075/12, 12*15, 200000)
     //     -1854.0247200054619
-    const { libFinancial } = await setupDebtTestSuite();
+    const { libFinancial } = await setupTestSuite();
     const rateRay = BigNumber.from(75)
       .mul(BigNumber.from('1000000000000000000000000000'))
       .div(1000)
@@ -21,7 +21,7 @@ describe('Lib Financial', function () {
   });
 
   it('pmt function with adjusted APR should return correct value', async function () {
-    const { libFinancial } = await setupDebtTestSuite();
+    const { libFinancial } = await setupTestSuite();
     const rateRay = BigNumber.from(2067)
       .mul(BigNumber.from('1000000000000000000000000000'))
       .div(10000)
@@ -35,7 +35,7 @@ describe('Lib Financial', function () {
   });
 
   it('fv function should return correct value', async function () {
-    const { libFinancial } = await setupDebtTestSuite();
+    const { libFinancial } = await setupTestSuite();
     const rateRay = BigNumber.from(5)
       .mul(BigNumber.from('1000000000000000000000000000'))
       .div(100)
@@ -53,7 +53,7 @@ describe('Lib Financial', function () {
   });
 
   it('fv function with rate 0.06/12 should return correct value', async function () {
-    const { libFinancial } = await setupDebtTestSuite();
+    const { libFinancial } = await setupTestSuite();
     const rateRay = BigNumber.from(6)
       .mul(BigNumber.from('1000000000000000000000000000'))
       .div(100)
@@ -71,7 +71,7 @@ describe('Lib Financial', function () {
   });
 
   it('ipmt and ppmt function should return correct value', async function () {
-    const { libFinancial } = await setupDebtTestSuite();
+    const { libFinancial } = await setupTestSuite();
     const rateRay = BigNumber.from(8)
       .mul(BigNumber.from('1000000000000000000000000000'))
       .div(100)
@@ -90,7 +90,7 @@ describe('Lib Financial', function () {
   });
 
   it('ipmt and ppmt function with adjusted APR should return correct value', async function () {
-    const { libFinancial } = await setupDebtTestSuite();
+    const { libFinancial } = await setupTestSuite();
     const rateRay = BigNumber.from(2067)
       .mul(BigNumber.from('1000000000000000000000000000'))
       .div(10000)
@@ -109,7 +109,7 @@ describe('Lib Financial', function () {
   });
 
   it('adjusted APR should return correct value', async function () {
-    const { libFinancial } = await setupDebtTestSuite();
+    const { libFinancial } = await setupTestSuite();
     const rateRay = BigNumber.from(2067)
       .mul(BigNumber.from('1000000000000000000000000000'))
       .div(10000);

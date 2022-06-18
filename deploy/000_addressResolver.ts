@@ -9,6 +9,12 @@ const deployFn: DeployFunction = async (hre) => {
     args: [],
     log: true,
   });
+
+  await deploy('LibFinancial', {
+    from: owner,
+    args: [],
+    log: true,
+  });
 };
 
 deployFn.tags = ['AddressResolver'];

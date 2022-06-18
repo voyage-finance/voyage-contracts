@@ -1,14 +1,16 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { decimals } from '../helpers/math';
-import { setupWithdrawalTestSuite } from '../helpers/withdraw';
+import { decimals, MAX_UINT_256 } from '../helpers/math';
+import { setupTestSuite } from '../helpers/setupTestSuite';
 
 describe('Withdraw', function () {
   it('Withdraw with no interest should return correct value', async function () {
-    const { voyager, seniorDepositToken, tus, owner } =
-      await setupWithdrawalTestSuite();
+    const { voyager, seniorDepositToken, juniorDepositToken, tus, owner } =
+      await setupTestSuite();
+    await seniorDepositToken.approve(voyager.address, MAX_UINT_256);
+    await juniorDepositToken.approve(voyager.address, MAX_UINT_256);
     const amount = ethers.BigNumber.from(100).mul(decimals(18));
-    await voyager.deposit(tus.address, 1, amount);
+    await voyager.deposit(tus.address, 1, amount, owner);
     const tenDay = 10 * 24 * 60 * 60;
 
     await ethers.provider.send('evm_increaseTime', [tenDay]);
@@ -16,11 +18,10 @@ describe('Withdraw', function () {
     await ethers.provider.send('evm_mine');
 
     const accumulatedBalance = await seniorDepositToken.balanceOf(owner);
-    await expect(accumulatedBalance.toString()).to.equal(
-      '100000000000000000000'
-    );
+    expect(accumulatedBalance.toString()).to.equal('100000000000000000000');
+    console.log('balance: ', accumulatedBalance);
 
-    await voyager.withdraw(tus.address, 1, '10000000000000000000');
+    await voyager.withdraw(tus.address, 1, '10000000000000000000', owner);
 
     const accumulatedBalanceAfter = await seniorDepositToken.balanceOf(owner);
     await expect(accumulatedBalanceAfter.toString()).to.equal(
@@ -29,12 +30,30 @@ describe('Withdraw', function () {
   });
 
   it('Withdraw with interest should return correct value', async function () {
-    const { voyager, seniorDepositToken, tus, vaultAddr, owner } =
-      await setupWithdrawalTestSuite();
+    const {
+      voyager,
+      seniorDepositToken,
+      juniorDepositToken,
+      tus,
+      vault,
+      owner,
+    } = await setupTestSuite();
     const amount = ethers.BigNumber.from(100).mul(decimals(18));
-    await voyager.deposit(tus.address, 1, amount);
-    await voyager.borrow(tus.address, '10000000000000000000', vaultAddr, 0);
-    await voyager.borrow(tus.address, '10000000000000000000', vaultAddr, 0);
+    await voyager.deposit(tus.address, 1, amount, owner);
+
+    await voyager.setSecurityDepositRequirement(
+      tus.address,
+      '100000000000000000000000000'
+    ); // 0.1
+
+    await voyager.depositMargin(
+      owner,
+      owner,
+      tus.address,
+      '100000000000000000000'
+    );
+    await voyager.borrow(tus.address, '10000000000000000000', vault.address);
+    await voyager.borrow(tus.address, '10000000000000000000', vault.address);
     const tenDay = 10 * 24 * 60 * 60;
 
     await ethers.provider.send('evm_increaseTime', [tenDay]);
@@ -46,7 +65,9 @@ describe('Withdraw', function () {
 
     const accumulatedBalance = await seniorDepositToken.balanceOf(owner);
     console.log('accumulated balance: ', accumulatedBalance.toString());
-    await voyager.withdraw(tus.address, 1, '10000000000000000000');
+    await seniorDepositToken.approve(voyager.address, MAX_UINT_256);
+    await juniorDepositToken.approve(voyager.address, MAX_UINT_256);
+    await voyager.withdraw(tus.address, 1, '10000000000000000000', owner);
     const accumulatedBalanceAfter = await seniorDepositToken.balanceOf(owner);
     console.log(
       'cumulated balance after withdrawing: ',
@@ -58,14 +79,16 @@ describe('Withdraw', function () {
   });
 
   it('maxWithdraw should exclude unbonding amount', async function () {
-    const { voyager, tus, liquidityManager, seniorDepositToken, owner } =
-      await setupWithdrawalTestSuite();
+    const { voyager, tus, seniorDepositToken, juniorDepositToken, owner } =
+      await setupTestSuite();
+    await seniorDepositToken.approve(voyager.address, MAX_UINT_256);
+    await juniorDepositToken.approve(voyager.address, MAX_UINT_256);
     const amount = ethers.BigNumber.from(100).mul(decimals(18));
-    await voyager.deposit(tus.address, 1, amount);
-    await voyager.withdraw(tus.address, 1, amount);
-    const balance = await liquidityManager.balance(tus.address, owner, 1);
+    await voyager.deposit(tus.address, 1, amount, owner);
+    await voyager.withdraw(tus.address, 1, amount, owner);
+    const balance = await voyager.balance(tus.address, owner, 1);
     const shares = await seniorDepositToken.balanceOf(owner);
-    const unbonding = await liquidityManager.unbonding(tus.address, owner, 1);
+    const unbonding = await voyager.unbonding(tus.address, owner, 1);
 
     expect(balance).to.equal(ethers.BigNumber.from(0));
     expect(shares).to.equal(ethers.BigNumber.from(0));

@@ -4,14 +4,13 @@ pragma solidity ^0.8.9;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import {DataTypes} from "../../libraries/types/DataTypes.sol";
 import {IAddressResolver} from "../../interfaces/IAddressResolver.sol";
 import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
 import {IVaultManager} from "../../interfaces/IVaultManager.sol";
 import {IHealthStrategy} from "../../interfaces/IHealthStrategy.sol";
 import {IVaultManagerProxy} from "../../interfaces/IVaultManagerProxy.sol";
 import {IVToken} from "../../interfaces/IVToken.sol";
-import {AppStorage, ADDRESS_RESOLVER, ReserveData, Tranche, VaultConfig} from "../../libraries/LibAppStorage.sol";
+import {AppStorage, ADDRESS_RESOLVER, ReserveData, Tranche, VaultConfig, VaultData, DrawDownList} from "../../libraries/LibAppStorage.sol";
 import {LibLiquidity} from "../../libraries/LibLiquidity.sol";
 import {LibLoan} from "../../libraries/LibLoan.sol";
 import {LibVault} from "../../libraries/LibVault.sol";
@@ -65,14 +64,11 @@ contract DataProviderFacet {
         returns (PoolConfiguration memory)
     {
         PoolConfiguration memory poolConfiguration;
-        IVaultManager vm = IVaultManager(
-            addressResolver().getVaultManagerProxy()
-        );
         ReserveData memory reserve = LibLiquidity.getReserveData(_reserve);
         address healthStrategyAddr = reserve.healthStrategyAddress;
         require(healthStrategyAddr != address(0), "invalid health strategy");
         IHealthStrategy hs = IHealthStrategy(healthStrategyAddr);
-        DataTypes.VaultConfig memory vc = vm.getVaultConfig(_reserve);
+        VaultConfig memory vc = LibVault.getVaultConfig(_reserve);
         poolConfiguration.securityRequirement = vc.securityDepositRequirement;
         poolConfiguration.minSecurity = vc.minSecurityDeposit;
         poolConfiguration.maxSecurity = vc.maxSecurityDeposit;
@@ -129,10 +125,7 @@ contract DataProviderFacet {
     }
 
     function getUserVault(address _user) external view returns (address) {
-        IVaultManagerProxy vmp = IVaultManagerProxy(
-            addressResolver().getVaultManagerProxy()
-        );
-        return vmp.getVault(_user);
+        return LibVault.getVaultAddress(_user);
     }
 
     function getPoolTokens()
@@ -207,17 +200,12 @@ contract DataProviderFacet {
         address _user,
         address _reserve,
         address _sponsor
-    ) external view returns (DataTypes.VaultData memory) {
-        DataTypes.VaultData memory vaultData;
-        address vault = IVaultManagerProxy(
-            addressResolver().getVaultManagerProxy()
-        ).getVault(_user);
-        IVaultManagerProxy vmp = IVaultManagerProxy(
-            addressResolver().getVaultManagerProxy()
-        );
+    ) external view returns (VaultData memory) {
+        VaultData memory vaultData;
+        address vault = LibVault.getVaultAddress(_user);
         uint256 principal;
         uint256 interest;
-        DataTypes.DrawDownList memory drawDownList;
+        DrawDownList memory drawDownList;
         (drawDownList.head, drawDownList.tail) = LibLoan.getDrawDownList(
             _reserve,
             vault
@@ -226,21 +214,24 @@ contract DataProviderFacet {
         vaultData.drawDownList = drawDownList;
         vaultData.borrowRate = 0;
         vaultData.totalDebt = principal.add(interest);
-        vaultData.totalSecurityDeposit = vmp.getSecurityDeposit(
+        vaultData.totalSecurityDeposit = LibVault.getSecurityDeposit(
             _user,
             _reserve
         );
-        vaultData.withdrawableSecurityDeposit = vmp.getWithdrawableDeposit(
+        vaultData.withdrawableSecurityDeposit = LibVault.getWithdrawableDeposit(
             _user,
             _reserve,
             _sponsor
         );
-        vaultData.totalSecurityDeposit = vmp.getSecurityDeposit(
+        vaultData.totalSecurityDeposit = LibVault.getSecurityDeposit(
             _user,
             _reserve
         );
-        vaultData.creditLimit = vmp.getCreditLimit(_user, _reserve);
-        vaultData.spendableBalance = vmp.getAvailableCredit(_user, _reserve);
+        vaultData.creditLimit = LibVault.getCreditLimit(_user, _reserve);
+        vaultData.spendableBalance = LibVault.getAvailableCredit(
+            _user,
+            _reserve
+        );
         vaultData.ltv = vaultData
             .gav
             .add(vaultData.totalSecurityDeposit)
@@ -254,9 +245,7 @@ contract DataProviderFacet {
         address _reserve,
         uint256 _drawDownId
     ) external view returns (LibLoan.DebtDetail memory) {
-        address vault = IVaultManagerProxy(
-            addressResolver().getVaultManagerProxy()
-        ).getVault(_user);
+        address vault = LibVault.getVaultAddress(_user);
         return LibLoan.getDrawDownDetail(_reserve, vault, _drawDownId);
     }
 

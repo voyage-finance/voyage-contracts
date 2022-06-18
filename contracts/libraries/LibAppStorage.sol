@@ -37,6 +37,7 @@ struct ReserveData {
     uint256 currentIncomeRatio;
     uint256 optimalIncomeRatio;
     address nftAddress;
+    bool initialized;
 }
 
 struct ReserveConfigurationMap {
@@ -175,7 +176,7 @@ contract Storage is Context {
         IACLManager aclManager = IACLManager(
             AddressResolver(_addressResolver()).getAclManager()
         );
-        require(aclManager.isLiquidityManager(msg.sender), "Not vault admin");
+        require(aclManager.isProtocolManager(msg.sender), "Not protocol admin");
         _;
     }
 

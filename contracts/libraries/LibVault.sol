@@ -24,16 +24,16 @@ library LibVault {
         require(s.vaultMap[_owner] == address(0), "one vault per owner");
         s.vaults.push(vault);
         s.vaultMap[_owner] = vault;
+        SecurityDepositEscrow securityDepositEscrow = new SecurityDepositEscrow(
+            vault
+        );
+        IVault(vault).initialize(address(this), _owner, securityDepositEscrow);
 
         return (vault, s.vaults.length);
     }
 
     function initVault(address _vault, address _reserve) internal {
         // TODO: SecurityDepositEscrow should be deployed as a BeaconProxy.
-        SecurityDepositEscrow securityDepositEscrow = new SecurityDepositEscrow(
-            _vault
-        );
-        IVault(_vault).initialize(address(this), securityDepositEscrow);
         IVault(_vault).initSecurityDepositToken(_reserve);
     }
 
