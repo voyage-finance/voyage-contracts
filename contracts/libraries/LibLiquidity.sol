@@ -135,7 +135,6 @@ library LibLiquidity {
         );
     }
 
-
     /* ------------------------ state mutation functions ------------------------ */
     function updateStateOnDeposit(
         address _asset,
