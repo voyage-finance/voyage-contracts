@@ -168,14 +168,6 @@ contract VaultFacet is Storage, ReentrancyGuard {
         return LibVault.getSecurityDeposit(_user, _reserve);
     }
 
-    function getSecurityDepositTokenAddress(address vault)
-        private
-        view
-        returns (address)
-    {
-        return LibVault.getSecurityDepositTokenAddress(vault);
-    }
-
     function getVault(address _owner) external view returns (address) {
         return LibVault.getVaultAddress(_owner);
     }

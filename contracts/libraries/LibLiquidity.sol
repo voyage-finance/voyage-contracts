@@ -135,17 +135,6 @@ library LibLiquidity {
         );
     }
 
-    function _getLiquidityRate(ReserveData storage reserve, Tranche _tranche)
-        internal
-        view
-        returns (uint256)
-    {
-        if (_tranche == Tranche.JUNIOR) {
-            return reserve.currentJuniorLiquidityRate;
-        } else {
-            return reserve.currentSeniorLiquidityRate;
-        }
-    }
 
     /* ------------------------ state mutation functions ------------------------ */
     function updateStateOnDeposit(
