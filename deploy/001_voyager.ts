@@ -138,7 +138,7 @@ const deployFn: DeployFunction = async (hre) => {
       // if there is one, it can actually be re-used
       try {
         existingProxyDeployment = await deploy('VoyagerDiamondProxy', {
-          contract: 'Voyager',
+          contract: 'contracts/component/Voyager.sol:Voyager',
           from: owner,
           log: true,
           args: [owner],

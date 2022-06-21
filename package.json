@@ -21,7 +21,7 @@
     "scripts": "ts-node scripts/runner.ts",
     "test": "hardhat test",
     "format": "yarn format:sol && yarn format:js",
-    "format:js": "prettier --config .prettierrc.js.json --write {test,scripts}/*.{js,ts} --write {helpers,deploy}/*.ts",
+    "format:js": "prettier --config .prettierrc.js.json --write scripts/*.{js,ts} --write {helpers,deploy,test}/*.ts",
     "format:sol": "hardhat format",
     "scan": "slither --print human-summary .",
     "postinstall": "husky install"
