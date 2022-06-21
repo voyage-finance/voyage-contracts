@@ -1,7 +1,8 @@
 import { deployments as d } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { ERC20 } from '../typechain/ERC20';
-import { FacetCutAction, deployFacets, mergeABIs } from './diamond';
+import { Voyager } from '../typechain/Voyager';
+import { deployFacets, FacetCutAction } from './diamond';
 import { decimals, MAX_UINT_256 } from './math';
 
 const dec = decimals(18);
@@ -25,7 +26,7 @@ const setupBase = async ({
   const { owner, alice, bob } = await getNamedAccounts();
 
   /* --------------------------------- voyager -------------------------------- */
-  const voyager = await ethers.getContract('Voyager');
+  const voyager = await ethers.getContract<Voyager>('Voyager');
 
   /* ---------------------------- vault management ---------------------------- */
   const extCallACLProxy = await ethers.getContract('ExtCallACLProxy');
@@ -87,7 +88,7 @@ const setupBase = async ({
   ); // 0.1
 
   // create an empty vault
-  await voyager.createVault(voyager.address, owner, tus.address);
+  await voyager.createVault(owner, tus.address);
   const vaultAddr = await voyager.getVault(owner);
   console.log('vault address: ', vaultAddr);
 
@@ -154,7 +155,7 @@ export const setupTestSuite = d.createFixture(async (hre) => {
 export const setupTestSuiteWithMocks = d.createFixture(async (hre, args) => {
   const base = await setupBase(hre);
   await setupMocks(hre, args);
-  const voyager = await hre.ethers.getContract('Voyager');
+  const voyager = await hre.ethers.getContract<Voyager>('Voyager');
   return {
     ...base,
     underlying: base.tus as ERC20,

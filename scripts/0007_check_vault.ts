@@ -1,23 +1,20 @@
-const hre = require('hardhat');
-const { deployments, ethers, getNamedAccounts } = hre;
+import { Voyager } from '@contracts';
+import { logger } from 'ethers';
+import { ethers, getNamedAccounts } from 'hardhat';
 
 async function main() {
   const { owner } = await getNamedAccounts();
-  const vaultManagerProxy = await ethers.getContract(
-    'VaultManagerProxy',
-    owner
-  );
-  const tus = await deployments.get('Tus');
-  const currentSecurityDeposit = await vaultManagerProxy.getSecurityDeposit(
-    owner,
-    tus.address
-  );
+  const voyager = await ethers.getContract<Voyager>('Voyager');
+  const vaultAddress = await voyager.getVault(owner);
+
+  const tus = await ethers.getContract('Tus', owner);
+  const balance = await tus.balanceOf(vaultAddress);
+  logger.info('balance: %s', balance.toString());
+  const currentSecurityDeposit = await voyager.getMargin(owner, tus.address);
   console.log('current security deposit: ', currentSecurityDeposit.toString());
 
-  const voyager = await ethers.getContract('Voyager', owner);
   const creditLimit = await voyager.getCreditLimit(owner, tus.address);
   console.log('credit limit: ', creditLimit.toString());
-
   const availableCreditLimit = await voyager.getAvailableCredit(
     owner,
     tus.address

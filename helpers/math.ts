@@ -19,3 +19,8 @@ export const formatTokenBalance = (
 };
 
 export const decimals = (n: number) => ethers.BigNumber.from(10).pow(n);
+
+export const toEthersBN = (num: BigNumber) =>
+  ethers.BigNumber.from(num.toString());
+
+export const toBN = (num: ethers.BigNumber) => new BigNumber(num.toString());
