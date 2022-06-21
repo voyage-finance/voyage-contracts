@@ -12,14 +12,14 @@ describe('Vault Creation', function () {
 
   it('Create Vault should return a valid vault contract', async function () {
     const { alice, voyager, tus } = await setupTestSuite();
-    await voyager.createVault(voyager.address, alice, tus.address);
+    await voyager.createVault(alice, tus.address);
     const vaultAddress = await voyager.getVault(alice);
     expect(vaultAddress).not.to.equal(ethers.constants.AddressZero);
   });
 
   it('Created Vault should have own a valid escrow contract', async function () {
     const { alice, tus, voyager } = await setupTestSuite();
-    await voyager.createVault(voyager.address, alice, tus.address);
+    await voyager.createVault(alice, tus.address);
     const vaultAddress = await voyager.getVault(alice);
     const vault = await ethers.getContractAt('Vault', vaultAddress);
     const marginEscrowAddress = await vault.getMarginEscrowAddress();

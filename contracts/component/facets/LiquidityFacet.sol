@@ -154,6 +154,15 @@ contract LiquidityFacet is Storage, PeripheryPayments {
 
     /* ---------------------------------- views --------------------------------- */
 
+    function getReserveStatus(address _reserve)
+        public
+        view
+        returns (bool initialized, bool activated)
+    {
+        initialized = LibLiquidity.getReserveData(_reserve).initialized;
+        (activated, , ) = LibLiquidity.getFlags(_reserve);
+    }
+
     function balance(
         address _reserve,
         address _user,

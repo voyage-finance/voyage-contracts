@@ -36,7 +36,7 @@ async function main() {
   const prompt = new MultiSelect({
     name: 'targets',
     message:
-      'Use <space> to select scripts to run. If none are selected, all scripts will be run.',
+      'Use <space> to select scripts to run. If none are selected, all scripts will be run.\n',
     choices: scripts.map((file) => ({
       name: file,
       value: file,

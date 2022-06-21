@@ -1,13 +1,10 @@
-import hre from 'hardhat';
+import { deployments, ethers, getNamedAccounts } from 'hardhat';
 import { MAX_UINT_256 } from '../helpers/math';
-import { BaseDepositToken } from '../typechain/BaseDepositToken';
-const { deployments, ethers, getNamedAccounts } = hre;
+import { BaseDepositToken, Voyager } from '@contracts';
 
 async function main() {
   const { owner } = await getNamedAccounts();
-  const voyager = await ethers.getContract('Voyager', owner);
-
-  const liquidityManager = await deployments.get('LiquidityManager');
+  const voyager = await ethers.getContract<Voyager>('Voyager');
   const tus = await deployments.get('Tus');
   const seniorDepositToken = await ethers.getContract<BaseDepositToken>(
     'SeniorDepositToken'
@@ -16,14 +13,12 @@ async function main() {
     'JuniorDepositToken'
   );
   await seniorDepositToken
-    .approve(liquidityManager.address, MAX_UINT_256)
+    .approve(voyager.address, MAX_UINT_256)
     .then((tx) => tx.wait())
-    .then(() =>
-      juniorDepositToken.approve(liquidityManager.address, MAX_UINT_256)
-    )
+    .then(() => juniorDepositToken.approve(voyager.address, MAX_UINT_256))
     .then((tx) => tx.wait());
 
-  await voyager.withdraw(tus.address, '1', '10000000000000000000');
+  await voyager.withdraw(tus.address, '1', '10000000000000000000', owner);
 }
 
 main()
