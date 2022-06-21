@@ -3,7 +3,7 @@ import { config as dotenvConfig } from 'dotenv';
 import { ethers } from 'ethers';
 import { task } from 'hardhat/config';
 import { HardhatUserConfig } from 'hardhat/types';
-// import 'hardhat-diamond-abi';
+import 'hardhat-diamond-abi';
 import '@typechain/hardhat';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
@@ -85,10 +85,10 @@ const config: HardhatUserConfig = {
     alice: 1,
     bob: 2,
   },
-  // diamondAbi: {
-  //   name: 'Voyager',
-  //   include: ['contracts/component/facets'],
-  // },
+  diamondAbi: {
+    name: 'Voyager',
+    include: ['contracts/component/facets'],
+  },
   solidity: {
     compilers: [
       {
