@@ -13,7 +13,7 @@ async function main() {
 
   const escrowAddress = await Vault.attach(
     vaultAddress
-  ).getSecurityDepositEscrowAddress();
+  ).getMarginEscrowAddress();
   console.log('vault escrow address: ', escrowAddress);
 
   const tus = await ethers.getContract('Tus', owner);

@@ -22,14 +22,11 @@ describe('Vault Creation', function () {
     await voyager.createVault(voyager.address, alice, tus.address);
     const vaultAddress = await voyager.getVault(alice);
     const vault = await ethers.getContractAt('Vault', vaultAddress);
-    const securityDepositEscrowAddress =
-      await vault.getSecurityDepositEscrowAddress();
-    const securityDepositEscrow = await ethers.getContractAt(
-      'SecurityDepositEscrow',
-      securityDepositEscrowAddress
+    const marginEscrowAddress = await vault.getMarginEscrowAddress();
+    const marginEscrow = await ethers.getContractAt(
+      'MarginEscrow',
+      marginEscrowAddress
     );
-    expect(await securityDepositEscrow.getVersion()).to.equal(
-      'SecurityDepositEscrow 0.0.1'
-    );
+    expect(await marginEscrow.getVersion()).to.equal('MarginEscrow 0.0.1');
   });
 });

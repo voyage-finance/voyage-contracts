@@ -2,12 +2,12 @@
 pragma solidity ^0.8.9;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {BaseSecurityEscrow} from "./BaseSecurityEscrow.sol";
+import {BaseMarginEscrow} from "./BaseMarginEscrow.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "hardhat/console.sol";
 
-contract SecurityDepositEscrow is BaseSecurityEscrow, Initializable {
+contract MarginEscrow is BaseMarginEscrow, Initializable {
     address public vault;
 
     modifier onlyOwner() {
@@ -20,7 +20,7 @@ contract SecurityDepositEscrow is BaseSecurityEscrow, Initializable {
     }
 
     function getVersion() external view returns (string memory) {
-        string memory version = "SecurityDepositEscrow 0.0.1";
+        string memory version = "MarginEscrow 0.0.1";
         return version;
     }
 
@@ -43,7 +43,6 @@ contract SecurityDepositEscrow is BaseSecurityEscrow, Initializable {
         address _user,
         uint256 _amount
     ) public payable nonReentrant onlyOwner {
-        console.log("in deposit");
         _deposit(_reserve, _user, _amount);
     }
 

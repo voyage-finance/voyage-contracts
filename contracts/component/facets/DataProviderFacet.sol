@@ -41,9 +41,9 @@ contract DataProviderFacet {
     }
 
     struct PoolConfiguration {
-        uint256 securityRequirement;
-        uint256 minSecurity;
-        uint256 maxSecurity;
+        uint256 marginRequirement;
+        uint256 minMargin;
+        uint256 maxMargin;
         uint256 loanTenure;
         uint256 optimalTrancheRatio;
         uint256 optimalIncomeRatio;
@@ -65,9 +65,9 @@ contract DataProviderFacet {
         address healthStrategyAddr = reserve.healthStrategyAddress;
         require(healthStrategyAddr != address(0), "invalid health strategy");
         VaultConfig memory vc = LibVault.getVaultConfig(_reserve);
-        poolConfiguration.securityRequirement = vc.securityDepositRequirement;
-        poolConfiguration.minSecurity = vc.minSecurityDeposit;
-        poolConfiguration.maxSecurity = vc.maxSecurityDeposit;
+        poolConfiguration.marginRequirement = vc.marginRequirement;
+        poolConfiguration.minMargin = vc.minMargin;
+        poolConfiguration.maxMargin = vc.maxMargin;
         poolConfiguration.optimalIncomeRatio = reserve.optimalIncomeRatio;
         poolConfiguration.optimalTrancheRatio = reserve.optimalTrancheRatio;
         (bool isActive, , ) = LibLiquidity.getFlags(_reserve);
@@ -209,28 +209,20 @@ contract DataProviderFacet {
         vaultData.drawDownList = drawDownList;
         vaultData.borrowRate = 0;
         vaultData.totalDebt = principal.add(interest);
-        vaultData.totalSecurityDeposit = LibVault.getSecurityDeposit(
-            _user,
-            _reserve
-        );
+        vaultData.totalMargin = LibVault.getMargin(_user, _reserve);
         vaultData.withdrawableSecurityDeposit = LibVault.getWithdrawableDeposit(
             _user,
             _reserve,
             _sponsor
-        );
-        vaultData.totalSecurityDeposit = LibVault.getSecurityDeposit(
-            _user,
-            _reserve
         );
         vaultData.creditLimit = LibVault.getCreditLimit(_user, _reserve);
         vaultData.spendableBalance = LibVault.getAvailableCredit(
             _user,
             _reserve
         );
-        vaultData.ltv = vaultData
-            .gav
-            .add(vaultData.totalSecurityDeposit)
-            .rayDiv(vaultData.totalDebt);
+        vaultData.ltv = vaultData.gav.add(vaultData.totalMargin).rayDiv(
+            vaultData.totalDebt
+        );
 
         return vaultData;
     }
