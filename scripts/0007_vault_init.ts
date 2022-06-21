@@ -16,11 +16,6 @@ async function main() {
   console.log('vault created, address is: ', vaultAddress);
   const vaultFactory = await ethers.getContractFactory('Vault');
   const vault = vaultFactory.attach(vaultAddress);
-  const isInit = await vault.initialized();
-  if (!isInit) {
-    console.log('vault is not initialized, calling initVault()');
-    await voyager.initVault(vaultAddress, tus);
-  }
 }
 
 main()

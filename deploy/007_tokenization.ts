@@ -7,7 +7,6 @@ const JR_TOKEN_NAME = 'JuniorDepositToken';
 const SR_TOKEN_NAME = 'SeniorDepositToken';
 const WRM_NAME = 'WadRayMath';
 const INTEREST_STRATEGY_NAME = 'DefaultReserveInterestRateStrategy';
-const HEALTH_STRATEGY_ADDRESS = 'DefaultHealthStrategy';
 
 const RAY = new BigNumber(10).pow(27);
 
@@ -69,19 +68,6 @@ const deployFn: DeployFunction = async (hre) => {
     log: true,
     libraries: { WadRayMath: wadRayMath.address },
     args: [utilisationRate, slope1, slope2, baseInterest],
-  });
-
-  await deploy(HEALTH_STRATEGY_ADDRESS, {
-    from: owner,
-    log: true,
-    libraries: { WadRayMath: wadRayMath.address },
-    // 5, 5, 2,8
-    args: [
-      '5000000000000000000000000000',
-      '5000000000000000000000000000',
-      '2000000000000000000000000000',
-      '8000000000000000000000000000',
-    ],
   });
 
   const names = [

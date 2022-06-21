@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 import {IACLManager} from "../interfaces/IACLManager.sol";
 import {AddressResolver} from "../component/infra/AddressResolver.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+import "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
 bytes32 constant ADDRESS_RESOLVER = "address_resolver";
 bytes32 constant ACL = "ACL";
@@ -144,6 +145,7 @@ struct AppStorage {
     mapping(address => BorrowState) _borrowState;
     bool _paused;
     /* ---------------------------------- vault --------------------------------- */
+    UpgradeableBeacon upgradeableBeacon;
     address[] vaults;
     // mapping of vault owner to vault instance address
     mapping(address => address) vaultMap;

@@ -8,8 +8,8 @@ async function main() {
   const Voyager = await ethers.getContract('Voyager', owner);
   await Voyager.whitelistFunction([
     ethers.utils.formatBytes32String('createVault'),
-    ethers.utils.formatBytes32String('depositSecurity'),
-    ethers.utils.formatBytes32String('redeemSecurity'),
+    ethers.utils.formatBytes32String('depositMargin'),
+    ethers.utils.formatBytes32String('redeemMargin'),
     ethers.utils.formatBytes32String('borrow'),
   ]);
 }

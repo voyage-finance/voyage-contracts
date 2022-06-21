@@ -66,7 +66,6 @@ const setupBase = async ({
     'DefaultReserveInterestRateStrategy'
   );
   const defaultLoanStrategy = await ethers.getContract('DefaultLoanStrategy');
-  const healthStrategy = await ethers.getContract('DefaultHealthStrategy');
 
   /* ------------------------- reserve initialisation ------------------------- */
   await voyager.initReserve(
@@ -74,7 +73,6 @@ const setupBase = async ({
     juniorDepositToken.address,
     seniorDepositToken.address,
     defaultReserveInterestRateStrategy.address,
-    healthStrategy.address,
     defaultLoanStrategy.address,
     '500000000000000000000000000'
   );
@@ -89,13 +87,9 @@ const setupBase = async ({
   ); // 0.1
 
   // create an empty vault
-  const salt = ethers.utils.formatBytes32String(
-    (Math.random() + 1).toString(36).substring(7)
-  );
-  await voyager.createVault(owner, salt);
+  await voyager.createVault(voyager.address, owner, tus.address);
   const vaultAddr = await voyager.getVault(owner);
   console.log('vault address: ', vaultAddr);
-  await voyager.initVault(vaultAddr, tus.address);
 
   // get security deposit escrow address
   const vault = await ethers.getContractAt('Vault', vaultAddr);
@@ -106,7 +100,6 @@ const setupBase = async ({
     owner,
     alice,
     bob,
-    healthStrategy,
     defaultLoanStrategy,
     defaultReserveInterestRateStrategy,
     libFinancial,

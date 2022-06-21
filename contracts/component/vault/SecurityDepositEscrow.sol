@@ -4,8 +4,10 @@ pragma solidity ^0.8.9;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {BaseSecurityEscrow} from "./BaseSecurityEscrow.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import "hardhat/console.sol";
 
-contract SecurityDepositEscrow is BaseSecurityEscrow {
+contract SecurityDepositEscrow is BaseSecurityEscrow, Initializable {
     address public vault;
 
     modifier onlyOwner() {
@@ -13,7 +15,7 @@ contract SecurityDepositEscrow is BaseSecurityEscrow {
         _;
     }
 
-    constructor(address _vault) {
+    function initialize(address _vault) external initializer {
         vault = _vault;
     }
 
@@ -41,6 +43,7 @@ contract SecurityDepositEscrow is BaseSecurityEscrow {
         address _user,
         uint256 _amount
     ) public payable nonReentrant onlyOwner {
+        console.log("in deposit");
         _deposit(_reserve, _user, _amount);
     }
 

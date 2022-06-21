@@ -7,16 +7,17 @@ interface IVault {
     function initialize(
         address _voyager,
         address _owner,
-        SecurityDepositEscrow _securityDepositEscrow
+        address _reserve,
+        address _securityDepositEscrow
     ) external;
 
-    function depositSecurity(
+    function depositMargin(
         address _sponsor,
         address _reserve,
         uint256 _amount
     ) external payable;
 
-    function redeemSecurity(
+    function redeemMargin(
         address payable _sponsor,
         address _reserve,
         uint256 _amount
@@ -42,8 +43,6 @@ interface IVault {
         returns (uint256);
 
     function insertNFT(address _erc721Addr, uint256 tokenId) external;
-
-    function initSecurityDepositToken(address _reserve) external;
 
     function underlyingBalance(address _sponsor, address _reserve)
         external

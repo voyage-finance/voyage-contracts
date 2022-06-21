@@ -8,6 +8,7 @@ import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
 import {IERC165} from "@openzeppelin/contracts/interfaces/IERC165.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {SecurityDepositEscrow} from "./SecurityDepositEscrow.sol";
 import {AddressResolver} from "../infra/AddressResolver.sol";
 import {Voyager} from "../Voyager.sol";
@@ -19,23 +20,18 @@ import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
 import {IACLManager} from "../../interfaces/IACLManager.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {IAddressResolver} from "../../interfaces/IAddressResolver.sol";
-import {IVaultManagerProxy} from "../../interfaces/IVaultManagerProxy.sol";
 import {PriorityQueue, Heap} from "../../libraries/logic/PriorityQueue.sol";
+import "hardhat/console.sol";
 
-contract Vault is ReentrancyGuard, IVault, IERC1271, IERC165 {
+contract Vault is ReentrancyGuard, Initializable, IVault, IERC1271, IERC165 {
     using WadRayMath for uint256;
     using SafeMath for uint256;
     using PriorityQueue for Heap;
 
     // about to remove or refactor
     address voyager;
-    address[] public players;
-    bool public initialized;
-    SecurityDepositEscrow public securityDepositEscrow;
-    SecurityDepositToken public securityDepositToken;
 
     struct VaultStorageV1 {
-        bool initialized;
         address owner;
         SecurityDepositEscrow securityDepositEscrow;
         SecurityDepositToken securityDepositToken;
@@ -52,20 +48,20 @@ contract Vault is ReentrancyGuard, IVault, IERC1271, IERC165 {
     function initialize(
         address _voyager,
         address _owner,
-        SecurityDepositEscrow _securityDepositEscrow
-    ) external {
-        VaultStorageV1 storage s = diamondStorage();
-        if (!diamondStorage().initialized) {
-            voyager = _voyager;
-            s.owner = _owner;
-            s.securityDepositEscrow = _securityDepositEscrow;
-            s.initialized = true;
-            ERC165MappingImplementation();
-            vaultMappingImplementation();
-        }
+        address _reserve,
+        address _securityDepositEscrow
+    ) external initializer {
+        voyager = _voyager;
+        diamondStorage().securityDepositEscrow = SecurityDepositEscrow(
+            _securityDepositEscrow
+        );
+        diamondStorage().owner = _owner;
+        ERC165MappingImplementation();
+        vaultMappingImplementation();
+        initSecurityDepositToken(_reserve);
     }
 
-    function initSecurityDepositToken(address _reserve) external onlyVoyager {
+    function initSecurityDepositToken(address _reserve) internal {
         require(
             address(diamondStorage().securityDepositToken) == address(0),
             "Vault: security deposit token has been initialized"
@@ -83,7 +79,7 @@ contract Vault is ReentrancyGuard, IVault, IERC1271, IERC165 {
     /// @param _sponsor user address who deposit to this escrow
     /// @param _reserve reserve address
     /// @param _amount deposit amount
-    function depositSecurity(
+    function depositMargin(
         address _sponsor,
         address _reserve,
         uint256 _amount
@@ -116,7 +112,7 @@ contract Vault is ReentrancyGuard, IVault, IERC1271, IERC165 {
     /// @param _sponsor sponsor address
     /// @param _reserve reserve address
     /// @param _amount redeem amount
-    function redeemSecurity(
+    function redeemMargin(
         address payable _sponsor,
         address _reserve,
         uint256 _amount
@@ -183,6 +179,7 @@ contract Vault is ReentrancyGuard, IVault, IERC1271, IERC165 {
         returns (bytes4 magicValue)
     {
         address sender = recoverSigner(hash, signature);
+        console.log("sender: ", sender);
         if (diamondStorage().owner == sender) {
             return 0x1626ba7e;
         }
@@ -295,11 +292,6 @@ contract Vault is ReentrancyGuard, IVault, IERC1271, IERC165 {
         return diamondStorage().nfts[_erc721Addr].currentSize;
     }
 
-    function getVersion() external view returns (string memory) {
-        string memory version = "Vault 0.0.1";
-        return version;
-    }
-
     /************************************** Internal Functions **************************************/
 
     /// @notice Recover the signer of hash, assuming it's an EOA account
@@ -381,9 +373,8 @@ contract Vault is ReentrancyGuard, IVault, IERC1271, IERC165 {
     function vaultMappingImplementation() internal {
         mapping(bytes4 => bool) storage supportedInterfaces = diamondStorage()
             .supportedInterfaces;
-        supportedInterfaces[this.initSecurityDepositToken.selector] = true;
-        supportedInterfaces[this.depositSecurity.selector] = true;
-        supportedInterfaces[this.redeemSecurity.selector] = true;
+        supportedInterfaces[this.depositMargin.selector] = true;
+        supportedInterfaces[this.redeemMargin.selector] = true;
         supportedInterfaces[this.slash.selector] = true;
         supportedInterfaces[this.insertNFT.selector] = true;
         supportedInterfaces[this.transferNFT.selector] = true;

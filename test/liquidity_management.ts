@@ -12,7 +12,6 @@ describe('Reserve Init', function () {
         fakeAddress,
         fakeAddress,
         fakeAddress,
-        fakeAddress,
         '500000000000000000000000000'
       )
     ).to.be.revertedWith('cannot initialize twice');

@@ -6,7 +6,6 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Errors} from "../../libraries/helpers/Errors.sol";
 import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
-import {IHealthStrategy} from "../../interfaces/IHealthStrategy.sol";
 import {IReserveInterestRateStrategy} from "../../interfaces/IReserveInterestRateStrategy.sol";
 import {ILoanStrategy} from "../../interfaces/ILoanStrategy.sol";
 import {IVault} from "../../interfaces/IVault.sol";

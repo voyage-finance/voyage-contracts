@@ -6,7 +6,6 @@ import {AddressResolver} from "./AddressResolver.sol";
 import {IMessageBus} from "../../interfaces/IMessageBus.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Storage, ADDRESS_RESOLVER} from "../../libraries/LibAppStorage.sol";
-import {DataTypes} from "../../libraries/types/DataTypes.sol";
 import {Errors} from "../../libraries/helpers/Errors.sol";
 
 /**
