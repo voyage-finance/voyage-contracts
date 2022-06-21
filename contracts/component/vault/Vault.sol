@@ -9,13 +9,12 @@ import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
 import {IERC165} from "@openzeppelin/contracts/interfaces/IERC165.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import {SecurityDepositEscrow} from "./SecurityDepositEscrow.sol";
+import {MarginEscrow} from "./MarginEscrow.sol";
 import {AddressResolver} from "../infra/AddressResolver.sol";
 import {Voyager} from "../Voyager.sol";
 import {VaultFacet} from "../facets/VaultFacet.sol";
 import {LoanFacet} from "../facets/LoanFacet.sol";
 import {VaultConfig} from "../../libraries/LibAppStorage.sol";
-import {SecurityDepositToken} from "../../tokenization/SecurityDepositToken.sol";
 import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
 import {IACLManager} from "../../interfaces/IACLManager.sol";
 import {IVault} from "../../interfaces/IVault.sol";
@@ -33,8 +32,7 @@ contract Vault is ReentrancyGuard, Initializable, IVault, IERC1271, IERC165 {
 
     struct VaultStorageV1 {
         address owner;
-        SecurityDepositEscrow securityDepositEscrow;
-        SecurityDepositToken securityDepositToken;
+        MarginEscrow marginEscrow;
         mapping(address => Heap) nfts;
         /// @dev You must not set element 0xffffffff to true
         mapping(bytes4 => bool) supportedInterfaces;
@@ -49,33 +47,16 @@ contract Vault is ReentrancyGuard, Initializable, IVault, IERC1271, IERC165 {
         address _voyager,
         address _owner,
         address _reserve,
-        address _securityDepositEscrow
+        address _marginEscrow
     ) external initializer {
         voyager = _voyager;
-        diamondStorage().securityDepositEscrow = SecurityDepositEscrow(
-            _securityDepositEscrow
-        );
+        diamondStorage().marginEscrow = MarginEscrow(_marginEscrow);
         diamondStorage().owner = _owner;
         ERC165MappingImplementation();
         vaultMappingImplementation();
-        initSecurityDepositToken(_reserve);
     }
 
-    function initSecurityDepositToken(address _reserve) internal {
-        require(
-            address(diamondStorage().securityDepositToken) == address(0),
-            "Vault: security deposit token has been initialized"
-        );
-        ERC20 token = ERC20(_reserve);
-        diamondStorage().securityDepositToken = new SecurityDepositToken(
-            _reserve,
-            token.decimals(),
-            token.name(),
-            token.symbol()
-        );
-    }
-
-    /// @notice Transfer some deposit security
+    /// @notice Transfer some margin deposit
     /// @param _sponsor user address who deposit to this escrow
     /// @param _reserve reserve address
     /// @param _amount deposit amount
@@ -86,26 +67,19 @@ contract Vault is ReentrancyGuard, Initializable, IVault, IERC1271, IERC165 {
     ) external payable nonReentrant onlyVoyager {
         VaultConfig memory vaultConfig = vaultFacet().getVaultConfig(_reserve);
 
-        // check max security deposit amount for this _reserve
-        uint256 maxAllowedAmount = vaultConfig.maxSecurityDeposit;
+        uint256 maxAllowedAmount = vaultConfig.maxMargin;
         uint256 depositedAmount = diamondStorage()
-            .securityDepositEscrow
+            .marginEscrow
             .getDepositAmount(_reserve);
         require(
             depositedAmount + _amount <= maxAllowedAmount,
             "Vault: deposit amount exceed"
         );
 
-        // check min security deposit amount for this _reserve
-        uint256 minAllowedAmount = vaultConfig.minSecurityDeposit;
+        uint256 minAllowedAmount = vaultConfig.minMargin;
         require(minAllowedAmount <= _amount, "Vault: deposit too small");
 
-        diamondStorage().securityDepositEscrow.deposit(
-            _reserve,
-            _sponsor,
-            _amount
-        );
-        diamondStorage().securityDepositToken.mintOnDeposit(_sponsor, _amount);
+        diamondStorage().marginEscrow.deposit(_reserve, _sponsor, _amount);
     }
 
     /// @notice Redeem underlying reserve
@@ -121,12 +95,7 @@ contract Vault is ReentrancyGuard, Initializable, IVault, IERC1271, IERC165 {
             _amount <= getWithdrawableDepositInternal(_sponsor, _reserve),
             "Vault: cannot redeem more than withdrawable deposit amount"
         );
-        diamondStorage().securityDepositEscrow.withdraw(
-            _reserve,
-            _sponsor,
-            underlyingBalanceInternal(_sponsor, _reserve)
-        );
-        diamondStorage().securityDepositToken.burnOnRedeem(_sponsor, _amount);
+        diamondStorage().marginEscrow.withdraw(_reserve, _sponsor, _amount);
     }
 
     /// @return Returns the actual value that has been transferred
@@ -135,12 +104,7 @@ contract Vault is ReentrancyGuard, Initializable, IVault, IERC1271, IERC165 {
         address payable _to,
         uint256 _amount
     ) external nonReentrant onlyVoyager returns (uint256) {
-        return
-            diamondStorage().securityDepositEscrow.slash(
-                _reserve,
-                _to,
-                _amount
-            );
+        return diamondStorage().marginEscrow.slash(_reserve, _to, _amount);
     }
 
     /// @notice Insert new NFT
@@ -236,13 +200,12 @@ contract Vault is ReentrancyGuard, Initializable, IVault, IERC1271, IERC165 {
         return VaultFacet(voyager);
     }
 
-    function getCurrentSecurityDeposit(address _reserve)
+    function getCurrentMargin(address _reserve)
         external
         view
         returns (uint256)
     {
-        return
-            diamondStorage().securityDepositEscrow.getDepositAmount(_reserve);
+        return diamondStorage().marginEscrow.getDepositAmount(_reserve);
     }
 
     function getActualSecurityDeposit(address _reserve)
@@ -251,9 +214,7 @@ contract Vault is ReentrancyGuard, Initializable, IVault, IERC1271, IERC165 {
         returns (uint256)
     {
         return
-            ERC20(_reserve).balanceOf(
-                address(diamondStorage().securityDepositEscrow)
-            );
+            ERC20(_reserve).balanceOf(address(diamondStorage().marginEscrow));
     }
 
     function getWithdrawableDeposit(address _sponsor, address _reserve)
@@ -264,24 +225,12 @@ contract Vault is ReentrancyGuard, Initializable, IVault, IERC1271, IERC165 {
         return getWithdrawableDepositInternal(_sponsor, _reserve);
     }
 
-    function underlyingBalance(address _sponsor, address _reserve)
-        external
-        view
-        returns (uint256)
-    {
-        return underlyingBalanceInternal(_sponsor, _reserve);
-    }
-
-    function getSecurityDepositTokenAddress() external view returns (address) {
-        return address(diamondStorage().securityDepositToken);
-    }
-
     /**
-     * @dev Get SecurityDepositEscrow contract address
+     * @dev Get MarginEscrow contract address
      * @return address
      **/
-    function getSecurityDepositEscrowAddress() external view returns (address) {
-        return address(diamondStorage().securityDepositEscrow);
+    function getMarginEscrowAddress() external view returns (address) {
+        return address(diamondStorage().marginEscrow);
     }
 
     function getTotalNFTNumbers(address _erc721Addr)
@@ -380,29 +329,13 @@ contract Vault is ReentrancyGuard, Initializable, IVault, IERC1271, IERC165 {
         supportedInterfaces[this.transferNFT.selector] = true;
     }
 
-    function underlyingBalanceInternal(address _sponsor, address _reserve)
-        internal
-        view
-        returns (uint256)
-    {
-        uint256 amountToRedeemInRay = diamondStorage()
-            .securityDepositToken
-            .balanceOf(_sponsor)
-            .wadToRay()
-            .rayDiv(
-                diamondStorage().securityDepositToken.totalSupply().wadToRay()
-            )
-            .rayMul(getActualSecurityDeposit(_reserve).wadToRay());
-        return amountToRedeemInRay.rayToWad();
-    }
-
     function getWithdrawableDepositInternal(address _sponsor, address _reserve)
         internal
         view
         returns (uint256)
     {
         VaultConfig memory vaultConfig = vaultFacet().getVaultConfig(_reserve);
-        uint256 securityRequirement = vaultConfig.securityDepositRequirement;
+        uint256 marginRequirement = vaultConfig.marginRequirement;
         uint256 principal;
         uint256 interest;
         (principal, interest) = loanFacet().getVaultDebt(
@@ -411,16 +344,13 @@ contract Vault is ReentrancyGuard, Initializable, IVault, IERC1271, IERC165 {
         );
 
         uint256 totalDebt = principal.add(interest);
-        uint256 withdrawableAmount = diamondStorage()
-            .securityDepositToken
-            .balanceOf(_sponsor) -
-            totalDebt.wadToRay().rayMul(securityRequirement).rayToWad();
-        uint256 eligibleAmount = diamondStorage()
-            .securityDepositEscrow
-            .eligibleAmount(_reserve, _sponsor);
-        if (eligibleAmount < withdrawableAmount) {
-            withdrawableAmount = eligibleAmount;
-        }
+        uint256 eligibleAmount = diamondStorage().marginEscrow.eligibleAmount(
+            _reserve,
+            _sponsor
+        );
+        uint256 withdrawableAmount = eligibleAmount -
+            totalDebt.wadToRay().rayMul(marginRequirement).rayToWad();
+
         return withdrawableAmount;
     }
 }

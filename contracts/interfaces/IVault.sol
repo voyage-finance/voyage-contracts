@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import {SecurityDepositEscrow} from "../component/vault/SecurityDepositEscrow.sol";
+import {MarginEscrow} from "../component/vault/MarginEscrow.sol";
 
 interface IVault {
     function initialize(
         address _voyager,
         address _owner,
         address _reserve,
-        address _securityDepositEscrow
+        address _marginEscrow
     ) external;
 
     function depositMargin(
@@ -35,8 +35,6 @@ interface IVault {
         uint256 _num
     ) external;
 
-    function getSecurityDepositTokenAddress() external view returns (address);
-
     function getTotalNFTNumbers(address _erc721Addr)
         external
         view
@@ -44,15 +42,7 @@ interface IVault {
 
     function insertNFT(address _erc721Addr, uint256 tokenId) external;
 
-    function underlyingBalance(address _sponsor, address _reserve)
-        external
-        view
-        returns (uint256);
-
-    function getCurrentSecurityDeposit(address _reserve)
-        external
-        view
-        returns (uint256);
+    function getCurrentMargin(address _reserve) external view returns (uint256);
 
     function getWithdrawableDeposit(address _sponsor, address _reserve)
         external

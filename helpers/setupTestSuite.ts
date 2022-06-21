@@ -80,8 +80,8 @@ const setupBase = async ({
   await tus.approve(voyager.address, MAX_UINT_256);
 
   /* -------------------------- vault initialisation -------------------------- */
-  await voyager.setMaxSecurityDeposit(tus.address, '1000000000000000000000');
-  await voyager.setSecurityDepositRequirement(
+  await voyager.setMaxMargin(tus.address, '1000000000000000000000');
+  await voyager.setMarginRequirement(
     tus.address,
     '100000000000000000000000000'
   ); // 0.1
@@ -93,7 +93,7 @@ const setupBase = async ({
 
   // get security deposit escrow address
   const vault = await ethers.getContractAt('Vault', vaultAddr);
-  const escrowAddress = await vault.getSecurityDepositEscrowAddress();
+  const escrowAddress = await vault.getMarginEscrowAddress();
   await tus.approve(escrowAddress, MAX_UINT_256);
 
   return {

@@ -41,7 +41,7 @@ describe('Withdraw', function () {
     const amount = ethers.BigNumber.from(100).mul(decimals(18));
     await voyager.deposit(tus.address, 1, amount, owner);
 
-    await voyager.setSecurityDepositRequirement(
+    await voyager.setMarginRequirement(
       tus.address,
       '100000000000000000000000000'
     ); // 0.1

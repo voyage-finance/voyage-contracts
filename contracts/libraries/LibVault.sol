@@ -5,7 +5,7 @@ import {Create2} from "@openzeppelin/contracts/utils/Create2.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import {Vault} from "../component/vault/Vault.sol";
-import {SecurityDepositEscrow} from "../component/vault/SecurityDepositEscrow.sol";
+import {MarginEscrow} from "../component/vault/MarginEscrow.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {LibAppStorage, AppStorage, BorrowData, VaultConfig} from "./LibAppStorage.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
@@ -25,7 +25,7 @@ library LibVault {
             Vault vault = new Vault();
             s.upgradeableBeacon = new UpgradeableBeacon(address(vault));
         }
-        SecurityDepositEscrow sde = new SecurityDepositEscrow();
+        MarginEscrow sde = new MarginEscrow();
         BeaconProxy proxy = new BeaconProxy(
             address(s.upgradeableBeacon),
             abi.encodeWithSelector(
@@ -45,27 +45,21 @@ library LibVault {
         return (vault, s.vaults.length);
     }
 
-    /**
-     * @dev Set max security deposit for _reserve
-     * @param _reserve reserve address
-     * @param _amount max amount sponsor can deposit
-     */
-    function setMaxSecurityDeposit(address _reserve, uint256 _amount) internal {
+    function setMaxMargin(address _reserve, uint256 _amount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        s.vaultConfigMap[_reserve].maxSecurityDeposit = _amount;
+        s.vaultConfigMap[_reserve].maxMargin = _amount;
     }
 
-    function setMinSecurityDeposit(address _reserve, uint256 _amount) internal {
+    function setMinMargin(address _reserve, uint256 _amount) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        s.vaultConfigMap[_reserve].minSecurityDeposit = _amount;
+        s.vaultConfigMap[_reserve].minMargin = _amount;
     }
 
-    function setSecurityDepositRequirement(
-        address _reserve,
-        uint256 _requirement
-    ) internal {
+    function setMarginRequirement(address _reserve, uint256 _requirement)
+        internal
+    {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        s.vaultConfigMap[_reserve].securityDepositRequirement = _requirement;
+        s.vaultConfigMap[_reserve].marginRequirement = _requirement;
     }
 
     function updateVaultImplContract(address _vault) internal {
@@ -130,34 +124,23 @@ library LibVault {
         view
         returns (uint256)
     {
-        uint256 currentSecurityDeposit = getSecurityDeposit(_user, _reserve);
+        uint256 currentMargin = getMargin(_user, _reserve);
         VaultConfig memory vc = getVaultConfig(_reserve);
-        uint256 securityDepositRequirement = vc.securityDepositRequirement;
-        require(
-            securityDepositRequirement != 0,
-            "security deposit requirement cannot be 0"
-        );
-        uint256 creditLimitInRay = currentSecurityDeposit.wadToRay().rayDiv(
-            securityDepositRequirement
+        uint256 marginRequirement = vc.marginRequirement;
+        require(marginRequirement != 0, "margin requirement cannot be 0");
+        uint256 creditLimitInRay = currentMargin.wadToRay().rayDiv(
+            marginRequirement
         );
         return creditLimitInRay.rayToWad();
     }
 
-    function getSecurityDeposit(address _user, address _reserve)
+    function getMargin(address _user, address _reserve)
         internal
         view
         returns (uint256)
     {
         address vault = getVaultAddress(_user);
-        return IVault(vault).getCurrentSecurityDeposit(_reserve);
-    }
-
-    function getSecurityDepositTokenAddress(address vault)
-        internal
-        view
-        returns (address)
-    {
-        return IVault(vault).getSecurityDepositTokenAddress();
+        return IVault(vault).getCurrentMargin(_reserve);
     }
 
     function getWithdrawableDeposit(

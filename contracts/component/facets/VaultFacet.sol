@@ -3,7 +3,7 @@ pragma solidity ^0.8.9;
 
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import {SecurityDepositEscrow} from "../../component/vault/SecurityDepositEscrow.sol";
+import {MarginEscrow} from "../../component/vault/MarginEscrow.sol";
 import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {IACLManager} from "../../interfaces/IACLManager.sol";
@@ -82,39 +82,39 @@ contract VaultFacet is Storage, ReentrancyGuard {
     /************************ HouseKeeping Function ******************************/
 
     /**
-     * @dev Set max security deposit for _reserve
+     * @dev Set max margin for _reserve
      * @param _reserve reserve address
      * @param _amount max amount sponsor can deposit
      */
-    function setMaxSecurityDeposit(address _reserve, uint256 _amount)
+    function setMaxMargin(address _reserve, uint256 _amount)
         external
         onlyAdmin
     {
-        LibVault.setMaxSecurityDeposit(_reserve, _amount);
+        LibVault.setMaxMargin(_reserve, _amount);
     }
 
     /**
-     * @dev Set min security deposit for _reserve
+     * @dev Set min margin for _reserve
      * @param _reserve reserve address
      * @param _amount min amount sponsor can deposit
      */
-    function setMinSecurityDeposit(address _reserve, uint256 _amount)
+    function setMinMargin(address _reserve, uint256 _amount)
         external
         onlyAdmin
     {
-        LibVault.setMinSecurityDeposit(_reserve, _amount);
+        LibVault.setMinMargin(_reserve, _amount);
     }
 
     /**
-     * @dev Update the security deposit requirement
+     * @dev Update the margin requirement
      * @param _reserve reserve address
      * @param _requirement expressed in Ray
      */
-    function setSecurityDepositRequirement(
-        address _reserve,
-        uint256 _requirement
-    ) external onlyAdmin {
-        LibVault.setSecurityDepositRequirement(_reserve, _requirement);
+    function setMarginRequirement(address _reserve, uint256 _requirement)
+        external
+        onlyAdmin
+    {
+        LibVault.setMarginRequirement(_reserve, _requirement);
     }
 
     /**
@@ -161,12 +161,12 @@ contract VaultFacet is Storage, ReentrancyGuard {
         return LibVault.getCreditLimit(_user, _reserve);
     }
 
-    function getSecurityDeposit(address _user, address _reserve)
+    function getMargin(address _user, address _reserve)
         external
         view
         returns (uint256)
     {
-        return LibVault.getSecurityDeposit(_user, _reserve);
+        return LibVault.getMargin(_user, _reserve);
     }
 
     function getVault(address _owner) external view returns (address) {

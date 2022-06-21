@@ -24,7 +24,7 @@ struct ReserveData {
     uint256 currentSeniorLiquidityRate;
     uint256 currentBorrowRate;
     // Expressed in ray
-    uint256 securityRequirement;
+    uint256 marginRequirement;
     //the decimals of the reserve asset
     uint256 decimals;
     address interestRateStrategyAddress;
@@ -114,16 +114,16 @@ struct BorrowState {
 }
 
 struct VaultConfig {
-    uint256 minSecurityDeposit;
-    uint256 maxSecurityDeposit;
-    uint256 securityDepositRequirement;
+    uint256 minMargin;
+    uint256 maxMargin;
+    uint256 marginRequirement;
 }
 
 struct VaultData {
     uint256 borrowRate;
     uint256 totalDebt;
     DrawDownList drawDownList;
-    uint256 totalSecurityDeposit;
+    uint256 totalMargin;
     uint256 withdrawableSecurityDeposit;
     uint256 creditLimit;
     uint256 spendableBalance;

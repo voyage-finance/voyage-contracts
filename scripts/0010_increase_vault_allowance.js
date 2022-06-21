@@ -14,7 +14,7 @@ async function main() {
   const Vault = await ethers.getContractFactory('Vault');
   const escrowAddress = await Vault.attach(
     vaultAddress
-  ).getSecurityDepositEscrowAddress();
+  ).getMarginEscrowAddress();
   console.log('vault escrow address: ', escrowAddress);
 
   // grant max uint

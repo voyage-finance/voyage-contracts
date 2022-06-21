@@ -24,14 +24,14 @@ describe('Repayment', function () {
 
     // 100
     const depositAmount = '100000000000000000000';
-    await voyager.setMaxSecurityDeposit(tus.address, '1000000000000000000000');
+    await voyager.setMaxMargin(tus.address, '1000000000000000000000');
     await voyager.deposit(tus.address, 0, depositAmount, owner);
     await voyager.deposit(tus.address, 1, depositAmount, owner);
     const seniorLiquidity = await tus.balanceOf(seniorDepositToken.address);
     const juniorLiquidity = await tus.balanceOf(juniorDepositToken.address);
     console.log('senior liquidity: ', seniorLiquidity.toString());
     console.log('junior liquidity: ', juniorLiquidity.toString());
-    await voyager.setSecurityDepositRequirement(
+    await voyager.setMarginRequirement(
       tus.address,
       '100000000000000000000000000'
     ); // 0.1
@@ -125,14 +125,14 @@ describe('Repayment', function () {
 
     // 100
     const depositAmount = '100000000000000000000';
-    await voyager.setMaxSecurityDeposit(tus.address, '1000000000000000000000');
+    await voyager.setMaxMargin(tus.address, '1000000000000000000000');
     await voyager.deposit(tus.address, 0, depositAmount, owner);
     await voyager.deposit(tus.address, 1, depositAmount, owner);
     const seniorLiquidity = await tus.balanceOf(seniorDepositToken.address);
     const juniorLiquidity = await tus.balanceOf(juniorDepositToken.address);
     console.log('senior liquidity: ', seniorLiquidity.toString());
     console.log('junior liquidity: ', juniorLiquidity.toString());
-    await voyager.setSecurityDepositRequirement(
+    await voyager.setMarginRequirement(
       tus.address,
       '100000000000000000000000000'
     ); // 0.1

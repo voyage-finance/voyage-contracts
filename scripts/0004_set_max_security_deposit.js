@@ -8,7 +8,7 @@ async function main() {
   const { address: vmp } = await deployments.get('VaultManagerProxy');
   const VaultManager = await ethers.getContractFactory('VaultManager');
   const vm = await VaultManager.attach(vmp);
-  await vm.setMaxSecurityDeposit(
+  await vm.setMarginSecurityDeposit(
     treasureUnderSea,
     '100000000000000000000000000'
   );
