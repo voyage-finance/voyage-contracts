@@ -40,14 +40,12 @@ library LibLiquidity {
         address _juniorDepositTokenAddress,
         address _seniorDepositTokenAddress,
         address _interestRateStrategyAddress,
-        address _healthStrategyAddress,
         address _loanStrategyAddress,
         uint256 _optimalIncomeRatio
     ) internal {
         reserve.juniorDepositTokenAddress = _juniorDepositTokenAddress;
         reserve.seniorDepositTokenAddress = _seniorDepositTokenAddress;
         reserve.interestRateStrategyAddress = _interestRateStrategyAddress;
-        reserve.healthStrategyAddress = _healthStrategyAddress;
         reserve.optimalIncomeRatio = _optimalIncomeRatio;
         reserve.loanStrategyAddress = _loanStrategyAddress;
         reserve.initialized = true;

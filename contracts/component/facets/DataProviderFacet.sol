@@ -6,9 +6,6 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {IAddressResolver} from "../../interfaces/IAddressResolver.sol";
 import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
-import {IVaultManager} from "../../interfaces/IVaultManager.sol";
-import {IHealthStrategy} from "../../interfaces/IHealthStrategy.sol";
-import {IVaultManagerProxy} from "../../interfaces/IVaultManagerProxy.sol";
 import {IVToken} from "../../interfaces/IVToken.sol";
 import {AppStorage, ADDRESS_RESOLVER, ReserveData, Tranche, VaultConfig, VaultData, DrawDownList} from "../../libraries/LibAppStorage.sol";
 import {LibLiquidity} from "../../libraries/LibLiquidity.sol";
@@ -67,12 +64,10 @@ contract DataProviderFacet {
         ReserveData memory reserve = LibLiquidity.getReserveData(_reserve);
         address healthStrategyAddr = reserve.healthStrategyAddress;
         require(healthStrategyAddr != address(0), "invalid health strategy");
-        IHealthStrategy hs = IHealthStrategy(healthStrategyAddr);
         VaultConfig memory vc = LibVault.getVaultConfig(_reserve);
         poolConfiguration.securityRequirement = vc.securityDepositRequirement;
         poolConfiguration.minSecurity = vc.minSecurityDeposit;
         poolConfiguration.maxSecurity = vc.maxSecurityDeposit;
-        poolConfiguration.loanTenure = hs.getLoanTenure();
         poolConfiguration.optimalIncomeRatio = reserve.optimalIncomeRatio;
         poolConfiguration.optimalTrancheRatio = reserve.optimalTrancheRatio;
         (bool isActive, , ) = LibLiquidity.getFlags(_reserve);

@@ -3,38 +3,46 @@ pragma solidity ^0.8.9;
 
 import {Create2} from "@openzeppelin/contracts/utils/Create2.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import {Vault} from "../component/vault/Vault.sol";
 import {SecurityDepositEscrow} from "../component/vault/SecurityDepositEscrow.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {LibAppStorage, AppStorage, BorrowData, VaultConfig} from "./LibAppStorage.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
+import "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
 library LibVault {
     using WadRayMath for uint256;
     using SafeMath for uint256;
 
-    function deployVault(address _owner, bytes32 salt)
-        internal
-        returns (address, uint256)
-    {
-        // TODO: Vault should be deployed as a BeaconProxy.
-        address vault = Create2.deploy(0, salt, type(Vault).creationCode);
-        require(vault != address(0), "deploy vault failed");
+    function deployVault(
+        address _voyager,
+        address _owner,
+        address _reserve
+    ) internal returns (address, uint256) {
         AppStorage storage s = LibAppStorage.diamondStorage();
+        if (address(s.upgradeableBeacon) == address(0)) {
+            Vault vault = new Vault();
+            s.upgradeableBeacon = new UpgradeableBeacon(address(vault));
+        }
+        SecurityDepositEscrow sde = new SecurityDepositEscrow();
+        BeaconProxy proxy = new BeaconProxy(
+            address(s.upgradeableBeacon),
+            abi.encodeWithSelector(
+                Vault(address(0)).initialize.selector,
+                _voyager,
+                _owner,
+                _reserve,
+                address(sde)
+            )
+        );
+        address vault = address(proxy);
+        sde.initialize(vault);
+        require(vault != address(0), "deploy vault failed");
         require(s.vaultMap[_owner] == address(0), "one vault per owner");
         s.vaults.push(vault);
         s.vaultMap[_owner] = vault;
-        SecurityDepositEscrow securityDepositEscrow = new SecurityDepositEscrow(
-            vault
-        );
-        IVault(vault).initialize(address(this), _owner, securityDepositEscrow);
-
         return (vault, s.vaults.length);
-    }
-
-    function initVault(address _vault, address _reserve) internal {
-        // TODO: SecurityDepositEscrow should be deployed as a BeaconProxy.
-        IVault(_vault).initSecurityDepositToken(_reserve);
     }
 
     /**
@@ -58,6 +66,11 @@ library LibVault {
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         s.vaultConfigMap[_reserve].securityDepositRequirement = _requirement;
+    }
+
+    function updateVaultImplContract(address _vault) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        s.upgradeableBeacon.upgradeTo(_vault);
     }
 
     /* ----------------------------- view functions ----------------------------- */

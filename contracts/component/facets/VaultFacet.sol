@@ -31,23 +31,16 @@ contract VaultFacet is Storage, ReentrancyGuard {
     );
 
     /* ----------------------------- admin interface ---------------------------- */
-    function createVault(address owner, bytes32 _salt)
-        external
-        onlyAdmin
-        returns (address)
-    {
+    function createVault(
+        address _voyager,
+        address owner,
+        address _reserve
+    ) external onlyAdmin returns (address) {
         address vault;
         uint256 numVaults;
-        (vault, numVaults) = LibVault.deployVault(owner, _salt);
+        (vault, numVaults) = LibVault.deployVault(_voyager, owner, _reserve);
         emit VaultCreated(vault, owner, numVaults);
         return vault;
-    }
-
-    /// @notice Initializes a vault for a specific underlying asset and creates a margin escrow
-    /// @param _vault The address of the vault to initialise
-    /// @param _reserve The address of the underlying asset. Must be ERC20.
-    function initVault(address _vault, address _reserve) external onlyAdmin {
-        LibVault.initVault(_vault, _reserve);
     }
 
     /* ----------------------------- user interface ----------------------------- */
@@ -64,7 +57,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         uint256 _amount
     ) external {
         address vaultAddress = LibVault.getVaultAddress(_owner);
-        IVault(vaultAddress).depositSecurity(_sponsor, _reserve, _amount);
+        IVault(vaultAddress).depositMargin(_sponsor, _reserve, _amount);
         emit VaultMarginCredited(vaultAddress, _reserve, _sponsor, _amount);
     }
 
@@ -82,7 +75,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         uint256 _amount
     ) external {
         address vaultAddress = LibVault.getVaultAddress(_owner);
-        IVault(vaultAddress).redeemSecurity(_sponsor, _reserve, _amount);
+        IVault(vaultAddress).redeemMargin(_sponsor, _reserve, _amount);
         emit VaultMarginRedeemed(vaultAddress, _reserve, _sponsor, _amount);
     }
 
@@ -122,6 +115,14 @@ contract VaultFacet is Storage, ReentrancyGuard {
         uint256 _requirement
     ) external onlyAdmin {
         LibVault.setSecurityDepositRequirement(_reserve, _requirement);
+    }
+
+    /**
+     * @dev Update the vault impl address
+     * @param _impl vault impl contract
+     */
+    function updateVaultImplContract(address _impl) external onlyAdmin {
+        LibVault.updateVaultImplContract(_impl);
     }
 
     /************************************** View Functions **************************************/

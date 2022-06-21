@@ -28,7 +28,6 @@ contract LiquidityFacet is Storage, PeripheryPayments {
         address _juniorDepositTokenAddress,
         address _seniorDepositTokenAddress,
         address _interestRateStrategyAddress,
-        address _healthStrategyAddress,
         uint256 _optimalIncomeRatio
     );
     event ReserveActivated(address indexed _asset);
@@ -52,7 +51,6 @@ contract LiquidityFacet is Storage, PeripheryPayments {
         address _juniorDepositTokenAddress,
         address _seniorDepositTokenAddress,
         address _interestRateStrategyAddress,
-        address _healthStrategyAddress,
         address _loanStrategyAddress,
         uint256 _optimalIncomeRatio
     ) external onlyAdmin {
@@ -63,7 +61,6 @@ contract LiquidityFacet is Storage, PeripheryPayments {
             _juniorDepositTokenAddress,
             _seniorDepositTokenAddress,
             _interestRateStrategyAddress,
-            _healthStrategyAddress,
             _loanStrategyAddress,
             _optimalIncomeRatio
         );
@@ -74,7 +71,6 @@ contract LiquidityFacet is Storage, PeripheryPayments {
             _juniorDepositTokenAddress,
             _seniorDepositTokenAddress,
             _interestRateStrategyAddress,
-            _healthStrategyAddress,
             _optimalIncomeRatio
         );
     }

@@ -17,7 +17,7 @@ async function main() {
   console.log('vault escrow address: ', escrowAddress);
 
   const tus = await ethers.getContract('Tus', owner);
-  await voyager.depositSecurity(owner, tus.address, '100000000000000000000');
+  await voyager.depositMargin(owner, tus.address, '100000000000000000000');
 }
 
 main()
