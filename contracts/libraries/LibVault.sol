@@ -21,13 +21,14 @@ library LibVault {
         address _reserve
     ) internal returns (address, uint256) {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        if (address(s.upgradeableBeacon) == address(0)) {
+        require(s.vaultMap[_owner] == address(0), "one vault per owner");
+        if (address(s.vaultBeacon) == address(0)) {
             Vault vault = new Vault();
-            s.upgradeableBeacon = new UpgradeableBeacon(address(vault));
+            s.vaultBeacon = new UpgradeableBeacon(address(vault));
         }
         MarginEscrow sde = new MarginEscrow();
         BeaconProxy proxy = new BeaconProxy(
-            address(s.upgradeableBeacon),
+            address(s.vaultBeacon),
             abi.encodeWithSelector(
                 Vault(address(0)).initialize.selector,
                 _voyager,
@@ -39,7 +40,6 @@ library LibVault {
         address vault = address(proxy);
         sde.initialize(vault);
         require(vault != address(0), "deploy vault failed");
-        require(s.vaultMap[_owner] == address(0), "one vault per owner");
         s.vaults.push(vault);
         s.vaultMap[_owner] = vault;
         return (vault, s.vaults.length);
@@ -64,7 +64,7 @@ library LibVault {
 
     function updateVaultImplContract(address _vault) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        s.upgradeableBeacon.upgradeTo(_vault);
+        s.vaultBeacon.upgradeTo(_vault);
     }
 
     /* ----------------------------- view functions ----------------------------- */
