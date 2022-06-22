@@ -28,7 +28,6 @@ struct ReserveData {
     //the decimals of the reserve asset
     uint256 decimals;
     address interestRateStrategyAddress;
-    address healthStrategyAddress;
     address loanStrategyAddress;
     address juniorDepositTokenAddress;
     address seniorDepositTokenAddress;
