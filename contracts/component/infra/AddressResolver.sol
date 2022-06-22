@@ -9,12 +9,8 @@ contract AddressResolver is IAddressResolver, Ownable {
     bytes32 public constant aclManagerName = "aclManager";
     bytes32 public constant liquidityDepositEscrowName =
         "liquidityDepositEscrow";
-    bytes32 public constant vaultManagerProxyName = "vaultManagerProxy";
-    bytes32 public constant vaultManagerName = "vaultManager";
-    bytes32 public constant vaultStorageName = "vaultStorage";
     bytes32 public constant juniorDepositTokenName = "juniorDepositToken";
     bytes32 public constant seniorDepositTokenName = "seniorDepositToken";
-    bytes32 public constant securityDepositTokenName = "securityDepositToken";
     bytes32 public constant priceOracleName = "priceOracle";
 
     mapping(bytes32 => address) public repository;
