@@ -7,7 +7,7 @@ import BigNumber from 'bignumber.js';
 
 const deployFn: DeployFunction = async (hre) => {
   const { deployments, getNamedAccounts } = hre;
-  const { deploy, execute, getOrNull, save } = deployments;
+  const { deploy, execute, getOrNull, save, getArtifact } = deployments;
   const { owner } = await getNamedAccounts();
   const addressResolver = await deployments.get('AddressResolver');
 
@@ -20,6 +20,8 @@ const deployFn: DeployFunction = async (hre) => {
   });
 
   const diamondABI: any[] = [];
+  const diamondProxyArtifact = await getArtifact('Diamond');
+  diamondABI.push(diamondProxyArtifact.abi);
 
   // This only returns the bare diamond proxy.
   let existingProxyDeployment = await getOrNull('VoyagerDiamondProxy');
@@ -35,7 +37,6 @@ const deployFn: DeployFunction = async (hre) => {
     const diamond = await ethers.getContract('Voyager');
     existingFacets = await diamond.facets();
     log.debug('existing facets: %o', existingFacets);
-    diamondABI.push(existingProxyDeployment.abi);
   }
 
   let changesDetected = !existingProxyDeployment;
