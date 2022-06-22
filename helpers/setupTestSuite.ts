@@ -16,7 +16,6 @@ const setupBase = async ({
     'AddressResolver',
     'Voyager',
     'ACLManager',
-    'ExtCallAcl',
     'Tokenization',
     'SetAddressResolver',
     'VaultManager',
@@ -28,13 +27,6 @@ const setupBase = async ({
   /* --------------------------------- voyager -------------------------------- */
   const voyager = await ethers.getContract<Voyager>('Voyager');
 
-  /* ---------------------------- vault management ---------------------------- */
-  const extCallACLProxy = await ethers.getContract('ExtCallACLProxy');
-  const extCallACL = await ethers.getContractAt(
-    'ExtCallACL',
-    extCallACLProxy.address
-  );
-
   /* ---------------------------------- infra --------------------------------- */
   const aclManager = await ethers.getContract('ACLManager');
   await aclManager.grantLiquidityManager(owner);
@@ -42,21 +34,14 @@ const setupBase = async ({
   await aclManager.grantPoolManager(owner);
 
   const priceOracle = await ethers.getContract('PriceOracle');
-  // TODO: deploy this in a separate libraries script
-  // const libFinancial = await ethers.getContract('LibFinancial');
 
   const addressResolver = await ethers.getContract('AddressResolver');
   const names = [
     ethers.utils.formatBytes32String('voyager'),
     ethers.utils.formatBytes32String('aclManager'),
-    ethers.utils.formatBytes32String('extCallACLProxy'),
   ];
   const libFinancial = await ethers.getContract('LibFinancial');
-  const destinations = [
-    voyager.address,
-    aclManager.address,
-    extCallACLProxy.address,
-  ];
+  const destinations = [voyager.address, aclManager.address];
   await addressResolver.importAddresses(names, destinations);
 
   /* ------------------------------ tokenization ------------------------------ */
@@ -105,7 +90,6 @@ const setupBase = async ({
     defaultReserveInterestRateStrategy,
     libFinancial,
     priceOracle,
-    extCallACL,
     tus,
     juniorDepositToken,
     seniorDepositToken,

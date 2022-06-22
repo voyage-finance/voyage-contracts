@@ -18,25 +18,9 @@ interface IAddressResolver {
 
     function getVoyage() external view returns (address);
 
-    // function getLiquidityManagerProxy() external view returns (address);
-
-    // function getLiquidityManagerStorage() external view returns (address);
-
-    // function getLoanManagerProxy() external view returns (address);
-
-    // function getLoanManager() external view returns (address);
-
-    function getVaultManagerProxy() external view returns (address);
-
-    function getVaultManager() external view returns (address);
-
-    function getExtCallProxy() external view returns (address);
-
     function getAclManager() external view returns (address);
 
     function getPriceOracle() external view returns (address);
-
-    function getVaultStorage() external view returns (address);
 
     function getJuniorDepositToken() external view returns (address);
 
