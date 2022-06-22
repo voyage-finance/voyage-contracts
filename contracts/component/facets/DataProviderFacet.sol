@@ -62,8 +62,6 @@ contract DataProviderFacet {
     {
         PoolConfiguration memory poolConfiguration;
         ReserveData memory reserve = LibLiquidity.getReserveData(_reserve);
-        address healthStrategyAddr = reserve.healthStrategyAddress;
-        require(healthStrategyAddr != address(0), "invalid health strategy");
         VaultConfig memory vc = LibVault.getVaultConfig(_reserve);
         poolConfiguration.marginRequirement = vc.marginRequirement;
         poolConfiguration.minMargin = vc.minMargin;
