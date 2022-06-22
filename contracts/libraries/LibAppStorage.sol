@@ -144,7 +144,7 @@ struct AppStorage {
     mapping(address => BorrowState) _borrowState;
     bool _paused;
     /* ---------------------------------- vault --------------------------------- */
-    UpgradeableBeacon upgradeableBeacon;
+    UpgradeableBeacon vaultBeacon;
     address[] vaults;
     // mapping of vault owner to vault instance address
     mapping(address => address) vaultMap;
