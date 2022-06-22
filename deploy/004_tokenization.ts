@@ -18,7 +18,7 @@ const deployFn: DeployFunction = async (hre) => {
   const tusSupply = new BigNumber(1_000_000_000_000).multipliedBy(
     new BigNumber(10).pow(18)
   );
-  if (!network.live && network.name !== 'avalancheMain') {
+  if (network.name !== 'avalancheMain') {
     await deploy('Tus', {
       from: owner,
       log: true,
@@ -26,7 +26,6 @@ const deployFn: DeployFunction = async (hre) => {
     });
   }
   const tus = await ethers.getContract<Tus>('Tus');
-  const AddressResolver = await deployments.get('AddressResolver');
   const voyager = await deployments.get('Voyager');
   const JuniorDepositToken = await deploy(JR_TOKEN_NAME, {
     from: owner,
