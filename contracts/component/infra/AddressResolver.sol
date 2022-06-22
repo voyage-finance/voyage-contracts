@@ -15,7 +15,6 @@ contract AddressResolver is IAddressResolver, Ownable {
     bytes32 public constant juniorDepositTokenName = "juniorDepositToken";
     bytes32 public constant seniorDepositTokenName = "seniorDepositToken";
     bytes32 public constant securityDepositTokenName = "securityDepositToken";
-    bytes32 public constant extCallACLProxyName = "extCallACLProxy";
     bytes32 public constant priceOracleName = "priceOracle";
 
     mapping(bytes32 => address) public repository;
@@ -41,44 +40,12 @@ contract AddressResolver is IAddressResolver, Ownable {
         return repository[voyageName];
     }
 
-    // function getLiquidityManagerProxy() external view returns (address) {
-    //     return repository[liquidityManagerProxyName];
-    // }
-
-    // function getLiquidityManagerStorage() external view returns (address) {
-    //     return repository[liquidityManagerStorageName];
-    // }
-
-    // function getLoanManagerProxy() external view returns (address) {
-    //     return repository[loanManagerProxyName];
-    // }
-
-    // function getLoanManager() external view returns (address) {
-    //     return repository[loanManagerName];
-    // }
-
-    function getVaultManagerProxy() external view returns (address) {
-        return repository[vaultManagerProxyName];
-    }
-
-    function getVaultManager() external view returns (address) {
-        return repository[vaultManagerName];
-    }
-
-    function getVaultStorage() external view returns (address) {
-        return repository[vaultStorageName];
-    }
-
     function getJuniorDepositToken() external view returns (address) {
         return repository[juniorDepositTokenName];
     }
 
     function getSeniorDepositToken() external view returns (address) {
         return repository[seniorDepositTokenName];
-    }
-
-    function getExtCallProxy() external view returns (address) {
-        return repository[extCallACLProxyName];
     }
 
     function getAclManager() external view returns (address) {

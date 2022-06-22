@@ -8,18 +8,12 @@ const deployFn: DeployFunction = async (hre) => {
 
   const Voyager = await deployments.get('Voyager');
   let AclManager = await deployments.get('ACLManager');
-  let ExtCallAclProxy = await deployments.get('ExtCallACLProxy');
 
   const names = [
     ethers.utils.formatBytes32String('voyager'),
     ethers.utils.formatBytes32String('aclManager'),
-    ethers.utils.formatBytes32String('extCallACLProxy'),
   ];
-  const destinations = [
-    Voyager.address,
-    AclManager.address,
-    ExtCallAclProxy.address,
-  ];
+  const destinations = [Voyager.address, AclManager.address];
   await execute(
     'AddressResolver',
     { from: owner, log: true },
@@ -30,11 +24,6 @@ const deployFn: DeployFunction = async (hre) => {
 };
 
 deployFn.tags = ['SetAddressResolver'];
-deployFn.dependencies = [
-  'Voyager',
-  'AddressResolver',
-  'ExtCallAcl',
-  'ACLManager',
-];
+deployFn.dependencies = ['Voyager', 'AddressResolver', 'ACLManager'];
 
 export default deployFn;
