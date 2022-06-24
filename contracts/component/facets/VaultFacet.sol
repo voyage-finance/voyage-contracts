@@ -122,11 +122,11 @@ contract VaultFacet is Storage, ReentrancyGuard {
         LibVault.setMarginRequirement(_reserve, _requirement);
     }
 
-    function setVaultStrategyAddr(address _erc721Addr, address _strategyAddr)
+    function setVaultStrategyAddr(address _target, address _strategyAddr)
         external
         onlyAdmin
     {
-        LibVault.setVaultStrategyAddr(_erc721Addr, _strategyAddr);
+        LibVault.setVaultStrategyAddr(_target, _strategyAddr);
     }
 
     function updateNFTPrice(

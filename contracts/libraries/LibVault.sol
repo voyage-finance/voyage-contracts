@@ -63,11 +63,11 @@ library LibVault {
         s.vaultConfigMap[_reserve].marginRequirement = _requirement;
     }
 
-    function setVaultStrategyAddr(address _erc721Addr, address _strategyAddr)
+    function setVaultStrategyAddr(address _target, address _strategyAddr)
         internal
     {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        s.vaultStrategy[_erc721Addr] = _strategyAddr;
+        s.vaultStrategy[_target] = _strategyAddr;
     }
 
     function updateNFTPrice(
