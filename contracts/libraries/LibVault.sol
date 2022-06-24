@@ -11,6 +11,7 @@ import {IExternalAdapter} from "../interfaces/IExternalAdapter.sol";
 import {LibAppStorage, AppStorage, BorrowData, VaultConfig} from "./LibAppStorage.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 library LibVault {
     using WadRayMath for uint256;
@@ -27,23 +28,27 @@ library LibVault {
             Vault vault = new Vault();
             s.vaultBeacon = new UpgradeableBeacon(address(vault));
         }
-        MarginEscrow sde = new MarginEscrow();
         BeaconProxy proxy = new BeaconProxy(
             address(s.vaultBeacon),
             abi.encodeWithSelector(
                 Vault(address(0)).initialize.selector,
                 _voyager,
-                _owner,
-                _reserve,
-                address(sde)
+                _owner
             )
         );
         address vault = address(proxy);
-        sde.initialize(vault);
         require(vault != address(0), "deploy vault failed");
         s.vaults.push(vault);
         s.vaultMap[_owner] = vault;
         return (vault, s.vaults.length);
+    }
+
+    function initVaultAsset(address _vault, address _asset)
+        internal
+        returns (address)
+    {
+        address escrow = IVault(_vault).initAsset(_asset);
+        return escrow;
     }
 
     function setMaxMargin(address _reserve, uint256 _amount) internal {
@@ -142,11 +147,12 @@ library LibVault {
         uint256 principal;
         uint256 interest;
         address vault = getVaultAddress(_user);
-        getVaultDebt(_reserve, vault);
+        (principal, interest) = getVaultDebt(_reserve, vault);
         uint256 accumulatedDebt = principal.add(interest);
         if (creditLimit < accumulatedDebt) {
             return 0;
         }
+
         return creditLimit - accumulatedDebt;
     }
 
@@ -179,12 +185,19 @@ library LibVault {
         return IVault(vault).getCurrentMargin(_reserve);
     }
 
-    function getWithdrawableDeposit(
-        address _owner,
+    function getWithdrawableMargin(
+        address _vault,
         address _reserve,
-        address _sponsor
+        address _user
     ) internal view returns (uint256) {
-        address vault = getVaultAddress(_owner);
-        return IVault(vault).getWithdrawableDeposit(_sponsor, _reserve);
+        return IVault(_vault).withdrawableMargin(_reserve, _user);
+    }
+
+    function getTotalWithdrawableMargin(address _vault, address _reserve)
+        internal
+        view
+        returns (uint256)
+    {
+        return IVault(_vault).totalWithdrawableMargin(_reserve);
     }
 }

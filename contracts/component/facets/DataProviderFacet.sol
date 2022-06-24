@@ -188,11 +188,11 @@ contract DataProviderFacet {
         return userPoolData;
     }
 
-    function getVaultData(
-        address _user,
-        address _reserve,
-        address _sponsor
-    ) external view returns (VaultData memory) {
+    function getVaultData(address _user, address _reserve)
+        external
+        view
+        returns (VaultData memory)
+    {
         VaultData memory vaultData;
         address vault = LibVault.getVaultAddress(_user);
         uint256 principal;
@@ -207,11 +207,8 @@ contract DataProviderFacet {
         vaultData.borrowRate = 0;
         vaultData.totalDebt = principal.add(interest);
         vaultData.totalMargin = LibVault.getMargin(_user, _reserve);
-        vaultData.withdrawableSecurityDeposit = LibVault.getWithdrawableDeposit(
-            _user,
-            _reserve,
-            _sponsor
-        );
+        vaultData.withdrawableSecurityDeposit = LibVault
+            .getTotalWithdrawableMargin(vault, _reserve);
         vaultData.creditLimit = LibVault.getCreditLimit(_user, _reserve);
         vaultData.spendableBalance = LibVault.getAvailableCredit(
             _user,

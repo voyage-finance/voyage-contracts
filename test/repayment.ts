@@ -44,7 +44,7 @@ describe('Repayment', function () {
     await ethers.provider.send('evm_increaseTime', [sevenDays]);
     await ethers.provider.send('evm_mine', []);
 
-    const vaultData = await voyager.getVaultData(owner, tus.address, owner);
+    const vaultData = await voyager.getVaultData(owner, tus.address);
 
     console.log('total debt: ', vaultData.totalDebt.toString());
     console.log(
@@ -65,7 +65,7 @@ describe('Repayment', function () {
 
     await voyager.borrow(tus.address, '10000000000000000000', vault.address);
 
-    const vaultData2 = await voyager.getVaultData(owner, tus.address, owner);
+    const vaultData2 = await voyager.getVaultData(owner, tus.address);
 
     console.log('total debt: ', vaultData2.totalDebt.toString());
     console.log(

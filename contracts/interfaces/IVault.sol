@@ -9,12 +9,9 @@ interface IVault {
         bytes callData;
     }
 
-    function initialize(
-        address _voyager,
-        address _owner,
-        address _reserve,
-        address _marginEscrow
-    ) external;
+    function initialize(address _voyager, address _owner) external;
+
+    function initAsset(address _asset) external returns (address);
 
     function callExternal(Call[] memory calls)
         external
@@ -51,7 +48,19 @@ interface IVault {
 
     function getCurrentMargin(address _reserve) external view returns (uint256);
 
-    function getWithdrawableDeposit(address _sponsor, address _reserve)
+    function totalDebt(address _reserve) external view returns (uint256);
+
+    function marginRequirement(address _reserve)
+        external
+        view
+        returns (uint256);
+
+    function withdrawableMargin(address _reserve, address _user)
+        external
+        view
+        returns (uint256);
+
+    function totalWithdrawableMargin(address _reserve)
         external
         view
         returns (uint256);
