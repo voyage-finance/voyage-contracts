@@ -6,6 +6,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 import {MarginEscrow} from "../../component/vault/MarginEscrow.sol";
 import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
 import {IVault} from "../../interfaces/IVault.sol";
+import {IExternalAdapter} from "../../interfaces/IExternalAdapter.sol";
 import {IACLManager} from "../../interfaces/IACLManager.sol";
 import {LibAppStorage, Storage, VaultConfig} from "../../libraries/LibAppStorage.sol";
 import {LibVault} from "../../libraries/LibVault.sol";
@@ -49,38 +50,38 @@ contract VaultFacet is Storage, ReentrancyGuard {
 
     /* ----------------------------- user interface ----------------------------- */
     /**
-     * @param _sponsor deposits the reserve into the amount
      * @param _owner vault admin address
      * @param _reserve reserve address
      * @param _amount amount user is willing to deposit
      */
     function depositMargin(
-        address _sponsor,
         address _owner,
         address _reserve,
         uint256 _amount
     ) external {
         address vaultAddress = LibVault.getVaultAddress(_owner);
-        IVault(vaultAddress).depositMargin(_sponsor, _reserve, _amount);
-        emit VaultMarginCredited(vaultAddress, _reserve, _sponsor, _amount);
+        IVault(vaultAddress).depositMargin(msg.sender, _reserve, _amount);
+        emit VaultMarginCredited(vaultAddress, _reserve, msg.sender, _amount);
     }
 
     /**
      * @dev  Delegate call to Vault's redeemSecurity
-     * @param _sponsor sponsor address
      * @param _owner user address
      * @param _reserve reserve address
      * @param _amount redeem amount
      **/
     function redeemMargin(
-        address payable _sponsor,
         address _owner,
         address _reserve,
         uint256 _amount
     ) external {
         address vaultAddress = LibVault.getVaultAddress(_owner);
-        IVault(vaultAddress).redeemMargin(_sponsor, _reserve, _amount);
-        emit VaultMarginRedeemed(vaultAddress, _reserve, _sponsor, _amount);
+        IVault(vaultAddress).redeemMargin(
+            payable(msg.sender),
+            _reserve,
+            _amount
+        );
+        emit VaultMarginRedeemed(vaultAddress, _reserve, msg.sender, _amount);
     }
 
     /************************ HouseKeeping Function ******************************/
@@ -121,6 +122,22 @@ contract VaultFacet is Storage, ReentrancyGuard {
         LibVault.setMarginRequirement(_reserve, _requirement);
     }
 
+    function setVaultStrategyAddr(address _erc721Addr, address _strategyAddr)
+        external
+        onlyAdmin
+    {
+        LibVault.setVaultStrategyAddr(_erc721Addr, _strategyAddr);
+    }
+
+    function updateNFTPrice(
+        address _erc721Addr,
+        uint256 _cardId,
+        uint256 _cardPrice
+    ) external {
+        // todo check auth
+        LibVault.updateNFTPrice(_erc721Addr, _cardId, _cardPrice);
+    }
+
     /**
      * @dev Update the vault impl address
      * @param _impl vault impl contract
@@ -129,7 +146,19 @@ contract VaultFacet is Storage, ReentrancyGuard {
         LibVault.updateVaultImplContract(_impl);
     }
 
+    function validate(
+        address _target,
+        bytes4 _selector,
+        bytes calldata _payload
+    ) external returns (address, bytes memory) {
+        return LibVault.validate(_target, _selector, _payload);
+    }
+
     /************************************** View Functions **************************************/
+
+    function getERC721Addr(address _target) external returns (address) {
+        return LibVault.getERC721Addr(_target);
+    }
 
     function getVaultConfig(address _reserve)
         external

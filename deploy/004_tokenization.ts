@@ -1,5 +1,6 @@
 import { DeployFunction } from 'hardhat-deploy/types';
-import { Tus } from '@contracts';
+import { MockMarketPlace, Tus, CrabadaExternalAdapter } from '@contracts';
+import { Crab } from '@contracts';
 import BigNumber from 'bignumber.js';
 import { MAX_UINT_256 } from '../helpers/math';
 
@@ -24,9 +25,27 @@ const deployFn: DeployFunction = async (hre) => {
       log: true,
       args: [tusSupply.toFixed()],
     });
+    await deploy('Crab', {
+      from: owner,
+      log: true,
+      args: ['Mocked Crab', 'MC'],
+    });
   }
-  const tus = await ethers.getContract<Tus>('Tus');
   const voyager = await deployments.get('Voyager');
+  const tus = await ethers.getContract<Tus>('Tus');
+  const crab = await ethers.getContract<Crab>('Crab');
+  await deploy('MockMarketPlace', {
+    from: owner,
+    log: true,
+    args: [tus.address, crab.address, 0, owner],
+  });
+  const mp = await ethers.getContract<MockMarketPlace>('MockMarketPlace');
+  await deploy('CrabadaExternalAdapter', {
+    from: owner,
+    log: true,
+    args: [voyager.address, crab.address, tus.address, mp.address],
+  });
+  const strategy = await ethers.getContract<Crab>('CrabadaExternalAdapter');
   const JuniorDepositToken = await deploy(JR_TOKEN_NAME, {
     from: owner,
     log: true,
@@ -38,6 +57,27 @@ const deployFn: DeployFunction = async (hre) => {
     args: [voyager.address, tus.address, 'TUS Senior Tranche', 'svTUS'],
   });
 
+  await execute(
+    'Voyager',
+    { from: owner, log: true },
+    'setVaultStrategyAddr',
+    tus.address,
+    strategy.address
+  );
+  await execute(
+    'Voyager',
+    { from: owner, log: true },
+    'setVaultStrategyAddr',
+    crab.address,
+    strategy.address
+  );
+  await execute(
+    'Voyager',
+    { from: owner, log: true },
+    'setVaultStrategyAddr',
+    mp.address,
+    strategy.address
+  );
   await execute(
     'Voyager',
     { from: owner, log: true },

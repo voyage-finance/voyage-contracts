@@ -17,7 +17,6 @@ import {LibVault} from "../../libraries/LibVault.sol";
 import {LibAppStorage, AppStorage, Storage, BorrowData, BorrowState, DrawDown, ReserveData} from "../../libraries/LibAppStorage.sol";
 import {ERC4626} from "@rari-capital/solmate/src/mixins/ERC4626.sol";
 import {AddressResolver} from "../infra/AddressResolver.sol";
-import "hardhat/console.sol";
 
 contract LoanFacet is Storage {
     using SafeMath for uint256;
@@ -90,7 +89,6 @@ contract LoanFacet is Storage {
             _msgSender(),
             _asset
         );
-        console.log("credit limit: %s", availableCreditLimit);
 
         require(
             availableCreditLimit >= _amount,

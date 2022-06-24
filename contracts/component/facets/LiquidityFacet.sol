@@ -131,16 +131,12 @@ contract LiquidityFacet is Storage, PeripheryPayments {
         if (_amount == type(uint256).max) {
             amountToWithdraw = userBalance;
         }
-        console.log("amount to withdraw: %s", amountToWithdraw);
         BorrowState memory borrowState = s._borrowState[_asset];
         uint256 totalDebt = borrowState.totalDebt.add(
             borrowState.totalInterest
         );
-        console.log("total debt: %s", totalDebt);
         uint256 avgBorrowRate = borrowState.avgBorrowRate;
-        console.log("avg borrow rate: %s", borrowState.avgBorrowRate);
         IVToken(vToken).withdraw(_amount, _user, _user);
-        console.log("withdrew");
         LibLiquidity.updateStateOnWithdraw(
             _asset,
             _tranche,

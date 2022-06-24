@@ -131,6 +131,11 @@ struct VaultData {
     uint256 healthFactor;
 }
 
+struct NFTInfo {
+    address strategyAddress;
+    address adapterAddress;
+}
+
 struct AppStorage {
     /* -------------------------------- plumbing -------------------------------- */
     mapping(bytes32 => address) _addresses;
@@ -150,6 +155,9 @@ struct AppStorage {
     mapping(address => address) vaultMap;
     // mapping of vault instance to vault configuration
     mapping(address => VaultConfig) vaultConfigMap;
+    // mapping of erc721 address to vault strategy contract address
+    mapping(address => address) vaultStrategy;
+    mapping(address => mapping(uint256 => uint256)) nftPrice;
 }
 
 library LibAppStorage {

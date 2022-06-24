@@ -7,6 +7,7 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
 import {IERC165} from "@openzeppelin/contracts/interfaces/IERC165.sol";
+import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {MarginEscrow} from "./MarginEscrow.sol";
@@ -18,28 +19,34 @@ import {VaultConfig} from "../../libraries/LibAppStorage.sol";
 import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
 import {IACLManager} from "../../interfaces/IACLManager.sol";
 import {IVault} from "../../interfaces/IVault.sol";
+import {IExternalAdapter} from "../../interfaces/IExternalAdapter.sol";
 import {IAddressResolver} from "../../interfaces/IAddressResolver.sol";
 import {PriorityQueue, Heap} from "../../libraries/logic/PriorityQueue.sol";
-import "hardhat/console.sol";
 
-contract Vault is ReentrancyGuard, Initializable, IVault, IERC1271, IERC165 {
+contract Vault is
+    ReentrancyGuard,
+    Initializable,
+    IVault,
+    IERC1271,
+    IERC165,
+    IERC721Receiver
+{
     using WadRayMath for uint256;
     using SafeMath for uint256;
     using PriorityQueue for Heap;
 
-    // about to remove or refactor
-    address voyager;
-
     struct VaultStorageV1 {
         address owner;
+        address voyager;
         MarginEscrow marginEscrow;
+        // erc721 address => heap
         mapping(address => Heap) nfts;
         /// @dev You must not set element 0xffffffff to true
         mapping(bytes4 => bool) supportedInterfaces;
     }
 
     modifier onlyVoyager() {
-        require(msg.sender == voyager, "Not Voyager");
+        require(msg.sender == diamondStorage().voyager, "Not Voyager");
         _;
     }
 
@@ -49,7 +56,7 @@ contract Vault is ReentrancyGuard, Initializable, IVault, IERC1271, IERC165 {
         address _reserve,
         address _marginEscrow
     ) external initializer {
-        voyager = _voyager;
+        diamondStorage().voyager = _voyager;
         diamondStorage().marginEscrow = MarginEscrow(_marginEscrow);
         diamondStorage().owner = _owner;
         ERC165MappingImplementation();
@@ -107,14 +114,48 @@ contract Vault is ReentrancyGuard, Initializable, IVault, IERC1271, IERC165 {
         return diamondStorage().marginEscrow.slash(_reserve, _to, _amount);
     }
 
-    /// @notice Insert new NFT
-    /// @param _erc721Addr NFT address
-    /// @param _tokenId Token id
-    function insertNFT(address _erc721Addr, uint256 _tokenId)
+    /// @notice To accept external calls from authorised client, used for pursing NFT or doing approve etc.
+    function callExternal(Call[] calldata calls)
         external
-        onlyVoyager
+        returns (bytes[] memory)
     {
-        diamondStorage().nfts[_erc721Addr].insert(_tokenId, block.timestamp);
+        bytes[] memory returnData = new bytes[](calls.length);
+        for (uint256 i = 0; i < calls.length; i++) {
+            returnData[i] = callExternal(calls[i].target, calls[i].callData);
+        }
+        return returnData;
+    }
+
+    function callExternal(address target, bytes calldata data)
+        internal
+        returns (bytes memory)
+    {
+        // todo call sf to authorise
+        VaultFacet vf = VaultFacet(diamondStorage().voyager);
+        bytes4 selector = bytes4(data[0:4]);
+        bytes memory args = data[4:];
+        (address onSuccessTarget, bytes memory onSuccessData) = vf.validate(
+            target,
+            selector,
+            args
+        );
+        (bool success, bytes memory ret) = target.call(data);
+        require(success);
+        if (onSuccessTarget != address(0)) {
+            (bool succ, bytes memory ret) = onSuccessTarget.call(onSuccessData);
+            require(succ);
+        }
+        return ret;
+    }
+
+    function onERC721Received(
+        address operator,
+        address from,
+        uint256 tokenId,
+        bytes calldata data
+    ) external returns (bytes4) {
+        // todo check nft address
+        diamondStorage().nfts[msg.sender].insert(tokenId, block.timestamp);
     }
 
     /// @notice Transfer nft out
@@ -143,7 +184,6 @@ contract Vault is ReentrancyGuard, Initializable, IVault, IERC1271, IERC165 {
         returns (bytes4 magicValue)
     {
         address sender = recoverSigner(hash, signature);
-        console.log("sender: ", sender);
         if (diamondStorage().owner == sender) {
             return 0x1626ba7e;
         }
@@ -185,7 +225,7 @@ contract Vault is ReentrancyGuard, Initializable, IVault, IERC1271, IERC165 {
     }
 
     function addressResolver() internal view returns (IAddressResolver) {
-        return Voyager(payable(voyager)).addressResolver();
+        return Voyager(payable(diamondStorage().voyager)).addressResolver();
     }
 
     function aclManager() internal view returns (IACLManager) {
@@ -193,11 +233,11 @@ contract Vault is ReentrancyGuard, Initializable, IVault, IERC1271, IERC165 {
     }
 
     function loanFacet() internal view returns (LoanFacet) {
-        return LoanFacet(voyager);
+        return LoanFacet(diamondStorage().voyager);
     }
 
     function vaultFacet() internal view returns (VaultFacet) {
-        return VaultFacet(voyager);
+        return VaultFacet(diamondStorage().voyager);
     }
 
     function getCurrentMargin(address _reserve)
@@ -325,7 +365,6 @@ contract Vault is ReentrancyGuard, Initializable, IVault, IERC1271, IERC165 {
         supportedInterfaces[this.depositMargin.selector] = true;
         supportedInterfaces[this.redeemMargin.selector] = true;
         supportedInterfaces[this.slash.selector] = true;
-        supportedInterfaces[this.insertNFT.selector] = true;
         supportedInterfaces[this.transferNFT.selector] = true;
     }
 

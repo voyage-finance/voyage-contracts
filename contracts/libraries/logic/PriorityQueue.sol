@@ -36,7 +36,7 @@ library PriorityQueue {
         uint256 element = (_tokenId << 128) | _timestamp;
         heap.heapList.push(element);
         heap.currentSize = heap.currentSize.add(1);
-        _percUp(heap, heap.currentSize);
+        _percUp(heap, heap.currentSize.sub(1));
     }
 
     /**

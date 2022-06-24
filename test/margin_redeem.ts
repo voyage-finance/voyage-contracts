@@ -5,12 +5,7 @@ import { setupTestSuite } from '../helpers/setupTestSuite';
 describe('Security Redeem', function () {
   it('Margin redeem within lockup time should throw error', async function () {
     const { voyager, tus, owner } = await setupTestSuite();
-    await voyager.depositMargin(
-      owner,
-      owner,
-      tus.address,
-      '10000000000000000000'
-    );
+    await voyager.depositMargin(owner, tus.address, '10000000000000000000');
     const eligibleAmount = await voyager.getWithdrawableDeposit(
       owner,
       tus.address,
@@ -18,7 +13,7 @@ describe('Security Redeem', function () {
     );
     expect(eligibleAmount).to.equal('0');
     await expect(
-      voyager.redeemMargin(owner, owner, tus.address, '1000000000000000000')
+      voyager.redeemMargin(owner, tus.address, '1000000000000000000')
     ).to.be.revertedWith(
       'Vault: cannot redeem more than withdrawable deposit amount'
     );
@@ -26,12 +21,7 @@ describe('Security Redeem', function () {
 
   it('Security redeem with no slash should return correct value', async function () {
     const { voyager, tus, owner } = await setupTestSuite();
-    await voyager.depositMargin(
-      owner,
-      owner,
-      tus.address,
-      '10000000000000000000'
-    );
+    await voyager.depositMargin(owner, tus.address, '10000000000000000000');
 
     const tenDay = 10 * 24 * 60 * 60;
 
@@ -45,11 +35,6 @@ describe('Security Redeem', function () {
       owner
     );
     expect(eligibleAmount).to.equal('10000000000000000000');
-    await voyager.redeemMargin(
-      owner,
-      owner,
-      tus.address,
-      '1000000000000000000'
-    );
+    await voyager.redeemMargin(owner, tus.address, '1000000000000000000');
   });
 });

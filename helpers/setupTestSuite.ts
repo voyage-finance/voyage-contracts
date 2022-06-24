@@ -48,6 +48,8 @@ const setupBase = async ({
   const juniorDepositToken = await ethers.getContract('JuniorDepositToken');
   const seniorDepositToken = await ethers.getContract('SeniorDepositToken');
   const tus = await ethers.getContract('Tus');
+  const crab = await ethers.getContract('Crab');
+  const marketPlace = await ethers.getContract('MockMarketPlace');
   const defaultReserveInterestRateStrategy = await ethers.getContract(
     'DefaultReserveInterestRateStrategy'
   );
@@ -75,7 +77,6 @@ const setupBase = async ({
   // create an empty vault
   await voyager.createVault(owner, tus.address);
   const vaultAddr = await voyager.getVault(owner);
-  console.log('vault address: ', vaultAddr);
 
   // get security deposit escrow address
   const vault = await ethers.getContractAt('Vault', vaultAddr);
@@ -91,6 +92,8 @@ const setupBase = async ({
     libFinancial,
     priceOracle,
     tus,
+    crab,
+    marketPlace,
     juniorDepositToken,
     seniorDepositToken,
     vault,
