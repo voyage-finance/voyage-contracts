@@ -131,11 +131,6 @@ struct VaultData {
     uint256 healthFactor;
 }
 
-struct NFTInfo {
-    address strategyAddress;
-    address adapterAddress;
-}
-
 struct AppStorage {
     /* -------------------------------- plumbing -------------------------------- */
     mapping(bytes32 => address) _addresses;
