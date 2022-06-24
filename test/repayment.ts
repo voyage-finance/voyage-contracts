@@ -36,12 +36,7 @@ describe('Repayment', function () {
       '100000000000000000000000000'
     ); // 0.1
 
-    await voyager.depositMargin(
-      owner,
-      owner,
-      tus.address,
-      '100000000000000000000'
-    );
+    await voyager.depositMargin(owner, tus.address, '100000000000000000000');
     await voyager.borrow(tus.address, '10000000000000000000', vault.address);
 
     // increase seven days
@@ -137,12 +132,7 @@ describe('Repayment', function () {
       '100000000000000000000000000'
     ); // 0.1
 
-    await voyager.depositMargin(
-      owner,
-      owner,
-      tus.address,
-      '100000000000000000000'
-    );
+    await voyager.depositMargin(owner, tus.address, '100000000000000000000');
     await voyager.borrow(tus.address, '10000000000000000000', vault.address);
 
     // increase seven days

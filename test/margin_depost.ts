@@ -33,12 +33,7 @@ describe('Margin Deposit', function () {
     const depositAmount = await marginEscrow.getDepositAmount(tus.address);
     expect(depositAmount).to.equal('0');
 
-    await voyager.depositMargin(
-      owner,
-      owner,
-      tus.address,
-      '10000000000000000000'
-    );
+    await voyager.depositMargin(owner, tus.address, '10000000000000000000');
     const depositAmountAfter = await marginEscrow.getDepositAmount(tus.address);
     expect(depositAmountAfter).to.equal('10000000000000000000');
   });

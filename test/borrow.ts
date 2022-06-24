@@ -38,7 +38,7 @@ describe('Borrow', function () {
 
     const vaultAddr = await voyager.getVault(owner);
     const margin = ethers.BigNumber.from(100).mul(decimals(dec));
-    await voyager.depositMargin(owner, owner, tus.address, margin);
+    await voyager.depositMargin(owner, tus.address, margin);
     const borrowAmount = margin.mul(10);
     await voyager.borrow(tus.address, borrowAmount, vaultAddr);
     await expect(
@@ -80,12 +80,7 @@ describe('Borrow', function () {
       '100000000000000000000000000'
     ); // 0.1
 
-    await voyager.depositMargin(
-      owner,
-      owner,
-      tus.address,
-      '100000000000000000000'
-    );
+    await voyager.depositMargin(owner, tus.address, '100000000000000000000');
     await voyager.borrow(tus.address, '10000000000000000000', vault.address);
     const vaultBalance = await tus.balanceOf(vault.address);
     expect(vaultBalance).to.equal(BigNumber.from('10000000000000000000'));

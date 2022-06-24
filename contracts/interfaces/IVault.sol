@@ -4,12 +4,21 @@ pragma solidity ^0.8.9;
 import {MarginEscrow} from "../component/vault/MarginEscrow.sol";
 
 interface IVault {
+    struct Call {
+        address target;
+        bytes callData;
+    }
+
     function initialize(
         address _voyager,
         address _owner,
         address _reserve,
         address _marginEscrow
     ) external;
+
+    function callExternal(Call[] memory calls)
+        external
+        returns (bytes[] memory);
 
     function depositMargin(
         address _sponsor,
@@ -39,8 +48,6 @@ interface IVault {
         external
         view
         returns (uint256);
-
-    function insertNFT(address _erc721Addr, uint256 tokenId) external;
 
     function getCurrentMargin(address _reserve) external view returns (uint256);
 

@@ -7,9 +7,10 @@ import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol"
 import {Vault} from "../component/vault/Vault.sol";
 import {MarginEscrow} from "../component/vault/MarginEscrow.sol";
 import {IVault} from "../interfaces/IVault.sol";
+import {IExternalAdapter} from "../interfaces/IExternalAdapter.sol";
 import {LibAppStorage, AppStorage, BorrowData, VaultConfig} from "./LibAppStorage.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
-import "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
+import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
 library LibVault {
     using WadRayMath for uint256;
@@ -62,6 +63,22 @@ library LibVault {
         s.vaultConfigMap[_reserve].marginRequirement = _requirement;
     }
 
+    function setVaultStrategyAddr(address _target, address _strategyAddr)
+        internal
+    {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        s.vaultStrategy[_target] = _strategyAddr;
+    }
+
+    function updateNFTPrice(
+        address _erc721Addr,
+        uint256 _cardId,
+        uint256 _cardPrice
+    ) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        s.nftPrice[_erc721Addr][_cardId] = _cardPrice;
+    }
+
     function updateVaultImplContract(address _vault) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         s.vaultBeacon.upgradeTo(_vault);
@@ -90,6 +107,25 @@ library LibVault {
     {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.vaultConfigMap[_reserve];
+    }
+
+    function validate(
+        address _target,
+        bytes4 _selector,
+        bytes calldata _payload
+    ) internal returns (address, bytes memory) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return
+            IExternalAdapter(s.vaultStrategy[_target]).validate(
+                _target,
+                _selector,
+                _payload
+            );
+    }
+
+    function getERC721Addr(address _target) internal returns (address) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return IExternalAdapter(s.vaultStrategy[_target]).getERC721();
     }
 
     /**
