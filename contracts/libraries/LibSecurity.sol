@@ -20,7 +20,7 @@ library LibSecurity {
     }
 
     function isAuthorisedInbound(
-        Security memory security,
+        Security storage security,
         address src,
         bytes4 selector
     ) internal view returns (bool) {
@@ -31,7 +31,7 @@ library LibSecurity {
     }
 
     function isAuthorisedOutbound(
-        Security memory security,
+        Security storage security,
         address dst,
         bytes4 selector
     ) internal view returns (bool) {
@@ -43,7 +43,7 @@ library LibSecurity {
 
     // role can be a enum, but cast to uint8 before calling grantRole
     function grantRole(
-        Security memory security,
+        Security storage security,
         address user,
         uint8 role,
         bool enabled
@@ -53,7 +53,7 @@ library LibSecurity {
     }
 
     function grantRolePermission(
-        Security memory security,
+        Security storage security,
         uint8 role,
         address target,
         bytes4 sig
@@ -63,7 +63,7 @@ library LibSecurity {
     }
 
     function revokeRolePermission(
-        Security memory security,
+        Security storage security,
         uint8 role,
         address target,
         bytes4 sig
@@ -73,7 +73,7 @@ library LibSecurity {
     }
 
     function grantPermission(
-        Security memory security,
+        Security storage security,
         address src,
         address dst,
         bytes4 sig
@@ -83,7 +83,7 @@ library LibSecurity {
     }
 
     function revokePermission(
-        Security memory security,
+        Security storage security,
         address src,
         address dst,
         bytes4 sig
