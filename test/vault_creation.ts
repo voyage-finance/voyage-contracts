@@ -11,7 +11,7 @@ describe('Vault Creation', function () {
   });
 
   it('Owner creates vault should return a valid vault contract', async function () {
-    const { alice, owner, voyager, tus } = await setupTestSuite();
+    const { alice, voyager, tus } = await setupTestSuite();
     await voyager.createVault(alice, tus.address);
     const vaultAddress = await voyager.getVault(alice);
     expect(vaultAddress).not.to.equal(ethers.constants.AddressZero);
@@ -24,18 +24,5 @@ describe('Vault Creation', function () {
         .connect(await ethers.getSigner(alice))
         .createVault(alice, tus.address)
     ).to.be.revertedWith('call is not authorised');
-  });
-
-  it('Created Vault should have own a valid escrow contract', async function () {
-    const { alice, tus, voyager } = await setupTestSuite();
-    await voyager.createVault(alice, tus.address);
-    const vaultAddress = await voyager.getVault(alice);
-    const vault = await ethers.getContractAt('Vault', vaultAddress);
-    const marginEscrowAddress = await vault.getMarginEscrowAddress();
-    const marginEscrow = await ethers.getContractAt(
-      'MarginEscrow',
-      marginEscrowAddress
-    );
-    expect(await marginEscrow.getVersion()).to.equal('MarginEscrow 0.0.1');
   });
 });

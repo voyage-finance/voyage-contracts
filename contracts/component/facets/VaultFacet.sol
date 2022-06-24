@@ -49,6 +49,14 @@ contract VaultFacet is Storage, ReentrancyGuard {
         return vault;
     }
 
+    function initAsset(address _vault, address _asset)
+        external
+        authorised
+        returns (address)
+    {
+        return LibVault.initVaultAsset(_vault, _asset);
+    }
+
     /* ----------------------------- user interface ----------------------------- */
     /**
      * @param _owner vault admin address
@@ -211,11 +219,19 @@ contract VaultFacet is Storage, ReentrancyGuard {
         return s.vaults;
     }
 
-    function getWithdrawableDeposit(
-        address _owner,
+    function getWithdrawableMargin(
+        address _vault,
         address _reserve,
-        address _sponsor
+        address _user
     ) public view returns (uint256) {
-        return LibVault.getWithdrawableDeposit(_owner, _reserve, _sponsor);
+        return LibVault.getWithdrawableMargin(_vault, _reserve, _user);
+    }
+
+    function getTotalWithdrawableMargin(address _vault, address _reserve)
+        public
+        view
+        returns (uint256)
+    {
+        return LibVault.getTotalWithdrawableMargin(_vault, _reserve);
     }
 }

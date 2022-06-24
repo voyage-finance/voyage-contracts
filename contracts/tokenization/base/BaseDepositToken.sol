@@ -36,10 +36,10 @@ abstract contract BaseDepositToken is Context, IVToken {
 
     constructor(
         address _voyager,
-        ERC20 _underlyingAsset,
+        ERC20 _asset,
         string memory _name,
         string memory _symbol
-    ) IVToken(_underlyingAsset, _name, _symbol) {
+    ) IVToken(_asset, _name, _symbol) {
         voyager = _voyager;
     }
 
