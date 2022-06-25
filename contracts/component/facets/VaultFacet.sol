@@ -7,13 +7,14 @@ import {MarginEscrow} from "../../component/vault/MarginEscrow.sol";
 import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {IExternalAdapter} from "../../interfaces/IExternalAdapter.sol";
-import {IACLManager} from "../../interfaces/IACLManager.sol";
-import {LibAppStorage, Storage, VaultConfig} from "../../libraries/LibAppStorage.sol";
+import {LibAppStorage, Storage, VaultConfig, Authorisation} from "../../libraries/LibAppStorage.sol";
 import {LibVault} from "../../libraries/LibVault.sol";
+import {LibSecurity} from "../../libraries/LibSecurity.sol";
 
 contract VaultFacet is Storage, ReentrancyGuard {
     using WadRayMath for uint256;
     using SafeMath for uint256;
+    using LibSecurity for Authorisation;
 
     /* --------------------------------- events --------------------------------- */
     event VaultCreated(address _vault, address _owner, uint256 _numVaults);
@@ -34,7 +35,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
     /* ----------------------------- admin interface ---------------------------- */
     function createVault(address owner, address _reserve)
         external
-        onlyAdmin
+        authorised
         returns (address)
     {
         address vault;
@@ -93,7 +94,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
      */
     function setMaxMargin(address _reserve, uint256 _amount)
         external
-        onlyAdmin
+        authorised
     {
         LibVault.setMaxMargin(_reserve, _amount);
     }
@@ -105,7 +106,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
      */
     function setMinMargin(address _reserve, uint256 _amount)
         external
-        onlyAdmin
+        authorised
     {
         LibVault.setMinMargin(_reserve, _amount);
     }
@@ -117,14 +118,14 @@ contract VaultFacet is Storage, ReentrancyGuard {
      */
     function setMarginRequirement(address _reserve, uint256 _requirement)
         external
-        onlyAdmin
+        authorised
     {
         LibVault.setMarginRequirement(_reserve, _requirement);
     }
 
     function setVaultStrategyAddr(address _target, address _strategyAddr)
         external
-        onlyAdmin
+        authorised
     {
         LibVault.setVaultStrategyAddr(_target, _strategyAddr);
     }
@@ -142,7 +143,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
      * @dev Update the vault impl address
      * @param _impl vault impl contract
      */
-    function updateVaultImplContract(address _impl) external onlyAdmin {
+    function updateVaultImplContract(address _impl) external authorised {
         LibVault.updateVaultImplContract(_impl);
     }
 

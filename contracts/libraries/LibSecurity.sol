@@ -1,93 +1,79 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import {LibAppStorage, AppStorage} from "./LibAppStorage.sol";
-import {DSRoles} from "../component/auth/DSRoles.sol";
-import {DSGuard} from "../component/auth/DSGuard.sol";
+import {LibAppStorage, AppStorage, Authorisation} from "./LibAppStorage.sol";
+import "hardhat/console.sol";
 
 library LibSecurity {
-    struct Security {
-        DSRoles rbac;
-        DSGuard acl;
-    }
-
-    function isAuthorised(
-        address src,
-        address dst,
-        bytes4 sig
-    ) internal returns (bool) {
-        return false;
-    }
-
     function isAuthorisedInbound(
-        Security storage security,
+        Authorisation storage auth,
         address src,
         bytes4 selector
     ) internal view returns (bool) {
         // s.security.acl/rbac is an instance ds-roles and implements DSAuthority interface
         return
-            security.rbac.canCall(src, address(this), selector) ||
-            security.acl.canCall(src, address(this), selector);
+            auth.rbac.canCall(src, address(this), selector) ||
+            auth.acl.canCall(src, address(this), selector);
     }
 
     function isAuthorisedOutbound(
-        Security storage security,
+        Authorisation storage auth,
         address dst,
         bytes4 selector
     ) internal view returns (bool) {
         // s.security.acl/rbac is an instance ds-guard and implements DSAuthority interface
         return
-            security.rbac.canCall(msg.sender, dst, selector) ||
-            security.acl.canCall(msg.sender, dst, selector);
+            auth.rbac.canCall(msg.sender, dst, selector) ||
+            auth.acl.canCall(msg.sender, dst, selector);
     }
 
     // role can be a enum, but cast to uint8 before calling grantRole
     function grantRole(
-        Security storage security,
+        Authorisation storage auth,
         address user,
         uint8 role,
         bool enabled
     ) internal {
         // grant role
-        security.rbac.setUserRole(user, role, enabled);
+        auth.rbac.setUserRole(user, role, enabled);
     }
 
     function grantRolePermission(
-        Security storage security,
+        Authorisation storage auth,
         uint8 role,
         address target,
         bytes4 sig
     ) internal {
         // give a role a permission
-        security.rbac.setRoleCapability(role, target, sig, true);
+        auth.rbac.setRoleCapability(role, target, sig, true);
     }
 
     function revokeRolePermission(
-        Security storage security,
+        Authorisation storage auth,
         uint8 role,
         address target,
         bytes4 sig
     ) internal {
         // revoke a role permission
-        security.rbac.setRoleCapability(role, target, sig, false);
+        auth.rbac.setRoleCapability(role, target, sig, false);
     }
 
     function grantPermission(
-        Security storage security,
+        Authorisation storage auth,
         address src,
         address dst,
         bytes4 sig
     ) internal {
         // allow src to call dst.sig
-        security.acl.permit(src, dst, sig);
+        auth.acl.permit(src, dst, sig);
     }
 
     function revokePermission(
-        Security storage security,
+        Authorisation storage auth,
         address src,
         address dst,
         bytes4 sig
     ) internal {
-        security.acl.forbid(src, dst, sig);
+        auth.acl.forbid(src, dst, sig);
     }
 }

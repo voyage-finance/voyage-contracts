@@ -9,7 +9,6 @@ const deployFn: DeployFunction = async (hre) => {
   const { deployments, getNamedAccounts } = hre;
   const { deploy, execute, getOrNull, save, getArtifact } = deployments;
   const { owner } = await getNamedAccounts();
-  const addressResolver = await deployments.get('AddressResolver');
 
   const liquidationBonus = new BigNumber('0.1').multipliedBy(RAY).toFixed();
   const marginRequirement = new BigNumber('0.3').multipliedBy(RAY).toFixed();
@@ -177,7 +176,7 @@ const deployFn: DeployFunction = async (hre) => {
       log.debug('Preparing InitDiamond call data');
       const initArgs = initDiamond.interface.encodeFunctionData('init', [
         {
-          addressResolver: addressResolver.address,
+          initOwner: owner,
         },
       ]);
 
@@ -202,7 +201,6 @@ const deployFn: DeployFunction = async (hre) => {
   }
 };
 
-deployFn.dependencies = ['AddressResolver'];
 deployFn.tags = ['Voyager'];
 
 export default deployFn;

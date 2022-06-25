@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import {IACLManager} from "../interfaces/IACLManager.sol";
-import {AddressResolver} from "../component/infra/AddressResolver.sol";
+import {DSRoles} from "../component/auth/DSRoles.sol";
+import {DSGuard} from "../component/auth/DSGuard.sol";
+import {LibSecurity} from "./LibSecurity.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
-import "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
-
-bytes32 constant ADDRESS_RESOLVER = "address_resolver";
-bytes32 constant ACL = "ACL";
+import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
 enum Tranche {
     JUNIOR,
@@ -37,6 +35,7 @@ struct ReserveData {
     uint256 currentIncomeRatio;
     uint256 optimalIncomeRatio;
     address nftAddress;
+    address priceOracle;
     bool initialized;
 }
 
@@ -131,6 +130,11 @@ struct VaultData {
     uint256 healthFactor;
 }
 
+struct Authorisation {
+    DSRoles rbac;
+    DSGuard acl;
+}
+
 struct AppStorage {
     /* -------------------------------- plumbing -------------------------------- */
     mapping(bytes32 => address) _addresses;
@@ -153,6 +157,8 @@ struct AppStorage {
     // mapping of erc721 address to vault strategy contract address
     mapping(address => address) vaultStrategy;
     mapping(address => mapping(uint256 => uint256)) nftPrice;
+    /* ---------------------------------- security --------------------------------- */
+    Authorisation auth;
 }
 
 library LibAppStorage {
@@ -164,6 +170,8 @@ library LibAppStorage {
 }
 
 contract Storage is Context {
+    using LibSecurity for Authorisation;
+
     AppStorage internal s;
 
     modifier whenPaused() {
@@ -176,15 +184,12 @@ contract Storage is Context {
         _;
     }
 
-    modifier onlyAdmin() {
-        IACLManager aclManager = IACLManager(
-            AddressResolver(_addressResolver()).getAclManager()
-        );
-        require(aclManager.isProtocolManager(msg.sender), "Not protocol admin");
+    modifier authorised() {
+        require(auth(), "call is not authorised");
         _;
     }
 
-    function _addressResolver() internal view returns (address) {
-        return s._addresses[ADDRESS_RESOLVER];
+    function auth() internal returns (bool) {
+        return s.auth.isAuthorisedInbound(msg.sender, msg.sig);
     }
 }

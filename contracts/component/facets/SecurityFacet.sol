@@ -2,25 +2,12 @@
 pragma solidity ^0.8.9;
 
 import {Pausable} from "@openzeppelin/contracts/security/Pausable.sol";
-import {Storage} from "../../libraries/LibAppStorage.sol";
+import {Storage, Authorisation} from "../../libraries/LibAppStorage.sol";
 import {LibSecurity} from "../../libraries/LibSecurity.sol";
+import {VaultFacet} from "./VaultFacet.sol";
 
-abstract contract Authz {
-    using LibSecurity for LibSecurity.Security;
-
-    LibSecurity.Security security;
-
-    modifier auth() {
-        require(
-            security.isAuthorisedInbound(msg.sender, msg.sig),
-            "call is not authorised"
-        );
-        _;
-    }
-}
-
-contract SecurityFacet is Storage, Authz {
-    using LibSecurity for LibSecurity.Security;
+contract SecurityFacet is Storage {
+    using LibSecurity for Authorisation;
 
     event Paused(address account);
     event Unpaused(address account);
@@ -29,12 +16,12 @@ contract SecurityFacet is Storage, Authz {
         return s._paused;
     }
 
-    function pause() public onlyAdmin {
+    function pause() public authorised {
         s._paused = true;
         emit Paused(_msgSender());
     }
 
-    function unpause() public onlyAdmin {
+    function unpause() public authorised {
         s._paused = false;
         emit Unpaused(_msgSender());
     }
@@ -43,53 +30,53 @@ contract SecurityFacet is Storage, Authz {
         address user,
         uint8 role,
         bool enabled
-    ) public auth {
-        security.grantRole(user, role, enabled);
+    ) public authorised {
+        s.auth.grantRole(user, role, enabled);
     }
 
     function grantRolePermission(
         uint8 role,
         address target,
         bytes4 sig
-    ) public auth {
-        security.grantRolePermission(role, target, sig);
+    ) public authorised {
+        s.auth.grantRolePermission(role, target, sig);
     }
 
     function revokeRolePermission(
         uint8 role,
         address target,
         bytes4 sig
-    ) public auth {
-        security.revokeRolePermission(role, target, sig);
+    ) public authorised {
+        s.auth.revokeRolePermission(role, target, sig);
     }
 
     function grantPermission(
         address src,
         address dst,
         bytes4 sig
-    ) public auth {
-        security.grantPermission(src, dst, sig);
+    ) public authorised {
+        s.auth.grantPermission(src, dst, sig);
     }
 
     function revokePermission(
         address src,
         address dst,
         bytes4 sig
-    ) public auth {
-        security.revokePermission(src, dst, sig);
+    ) public authorised {
+        s.auth.revokePermission(src, dst, sig);
     }
 
     function isAuthorisedInbound(address src, bytes4 sig)
         public
         returns (bool)
     {
-        return security.isAuthorisedInbound(src, sig);
+        return s.auth.isAuthorisedInbound(src, sig);
     }
 
     function isAuthorisedOutbound(address dst, bytes4 sig)
         public
         returns (bool)
     {
-        return security.isAuthorisedOutbound(dst, sig);
+        return s.auth.isAuthorisedOutbound(dst, sig);
     }
 }

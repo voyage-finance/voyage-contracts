@@ -108,22 +108,9 @@ const deployFn: DeployFunction = async (hre) => {
     libraries: { WadRayMath: wadRayMath.address },
     args: [utilisationRate, slope1, slope2, baseInterest],
   });
-
-  const names = [
-    ethers.utils.formatBytes32String('juniorDepositToken'),
-    ethers.utils.formatBytes32String('seniorDepositToken'),
-  ];
-  const destinations = [JuniorDepositToken.address, SeniorDepositToken.address];
-  await execute(
-    'AddressResolver',
-    { from: owner, log: true },
-    'importAddresses',
-    names,
-    destinations
-  );
 };
 
-deployFn.dependencies = ['AddressResolver', 'Voyager'];
+deployFn.dependencies = ['Voyager'];
 deployFn.tags = ['Tokenization'];
 
 export default deployFn;

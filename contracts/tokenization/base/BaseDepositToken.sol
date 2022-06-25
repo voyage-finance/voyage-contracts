@@ -8,7 +8,6 @@ import {ERC20} from "@rari-capital/solmate/src/tokens/ERC20.sol";
 import {SafeTransferLib} from "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
 import {Errors} from "../../libraries/helpers/Errors.sol";
 import {IVToken} from "../../interfaces/IVToken.sol";
-import {AddressResolver} from "../../component/infra/AddressResolver.sol";
 
 abstract contract BaseDepositToken is Context, IVToken {
     using SafeMath for uint256;

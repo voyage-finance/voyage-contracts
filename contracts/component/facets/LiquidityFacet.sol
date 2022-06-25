@@ -52,8 +52,9 @@ contract LiquidityFacet is Storage, PeripheryPayments {
         address _seniorDepositTokenAddress,
         address _interestRateStrategyAddress,
         address _loanStrategyAddress,
-        uint256 _optimalIncomeRatio
-    ) external onlyAdmin {
+        uint256 _optimalIncomeRatio,
+        address _priceOracle
+    ) external authorised {
         require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
         ReserveData storage reserveData = LibLiquidity.getReserveData(_asset);
         require(reserveData.initialized == false, "cannot initialize twice");
@@ -62,7 +63,8 @@ contract LiquidityFacet is Storage, PeripheryPayments {
             _seniorDepositTokenAddress,
             _interestRateStrategyAddress,
             _loanStrategyAddress,
-            _optimalIncomeRatio
+            _optimalIncomeRatio,
+            _priceOracle
         );
         s._reserveList[s._reservesCount] = _asset;
         s._reservesCount++;
@@ -75,7 +77,7 @@ contract LiquidityFacet is Storage, PeripheryPayments {
         );
     }
 
-    function activateReserve(address _asset) external onlyAdmin {
+    function activateReserve(address _asset) external authorised {
         require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
         ReserveConfigurationMap memory config = LibLiquidity.getConfiguration(
             _asset
