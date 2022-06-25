@@ -16,7 +16,6 @@ import {LibLoan} from "../../libraries/LibLoan.sol";
 import {LibVault} from "../../libraries/LibVault.sol";
 import {LibAppStorage, AppStorage, Storage, BorrowData, BorrowState, DrawDown, ReserveData} from "../../libraries/LibAppStorage.sol";
 import {ERC4626} from "@rari-capital/solmate/src/mixins/ERC4626.sol";
-import {AddressResolver} from "../infra/AddressResolver.sol";
 
 contract LoanFacet is Storage {
     using SafeMath for uint256;
@@ -239,9 +238,7 @@ contract LoanFacet is Storage {
         );
 
         // 3.2 get floor price from oracle contract
-        IPriceOracle priceOracle = IPriceOracle(
-            AddressResolver(_addressResolver()).getPriceOracle()
-        );
+        IPriceOracle priceOracle = IPriceOracle(reserveData.priceOracle);
         param.floorPrice = priceOracle.getAssetPrice(reserveData.nftAddress);
 
         param.numNFTsToLiquidate = param

@@ -10,11 +10,20 @@ describe('Vault Creation', function () {
     );
   });
 
-  it('Create Vault should return a valid vault contract', async function () {
-    const { alice, voyager, tus } = await setupTestSuite();
+  it('Owner creates vault should return a valid vault contract', async function () {
+    const { alice, owner, voyager, tus } = await setupTestSuite();
     await voyager.createVault(alice, tus.address);
     const vaultAddress = await voyager.getVault(alice);
     expect(vaultAddress).not.to.equal(ethers.constants.AddressZero);
+  });
+
+  it('Non owner creates vault should revert', async function () {
+    const { alice, voyager, tus } = await setupTestSuite();
+    await expect(
+      voyager
+        .connect(await ethers.getSigner(alice))
+        .createVault(alice, tus.address)
+    ).to.be.revertedWith('call is not authorised');
   });
 
   it('Created Vault should have own a valid escrow contract', async function () {

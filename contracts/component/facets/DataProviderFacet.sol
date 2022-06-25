@@ -4,10 +4,9 @@ pragma solidity ^0.8.9;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import {IAddressResolver} from "../../interfaces/IAddressResolver.sol";
 import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
 import {IVToken} from "../../interfaces/IVToken.sol";
-import {AppStorage, ADDRESS_RESOLVER, ReserveData, Tranche, VaultConfig, VaultData, DrawDownList} from "../../libraries/LibAppStorage.sol";
+import {AppStorage, ReserveData, Tranche, VaultConfig, VaultData, DrawDownList} from "../../libraries/LibAppStorage.sol";
 import {LibLiquidity} from "../../libraries/LibLiquidity.sol";
 import {LibLoan} from "../../libraries/LibLoan.sol";
 import {LibVault} from "../../libraries/LibVault.sol";
@@ -260,9 +259,5 @@ contract DataProviderFacet {
         ).unbonding(_user);
 
         return (times, amounts);
-    }
-
-    function addressResolver() internal view returns (IAddressResolver) {
-        return IAddressResolver(s._addresses[ADDRESS_RESOLVER]);
     }
 }

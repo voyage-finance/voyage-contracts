@@ -3,7 +3,6 @@ pragma solidity ^0.8.9;
 
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {ERC20} from "@rari-capital/solmate/src/tokens/ERC20.sol";
-import {AddressResolver} from "../component/infra/AddressResolver.sol";
 import {LoanFacet} from "../component/facets/LoanFacet.sol";
 import {BaseDepositToken} from "./base/BaseDepositToken.sol";
 import "hardhat/console.sol";

@@ -13,14 +13,10 @@ const setupBase = async ({
   ethers,
 }: HardhatRuntimeEnvironment) => {
   await deployments.fixture([
-    'AddressResolver',
     'Voyager',
-    'ACLManager',
     'Tokenization',
-    'SetAddressResolver',
     'VaultManager',
     'PriceOracle',
-    'LibFinancial',
   ]);
   const { owner, alice, bob } = await getNamedAccounts();
 
@@ -28,22 +24,7 @@ const setupBase = async ({
   const voyager = await ethers.getContract<Voyager>('Voyager');
 
   /* ---------------------------------- infra --------------------------------- */
-  const aclManager = await ethers.getContract('ACLManager');
-  await aclManager.grantLiquidityManager(owner);
-  await aclManager.grantVaultManager(owner);
-  await aclManager.grantPoolManager(owner);
-
   const priceOracle = await ethers.getContract('PriceOracle');
-
-  const addressResolver = await ethers.getContract('AddressResolver');
-  const names = [
-    ethers.utils.formatBytes32String('voyager'),
-    ethers.utils.formatBytes32String('aclManager'),
-  ];
-  const libFinancial = await ethers.getContract('LibFinancial');
-  const destinations = [voyager.address, aclManager.address];
-  await addressResolver.importAddresses(names, destinations);
-
   /* ------------------------------ tokenization ------------------------------ */
   const juniorDepositToken = await ethers.getContract('JuniorDepositToken');
   const seniorDepositToken = await ethers.getContract('SeniorDepositToken');
@@ -62,7 +43,8 @@ const setupBase = async ({
     seniorDepositToken.address,
     defaultReserveInterestRateStrategy.address,
     defaultLoanStrategy.address,
-    '500000000000000000000000000'
+    '500000000000000000000000000',
+    priceOracle.address
   );
   await voyager.activateReserve(tus.address);
   await tus.approve(voyager.address, MAX_UINT_256);
@@ -89,7 +71,6 @@ const setupBase = async ({
     bob,
     defaultLoanStrategy,
     defaultReserveInterestRateStrategy,
-    libFinancial,
     priceOracle,
     tus,
     crab,

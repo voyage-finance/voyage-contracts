@@ -41,7 +41,8 @@ library LibLiquidity {
         address _seniorDepositTokenAddress,
         address _interestRateStrategyAddress,
         address _loanStrategyAddress,
-        uint256 _optimalIncomeRatio
+        uint256 _optimalIncomeRatio,
+        address _priceOracle
     ) internal {
         reserve.juniorDepositTokenAddress = _juniorDepositTokenAddress;
         reserve.seniorDepositTokenAddress = _seniorDepositTokenAddress;
@@ -49,6 +50,7 @@ library LibLiquidity {
         reserve.optimalIncomeRatio = _optimalIncomeRatio;
         reserve.loanStrategyAddress = _loanStrategyAddress;
         reserve.initialized = true;
+        reserve.priceOracle = _priceOracle;
     }
 
     struct UpdateInterestRatesLocalVars {

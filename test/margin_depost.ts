@@ -8,7 +8,7 @@ describe('Margin Deposit', function () {
     const signer = await ethers.getSigner(alice);
     await expect(
       voyager.connect(signer).setMaxMargin(tus.address, '100000000000000000000')
-    ).to.be.revertedWith('Not protocol admin');
+    ).to.be.revertedWith('call is not authorised');
   });
 
   it('Security deposit setup should return correct value', async function () {

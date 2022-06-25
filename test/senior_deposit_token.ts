@@ -38,10 +38,7 @@ describe('SeniorDepositToken', async () => {
       await setupTestSuiteWithMocks();
     const { owner } = await getNamedAccounts();
 
-    await underlying.increaseAllowance(
-      seniorDepositToken.address,
-      MAX_UINT_256
-    );
+    await underlying.approve(seniorDepositToken.address, MAX_UINT_256);
     // deposit some tokens
     await seniorDepositToken.deposit(
       ethers.BigNumber.from(100).mul(decimals),
@@ -64,10 +61,7 @@ describe('SeniorDepositToken', async () => {
     const { seniorDepositToken, underlying, decimals } =
       await setupTestSuiteWithMocks();
     const { owner } = await getNamedAccounts();
-    await underlying.increaseAllowance(
-      seniorDepositToken.address,
-      MAX_UINT_256
-    );
+    await underlying.approve(seniorDepositToken.address, MAX_UINT_256);
     await seniorDepositToken.deposit(
       ethers.BigNumber.from(100).mul(decimals),
       owner

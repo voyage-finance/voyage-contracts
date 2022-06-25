@@ -11,16 +11,13 @@ import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Recei
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {MarginEscrow} from "./MarginEscrow.sol";
-import {AddressResolver} from "../infra/AddressResolver.sol";
 import {Voyager} from "../Voyager.sol";
 import {VaultFacet} from "../facets/VaultFacet.sol";
 import {LoanFacet} from "../facets/LoanFacet.sol";
 import {VaultConfig} from "../../libraries/LibAppStorage.sol";
 import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
-import {IACLManager} from "../../interfaces/IACLManager.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {IExternalAdapter} from "../../interfaces/IExternalAdapter.sol";
-import {IAddressResolver} from "../../interfaces/IAddressResolver.sol";
 import {PriorityQueue, Heap} from "../../libraries/logic/PriorityQueue.sol";
 
 contract Vault is
@@ -222,14 +219,6 @@ contract Vault is
         assembly {
             ds.slot := storagePosition
         }
-    }
-
-    function addressResolver() internal view returns (IAddressResolver) {
-        return Voyager(payable(diamondStorage().voyager)).addressResolver();
-    }
-
-    function aclManager() internal view returns (IACLManager) {
-        return IACLManager(addressResolver().getAclManager());
     }
 
     function loanFacet() internal view returns (LoanFacet) {

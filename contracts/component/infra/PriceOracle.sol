@@ -4,10 +4,10 @@ pragma solidity ^0.8.9;
 import {IPriceOracle} from "../../interfaces/IPriceOracle.sol";
 import {Voyager} from "../Voyager.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
-import {IACLManager} from "../../interfaces/IACLManager.sol";
 
-contract PriceOracle is IPriceOracle {
+contract PriceOracle is IPriceOracle, Ownable {
     using SafeMath for uint256;
     using WadRayMath for uint256;
 
@@ -22,29 +22,18 @@ contract PriceOracle is IPriceOracle {
         uint256 blockTimestamp;
     }
 
-    modifier onlyAdmin() {
-        _requireCallerAdmin();
-        _;
-    }
-
     mapping(address => CumulativePrice) prices;
     mapping(address => PriceData) ticket;
-
-    Voyager voyager;
-
-    constructor(address payable _voyager) {
-        voyager = Voyager(_voyager);
-    }
 
     function getAssetPrice(address _asset) external view returns (uint256) {
         return prices[_asset].priceAverage;
     }
 
-    function updateAssetPrice(address _asset) external onlyAdmin {
+    function updateAssetPrice(address _asset) external onlyOwner {
         _updateAssetPrice(_asset);
     }
 
-    function updateAssetPrices(address[] calldata _assets) external onlyAdmin {
+    function updateAssetPrices(address[] calldata _assets) external onlyOwner {
         for (uint256 i = 0; i < _assets.length; i++) {
             _updateAssetPrice(_assets[i]);
         }
@@ -52,7 +41,7 @@ contract PriceOracle is IPriceOracle {
 
     function updateCumulative(address _asset, uint256 _price)
         external
-        onlyAdmin
+        onlyOwner
     {
         _updateCumulative(_asset, _price);
     }
@@ -60,7 +49,7 @@ contract PriceOracle is IPriceOracle {
     function updateCumulativeBatch(
         address[] calldata _assets,
         uint256[] calldata _prices
-    ) external onlyAdmin {
+    ) external onlyOwner {
         for (uint256 i = 0; i < _assets.length; i++) {
             _updateCumulative(_assets[i], _prices[i]);
         }
@@ -95,12 +84,5 @@ contract PriceOracle is IPriceOracle {
         uint256 timeElapsed = block.timestamp.sub(pd.blockTimestamp);
         pd.priceCumulative = pd.priceCumulative.add(_price.mul(timeElapsed));
         pd.blockTimestamp = block.timestamp;
-    }
-
-    function _requireCallerAdmin() internal {
-        IACLManager aclManager = IACLManager(
-            voyager.addressResolver().getAclManager()
-        );
-        require(aclManager.isOracleManager(msg.sender), "Not oracle admin");
     }
 }
