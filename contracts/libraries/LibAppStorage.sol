@@ -190,6 +190,6 @@ contract Storage is Context {
     }
 
     function auth() internal returns (bool) {
-        return s.auth.isAuthorisedInbound(msg.sender, msg.sig);
+        return LibSecurity.isAuthorisedInbound(s.auth, msg.sender, msg.sig);
     }
 }

@@ -31,7 +31,7 @@ contract SecurityFacet is Storage {
         uint8 role,
         bool enabled
     ) public authorised {
-        s.auth.grantRole(user, role, enabled);
+        LibSecurity.grantRole(s.auth, user, role, enabled);
     }
 
     function grantRolePermission(
@@ -39,7 +39,7 @@ contract SecurityFacet is Storage {
         address target,
         bytes4 sig
     ) public authorised {
-        s.auth.grantRolePermission(role, target, sig);
+        LibSecurity.grantRolePermission(s.auth, role, target, sig);
     }
 
     function revokeRolePermission(
@@ -47,7 +47,7 @@ contract SecurityFacet is Storage {
         address target,
         bytes4 sig
     ) public authorised {
-        s.auth.revokeRolePermission(role, target, sig);
+        LibSecurity.revokeRolePermission(s.auth, role, target, sig);
     }
 
     function grantPermission(
@@ -55,7 +55,7 @@ contract SecurityFacet is Storage {
         address dst,
         bytes4 sig
     ) public authorised {
-        s.auth.grantPermission(src, dst, sig);
+        LibSecurity.grantPermission(s.auth, src, dst, sig);
     }
 
     function revokePermission(
@@ -63,20 +63,20 @@ contract SecurityFacet is Storage {
         address dst,
         bytes4 sig
     ) public authorised {
-        s.auth.revokePermission(src, dst, sig);
+        LibSecurity.revokePermission(s.auth, src, dst, sig);
     }
 
     function isAuthorisedInbound(address src, bytes4 sig)
         public
         returns (bool)
     {
-        return s.auth.isAuthorisedInbound(src, sig);
+        return LibSecurity.isAuthorisedInbound(s.auth, src, sig);
     }
 
     function isAuthorisedOutbound(address dst, bytes4 sig)
         public
         returns (bool)
     {
-        return s.auth.isAuthorisedOutbound(dst, sig);
+        return LibSecurity.isAuthorisedOutbound(s.auth, dst, sig);
     }
 }
