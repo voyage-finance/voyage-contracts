@@ -14,11 +14,12 @@ import {MarginEscrow} from "./MarginEscrow.sol";
 import {Voyager} from "../Voyager.sol";
 import {VaultFacet} from "../facets/VaultFacet.sol";
 import {LoanFacet} from "../facets/LoanFacet.sol";
-import {VaultConfig} from "../../libraries/LibAppStorage.sol";
+import {VaultConfig, NFTInfo} from "../../libraries/LibAppStorage.sol";
 import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {IExternalAdapter} from "../../interfaces/IExternalAdapter.sol";
 import {PriorityQueue, Heap} from "../../libraries/logic/PriorityQueue.sol";
+import "hardhat/console.sol";
 
 contract Vault is
     ReentrancyGuard,
@@ -143,6 +144,17 @@ contract Vault is
             require(succ);
         }
         return ret;
+    }
+
+    function withdrawNFT(address _target, uint256 _tokenId) external {
+        // todo call sf to authorise
+        VaultFacet vf = VaultFacet(diamondStorage().voyager);
+        NFTInfo memory nftInfo = vf.getNFTInfo(_target, _tokenId);
+
+        // 1. check if paid amount >= purchased price
+
+        // 2. remove from heap
+        diamondStorage().nfts[_target].del(_tokenId, nftInfo.timestamp);
     }
 
     function onERC721Received(

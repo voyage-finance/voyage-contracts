@@ -7,7 +7,7 @@ import {MarginEscrow} from "../../component/vault/MarginEscrow.sol";
 import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {IExternalAdapter} from "../../interfaces/IExternalAdapter.sol";
-import {LibAppStorage, Storage, VaultConfig, Authorisation} from "../../libraries/LibAppStorage.sol";
+import {LibAppStorage, Storage, VaultConfig, Authorisation, NFTInfo} from "../../libraries/LibAppStorage.sol";
 import {LibVault} from "../../libraries/LibVault.sol";
 import {LibSecurity} from "../../libraries/LibSecurity.sol";
 
@@ -156,6 +156,13 @@ contract VaultFacet is Storage, ReentrancyGuard {
     }
 
     /************************************** View Functions **************************************/
+
+    function getNFTInfo(address _erc721Addr, uint256 _tokenId)
+        external
+        returns (NFTInfo memory)
+    {
+        return LibVault.getNFTInfo(_erc721Addr, _tokenId);
+    }
 
     function getERC721Addr(address _target) external returns (address) {
         return LibVault.getERC721Addr(_target);

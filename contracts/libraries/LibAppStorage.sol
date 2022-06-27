@@ -103,6 +103,8 @@ struct BorrowData {
     uint256 totalInterest;
     uint256 mapSize;
     mapping(uint256 => DrawDown) drawDowns;
+    // paid amount - the equal amount to nfts withdrawal
+    uint256 paidAmount;
 }
 
 struct BorrowState {
@@ -135,6 +137,11 @@ struct Authorisation {
     DSGuard acl;
 }
 
+struct NFTInfo {
+    uint256 price;
+    uint256 timestamp;
+}
+
 struct AppStorage {
     /* -------------------------------- plumbing -------------------------------- */
     mapping(bytes32 => address) _addresses;
@@ -156,7 +163,8 @@ struct AppStorage {
     mapping(address => VaultConfig) vaultConfigMap;
     // mapping of erc721 address to vault strategy contract address
     mapping(address => address) vaultStrategy;
-    mapping(address => mapping(uint256 => uint256)) nftPrice;
+    // erc721 address => token id => nft info
+    mapping(address => mapping(uint256 => NFTInfo)) nftInfo;
     /* ---------------------------------- security --------------------------------- */
     Authorisation auth;
 }

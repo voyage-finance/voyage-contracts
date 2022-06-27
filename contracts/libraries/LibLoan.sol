@@ -110,8 +110,9 @@ library LibLoan {
             );
         }
 
-        debtData.totalPrincipal.sub(principal);
-        debtData.totalInterest.sub(interest);
+        debtData.totalPrincipal = debtData.totalPrincipal.sub(principal);
+        debtData.totalInterest = debtData.totalInterest.sub(interest);
+        debtData.paidAmount = debtData.paidAmount.add(principal);
         uint256 interestRay = interest.wadToRay();
         uint256 principalRay = principal.wadToRay();
 
