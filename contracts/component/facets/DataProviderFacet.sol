@@ -188,30 +188,29 @@ contract DataProviderFacet {
         return userPoolData;
     }
 
-    function getVaultData(address _user, address _reserve)
+    function getVaultData(address _vault, address _reserve)
         external
         view
         returns (VaultData memory)
     {
         VaultData memory vaultData;
-        address vault = LibVault.getVaultAddress(_user);
         uint256 principal;
         uint256 interest;
         DrawDownList memory drawDownList;
         (drawDownList.head, drawDownList.tail) = LibLoan.getDrawDownList(
             _reserve,
-            vault
+            _vault
         );
-        (principal, interest) = LibVault.getVaultDebt(_reserve, vault);
+        (principal, interest) = LibVault.getVaultDebt(_reserve, _vault);
         vaultData.drawDownList = drawDownList;
         vaultData.borrowRate = 0;
         vaultData.totalDebt = principal.add(interest);
-        vaultData.totalMargin = LibVault.getMargin(_user, _reserve);
+        vaultData.totalMargin = LibVault.getMargin(_vault, _reserve);
         vaultData.withdrawableSecurityDeposit = LibVault
-            .getTotalWithdrawableMargin(vault, _reserve);
-        vaultData.creditLimit = LibVault.getCreditLimit(_user, _reserve);
+            .getTotalWithdrawableMargin(_vault, _reserve);
+        vaultData.creditLimit = LibVault.getCreditLimit(_vault, _reserve);
         vaultData.spendableBalance = LibVault.getAvailableCredit(
-            _user,
+            _vault,
             _reserve
         );
         vaultData.ltv = vaultData.gav.add(vaultData.totalMargin).rayDiv(
@@ -222,12 +221,11 @@ contract DataProviderFacet {
     }
 
     function getDrawDownDetail(
-        address _user,
+        address _vault,
         address _reserve,
         uint256 _drawDownId
     ) external view returns (LibLoan.DebtDetail memory) {
-        address vault = LibVault.getVaultAddress(_user);
-        return LibLoan.getDrawDownDetail(_reserve, vault, _drawDownId);
+        return LibLoan.getDrawDownDetail(_reserve, _vault, _drawDownId);
     }
 
     function pendingSeniorWithdrawals(address _user, address _reserve)

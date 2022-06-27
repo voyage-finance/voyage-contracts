@@ -29,7 +29,11 @@ describe('Liquidity Rate', function () {
     const juniorDepositAmount = '100000000000000000000';
     await voyager.deposit(tus.address, 0, juniorDepositAmount, owner);
     await voyager.deposit(tus.address, 1, seniorDepositAmount, owner);
-    await voyager.depositMargin(owner, tus.address, '100000000000000000000');
+    await voyager.depositMargin(
+      vault.address,
+      tus.address,
+      '100000000000000000000'
+    );
 
     await voyager.borrow(tus.address, '400000000000000000000', vault.address);
     const poolData = await voyager.getPoolData(tus.address);
@@ -57,7 +61,11 @@ describe('Liquidity Rate', function () {
 
     await voyager.deposit(tus.address, 0, juniorDepositAmount, owner);
     await voyager.deposit(tus.address, 1, seniorDepositAmount, owner);
-    await voyager.depositMargin(owner, tus.address, '100000000000000000000');
+    await voyager.depositMargin(
+      vault.address,
+      tus.address,
+      '100000000000000000000'
+    );
 
     await voyager.borrow(tus.address, '25000000000000000000', vault.address);
     const poolData = await voyager.getPoolData(tus.address);
@@ -98,7 +106,11 @@ describe('Liquidity Rate', function () {
     console.log('senior liquidity: ', seniorLiquidity.toString());
     console.log('junior liquidity: ', juniorLiquidity.toString());
 
-    await voyager.depositMargin(owner, tus.address, '100000000000000000000');
+    await voyager.depositMargin(
+      vault.address,
+      tus.address,
+      '100000000000000000000'
+    );
     await voyager.borrow(tus.address, '100000000000000000000', vault.address);
 
     const poolData = await voyager.getPoolData(tus.address);

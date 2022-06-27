@@ -63,8 +63,8 @@ contract LoanFacet is Storage {
         address indexed _user,
         address indexed _vault,
         address indexed _asset,
-        uint256 drawdownId,
-        uint256 amount
+        uint256 _drawdownId,
+        uint256 _amount
     );
     event Liquidate(
         address indexed _liquidator,
@@ -110,7 +110,7 @@ contract LoanFacet is Storage {
 
         // 3. check credit limit
         uint256 availableCreditLimit = LibVault.getAvailableCredit(
-            _msgSender(),
+            _vault,
             _asset
         );
 
