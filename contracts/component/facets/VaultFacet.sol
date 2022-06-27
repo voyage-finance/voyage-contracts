@@ -18,7 +18,11 @@ contract VaultFacet is Storage, ReentrancyGuard {
 
     /* --------------------------------- events --------------------------------- */
     event VaultCreated(address _vault, address _owner, uint256 _numVaults);
-    event VaultInitialized(address _vault, address _reserve);
+    event VaultAssetInitialized(
+        address indexed _vault,
+        address indexed _asset,
+        address _escrow
+    );
     event VaultMarginCredited(
         address indexed _vault,
         address indexed _asset,
@@ -54,7 +58,9 @@ contract VaultFacet is Storage, ReentrancyGuard {
         authorised
         returns (address)
     {
-        return LibVault.initVaultAsset(_vault, _asset);
+        address escrow = LibVault.initVaultAsset(_vault, _asset);
+        emit VaultAssetInitialized(_vault, _asset, escrow);
+        return escrow;
     }
 
     /* ----------------------------- user interface ----------------------------- */

@@ -37,7 +37,7 @@ library LibLoan {
         uint256 _term,
         uint256 _epoch,
         uint256 _apr
-    ) internal {
+    ) internal returns (uint256 drawdownId, DrawDown storage) {
         BorrowState storage borrowState = getBorrowState(_reserve);
         BorrowData storage borrowData = getBorrowData(_reserve, _vault);
         uint256 currentDrawDownNumber = borrowData.nextDrawDownNumber;
@@ -51,6 +51,8 @@ library LibLoan {
 
         uint256 principalRay = _principal.wadToRay();
         uint256 interestRay = principalRay.rayMul(_apr);
+        uint256 interest = interestRay.rayToWad();
+        dd.interest = interest;
 
         PMT memory pmt;
         pmt.principal = _principal.div(dd.nper);
@@ -80,6 +82,8 @@ library LibLoan {
         borrowState.totalInterest = borrowState.totalInterest.add(
             interestRay.rayToWad()
         );
+
+        return (currentDrawDownNumber, dd);
     }
 
     function repay(

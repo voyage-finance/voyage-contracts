@@ -22,7 +22,6 @@ contract MockLoanFacet is TestStorage {
     }
 
     function repay(
-        address _user,
         address _asset,
         uint256 _drawDown,
         address payable _vault
