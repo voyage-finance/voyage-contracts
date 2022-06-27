@@ -5,10 +5,10 @@ import {ERC20, ERC4626} from "@rari-capital/solmate/src/mixins/ERC4626.sol";
 
 abstract contract IVToken is ERC4626 {
     constructor(
-        ERC20 _underlyingAsset,
+        ERC20 _asset,
         string memory _name,
         string memory _symbol
-    ) ERC4626(_underlyingAsset, _name, _symbol) {}
+    ) ERC4626(_asset, _name, _symbol) {}
 
     function transferUnderlyingTo(address _target, uint256 _amount)
         external

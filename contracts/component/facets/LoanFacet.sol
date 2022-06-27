@@ -52,6 +52,31 @@ contract LoanFacet is Storage {
         uint256 marginRequirement;
     }
 
+    event Borrow(
+        address indexed _vault,
+        address indexed _asset,
+        uint256 _drawdownId,
+        uint256 _principal,
+        uint256 _interest
+    );
+    event Repay(
+        address indexed _user,
+        address indexed _vault,
+        address indexed _asset,
+        uint256 _drawdownId,
+        uint256 _amount
+    );
+    event Liquidate(
+        address indexed _liquidator,
+        address indexed _vault,
+        address indexed _asset,
+        uint256 _debt,
+        uint256 _margin,
+        uint256 _collateral,
+        uint256 _numCollateral,
+        uint256 _writedown
+    );
+
     function borrow(
         address _asset,
         uint256 _amount,
@@ -85,7 +110,7 @@ contract LoanFacet is Storage {
 
         // 3. check credit limit
         uint256 availableCreditLimit = LibVault.getAvailableCredit(
-            _msgSender(),
+            _vault,
             _asset
         );
 
@@ -125,7 +150,7 @@ contract LoanFacet is Storage {
             executeBorrowParams.borrowRate
         );
 
-        LibLoan.insertDebt(
+        (uint256 drawdownId, DrawDown memory dd) = LibLoan.insertDebt(
             _asset,
             _vault,
             _amount,
@@ -138,19 +163,15 @@ contract LoanFacet is Storage {
             _vault,
             _amount
         );
+
+        emit Borrow(_vault, _asset, drawdownId, dd.principal, dd.interest);
     }
 
     function repay(
-        address _user,
         address _asset,
         uint256 _drawDown,
         address payable _vault
     ) external whenNotPaused {
-        // 0. check if the user owns the vault
-        require(
-            LibVault.getVaultAddress(_msgSender()) == _vault,
-            Errors.LOM_NOT_VAULT_OWNER
-        );
         // 1. check draw down to get principal and interest
         uint256 principal;
         uint256 interest;
@@ -174,11 +195,13 @@ contract LoanFacet is Storage {
         // 4. transfer underlying asset
         ReserveData memory reserveData = LibLiquidity.getReserveData(_asset);
 
+        uint256 total = principal.add(interest);
         IERC20(_asset).safeTransferFrom(
-            _user,
+            _msgSender(),
             reserveData.seniorDepositTokenAddress,
-            principal.add(interest)
+            total
         );
+        emit Repay(_msgSender(), _vault, _asset, _drawDown, total);
     }
 
     function liquidate(
@@ -281,6 +304,7 @@ contract LoanFacet is Storage {
         );
 
         // 4.4 transfer from junior tranche
+        uint256 amountToWriteDown = 0;
         uint256 totalAssetFromJuniorTranche = ERC4626(
             reserveData.juniorDepositTokenAddress
         ).totalAssets();
@@ -296,7 +320,7 @@ contract LoanFacet is Storage {
                     totalAssetFromJuniorTranche
                 );
 
-            uint256 amountToWriteDown = amountNeedExtra.sub(
+            amountToWriteDown = amountNeedExtra.sub(
                 totalAssetFromJuniorTranche
             );
             // todo write down to somewhere
@@ -314,6 +338,17 @@ contract LoanFacet is Storage {
         IERC20(param.reserve).safeTransfer(
             reserveData.seniorDepositTokenAddress,
             param.totalDebt
+        );
+
+        emit Liquidate(
+            _msgSender(),
+            _vault,
+            _reserve,
+            param.totalDebt,
+            amountSlashed,
+            param.totalToLiquidate,
+            param.numNFTsToLiquidate,
+            amountToWriteDown
         );
     }
 

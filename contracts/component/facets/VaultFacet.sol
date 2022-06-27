@@ -18,7 +18,11 @@ contract VaultFacet is Storage, ReentrancyGuard {
 
     /* --------------------------------- events --------------------------------- */
     event VaultCreated(address _vault, address _owner, uint256 _numVaults);
-    event VaultInitialized(address _vault, address _reserve);
+    event VaultAssetInitialized(
+        address indexed _vault,
+        address indexed _asset,
+        address _escrow
+    );
     event VaultMarginCredited(
         address indexed _vault,
         address indexed _asset,
@@ -49,40 +53,44 @@ contract VaultFacet is Storage, ReentrancyGuard {
         return vault;
     }
 
+    function initAsset(address _vault, address _asset)
+        external
+        authorised
+        returns (address)
+    {
+        address escrow = LibVault.initVaultAsset(_vault, _asset);
+        emit VaultAssetInitialized(_vault, _asset, escrow);
+        return escrow;
+    }
+
     /* ----------------------------- user interface ----------------------------- */
     /**
-     * @param _owner vault admin address
+     * @param _vault vault admin address
      * @param _reserve reserve address
      * @param _amount amount user is willing to deposit
      */
     function depositMargin(
-        address _owner,
+        address _vault,
         address _reserve,
         uint256 _amount
     ) external {
-        address vaultAddress = LibVault.getVaultAddress(_owner);
-        IVault(vaultAddress).depositMargin(msg.sender, _reserve, _amount);
-        emit VaultMarginCredited(vaultAddress, _reserve, msg.sender, _amount);
+        IVault(_vault).depositMargin(_msgSender(), _reserve, _amount);
+        emit VaultMarginCredited(_vault, _reserve, msg.sender, _amount);
     }
 
     /**
      * @dev  Delegate call to Vault's redeemSecurity
-     * @param _owner user address
+     * @param _vault vault address
      * @param _reserve reserve address
      * @param _amount redeem amount
      **/
     function redeemMargin(
-        address _owner,
+        address _vault,
         address _reserve,
         uint256 _amount
     ) external {
-        address vaultAddress = LibVault.getVaultAddress(_owner);
-        IVault(vaultAddress).redeemMargin(
-            payable(msg.sender),
-            _reserve,
-            _amount
-        );
-        emit VaultMarginRedeemed(vaultAddress, _reserve, msg.sender, _amount);
+        IVault(_vault).redeemMargin(payable(_msgSender()), _reserve, _amount);
+        emit VaultMarginRedeemed(_vault, _reserve, msg.sender, _amount);
     }
 
     /************************ HouseKeeping Function ******************************/
@@ -218,11 +226,19 @@ contract VaultFacet is Storage, ReentrancyGuard {
         return s.vaults;
     }
 
-    function getWithdrawableDeposit(
-        address _owner,
+    function getWithdrawableMargin(
+        address _vault,
         address _reserve,
-        address _sponsor
+        address _user
     ) public view returns (uint256) {
-        return LibVault.getWithdrawableDeposit(_owner, _reserve, _sponsor);
+        return LibVault.getWithdrawableMargin(_vault, _reserve, _user);
+    }
+
+    function getTotalWithdrawableMargin(address _vault, address _reserve)
+        public
+        view
+        returns (uint256)
+    {
+        return LibVault.getTotalWithdrawableMargin(_vault, _reserve);
     }
 }

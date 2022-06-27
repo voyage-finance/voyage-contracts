@@ -12,10 +12,10 @@ contract SeniorDepositToken is BaseDepositToken {
 
     constructor(
         address _voyager,
-        ERC20 _underlyingAsset,
+        ERC20 _asset,
         string memory _name,
         string memory _symbol
-    ) BaseDepositToken(_voyager, _underlyingAsset, _name, _symbol) {}
+    ) BaseDepositToken(_voyager, _asset, _name, _symbol) {}
 
     function totalAssets() public view override returns (uint256) {
         uint256 underlyingBalance = asset.balanceOf(address(this));

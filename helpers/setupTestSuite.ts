@@ -1,9 +1,10 @@
+import BigNumber from 'bignumber.js';
 import { deployments as d } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { ERC20 } from '../typechain/ERC20';
 import { Voyager } from '../typechain/Voyager';
 import { deployFacets, FacetCutAction } from './diamond';
-import { decimals, MAX_UINT_256 } from './math';
+import { decimals, MAX_UINT_256, toRay } from './math';
 
 const dec = decimals(18);
 
@@ -51,19 +52,15 @@ const setupBase = async ({
 
   /* -------------------------- vault initialisation -------------------------- */
   await voyager.setMaxMargin(tus.address, '1000000000000000000000');
-  await voyager.setMarginRequirement(
-    tus.address,
-    '100000000000000000000000000'
-  ); // 0.1
+  const marginRequirement = toRay(new BigNumber('0.1')).toFixed();
+  await voyager.setMarginRequirement(tus.address, marginRequirement); // 0.1
 
   // create an empty vault
   await voyager.createVault(owner, tus.address);
   const vaultAddr = await voyager.getVault(owner);
-
-  // get security deposit escrow address
   const vault = await ethers.getContractAt('Vault', vaultAddr);
-  const escrowAddress = await vault.getMarginEscrowAddress();
-  await tus.approve(escrowAddress, MAX_UINT_256);
+  await voyager.initAsset(vaultAddr, tus.address);
+  await tus.approve(vault.address, MAX_UINT_256);
 
   return {
     owner,

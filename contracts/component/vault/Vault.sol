@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
 import {IERC165} from "@openzeppelin/contracts/interfaces/IERC165.sol";
@@ -13,6 +14,7 @@ import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.s
 import {MarginEscrow} from "./MarginEscrow.sol";
 import {Voyager} from "../Voyager.sol";
 import {VaultFacet} from "../facets/VaultFacet.sol";
+import {PeripheryPayments} from "../../libraries/utils/PeripheryPayments.sol";
 import {LoanFacet} from "../facets/LoanFacet.sol";
 import {VaultConfig, NFTInfo} from "../../libraries/LibAppStorage.sol";
 import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
@@ -27,16 +29,19 @@ contract Vault is
     IVault,
     IERC1271,
     IERC165,
-    IERC721Receiver
+    IERC721Receiver,
+    PeripheryPayments
 {
     using WadRayMath for uint256;
     using SafeMath for uint256;
     using PriorityQueue for Heap;
+    using SafeERC20 for ERC20;
 
     struct VaultStorageV1 {
         address owner;
         address voyager;
-        MarginEscrow marginEscrow;
+        // asset (ERC20) => escrow
+        mapping(address => MarginEscrow) escrow;
         // erc721 address => heap
         mapping(address => Heap) nfts;
         /// @dev You must not set element 0xffffffff to true
@@ -48,21 +53,29 @@ contract Vault is
         _;
     }
 
-    function initialize(
-        address _voyager,
-        address _owner,
-        address _reserve,
-        address _marginEscrow
-    ) external initializer {
+    function initialize(address _voyager, address _owner) external initializer {
         diamondStorage().voyager = _voyager;
-        diamondStorage().marginEscrow = MarginEscrow(_marginEscrow);
         diamondStorage().owner = _owner;
         ERC165MappingImplementation();
         vaultMappingImplementation();
     }
 
+    function initAsset(address _asset) public onlyVoyager returns (address) {
+        require(_asset != address(0), "_asset must be a valid address");
+        VaultStorageV1 storage s = diamondStorage();
+        require(
+            address(s.escrow[_asset]) == address(0),
+            "asset already initialised"
+        );
+        MarginEscrow _me = new MarginEscrow(address(this), s.voyager, _asset);
+        s.escrow[_asset] = _me;
+        // max approve escrow
+        ERC20(_asset).safeApprove(address(_me), type(uint256).max);
+        return address(_me);
+    }
+
     /// @notice Transfer some margin deposit
-    /// @param _sponsor user address who deposit to this escrow
+    /// @param _sponsor address of margin depositer
     /// @param _reserve reserve address
     /// @param _amount deposit amount
     function depositMargin(
@@ -71,20 +84,18 @@ contract Vault is
         uint256 _amount
     ) external payable nonReentrant onlyVoyager {
         VaultConfig memory vaultConfig = vaultFacet().getVaultConfig(_reserve);
-
+        MarginEscrow me = marginEscrow(_reserve);
+        require(address(me) != address(0), "Vault: asset not initialised");
         uint256 maxAllowedAmount = vaultConfig.maxMargin;
-        uint256 depositedAmount = diamondStorage()
-            .marginEscrow
-            .getDepositAmount(_reserve);
+        uint256 depositedAmount = me.totalMargin();
         require(
             depositedAmount + _amount <= maxAllowedAmount,
             "Vault: deposit amount exceed"
         );
-
         uint256 minAllowedAmount = vaultConfig.minMargin;
         require(minAllowedAmount <= _amount, "Vault: deposit too small");
-
-        diamondStorage().marginEscrow.deposit(_reserve, _sponsor, _amount);
+        pullToken(me.asset(), _amount, _sponsor, address(this));
+        me.deposit(_amount, _sponsor);
     }
 
     /// @notice Redeem underlying reserve
@@ -96,11 +107,9 @@ contract Vault is
         address _reserve,
         uint256 _amount
     ) external payable nonReentrant onlyVoyager {
-        require(
-            _amount <= getWithdrawableDepositInternal(_sponsor, _reserve),
-            "Vault: cannot redeem more than withdrawable deposit amount"
-        );
-        diamondStorage().marginEscrow.withdraw(_reserve, _sponsor, _amount);
+        MarginEscrow me = marginEscrow(_reserve);
+        require(address(me) != address(0), "Vault: asset not initialised");
+        me.withdraw(_amount, _sponsor, _sponsor);
     }
 
     /// @return Returns the actual value that has been transferred
@@ -109,7 +118,8 @@ contract Vault is
         address payable _to,
         uint256 _amount
     ) external nonReentrant onlyVoyager returns (uint256) {
-        return diamondStorage().marginEscrow.slash(_reserve, _to, _amount);
+        MarginEscrow me = diamondStorage().escrow[_reserve];
+        return me.slash(_amount, _to);
     }
 
     /// @notice To accept external calls from authorised client, used for pursing NFT or doing approve etc.
@@ -216,6 +226,14 @@ contract Vault is
 
     /************************************** View Functions **************************************/
 
+    /// @notice Returns the margin escrow for a given asset supported by the Vault
+    /// @dev If the returned address is 0x0, the asset is not supported
+    /// @param _asset address of the underlying ERC20 being escrowed
+    /// @return MarginEscrow
+    function marginEscrow(address _asset) public view returns (MarginEscrow) {
+        return diamondStorage().escrow[_asset];
+    }
+
     /// @notice Returns true if this contract implements the interface defined by
     /// `interfaceId`. See the corresponding
     ///  https://eips.ethereum.org/EIPS/eip-165#how-interfaces-are-identified[EIP section]
@@ -261,7 +279,7 @@ contract Vault is
         view
         returns (uint256)
     {
-        return diamondStorage().marginEscrow.getDepositAmount(_reserve);
+        return marginEscrow(_reserve).totalMargin();
     }
 
     function getActualSecurityDeposit(address _reserve)
@@ -269,24 +287,23 @@ contract Vault is
         view
         returns (uint256)
     {
-        return
-            ERC20(_reserve).balanceOf(address(diamondStorage().marginEscrow));
+        return ERC20(_reserve).balanceOf(address(marginEscrow(_reserve)));
     }
 
-    function getWithdrawableDeposit(address _sponsor, address _reserve)
+    function withdrawableMargin(address _reserve, address _user)
         external
         view
         returns (uint256)
     {
-        return getWithdrawableDepositInternal(_sponsor, _reserve);
+        return marginEscrow(_reserve).withdrawableMargin(_user);
     }
 
-    /**
-     * @dev Get MarginEscrow contract address
-     * @return address
-     **/
-    function getMarginEscrowAddress() external view returns (address) {
-        return address(diamondStorage().marginEscrow);
+    function totalWithdrawableMargin(address _reserve)
+        external
+        view
+        returns (uint256)
+    {
+        return marginEscrow(_reserve).totalWithdrawableMargin();
     }
 
     function getTotalNFTNumbers(address _erc721Addr)
@@ -384,28 +401,22 @@ contract Vault is
         supportedInterfaces[this.transferNFT.selector] = true;
     }
 
-    function getWithdrawableDepositInternal(address _sponsor, address _reserve)
-        internal
-        view
-        returns (uint256)
-    {
-        VaultConfig memory vaultConfig = vaultFacet().getVaultConfig(_reserve);
-        uint256 marginRequirement = vaultConfig.marginRequirement;
+    function totalDebt(address _reserve) external view returns (uint256 total) {
         uint256 principal;
         uint256 interest;
         (principal, interest) = loanFacet().getVaultDebt(
             _reserve,
             address(this)
         );
+        total = principal.add(interest);
+    }
 
-        uint256 totalDebt = principal.add(interest);
-        uint256 eligibleAmount = diamondStorage().marginEscrow.eligibleAmount(
-            _reserve,
-            _sponsor
-        );
-        uint256 withdrawableAmount = eligibleAmount -
-            totalDebt.wadToRay().rayMul(marginRequirement).rayToWad();
-
-        return withdrawableAmount;
+    function marginRequirement(address _reserve)
+        external
+        view
+        returns (uint256)
+    {
+        VaultConfig memory vc = vaultFacet().getVaultConfig(_reserve);
+        return vc.marginRequirement;
     }
 }

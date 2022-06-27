@@ -8,6 +8,10 @@ export const WAD = new BigNumber(10).pow(18);
 
 export const RAY = new BigNumber(10).pow(27);
 
+export const toRay = (n: BigNumber) => {
+  return n.multipliedBy(RAY);
+};
+
 export const formatTokenBalance = (
   n: ethers.BigNumber,
   decimals: number,

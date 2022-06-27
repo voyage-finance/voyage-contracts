@@ -68,6 +68,7 @@ struct RepaymentData {
 
 struct DrawDown {
     uint256 principal;
+    uint256 interest;
     // the total intended length of the loan in seconds - e.g., 90 days
     uint256 term;
     // the repayment interval - e.g., 30 days
