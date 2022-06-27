@@ -146,15 +146,30 @@ contract Vault is
         return ret;
     }
 
-    function withdrawNFT(address _target, uint256 _tokenId) external {
+    function withdrawNFT(
+        address _reserve,
+        address _erc721Addr,
+        uint256 _tokenId
+    ) external {
         // todo call sf to authorise
         VaultFacet vf = VaultFacet(diamondStorage().voyager);
-        NFTInfo memory nftInfo = vf.getNFTInfo(_target, _tokenId);
+        NFTInfo memory nftInfo = vf.getNFTInfo(_erc721Addr, _tokenId);
 
         // 1. check if paid amount >= purchased price
+        LoanFacet lf = LoanFacet(diamondStorage().voyager);
+        (uint256 paidAmount, uint256 usedPaidAmount) = lf.getPaidAmount(
+            _reserve,
+            address(this)
+        );
+        uint256 availableAmount = paidAmount.sub(usedPaidAmount);
+        require(availableAmount >= nftInfo.price, "Vault: invalid withdrawal");
+        lf.increaseUsedPaidAmount(_reserve, address(this), nftInfo.price);
 
         // 2. remove from heap
-        diamondStorage().nfts[_target].del(_tokenId, nftInfo.timestamp);
+        diamondStorage().nfts[_erc721Addr].del(_tokenId, nftInfo.timestamp);
+
+        // 3. transfer nft out
+        IERC721(_erc721Addr).transferFrom(address(this), msg.sender, _tokenId);
     }
 
     function onERC721Received(

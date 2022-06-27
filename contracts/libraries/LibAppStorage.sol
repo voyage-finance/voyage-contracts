@@ -103,8 +103,9 @@ struct BorrowData {
     uint256 totalInterest;
     uint256 mapSize;
     mapping(uint256 => DrawDown) drawDowns;
-    // paid amount - the equal amount to nfts withdrawal
+    // paid amount
     uint256 paidAmount;
+    uint256 usedPaidAmount;
 }
 
 struct BorrowState {

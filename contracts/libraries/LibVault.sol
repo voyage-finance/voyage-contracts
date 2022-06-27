@@ -116,6 +116,26 @@ library LibVault {
         return (borrowData.totalPrincipal, borrowData.totalInterest);
     }
 
+    function getPaidAmount(address _reserve, address _vault)
+        internal
+        view
+        returns (uint256, uint256)
+    {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        BorrowData storage borrowData = s._borrowData[_reserve][_vault];
+        return (borrowData.paidAmount, borrowData.usedPaidAmount);
+    }
+
+    function increaseUsedPaidAmount(
+        address _reserve,
+        address _vault,
+        uint256 _amount
+    ) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        BorrowData storage borrowData = s._borrowData[_reserve][_vault];
+        borrowData.usedPaidAmount = borrowData.usedPaidAmount.add(_amount);
+    }
+
     function getVaultConfig(address _reserve)
         internal
         view

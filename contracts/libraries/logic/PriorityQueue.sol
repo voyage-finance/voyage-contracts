@@ -34,6 +34,9 @@ library PriorityQueue {
         uint256 _tokenId,
         uint256 _timestamp
     ) internal {
+        if (heap.heapList.length == 0) {
+            heap.heapList.push(0);
+        }
         uint256 element = (_tokenId << 128) | _timestamp;
         heap.heapList.push(element);
         heap.currentSize = heap.currentSize.add(1);

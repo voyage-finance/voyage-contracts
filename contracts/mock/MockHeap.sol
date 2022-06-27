@@ -7,10 +7,6 @@ contract MockHeap {
 
     Heap heap;
 
-    constructor() {
-        heap.heapList.push(0);
-    }
-
     function insert(uint256 _tokenId, uint256 _timestamp) external {
         heap.insert(_tokenId, _timestamp);
     }
