@@ -84,7 +84,7 @@ describe('Repayment', function () {
     showDrawDown(drawDownDetail2);
 
     // repay the first draw down
-    await voyager.repay(owner, tus.address, 0, vault.address);
+    await voyager.repay(tus.address, 0, vault.address);
     const drawDownDetail3 = await voyager.getDrawDownDetail(
       owner,
       tus.address,
@@ -93,7 +93,7 @@ describe('Repayment', function () {
     console.log('draw down 0: ');
     showDrawDown(drawDownDetail3);
 
-    await voyager.repay(owner, tus.address, 0, vault.address);
+    await voyager.repay(tus.address, 0, vault.address);
     const drawDownDetail4 = await voyager.getDrawDownDetail(
       owner,
       tus.address,
@@ -102,7 +102,7 @@ describe('Repayment', function () {
     console.log('draw down 0: ');
     showDrawDown(drawDownDetail4);
 
-    await voyager.repay(owner, tus.address, 0, vault.address);
+    await voyager.repay(tus.address, 0, vault.address);
     const drawDownDetail5 = await voyager.getDrawDownDetail(
       owner,
       tus.address,
@@ -149,11 +149,11 @@ describe('Repayment', function () {
     await voyager.borrow(tus.address, '10000000000000000000', vault.address);
 
     // repay the first draw down
-    await voyager.repay(owner, tus.address, 0, vault.address);
-    await voyager.repay(owner, tus.address, 0, vault.address);
-    await voyager.repay(owner, tus.address, 0, vault.address);
+    await voyager.repay(tus.address, 0, vault.address);
+    await voyager.repay(tus.address, 0, vault.address);
+    await voyager.repay(tus.address, 0, vault.address);
     await expect(
-      voyager.repay(owner, tus.address, 0, vault.address)
+      voyager.repay(tus.address, 0, vault.address)
     ).to.be.revertedWith('75');
   });
 });

@@ -38,7 +38,6 @@ describe('Security Redeem', function () {
     await voyager.depositMargin(owner, tus.address, margin);
     const borrow = BigNumber.from(1000).mul(decimals(18));
     await voyager.borrow(tus.address, borrow, vault.address);
-    const vaultBalance = await tus.balanceOf(vault.address);
 
     const availableCredit = await voyager.getAvailableCredit(
       owner,
