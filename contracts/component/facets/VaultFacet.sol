@@ -65,38 +65,32 @@ contract VaultFacet is Storage, ReentrancyGuard {
 
     /* ----------------------------- user interface ----------------------------- */
     /**
-     * @param _owner vault admin address
+     * @param _vault vault admin address
      * @param _reserve reserve address
      * @param _amount amount user is willing to deposit
      */
     function depositMargin(
-        address _owner,
+        address _vault,
         address _reserve,
         uint256 _amount
     ) external {
-        address vaultAddress = LibVault.getVaultAddress(_owner);
-        IVault(vaultAddress).depositMargin(msg.sender, _reserve, _amount);
-        emit VaultMarginCredited(vaultAddress, _reserve, msg.sender, _amount);
+        IVault(_vault).depositMargin(_msgSender(), _reserve, _amount);
+        emit VaultMarginCredited(_vault, _reserve, msg.sender, _amount);
     }
 
     /**
      * @dev  Delegate call to Vault's redeemSecurity
-     * @param _owner user address
+     * @param _vault vault address
      * @param _reserve reserve address
      * @param _amount redeem amount
      **/
     function redeemMargin(
-        address _owner,
+        address _vault,
         address _reserve,
         uint256 _amount
     ) external {
-        address vaultAddress = LibVault.getVaultAddress(_owner);
-        IVault(vaultAddress).redeemMargin(
-            payable(msg.sender),
-            _reserve,
-            _amount
-        );
-        emit VaultMarginRedeemed(vaultAddress, _reserve, msg.sender, _amount);
+        IVault(_vault).redeemMargin(payable(_msgSender()), _reserve, _amount);
+        emit VaultMarginRedeemed(_vault, _reserve, msg.sender, _amount);
     }
 
     /************************ HouseKeeping Function ******************************/

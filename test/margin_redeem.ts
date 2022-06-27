@@ -8,7 +8,7 @@ describe('Security Redeem', function () {
   it('Unused margin should be redeemable', async function () {
     const { voyager, tus, owner, vault } = await setupTestSuite();
     const margin = BigNumber.from(100).mul(decimals(18));
-    await voyager.depositMargin(owner, tus.address, margin);
+    await voyager.depositMargin(vault.address, tus.address, margin);
     const eligibleAmount = await voyager.getWithdrawableMargin(
       vault.address,
       tus.address,
@@ -23,7 +23,7 @@ describe('Security Redeem', function () {
     await escrow.approve(vault.address, MAX_UINT_256);
 
     await expect(
-      voyager.redeemMargin(owner, tus.address, '1000000000000000000')
+      voyager.redeemMargin(vault.address, tus.address, '1000000000000000000')
     ).not.to.be.reverted;
   });
 
@@ -35,12 +35,12 @@ describe('Security Redeem', function () {
     await voyager.deposit(tus.address, 1, deposit, owner);
     // maximum borrow amount should be 100 / 0.1 = 1000
     const margin = BigNumber.from(100).mul(decimals(18));
-    await voyager.depositMargin(owner, tus.address, margin);
+    await voyager.depositMargin(vault.address, tus.address, margin);
     const borrow = BigNumber.from(1000).mul(decimals(18));
     await voyager.borrow(tus.address, borrow, vault.address);
 
     const availableCredit = await voyager.getAvailableCredit(
-      owner,
+      vault.address,
       tus.address
     );
     expect(availableCredit).to.equal('0');
@@ -58,7 +58,7 @@ describe('Security Redeem', function () {
     await escrow.approve(vault.address, MAX_UINT_256);
 
     await expect(
-      voyager.redeemMargin(owner, tus.address, '1000000000000000000')
+      voyager.redeemMargin(vault.address, tus.address, '1000000000000000000')
     ).to.be.reverted;
   });
 
@@ -70,7 +70,7 @@ describe('Security Redeem', function () {
     await voyager.deposit(tus.address, 1, deposit, owner);
     // maximum borrow amount should be 100 / 0.1 = 1000
     const margin = BigNumber.from(100).mul(decimals(18));
-    await voyager.depositMargin(owner, tus.address, margin);
+    await voyager.depositMargin(vault.address, tus.address, margin);
     // borrow 500
     const borrow = BigNumber.from(500).mul(decimals(18));
     await voyager.borrow(tus.address, borrow, vault.address);
@@ -93,7 +93,7 @@ describe('Security Redeem', function () {
     await escrow.approve(vault.address, MAX_UINT_256);
 
     await expect(
-      voyager.redeemMargin(owner, tus.address, '1000000000000000000')
+      voyager.redeemMargin(vault.address, tus.address, '1000000000000000000')
     ).not.to.be.reverted;
   });
 });

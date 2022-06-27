@@ -135,19 +135,18 @@ library LibVault {
 
     /**
      * @dev Get available credit
-     * @param _user user address
+     * @param _vault user address
      * @param _reserve reserve address
      **/
-    function getAvailableCredit(address _user, address _reserve)
+    function getAvailableCredit(address _vault, address _reserve)
         internal
         view
         returns (uint256)
     {
-        uint256 creditLimit = getCreditLimit(_user, _reserve);
+        uint256 creditLimit = getCreditLimit(_vault, _reserve);
         uint256 principal;
         uint256 interest;
-        address vault = getVaultAddress(_user);
-        (principal, interest) = getVaultDebt(_reserve, vault);
+        (principal, interest) = getVaultDebt(_reserve, _vault);
         uint256 accumulatedDebt = principal.add(interest);
         if (creditLimit < accumulatedDebt) {
             return 0;
@@ -158,15 +157,15 @@ library LibVault {
 
     /**
      * @dev Get credit limit for a specific reserve
-     * @param _user user address
+     * @param _vault vault address
      * @return _reserve reserve address
      **/
-    function getCreditLimit(address _user, address _reserve)
+    function getCreditLimit(address _vault, address _reserve)
         internal
         view
         returns (uint256)
     {
-        uint256 currentMargin = getMargin(_user, _reserve);
+        uint256 currentMargin = getMargin(_vault, _reserve);
         VaultConfig memory vc = getVaultConfig(_reserve);
         uint256 marginRequirement = vc.marginRequirement;
         require(marginRequirement != 0, "margin requirement cannot be 0");
@@ -176,13 +175,12 @@ library LibVault {
         return creditLimitInRay.rayToWad();
     }
 
-    function getMargin(address _user, address _reserve)
+    function getMargin(address _vault, address _reserve)
         internal
         view
         returns (uint256)
     {
-        address vault = getVaultAddress(_user);
-        return IVault(vault).getCurrentMargin(_reserve);
+        return IVault(_vault).getCurrentMargin(_reserve);
     }
 
     function getWithdrawableMargin(

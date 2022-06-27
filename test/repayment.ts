@@ -36,7 +36,11 @@ describe('Repayment', function () {
       '100000000000000000000000000'
     ); // 0.1
 
-    await voyager.depositMargin(owner, tus.address, '100000000000000000000');
+    await voyager.depositMargin(
+      vault.address,
+      tus.address,
+      '100000000000000000000'
+    );
     await voyager.borrow(tus.address, '10000000000000000000', vault.address);
 
     // increase seven days
@@ -44,7 +48,7 @@ describe('Repayment', function () {
     await ethers.provider.send('evm_increaseTime', [sevenDays]);
     await ethers.provider.send('evm_mine', []);
 
-    const vaultData = await voyager.getVaultData(owner, tus.address);
+    const vaultData = await voyager.getVaultData(vault.address, tus.address);
 
     console.log('total debt: ', vaultData.totalDebt.toString());
     console.log(
@@ -56,7 +60,7 @@ describe('Repayment', function () {
     );
 
     const drawDownDetail = await voyager.getDrawDownDetail(
-      owner,
+      vault.address,
       tus.address,
       0
     );
@@ -65,7 +69,7 @@ describe('Repayment', function () {
 
     await voyager.borrow(tus.address, '10000000000000000000', vault.address);
 
-    const vaultData2 = await voyager.getVaultData(owner, tus.address);
+    const vaultData2 = await voyager.getVaultData(vault.address, tus.address);
 
     console.log('total debt: ', vaultData2.totalDebt.toString());
     console.log(
@@ -76,7 +80,7 @@ describe('Repayment', function () {
       ']'
     );
     const drawDownDetail2 = await voyager.getDrawDownDetail(
-      owner,
+      vault.address,
       tus.address,
       1
     );
@@ -86,7 +90,7 @@ describe('Repayment', function () {
     // repay the first draw down
     await voyager.repay(tus.address, 0, vault.address);
     const drawDownDetail3 = await voyager.getDrawDownDetail(
-      owner,
+      vault.address,
       tus.address,
       0
     );
@@ -95,7 +99,7 @@ describe('Repayment', function () {
 
     await voyager.repay(tus.address, 0, vault.address);
     const drawDownDetail4 = await voyager.getDrawDownDetail(
-      owner,
+      vault.address,
       tus.address,
       0
     );
@@ -104,7 +108,7 @@ describe('Repayment', function () {
 
     await voyager.repay(tus.address, 0, vault.address);
     const drawDownDetail5 = await voyager.getDrawDownDetail(
-      owner,
+      vault.address,
       tus.address,
       0
     );
@@ -132,7 +136,11 @@ describe('Repayment', function () {
       '100000000000000000000000000'
     ); // 0.1
 
-    await voyager.depositMargin(owner, tus.address, '100000000000000000000');
+    await voyager.depositMargin(
+      vault.address,
+      tus.address,
+      '100000000000000000000'
+    );
     await voyager.borrow(tus.address, '10000000000000000000', vault.address);
 
     // increase seven days
@@ -141,7 +149,7 @@ describe('Repayment', function () {
     await ethers.provider.send('evm_mine', []);
 
     const drawDownDetail = await voyager.getDrawDownDetail(
-      owner,
+      vault.address,
       tus.address,
       0
     );

@@ -45,7 +45,6 @@ contract MarginEscrow is ERC4626, ReentrancyGuard {
         return asset.balanceOf(address(this));
     }
 
-    // TODO **broken** must fix this
     function slash(uint256 _amount, address payable _to)
         public
         payable
