@@ -145,7 +145,6 @@ contract VaultFacet is Storage, ReentrancyGuard {
         uint256 _cardPrice
     ) external {
         // todo check auth
-        console.log("updateNFTPrice");
         LibVault.updateNFTPrice(_erc721Addr, _cardId, _cardPrice);
     }
 

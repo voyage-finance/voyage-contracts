@@ -168,15 +168,14 @@ contract Vault is
 
         // 1. check if paid amount >= purchased price
         LoanFacet lf = LoanFacet(diamondStorage().voyager);
-        (uint256 paidAmount, uint256 usedPaidAmount) = lf.getPaidAmount(
+        (uint256 totalPaid, uint256 totalRedeemed) = lf.getTotalPaidAndRedeemed(
             _reserve,
             address(this)
         );
-        uint256 availableAmount = paidAmount.sub(usedPaidAmount);
-        console.log("available amount: ", availableAmount);
-        console.log("nft price: ", nftInfo.price);
+        require(totalPaid >= totalRedeemed);
+        uint256 availableAmount = totalPaid.sub(totalRedeemed);
         require(availableAmount >= nftInfo.price, "Vault: invalid withdrawal");
-        lf.increaseUsedPaidAmount(_reserve, address(this), nftInfo.price);
+        lf.increaseTotalRedeemed(_reserve, address(this), nftInfo.price);
 
         // 2. remove from heap
         diamondStorage().nfts[_erc721Addr].del(_tokenId, nftInfo.timestamp);

@@ -360,21 +360,21 @@ contract LoanFacet is Storage {
         return LibVault.getVaultDebt(_reserve, _vault);
     }
 
-    function getPaidAmount(address _reserve, address _vault)
+    function getTotalPaidAndRedeemed(address _reserve, address _vault)
         public
         view
         returns (uint256, uint256)
     {
-        return LibVault.getPaidAmount(_reserve, _vault);
+        return LibVault.getTotalPaidAndRedeemed(_reserve, _vault);
     }
 
-    function increaseUsedPaidAmount(
+    function increaseTotalRedeemed(
         address _reserve,
         address _vault,
         uint256 _amount
     ) external {
         // todo auth
-        return LibVault.increaseUsedPaidAmount(_reserve, _vault, _amount);
+        return LibVault.increaseTotalRedeemed(_reserve, _vault, _amount);
     }
 
     /// @notice Returns the total outstanding principal debt for a particular underlying asset pool
