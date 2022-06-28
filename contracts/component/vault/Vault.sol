@@ -16,12 +16,11 @@ import {Voyager} from "../Voyager.sol";
 import {VaultFacet} from "../facets/VaultFacet.sol";
 import {PeripheryPayments} from "../../libraries/utils/PeripheryPayments.sol";
 import {LoanFacet} from "../facets/LoanFacet.sol";
-import {VaultConfig, NFTInfo} from "../../libraries/LibAppStorage.sol";
+import {VaultConfig} from "../../libraries/LibAppStorage.sol";
 import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {IExternalAdapter} from "../../interfaces/IExternalAdapter.sol";
 import {PriorityQueue, Heap} from "../../libraries/logic/PriorityQueue.sol";
-import "hardhat/console.sol";
 
 contract Vault is
     ReentrancyGuard,
@@ -149,39 +148,11 @@ contract Vault is
         );
         (bool success, bytes memory ret) = target.call(data);
         require(success);
-        console.log("onSuccessTarget: ", onSuccessTarget);
         if (onSuccessTarget != address(0)) {
             (bool succ, bytes memory ret) = onSuccessTarget.call(onSuccessData);
             require(succ);
         }
         return ret;
-    }
-
-    function withdrawNFT(
-        address _reserve,
-        address _erc721Addr,
-        uint256 _tokenId
-    ) external {
-        // todo call sf to authorise
-        VaultFacet vf = VaultFacet(diamondStorage().voyager);
-        NFTInfo memory nftInfo = vf.getNFTInfo(_erc721Addr, _tokenId);
-
-        // 1. check if paid amount >= purchased price
-        LoanFacet lf = LoanFacet(diamondStorage().voyager);
-        (uint256 totalPaid, uint256 totalRedeemed) = lf.getTotalPaidAndRedeemed(
-            _reserve,
-            address(this)
-        );
-        require(totalPaid >= totalRedeemed);
-        uint256 availableAmount = totalPaid.sub(totalRedeemed);
-        require(availableAmount >= nftInfo.price, "Vault: invalid withdrawal");
-        lf.increaseTotalRedeemed(_reserve, address(this), nftInfo.price);
-
-        // 2. remove from heap
-        diamondStorage().nfts[_erc721Addr].del(_tokenId, nftInfo.timestamp);
-
-        // 3. transfer nft out
-        IERC721(_erc721Addr).transferFrom(address(this), msg.sender, _tokenId);
     }
 
     function onERC721Received(

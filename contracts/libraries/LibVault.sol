@@ -8,7 +8,7 @@ import {Vault} from "../component/vault/Vault.sol";
 import {MarginEscrow} from "../component/vault/MarginEscrow.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {IExternalAdapter} from "../interfaces/IExternalAdapter.sol";
-import {LibAppStorage, AppStorage, BorrowData, VaultConfig, NFTInfo} from "./LibAppStorage.sol";
+import {LibAppStorage, AppStorage, BorrowData, VaultConfig} from "./LibAppStorage.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
@@ -81,27 +81,12 @@ library LibVault {
         uint256 _cardPrice
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        s.nftInfo[_erc721Addr][_cardId].price = _cardPrice;
-        s.nftInfo[_erc721Addr][_cardId].timestamp = block.timestamp;
+        s.nftPrice[_erc721Addr][_cardId] = _cardPrice;
     }
 
     function updateVaultImplContract(address _vault) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         s.vaultBeacon.upgradeTo(_vault);
-    }
-
-    function validate(
-        address _target,
-        bytes4 _selector,
-        bytes calldata _payload
-    ) internal returns (address, bytes memory) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        return
-            IExternalAdapter(s.vaultStrategy[_target]).validate(
-                _target,
-                _selector,
-                _payload
-            );
     }
 
     /* ----------------------------- view functions ----------------------------- */
@@ -120,26 +105,6 @@ library LibVault {
         return (borrowData.totalPrincipal, borrowData.totalInterest);
     }
 
-    function getTotalPaidAndRedeemed(address _reserve, address _vault)
-        internal
-        view
-        returns (uint256, uint256)
-    {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        BorrowData storage borrowData = s._borrowData[_reserve][_vault];
-        return (borrowData.totalPaid, borrowData.totalRedeemed);
-    }
-
-    function increaseTotalRedeemed(
-        address _reserve,
-        address _vault,
-        uint256 _amount
-    ) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        BorrowData storage borrowData = s._borrowData[_reserve][_vault];
-        borrowData.totalRedeemed = borrowData.totalRedeemed.add(_amount);
-    }
-
     function getVaultConfig(address _reserve)
         internal
         view
@@ -149,22 +114,18 @@ library LibVault {
         return s.vaultConfigMap[_reserve];
     }
 
-    function getNFTPrice(address _erc721Addr, uint256 _tokenId)
-        internal
-        view
-        returns (uint256)
-    {
+    function validate(
+        address _target,
+        bytes4 _selector,
+        bytes calldata _payload
+    ) internal returns (address, bytes memory) {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        return s.nftInfo[_erc721Addr][_tokenId].price;
-    }
-
-    function getNFTInfo(address _erc721Addr, uint256 _tokenId)
-        internal
-        view
-        returns (NFTInfo memory)
-    {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        return s.nftInfo[_erc721Addr][_tokenId];
+        return
+            IExternalAdapter(s.vaultStrategy[_target]).validate(
+                _target,
+                _selector,
+                _payload
+            );
     }
 
     function getERC721Addr(address _target) internal returns (address) {

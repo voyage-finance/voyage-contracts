@@ -17,12 +17,6 @@ interface IVault {
         external
         returns (bytes[] memory);
 
-    function withdrawNFT(
-        address _reserve,
-        address _target,
-        uint256 _tokenId
-    ) external;
-
     function depositMargin(
         address _sponsor,
         address _reserve,
