@@ -3,7 +3,7 @@ pragma solidity ^0.8.9;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
@@ -21,7 +21,6 @@ import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {IExternalAdapter} from "../../interfaces/IExternalAdapter.sol";
 import {PriorityQueue, Heap} from "../../libraries/logic/PriorityQueue.sol";
-import "hardhat/console.sol";
 
 contract Vault is
     ReentrancyGuard,
@@ -35,7 +34,7 @@ contract Vault is
     using WadRayMath for uint256;
     using SafeMath for uint256;
     using PriorityQueue for Heap;
-    using SafeERC20 for ERC20;
+    using SafeERC20 for IERC20;
 
     struct VaultStorageV1 {
         address owner;
@@ -70,7 +69,7 @@ contract Vault is
         MarginEscrow _me = new MarginEscrow(address(this), s.voyager, _asset);
         s.escrow[_asset] = _me;
         // max approve escrow
-        ERC20(_asset).safeApprove(address(_me), type(uint256).max);
+        IERC20(_asset).safeApprove(address(_me), type(uint256).max);
         return address(_me);
     }
 
@@ -149,7 +148,6 @@ contract Vault is
         );
         (bool success, bytes memory ret) = target.call(data);
         require(success);
-        console.log("onSuccessTarget: ", onSuccessTarget);
         if (onSuccessTarget != address(0)) {
             (bool succ, bytes memory ret) = onSuccessTarget.call(onSuccessData);
             require(succ);
@@ -292,7 +290,7 @@ contract Vault is
         view
         returns (uint256)
     {
-        return ERC20(_reserve).balanceOf(address(marginEscrow(_reserve)));
+        return IERC20(_reserve).balanceOf(address(marginEscrow(_reserve)));
     }
 
     function withdrawableMargin(address _reserve, address _user)

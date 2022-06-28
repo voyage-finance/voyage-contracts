@@ -56,7 +56,7 @@ const setupBase = async ({
   await voyager.setMarginRequirement(tus.address, marginRequirement); // 0.1
 
   // create an empty vault
-  await voyager.createVault(owner, tus.address);
+  await voyager.createVault(owner);
   const vaultAddr = await voyager.getVault(owner);
   const vault = await ethers.getContractAt('Vault', vaultAddr);
   await voyager.initAsset(vaultAddr, tus.address);

@@ -9,13 +9,14 @@ import {IERC173} from "../diamond/interfaces/IERC173.sol";
 import {IERC165} from "../diamond/interfaces/IERC165.sol";
 import {DSRoles} from "../component/auth/DSRoles.sol";
 import {DSGuard} from "../component/auth/DSGuard.sol";
-import "hardhat/console.sol";
+import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
 contract InitDiamond {
     AppStorage internal s;
 
     struct Args {
         address initOwner;
+        address vaultImpl;
     }
 
     function init(Args memory _args) external {
@@ -36,6 +37,10 @@ contract InitDiamond {
             s.auth.rbac.setRootUser(_args.initOwner, true);
             bytes32 ANY = bytes32(type(uint256).max);
             s.auth.acl.permit(bytes32(bytes20(_args.initOwner)), ANY, ANY);
+        }
+
+        if (address(s.vaultBeacon) == address(0)) {
+            s.vaultBeacon = new UpgradeableBeacon(_args.vaultImpl);
         }
     }
 }

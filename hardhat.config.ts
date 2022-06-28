@@ -44,7 +44,7 @@ const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat',
   networks: {
     hardhat: {
-      allowUnlimitedContractSize: true,
+      allowUnlimitedContractSize: false,
       mining:
         process.env.MINING_MODE !== 'interval'
           ? { auto: true }

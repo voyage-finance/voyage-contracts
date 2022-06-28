@@ -1,22 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {MarginEscrow} from "../../component/vault/MarginEscrow.sol";
-import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {IExternalAdapter} from "../../interfaces/IExternalAdapter.sol";
-import {LibAppStorage, Storage, VaultConfig, Authorisation, NFTInfo} from "../../libraries/LibAppStorage.sol";
+import {LibAppStorage, Storage, VaultConfig, NFTInfo} from "../../libraries/LibAppStorage.sol";
 import {LibVault} from "../../libraries/LibVault.sol";
-import {LibSecurity} from "../../libraries/LibSecurity.sol";
-import "hardhat/console.sol";
 
 contract VaultFacet is Storage, ReentrancyGuard {
-    using WadRayMath for uint256;
-    using SafeMath for uint256;
-    using LibSecurity for Authorisation;
-
     /* --------------------------------- events --------------------------------- */
     event VaultCreated(address _vault, address _owner, uint256 _numVaults);
     event VaultAssetInitialized(
@@ -38,18 +30,10 @@ contract VaultFacet is Storage, ReentrancyGuard {
     );
 
     /* ----------------------------- admin interface ---------------------------- */
-    function createVault(address owner, address _reserve)
-        external
-        authorised
-        returns (address)
-    {
+    function createVault(address owner) external authorised returns (address) {
         address vault;
         uint256 numVaults;
-        (vault, numVaults) = LibVault.deployVault(
-            address(this),
-            owner,
-            _reserve
-        );
+        (vault, numVaults) = LibVault.deployVault(address(this), owner);
         emit VaultCreated(vault, owner, numVaults);
         return vault;
     }
@@ -94,7 +78,13 @@ contract VaultFacet is Storage, ReentrancyGuard {
         emit VaultMarginRedeemed(_vault, _reserve, msg.sender, _amount);
     }
 
-    /************************ HouseKeeping Function ******************************/
+    /* ---------------------- vault configuration interface --------------------- */
+    function setVaultStrategyAddr(address _target, address _strategyAddr)
+        external
+        authorised
+    {
+        LibVault.setVaultStrategyAddr(_target, _strategyAddr);
+    }
 
     /**
      * @dev Set max margin for _reserve
@@ -132,11 +122,12 @@ contract VaultFacet is Storage, ReentrancyGuard {
         LibVault.setMarginRequirement(_reserve, _requirement);
     }
 
-    function setVaultStrategyAddr(address _target, address _strategyAddr)
-        external
-        authorised
-    {
-        LibVault.setVaultStrategyAddr(_target, _strategyAddr);
+    /**
+     * @dev Update the vault impl address
+     * @param _impl vault impl contract
+     */
+    function updateVaultImplContract(address _impl) external authorised {
+        LibVault.updateVaultImplContract(_impl);
     }
 
     function updateNFTPrice(
@@ -146,14 +137,6 @@ contract VaultFacet is Storage, ReentrancyGuard {
     ) external {
         // todo check auth
         LibVault.updateNFTPrice(_erc721Addr, _cardId, _cardPrice);
-    }
-
-    /**
-     * @dev Update the vault impl address
-     * @param _impl vault impl contract
-     */
-    function updateVaultImplContract(address _impl) external authorised {
-        LibVault.updateVaultImplContract(_impl);
     }
 
     function validate(
@@ -168,6 +151,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
 
     function getNFTInfo(address _erc721Addr, uint256 _tokenId)
         external
+        view
         returns (NFTInfo memory)
     {
         return LibVault.getNFTInfo(_erc721Addr, _tokenId);
@@ -219,27 +203,11 @@ contract VaultFacet is Storage, ReentrancyGuard {
         return LibVault.getMargin(_vault, _reserve);
     }
 
-    function getVault(address _owner) external view returns (address) {
-        return LibVault.getVaultAddress(_owner);
-    }
-
-    function getAllVaults() external view returns (address[] memory) {
-        return s.vaults;
-    }
-
     function getWithdrawableMargin(
         address _vault,
         address _reserve,
         address _user
     ) public view returns (uint256) {
         return LibVault.getWithdrawableMargin(_vault, _reserve, _user);
-    }
-
-    function getTotalWithdrawableMargin(address _vault, address _reserve)
-        public
-        view
-        returns (uint256)
-    {
-        return LibVault.getTotalWithdrawableMargin(_vault, _reserve);
     }
 }

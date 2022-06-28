@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {ERC20, ERC4626} from "@rari-capital/solmate/src/mixins/ERC4626.sol";
@@ -12,7 +10,6 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 import {IVault} from "../../interfaces/IVault.sol";
 import {EthAddressLib} from "../../libraries/EthAddressLib.sol";
 import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
-import {IVToken} from "../../interfaces/IVToken.sol";
 
 contract MarginEscrow is ERC4626, ReentrancyGuard {
     using SafeMath for uint256;
