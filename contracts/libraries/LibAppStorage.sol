@@ -179,8 +179,6 @@ library LibAppStorage {
 }
 
 contract Storage is Context {
-    using LibSecurity for Authorisation;
-
     AppStorage internal s;
 
     modifier whenPaused() {
@@ -198,7 +196,7 @@ contract Storage is Context {
         _;
     }
 
-    function auth() internal returns (bool) {
+    function auth() internal view returns (bool) {
         return LibSecurity.isAuthorisedInbound(s.auth, msg.sender, msg.sig);
     }
 }

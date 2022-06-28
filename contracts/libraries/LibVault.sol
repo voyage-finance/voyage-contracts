@@ -4,30 +4,24 @@ pragma solidity ^0.8.9;
 import {Create2} from "@openzeppelin/contracts/utils/Create2.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
-import {Vault} from "../component/vault/Vault.sol";
 import {MarginEscrow} from "../component/vault/MarginEscrow.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {IExternalAdapter} from "../interfaces/IExternalAdapter.sol";
 import {LibAppStorage, AppStorage, BorrowData, VaultConfig, NFTInfo} from "./LibAppStorage.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
-import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
+import {Vault} from "../component/vault/Vault.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 library LibVault {
     using WadRayMath for uint256;
     using SafeMath for uint256;
 
-    function deployVault(
-        address _voyager,
-        address _owner,
-        address _reserve
-    ) internal returns (address, uint256) {
+    function deployVault(address _voyager, address _owner)
+        internal
+        returns (address, uint256)
+    {
         AppStorage storage s = LibAppStorage.diamondStorage();
         require(s.vaultMap[_owner] == address(0), "one vault per owner");
-        if (address(s.vaultBeacon) == address(0)) {
-            Vault vault = new Vault();
-            s.vaultBeacon = new UpgradeableBeacon(address(vault));
-        }
         BeaconProxy proxy = new BeaconProxy(
             address(s.vaultBeacon),
             abi.encodeWithSelector(
@@ -68,13 +62,6 @@ library LibVault {
         s.vaultConfigMap[_reserve].marginRequirement = _requirement;
     }
 
-    function setVaultStrategyAddr(address _target, address _strategyAddr)
-        internal
-    {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        s.vaultStrategy[_target] = _strategyAddr;
-    }
-
     function updateNFTPrice(
         address _erc721Addr,
         uint256 _cardId,
@@ -83,6 +70,13 @@ library LibVault {
         AppStorage storage s = LibAppStorage.diamondStorage();
         s.nftInfo[_erc721Addr][_cardId].price = _cardPrice;
         s.nftInfo[_erc721Addr][_cardId].timestamp = block.timestamp;
+    }
+
+    function setVaultStrategyAddr(address _target, address _strategyAddr)
+        internal
+    {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        s.vaultStrategy[_target] = _strategyAddr;
     }
 
     function updateVaultImplContract(address _vault) internal {

@@ -12,7 +12,7 @@ describe('Vault Creation', function () {
 
   it('Owner creates vault should return a valid vault contract', async function () {
     const { alice, voyager, tus } = await setupTestSuite();
-    await voyager.createVault(alice, tus.address);
+    await voyager.createVault(alice);
     const vaultAddress = await voyager.getVault(alice);
     expect(vaultAddress).not.to.equal(ethers.constants.AddressZero);
   });
@@ -20,9 +20,7 @@ describe('Vault Creation', function () {
   it('Non owner creates vault should revert', async function () {
     const { alice, voyager, tus } = await setupTestSuite();
     await expect(
-      voyager
-        .connect(await ethers.getSigner(alice))
-        .createVault(alice, tus.address)
+      voyager.connect(await ethers.getSigner(alice)).createVault(alice)
     ).to.be.revertedWith('call is not authorised');
   });
 });

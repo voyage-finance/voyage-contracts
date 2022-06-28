@@ -6,10 +6,11 @@ async function main() {
   const { owner } = await getNamedAccounts();
   const tus = await ethers.getContract('Tus');
   const voyager = await ethers.getContract<Voyager>('Voyager', owner);
-  const vaultAddress = await voyager.getVault(owner);
+  let vaultAddress = await voyager.getVault(owner);
   if (ethers.BigNumber.from(vaultAddress).isZero()) {
-    const tx = await voyager.createVault(owner, tus.address);
+    const tx = await voyager.createVault(owner);
     await tx.wait();
+    vaultAddress = await voyager.getVault(owner);
   }
   const vault = await ethers.getContractAt<Vault>('Vault', vaultAddress);
   const marginEscrow = await vault.marginEscrow(tus.address);

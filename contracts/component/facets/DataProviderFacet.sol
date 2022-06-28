@@ -116,7 +116,7 @@ contract DataProviderFacet {
         return poolData;
     }
 
-    function getUserVault(address _user) external view returns (address) {
+    function getVault(address _user) external view returns (address) {
         return LibVault.getVaultAddress(_user);
     }
 

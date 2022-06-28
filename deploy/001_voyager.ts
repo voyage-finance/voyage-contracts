@@ -17,6 +17,10 @@ const deployFn: DeployFunction = async (hre) => {
     args: [90, 30, 10, liquidationBonus, marginRequirement],
     log: true,
   });
+  const vaultImpl = await deploy('Vault', {
+    from: owner,
+    log: true,
+  });
 
   const diamondABI: any[] = [];
   const diamondProxyArtifact = await getArtifact('Diamond');
@@ -171,12 +175,14 @@ const deployFn: DeployFunction = async (hre) => {
         from: owner,
         log: true,
         args: [],
+        gasLimit: ethers.BigNumber.from('8000000'),
       });
       const initDiamond = await ethers.getContract('InitDiamond');
       log.debug('Preparing InitDiamond call data');
       const initArgs = initDiamond.interface.encodeFunctionData('init', [
         {
           initOwner: owner,
+          vaultImpl: vaultImpl.address,
         },
       ]);
 
