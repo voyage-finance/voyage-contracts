@@ -10,13 +10,16 @@ async function main() {
   const tus = await ethers.getContract('Tus', owner);
   const balance = await tus.balanceOf(vaultAddress);
   logger.info('balance: %s', balance.toString());
-  const currentSecurityDeposit = await voyager.getMargin(owner, tus.address);
+  const currentSecurityDeposit = await voyager.getMargin(
+    vaultAddress,
+    tus.address
+  );
   console.log('current security deposit: ', currentSecurityDeposit.toString());
 
-  const creditLimit = await voyager.getCreditLimit(owner, tus.address);
+  const creditLimit = await voyager.getCreditLimit(vaultAddress, tus.address);
   console.log('credit limit: ', creditLimit.toString());
   const availableCreditLimit = await voyager.getAvailableCredit(
-    owner,
+    vaultAddress,
     tus.address
   );
   console.log('available credit limit: ', availableCreditLimit.toString());
