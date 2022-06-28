@@ -2,6 +2,7 @@
 pragma solidity ^0.8.9;
 
 import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
+import "hardhat/console.sol";
 
 struct Heap {
     uint256[] heapList;
@@ -33,10 +34,46 @@ library PriorityQueue {
         uint256 _tokenId,
         uint256 _timestamp
     ) internal {
+        if (heap.heapList.length == 0) {
+            heap.heapList.push(0);
+        }
         uint256 element = (_tokenId << 128) | _timestamp;
         heap.heapList.push(element);
         heap.currentSize = heap.currentSize.add(1);
-        _percUp(heap, heap.currentSize.sub(1));
+        _percUp(heap, heap.currentSize);
+    }
+
+    function del(
+        Heap storage heap,
+        uint256 _tokenId,
+        uint256 _timestamp
+    ) internal {
+        uint256 element = (_tokenId << 128) | _timestamp;
+        uint256 index = 1;
+        for (uint256 i = 1; i < heap.currentSize.add(1); i++) {
+            if (heap.heapList[i] == element) {
+                index = i;
+            }
+        }
+        if (index == heap.currentSize) {
+            heap.heapList.pop();
+            heap.currentSize = heap.currentSize.sub(1);
+            return;
+        }
+
+        bool isGreater = heap.heapList[heap.currentSize] > heap.heapList[index];
+        (heap.heapList[heap.currentSize], heap.heapList[index]) = (
+            heap.heapList[index],
+            heap.heapList[heap.currentSize]
+        );
+        heap.heapList.pop();
+        heap.currentSize = heap.currentSize.sub(1);
+
+        if (isGreater) {
+            _percDown(heap, index);
+        } else {
+            _percUp(heap, index);
+        }
     }
 
     /**
