@@ -187,36 +187,36 @@ contract VaultFacet is Storage, ReentrancyGuard {
 
     /**
      * @dev Get available credit
-     * @param _user user address
+     * @param _vault user address
      * @param _reserve reserve address
      **/
-    function getAvailableCredit(address _user, address _reserve)
+    function getAvailableCredit(address _vault, address _reserve)
         external
         view
         returns (uint256)
     {
-        return LibVault.getAvailableCredit(_user, _reserve);
+        return LibVault.getAvailableCredit(_vault, _reserve);
     }
 
     /**
      * @dev Get credit limit for a specific reserve
-     * @param _user user address
+     * @param _vault vault address
      * @return _reserve reserve address
      **/
-    function getCreditLimit(address _user, address _reserve)
+    function getCreditLimit(address _vault, address _reserve)
         public
         view
         returns (uint256)
     {
-        return LibVault.getCreditLimit(_user, _reserve);
+        return LibVault.getCreditLimit(_vault, _reserve);
     }
 
-    function getMargin(address _user, address _reserve)
+    function getMargin(address _vault, address _reserve)
         external
         view
         returns (uint256)
     {
-        return LibVault.getMargin(_user, _reserve);
+        return LibVault.getMargin(_vault, _reserve);
     }
 
     function getVault(address _owner) external view returns (address) {

@@ -15,6 +15,7 @@ async function main() {
   );
   const voyager = await ethers.getContract<Voyager>('Voyager');
   const tus = await ethers.getContract('Tus');
+  const priceOracle = await ethers.getContract('PriceOracle');
 
   const [initialized, activated] = await voyager.getReserveStatus(tus.address);
   let tx: ContractTransaction;
@@ -25,7 +26,8 @@ async function main() {
       seniorDepositToken,
       interestStrategy,
       loanStrategy,
-      '500000000000000000000000000'
+      '500000000000000000000000000',
+      priceOracle.address
     );
     await tx.wait();
   }

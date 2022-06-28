@@ -10,17 +10,14 @@ async function main() {
     throw new Error('Owner has no vault');
   }
   const vault = await ethers.getContractAt<Vault>('Vault', vaultAddress);
-  const escrowAddress = await vault.getMarginEscrowAddress();
-  console.log('vault escrow address: ', escrowAddress);
 
-  // max approve sd
   const tus = await ethers.getContract('Tus', owner);
-  let tx = await tus.approve(escrowAddress, MAX_UINT_256);
+  // max approve vault
+  let tx = await tus.approve(vault.address, MAX_UINT_256);
   await tx.wait();
 
   tx = await voyager.depositMargin(
-    owner,
-    owner,
+    vault.address,
     tus.address,
     '100000000000000000000'
   );
