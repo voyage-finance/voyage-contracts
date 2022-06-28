@@ -149,6 +149,7 @@ contract Vault is
         );
         (bool success, bytes memory ret) = target.call(data);
         require(success);
+        console.log("onSuccessTarget: ", onSuccessTarget);
         if (onSuccessTarget != address(0)) {
             (bool succ, bytes memory ret) = onSuccessTarget.call(onSuccessData);
             require(succ);
@@ -167,13 +168,17 @@ contract Vault is
 
         // 1. check if paid amount >= purchased price
         LoanFacet lf = LoanFacet(diamondStorage().voyager);
-        (uint256 paidAmount, uint256 usedPaidAmount) = lf.getPaidAmount(
+        (uint256 totalPaid, uint256 totalRedeemed) = lf.getTotalPaidAndRedeemed(
             _reserve,
             address(this)
         );
-        uint256 availableAmount = paidAmount.sub(usedPaidAmount);
+        require(
+            totalPaid >= totalRedeemed,
+            "Vault: invalid total paid and redeemed"
+        );
+        uint256 availableAmount = totalPaid.sub(totalRedeemed);
         require(availableAmount >= nftInfo.price, "Vault: invalid withdrawal");
-        lf.increaseUsedPaidAmount(_reserve, address(this), nftInfo.price);
+        lf.increaseTotalRedeemed(_reserve, address(this), nftInfo.price);
 
         // 2. remove from heap
         diamondStorage().nfts[_erc721Addr].del(_tokenId, nftInfo.timestamp);

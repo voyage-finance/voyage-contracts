@@ -116,7 +116,7 @@ library LibLoan {
 
         debtData.totalPrincipal = debtData.totalPrincipal.sub(principal);
         debtData.totalInterest = debtData.totalInterest.sub(interest);
-        debtData.paidAmount = debtData.paidAmount.add(principal);
+        debtData.totalPaid = debtData.totalPaid.add(principal);
         uint256 interestRay = interest.wadToRay();
         uint256 principalRay = principal.wadToRay();
 

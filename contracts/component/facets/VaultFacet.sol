@@ -10,6 +10,7 @@ import {IExternalAdapter} from "../../interfaces/IExternalAdapter.sol";
 import {LibAppStorage, Storage, VaultConfig, Authorisation, NFTInfo} from "../../libraries/LibAppStorage.sol";
 import {LibVault} from "../../libraries/LibVault.sol";
 import {LibSecurity} from "../../libraries/LibSecurity.sol";
+import "hardhat/console.sol";
 
 contract VaultFacet is Storage, ReentrancyGuard {
     using WadRayMath for uint256;

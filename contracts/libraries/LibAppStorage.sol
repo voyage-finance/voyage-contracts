@@ -104,9 +104,8 @@ struct BorrowData {
     uint256 totalInterest;
     uint256 mapSize;
     mapping(uint256 => DrawDown) drawDowns;
-    // paid amount
-    uint256 paidAmount;
-    uint256 usedPaidAmount;
+    uint256 totalPaid;
+    uint256 totalRedeemed;
 }
 
 struct BorrowState {
