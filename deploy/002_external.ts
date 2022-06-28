@@ -1,11 +1,8 @@
 import { DeployFunction } from 'hardhat-deploy/types';
-import { MockMarketPlace, Tus, CrabadaExternalAdapter } from '@contracts';
+import { MockMarketPlace, Tus } from '@contracts';
 import { Crab } from '@contracts';
 import BigNumber from 'bignumber.js';
-import { MAX_UINT_256 } from '../helpers/math';
 
-const JR_TOKEN_NAME = 'JuniorDepositToken';
-const SR_TOKEN_NAME = 'SeniorDepositToken';
 const WRM_NAME = 'WadRayMath';
 const INTEREST_STRATEGY_NAME = 'DefaultReserveInterestRateStrategy';
 
@@ -13,7 +10,7 @@ const RAY = new BigNumber(10).pow(27);
 
 const deployFn: DeployFunction = async (hre) => {
   const { deployments, ethers, getNamedAccounts, network } = hre;
-  const { deploy, execute, read } = deployments;
+  const { deploy, execute } = deployments;
   const { owner } = await getNamedAccounts();
 
   const tusSupply = new BigNumber(1_000_000_000_000).multipliedBy(
@@ -46,16 +43,6 @@ const deployFn: DeployFunction = async (hre) => {
     args: [voyager.address, crab.address, tus.address, mp.address],
   });
   const strategy = await ethers.getContract<Crab>('CrabadaExternalAdapter');
-  const JuniorDepositToken = await deploy(JR_TOKEN_NAME, {
-    from: owner,
-    log: true,
-    args: [voyager.address, tus.address, 'TUS Junior Tranche', 'jvTUS'],
-  });
-  const SeniorDepositToken = await deploy(SR_TOKEN_NAME, {
-    from: owner,
-    log: true,
-    args: [voyager.address, tus.address, 'TUS Senior Tranche', 'svTUS'],
-  });
 
   await execute(
     'Voyager',
@@ -77,22 +64,6 @@ const deployFn: DeployFunction = async (hre) => {
     'setVaultStrategyAddr',
     mp.address,
     strategy.address
-  );
-  await execute(
-    'Voyager',
-    { from: owner, log: true },
-    'approve',
-    tus.address,
-    SeniorDepositToken.address,
-    MAX_UINT_256
-  );
-  await execute(
-    'Voyager',
-    { from: owner, log: true },
-    'approve',
-    tus.address,
-    JuniorDepositToken.address,
-    MAX_UINT_256
   );
 
   const wadRayMath = await deploy(WRM_NAME, { from: owner, log: true });

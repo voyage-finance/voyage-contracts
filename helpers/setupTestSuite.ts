@@ -27,8 +27,6 @@ const setupBase = async ({
   /* ---------------------------------- infra --------------------------------- */
   const priceOracle = await ethers.getContract('PriceOracle');
   /* ------------------------------ tokenization ------------------------------ */
-  const juniorDepositToken = await ethers.getContract('JuniorDepositToken');
-  const seniorDepositToken = await ethers.getContract('SeniorDepositToken');
   const tus = await ethers.getContract('Tus');
   const crab = await ethers.getContract('Crab');
   const marketPlace = await ethers.getContract('MockMarketPlace');
@@ -40,14 +38,21 @@ const setupBase = async ({
   /* ------------------------- reserve initialisation ------------------------- */
   await voyager.initReserve(
     tus.address,
-    juniorDepositToken.address,
-    seniorDepositToken.address,
     defaultReserveInterestRateStrategy.address,
     defaultLoanStrategy.address,
     '500000000000000000000000000',
     priceOracle.address
   );
   await voyager.activateReserve(tus.address);
+  const [senior, junior] = await voyager.getDepositTokens(tus.address);
+  const seniorDepositToken = await ethers.getContractAt(
+    'SeniorDepositToken',
+    senior
+  );
+  const juniorDepositToken = await ethers.getContractAt(
+    'JuniorDepositToken',
+    junior
+  );
   await tus.approve(voyager.address, MAX_UINT_256);
 
   /* -------------------------- vault initialisation -------------------------- */

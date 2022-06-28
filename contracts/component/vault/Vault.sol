@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
 import {IERC165} from "@openzeppelin/contracts/interfaces/IERC165.sol";
@@ -19,6 +20,7 @@ import {LoanFacet} from "../facets/LoanFacet.sol";
 import {VaultConfig, NFTInfo} from "../../libraries/LibAppStorage.sol";
 import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
 import {IVault} from "../../interfaces/IVault.sol";
+import {IMarginEscrow} from "../../interfaces/IMarginEscrow.sol";
 import {IExternalAdapter} from "../../interfaces/IExternalAdapter.sol";
 import {PriorityQueue, Heap} from "../../libraries/logic/PriorityQueue.sol";
 
@@ -40,8 +42,8 @@ contract Vault is
         address owner;
         address voyager;
         // asset (ERC20) => escrow
-        mapping(address => MarginEscrow) escrow;
         mapping(address => CreditEscrow) cescrow;
+        mapping(address => address) escrow;
         // erc721 address => heap
         mapping(address => Heap) nfts;
         /// @dev You must not set element 0xffffffff to true
@@ -67,14 +69,24 @@ contract Vault is
             address(s.escrow[_asset]) == address(0),
             "asset already initialised"
         );
-        MarginEscrow _me = new MarginEscrow(address(this), s.voyager, _asset);
         CreditEscrow _ce = new CreditEscrow();
+        BeaconProxy proxy = new BeaconProxy(
+            address(vaultFacet().marginEscrowBeacon()),
+            abi.encodeWithSelector(
+                IMarginEscrow(address(0)).initialize.selector,
+                address(this),
+                s.voyager,
+                _asset
+            )
+        );
+        address _me = address(proxy);
+        require(_me != address(0), "failed to deploy margin escrow");
         s.escrow[_asset] = _me;
         s.cescrow[_asset] = _ce;
         // max approve escrow
-        IERC20(_asset).safeApprove(address(_me), type(uint256).max);
         IERC20(_asset).safeApprove(address(_ce), type(uint256).max);
-        return address(_me);
+        IERC20(_asset).safeApprove(_me, type(uint256).max);
+        return _me;
     }
 
     /// @notice Transfer some margin deposit
@@ -87,7 +99,7 @@ contract Vault is
         uint256 _amount
     ) external payable nonReentrant onlyVoyager {
         VaultConfig memory vaultConfig = vaultFacet().getVaultConfig(_reserve);
-        MarginEscrow me = marginEscrow(_reserve);
+        IMarginEscrow me = marginEscrow(_reserve);
         require(address(me) != address(0), "Vault: asset not initialised");
         uint256 maxAllowedAmount = vaultConfig.maxMargin;
         uint256 depositedAmount = me.totalMargin();
@@ -110,7 +122,7 @@ contract Vault is
         address _reserve,
         uint256 _amount
     ) external payable nonReentrant onlyVoyager {
-        MarginEscrow me = marginEscrow(_reserve);
+        IMarginEscrow me = marginEscrow(_reserve);
         require(address(me) != address(0), "Vault: asset not initialised");
         me.withdraw(_amount, _sponsor, _sponsor);
     }
@@ -121,7 +133,7 @@ contract Vault is
         address payable _to,
         uint256 _amount
     ) external nonReentrant onlyVoyager returns (uint256) {
-        MarginEscrow me = diamondStorage().escrow[_reserve];
+        IMarginEscrow me = marginEscrow(_reserve);
         return me.slash(_amount, _to);
     }
 
@@ -264,9 +276,9 @@ contract Vault is
     /// @notice Returns the margin escrow for a given asset supported by the Vault
     /// @dev If the returned address is 0x0, the asset is not supported
     /// @param _asset address of the underlying ERC20 being escrowed
-    /// @return MarginEscrow
-    function marginEscrow(address _asset) public view returns (MarginEscrow) {
-        return diamondStorage().escrow[_asset];
+    /// @return IMarginEscrow
+    function marginEscrow(address _asset) public view returns (IMarginEscrow) {
+        return IMarginEscrow(diamondStorage().escrow[_asset]);
     }
 
     function creditEscrow(address _asset) external view returns (address) {

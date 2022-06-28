@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import {Create2} from "@openzeppelin/contracts/utils/Create2.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import {MarginEscrow} from "../component/vault/MarginEscrow.sol";
@@ -108,6 +107,11 @@ library LibVault {
     }
 
     /* ----------------------------- view functions ----------------------------- */
+    function marginEscrowBeacon() internal view returns (address) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return address(s.marginEscrowBeacon);
+    }
+
     function getVaultAddress(address _owner) internal view returns (address) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.vaultMap[_owner];

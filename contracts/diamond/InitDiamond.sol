@@ -17,6 +17,9 @@ contract InitDiamond {
     struct Args {
         address initOwner;
         address vaultImpl;
+        address marginEscrowImpl;
+        address seniorDepositTokenImpl;
+        address juniorDepositTokenImpl;
     }
 
     function init(Args memory _args) external {
@@ -41,6 +44,24 @@ contract InitDiamond {
 
         if (address(s.vaultBeacon) == address(0)) {
             s.vaultBeacon = new UpgradeableBeacon(_args.vaultImpl);
+        }
+
+        if (address(s.marginEscrowBeacon) == address(0)) {
+            s.marginEscrowBeacon = new UpgradeableBeacon(
+                _args.marginEscrowImpl
+            );
+        }
+
+        if (address(s.seniorDepositTokenBeacon) == address(0)) {
+            s.seniorDepositTokenBeacon = new UpgradeableBeacon(
+                _args.seniorDepositTokenImpl
+            );
+        }
+
+        if (address(s.juniorDepositTokenBeacon) == address(0)) {
+            s.juniorDepositTokenBeacon = new UpgradeableBeacon(
+                _args.juniorDepositTokenImpl
+            );
         }
     }
 }

@@ -7,8 +7,6 @@ const getAddress = (contract: string) =>
 
 async function main() {
   const treasureUnderSea = await getAddress('Tus');
-  const juniorDepositToken = await getAddress('JuniorDepositToken');
-  const seniorDepositToken = await getAddress('SeniorDepositToken');
   const loanStrategy = await getAddress('DefaultLoanStrategy');
   const interestStrategy = await getAddress(
     'DefaultReserveInterestRateStrategy'
@@ -22,8 +20,6 @@ async function main() {
   if (!initialized) {
     tx = await voyager.initReserve(
       treasureUnderSea,
-      juniorDepositToken,
-      seniorDepositToken,
       interestStrategy,
       loanStrategy,
       '500000000000000000000000000',

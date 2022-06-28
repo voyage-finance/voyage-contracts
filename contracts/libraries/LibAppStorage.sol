@@ -147,6 +147,8 @@ struct AppStorage {
     /* -------------------------------- plumbing -------------------------------- */
     mapping(bytes32 => address) _addresses;
     /* -------------------------------- liquidity ------------------------------- */
+    UpgradeableBeacon seniorDepositTokenBeacon;
+    UpgradeableBeacon juniorDepositTokenBeacon;
     mapping(address => ReserveData) _reserves;
     // List of reserves as a map (reserveId => reserve)
     mapping(uint256 => address) _reserveList;
@@ -157,6 +159,7 @@ struct AppStorage {
     bool _paused;
     /* ---------------------------------- vault --------------------------------- */
     UpgradeableBeacon vaultBeacon;
+    UpgradeableBeacon marginEscrowBeacon;
     address[] vaults;
     // mapping of vault owner to vault instance address
     mapping(address => address) vaultMap;

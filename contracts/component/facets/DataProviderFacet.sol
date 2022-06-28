@@ -116,6 +116,16 @@ contract DataProviderFacet {
         return poolData;
     }
 
+    function getDepositTokens(address _asset)
+        public
+        view
+        returns (address senior, address junior)
+    {
+        ReserveData memory reserve = LibLiquidity.getReserveData(_asset);
+        senior = reserve.seniorDepositTokenAddress;
+        junior = reserve.juniorDepositTokenAddress;
+    }
+
     function getVault(address _user) external view returns (address) {
         return LibVault.getVaultAddress(_user);
     }

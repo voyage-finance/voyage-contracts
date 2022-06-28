@@ -156,6 +156,9 @@ contract VaultFacet is Storage, ReentrancyGuard {
     }
 
     /************************************** View Functions **************************************/
+    function marginEscrowBeacon() public view returns (address) {
+        return LibVault.marginEscrowBeacon();
+    }
 
     function getNFTInfo(address _erc721Addr, uint256 _tokenId)
         external

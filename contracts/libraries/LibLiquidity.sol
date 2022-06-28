@@ -4,14 +4,15 @@ pragma solidity ^0.8.9;
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import {Errors} from "./helpers/Errors.sol";
 import {ReserveConfiguration} from "./configuration/ReserveConfiguration.sol";
 import {IReserveInterestRateStrategy} from "../interfaces/IReserveInterestRateStrategy.sol";
 import {ValidationLogic} from "./logic/ValidationLogic.sol";
 import {LibAppStorage, AppStorage, ReserveData, ReserveConfigurationMap, BorrowData, BorrowState, Tranche} from "./LibAppStorage.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
+import {VToken} from "../tokenization/base/VToken.sol";
 import {WadRayMath} from "./math/WadRayMath.sol";
-import "hardhat/console.sol";
 
 library LibLiquidity {
     using SafeMath for uint256;
@@ -33,24 +34,51 @@ library LibLiquidity {
     }
 
     uint256 internal constant RAY = 1e27;
+    uint256 internal constant UINT256_MAX = type(uint256).max;
 
     /* --------------------------- reserve management --------------------------- */
     function init(
         ReserveData storage reserve,
-        address _juniorDepositTokenAddress,
-        address _seniorDepositTokenAddress,
+        address _asset,
         address _interestRateStrategyAddress,
         address _loanStrategyAddress,
         uint256 _optimalIncomeRatio,
         address _priceOracle
     ) internal {
-        reserve.juniorDepositTokenAddress = _juniorDepositTokenAddress;
-        reserve.seniorDepositTokenAddress = _seniorDepositTokenAddress;
+        require(
+            reserve.seniorDepositTokenAddress == address(0) &&
+                reserve.juniorDepositTokenAddress == address(0),
+            "deposit tokens already deployed"
+        );
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        bytes memory data = abi.encodeWithSelector(
+            VToken.initialize.selector,
+            address(this),
+            _asset
+        );
+        IERC20 token = IERC20(_asset);
+        reserve.seniorDepositTokenAddress = deployBeaconProxy(
+            address(s.seniorDepositTokenBeacon),
+            data
+        );
+        token.approve(reserve.seniorDepositTokenAddress, UINT256_MAX);
+        reserve.juniorDepositTokenAddress = deployBeaconProxy(
+            address(s.juniorDepositTokenBeacon),
+            data
+        );
+        token.approve(reserve.juniorDepositTokenAddress, UINT256_MAX);
         reserve.interestRateStrategyAddress = _interestRateStrategyAddress;
         reserve.optimalIncomeRatio = _optimalIncomeRatio;
         reserve.loanStrategyAddress = _loanStrategyAddress;
         reserve.initialized = true;
         reserve.priceOracle = _priceOracle;
+    }
+
+    function deployBeaconProxy(address _impl, bytes memory _data)
+        internal
+        returns (address)
+    {
+        return address(new BeaconProxy(_impl, _data));
     }
 
     struct UpdateInterestRatesLocalVars {

@@ -3,19 +3,28 @@ pragma solidity ^0.8.9;
 
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import {ERC20, ERC4626} from "@rari-capital/solmate/src/mixins/ERC4626.sol";
 import {SafeTransferLib} from "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {IMarginEscrow} from "../../interfaces/IMarginEscrow.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {EthAddressLib} from "../../libraries/EthAddressLib.sol";
 import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {ERC4626, IERC4626} from "../../tokenization/base/ERC4626.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract MarginEscrow is ERC4626, ReentrancyGuard {
+contract MarginEscrow is
+    Initializable,
+    ERC4626,
+    IMarginEscrow,
+    ReentrancyGuard
+{
     using SafeMath for uint256;
     using WadRayMath for uint256;
+    using SafeERC20 for IERC20Metadata;
     using Address for address payable;
-    using SafeTransferLib for ERC20;
 
     event Deposited(address indexed payee, address token, uint256 amount);
     event Withdrawn(address indexed payee, address token, uint256 amount);
@@ -29,16 +38,25 @@ contract MarginEscrow is ERC4626, ReentrancyGuard {
         _;
     }
 
-    constructor(
+    function initialize(
         address _vault,
         address _voyager,
         address _asset
-    ) ERC4626(ERC20(_asset), ERC20(_asset).name(), ERC20(_asset).symbol()) {
+    ) public initializer {
         voyager = _voyager;
         vault = _vault;
+        IERC20Metadata underlying = IERC20Metadata(_asset);
+        __ERC20_init(underlying.name(), underlying.symbol());
+        __ERC20Permit_init(underlying.name());
+        __ERC4626_init(underlying);
     }
 
-    function totalAssets() public view override returns (uint256) {
+    function totalAssets()
+        public
+        view
+        override(ERC4626, IERC4626)
+        returns (uint256)
+    {
         return asset.balanceOf(address(this));
     }
 
@@ -61,7 +79,7 @@ contract MarginEscrow is ERC4626, ReentrancyGuard {
         uint256 _amount,
         address _receiver,
         address _user
-    ) public override onlyOwner returns (uint256) {
+    ) public override(ERC4626, IERC4626) onlyOwner returns (uint256) {
         uint256 withdrawableBalance = withdrawableMargin(_user);
         require(
             withdrawableBalance >= _amount,
