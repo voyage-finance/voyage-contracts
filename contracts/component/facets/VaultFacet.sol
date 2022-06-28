@@ -10,6 +10,7 @@ import {IExternalAdapter} from "../../interfaces/IExternalAdapter.sol";
 import {LibAppStorage, Storage, VaultConfig, Authorisation, NFTInfo} from "../../libraries/LibAppStorage.sol";
 import {LibVault} from "../../libraries/LibVault.sol";
 import {LibSecurity} from "../../libraries/LibSecurity.sol";
+import "hardhat/console.sol";
 
 contract VaultFacet is Storage, ReentrancyGuard {
     using WadRayMath for uint256;
@@ -144,6 +145,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         uint256 _cardPrice
     ) external {
         // todo check auth
+        console.log("updateNFTPrice");
         LibVault.updateNFTPrice(_erc721Addr, _cardId, _cardPrice);
     }
 

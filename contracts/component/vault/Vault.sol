@@ -149,6 +149,7 @@ contract Vault is
         );
         (bool success, bytes memory ret) = target.call(data);
         require(success);
+        console.log("onSuccessTarget: ", onSuccessTarget);
         if (onSuccessTarget != address(0)) {
             (bool succ, bytes memory ret) = onSuccessTarget.call(onSuccessData);
             require(succ);
@@ -172,6 +173,8 @@ contract Vault is
             address(this)
         );
         uint256 availableAmount = paidAmount.sub(usedPaidAmount);
+        console.log("available amount: ", availableAmount);
+        console.log("nft price: ", nftInfo.price);
         require(availableAmount >= nftInfo.price, "Vault: invalid withdrawal");
         lf.increaseUsedPaidAmount(_reserve, address(this), nftInfo.price);
 
