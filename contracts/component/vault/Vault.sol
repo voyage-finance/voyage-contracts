@@ -172,7 +172,10 @@ contract Vault is
             _reserve,
             address(this)
         );
-        require(totalPaid >= totalRedeemed);
+        require(
+            totalPaid >= totalRedeemed,
+            "Vault: invalid total paid and redeemed"
+        );
         uint256 availableAmount = totalPaid.sub(totalRedeemed);
         require(availableAmount >= nftInfo.price, "Vault: invalid withdrawal");
         lf.increaseTotalRedeemed(_reserve, address(this), nftInfo.price);
