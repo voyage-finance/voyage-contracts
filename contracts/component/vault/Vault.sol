@@ -4,7 +4,6 @@ pragma solidity ^0.8.9;
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
 import {IERC165} from "@openzeppelin/contracts/interfaces/IERC165.sol";
@@ -12,6 +11,7 @@ import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Recei
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {MarginEscrow} from "./MarginEscrow.sol";
+import {CreditEscrow} from "./CreditEscrow.sol";
 import {Voyager} from "../Voyager.sol";
 import {VaultFacet} from "../facets/VaultFacet.sol";
 import {PeripheryPayments} from "../../libraries/utils/PeripheryPayments.sol";
@@ -41,6 +41,7 @@ contract Vault is
         address voyager;
         // asset (ERC20) => escrow
         mapping(address => MarginEscrow) escrow;
+        mapping(address => CreditEscrow) cescrow;
         // erc721 address => heap
         mapping(address => Heap) nfts;
         /// @dev You must not set element 0xffffffff to true
@@ -67,9 +68,12 @@ contract Vault is
             "asset already initialised"
         );
         MarginEscrow _me = new MarginEscrow(address(this), s.voyager, _asset);
+        CreditEscrow _ce = new CreditEscrow();
         s.escrow[_asset] = _me;
+        s.cescrow[_asset] = _ce;
         // max approve escrow
         IERC20(_asset).safeApprove(address(_me), type(uint256).max);
+        IERC20(_asset).safeApprove(address(_ce), type(uint256).max);
         return address(_me);
     }
 
@@ -141,18 +145,46 @@ contract Vault is
         VaultFacet vf = VaultFacet(diamondStorage().voyager);
         bytes4 selector = bytes4(data[0:4]);
         bytes memory args = data[4:];
-        (address onSuccessTarget, bytes memory onSuccessData) = vf.validate(
-            target,
-            selector,
-            args
-        );
+        (
+            address[] memory beforeTarget,
+            bytes[] memory beforeData,
+            address[] memory onSuccessTarget,
+            bytes[] memory onSuccessData
+        ) = vf.validate(target, selector, args);
+        _call(beforeTarget, beforeData);
         (bool success, bytes memory ret) = target.call(data);
         require(success);
-        if (onSuccessTarget != address(0)) {
-            (bool succ, bytes memory ret) = onSuccessTarget.call(onSuccessData);
-            require(succ);
-        }
+        _call(onSuccessTarget, onSuccessData);
         return ret;
+    }
+
+    function _call(address[] memory target, bytes[] memory data) internal {
+        for (uint256 i = 0; i < target.length; i++) {
+            if (target[i] != address(0)) {
+                (bool success, bytes memory ret) = target[i].call(data[i]);
+                require(success, "invalid before call");
+            }
+        }
+    }
+
+    /// @notice refund transferred amount back to escrow if there is any
+    /// @param _target To find adapter
+    /// @param _reserve Reserve address
+    /// @param _amountBefore Balance before transferring happen to buy nft etc.
+    function refund(
+        address _target,
+        address _reserve,
+        uint256 _amountBefore
+    ) external {
+        require(msg.sender == address(this), "Vault#refund: invalid caller");
+        uint256 depositAmount = _amountBefore.sub(
+            IERC20(_reserve).balanceOf(address(this))
+        );
+        address escrow = address(diamondStorage().cescrow[_reserve]);
+        require(escrow != address(0), "Vault#refund: asset not initialised");
+        if (depositAmount != 0) {
+            IERC20(_reserve).safeTransfer(escrow, depositAmount);
+        }
     }
 
     function withdrawNFT(
@@ -235,6 +267,10 @@ contract Vault is
     /// @return MarginEscrow
     function marginEscrow(address _asset) public view returns (MarginEscrow) {
         return diamondStorage().escrow[_asset];
+    }
+
+    function creditEscrow(address _asset) external view returns (address) {
+        return address(diamondStorage().cescrow[_asset]);
     }
 
     /// @notice Returns true if this contract implements the interface defined by

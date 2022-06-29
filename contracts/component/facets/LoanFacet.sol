@@ -103,11 +103,6 @@ contract LoanFacet is Storage {
             Errors.LOM_RESERVE_NOT_SUFFICIENT
         );
 
-        // 2. check HF
-        //        IHealthStrategy healthStrategy = IHealthStrategy(
-        //            reserveData.healthStrategyAddress
-        //        );
-
         // 3. check credit limit
         uint256 availableCreditLimit = LibVault.getAvailableCredit(
             _vault,
@@ -160,7 +155,7 @@ contract LoanFacet is Storage {
         );
 
         IVToken(reserveData.seniorDepositTokenAddress).transferUnderlyingTo(
-            _vault,
+            IVault(_vault).creditEscrow(_asset),
             _amount
         );
 
