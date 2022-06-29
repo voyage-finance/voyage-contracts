@@ -268,7 +268,7 @@ contract Vault is
         uint256 _amount
     ) external onlyOwner {
         require(
-            IERC20(_reserve).balanceOf(this) >= _amount,
+            IERC20(_reserve).balanceOf(address(this)) >= _amount,
             "Vault: fund not enough"
         );
         IERC20(_reserve).safeTransfer(_receiver, _amount);
