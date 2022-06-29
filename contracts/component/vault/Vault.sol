@@ -55,6 +55,13 @@ contract Vault is
         _;
     }
 
+    modifier onlyOwner() {
+        VaultFacet vf = VaultFacet(diamondStorage().voyager);
+        address vault = vf.getVaultAddr(msg.sender);
+        require(vault == address(this), "Vault: not owner");
+        _;
+    }
+
     function initialize(address _voyager, address _owner) external initializer {
         diamondStorage().voyager = _voyager;
         diamondStorage().owner = _owner;
@@ -140,6 +147,7 @@ contract Vault is
     /// @notice To accept external calls from authorised client, used for pursing NFT or doing approve etc.
     function callExternal(Call[] calldata calls)
         external
+        onlyOwner
         returns (bytes[] memory)
     {
         bytes[] memory returnData = new bytes[](calls.length);
@@ -153,7 +161,6 @@ contract Vault is
         internal
         returns (bytes memory)
     {
-        // todo call sf to authorise
         VaultFacet vf = VaultFacet(diamondStorage().voyager);
         bytes4 selector = bytes4(data[0:4]);
         bytes memory args = data[4:];
@@ -203,8 +210,7 @@ contract Vault is
         address _reserve,
         address _erc721Addr,
         uint256 _tokenId
-    ) external {
-        // todo call sf to authorise
+    ) external onlyOwner {
         VaultFacet vf = VaultFacet(diamondStorage().voyager);
         NFTInfo memory nftInfo = vf.getNFTInfo(_erc721Addr, _tokenId);
 
@@ -254,6 +260,18 @@ contract Vault is
             (tokenId, timestamp) = diamondStorage().nfts[_erc721Addr].delMin();
             IERC721(_erc721Addr).transferFrom(address(this), _to, tokenId);
         }
+    }
+
+    function withdrawRewards(
+        address _reserve,
+        address _receiver,
+        uint256 _amount
+    ) external onlyOwner {
+        require(
+            IERC20(_reserve).balanceOf(address(this)) >= _amount,
+            "Vault: fund not enough"
+        );
+        IERC20(_reserve).safeTransfer(_receiver, _amount);
     }
 
     /// @notice Should return whether the signature provided is valid for the provided data

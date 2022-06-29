@@ -54,6 +54,12 @@ interface IVault {
         uint256 _num
     ) external;
 
+    function withdrawRewards(
+        address _reserve,
+        address _receiver,
+        uint256 _amount
+    ) external;
+
     function creditEscrow(address _asset) external view returns (address);
 
     function getTotalNFTNumbers(address _erc721Addr)
