@@ -180,6 +180,10 @@ contract VaultFacet is Storage, ReentrancyGuard {
         return LibVault.getVaultConfig(_reserve);
     }
 
+    function getVaultAddr(address _user) external view returns (address) {
+        return LibVault.getVaultAddress(_user);
+    }
+
     function getAdapter(address _target) external view returns (address) {
         return LibVault.getAdapter(_target);
     }
