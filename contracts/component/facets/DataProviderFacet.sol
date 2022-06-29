@@ -223,9 +223,11 @@ contract DataProviderFacet {
             _vault,
             _reserve
         );
-        vaultData.ltv = vaultData.gav.add(vaultData.totalMargin).rayDiv(
-            vaultData.totalDebt
-        );
+        vaultData.ltv = vaultData.totalDebt == 0
+            ? 1
+            : vaultData.gav.add(vaultData.totalMargin).rayDiv(
+                vaultData.totalDebt
+            );
 
         return vaultData;
     }
