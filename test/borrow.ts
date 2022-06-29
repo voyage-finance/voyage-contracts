@@ -86,7 +86,7 @@ describe('Borrow', function () {
       '100000000000000000000'
     );
     await voyager.borrow(tus.address, '10000000000000000000', vault.address);
-    const vaultBalance = await tus.balanceOf(vault.address);
+    const vaultBalance = await tus.balanceOf(vault.creditEscrow(tus.address));
     expect(vaultBalance).to.equal(BigNumber.from('10000000000000000000'));
     const creditLimit = await voyager.getCreditLimit(
       vault.address,

@@ -74,7 +74,7 @@ describe('Security Redeem', function () {
     // borrow 500
     const borrow = BigNumber.from(500).mul(decimals(18));
     await voyager.borrow(tus.address, borrow, vault.address);
-    const vaultBalance = await tus.balanceOf(vault.address);
+    const vaultBalance = await tus.balanceOf(vault.creditEscrow(tus.address));
     expect(vaultBalance.div(decimals(18))).to.equal('500');
     const vaultDebt = await vault.totalDebt(tus.address);
 

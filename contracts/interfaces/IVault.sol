@@ -2,6 +2,7 @@
 pragma solidity ^0.8.9;
 
 import {MarginEscrow} from "../component/vault/MarginEscrow.sol";
+import {CreditEscrow} from "../component/vault/CreditEscrow.sol";
 
 interface IVault {
     struct Call {
@@ -21,6 +22,12 @@ interface IVault {
         address _reserve,
         address _target,
         uint256 _tokenId
+    ) external;
+
+    function refund(
+        address _target,
+        address _reserve,
+        uint256 _amountBefore
     ) external;
 
     function depositMargin(
@@ -46,6 +53,8 @@ interface IVault {
         address _to,
         uint256 _num
     ) external;
+
+    function creditEscrow(address _asset) external view returns (address);
 
     function getTotalNFTNumbers(address _erc721Addr)
         external

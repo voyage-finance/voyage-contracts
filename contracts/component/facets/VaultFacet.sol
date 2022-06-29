@@ -143,7 +143,15 @@ contract VaultFacet is Storage, ReentrancyGuard {
         address _target,
         bytes4 _selector,
         bytes calldata _payload
-    ) external returns (address, bytes memory) {
+    )
+        external
+        returns (
+            address[] memory,
+            bytes[] memory,
+            address[] memory,
+            bytes[] memory
+        )
+    {
         return LibVault.validate(_target, _selector, _payload);
     }
 
@@ -167,6 +175,10 @@ contract VaultFacet is Storage, ReentrancyGuard {
         returns (VaultConfig memory)
     {
         return LibVault.getVaultConfig(_reserve);
+    }
+
+    function getAdapter(address _target) external view returns (address) {
+        return LibVault.getAdapter(_target);
     }
 
     /**

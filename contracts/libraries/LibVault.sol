@@ -88,10 +88,19 @@ library LibVault {
         address _target,
         bytes4 _selector,
         bytes calldata _payload
-    ) internal returns (address, bytes memory) {
+    )
+        internal
+        returns (
+            address[] memory,
+            bytes[] memory,
+            address[] memory,
+            bytes[] memory
+        )
+    {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return
             IExternalAdapter(s.vaultStrategy[_target]).validate(
+                msg.sender,
                 _target,
                 _selector,
                 _payload
@@ -143,13 +152,9 @@ library LibVault {
         return s.vaultConfigMap[_reserve];
     }
 
-    function getNFTPrice(address _erc721Addr, uint256 _tokenId)
-        internal
-        view
-        returns (uint256)
-    {
+    function getAdapter(address _target) internal view returns (address) {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        return s.nftInfo[_erc721Addr][_tokenId].price;
+        return s.vaultStrategy[_target];
     }
 
     function getNFTInfo(address _erc721Addr, uint256 _tokenId)

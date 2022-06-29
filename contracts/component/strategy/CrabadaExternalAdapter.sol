@@ -2,9 +2,14 @@
 pragma solidity ^0.8.9;
 
 import {IExternalAdapter} from "../../interfaces/IExternalAdapter.sol";
+import {IVault} from "../../interfaces/IVault.sol";
 import {VaultFacet} from "../facets/VaultFacet.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract CrabadaExternalAdapter is IExternalAdapter {
+    using SafeMath for uint256;
+
     address immutable erc721Addr;
     address immutable erc20Addr;
     address immutable marketPlace;
@@ -26,12 +31,31 @@ contract CrabadaExternalAdapter is IExternalAdapter {
         return erc721Addr;
     }
 
+    struct ValidationParam {
+        address vault;
+        address target;
+        bytes4 selector;
+    }
+
     function validate(
+        address vault,
         address target,
         bytes4 selector,
         bytes calldata payload
-    ) external returns (address onSuccessTarget, bytes memory onSuccessData) {
-        if (validateMarketplaceFunc(target, selector, payload)) {
+    )
+        external
+        returns (
+            address[] memory beforeTarget,
+            bytes[] memory beforeData,
+            address[] memory onSuccessTarget,
+            bytes[] memory onSuccessData
+        )
+    {
+        ValidationParam memory param;
+        param.vault = vault;
+        param.target = target;
+        param.selector = selector;
+        if (validateMarketplaceFunc(param.target, param.selector, payload)) {
             uint256 orderId = abi.decode(payload, (uint256));
             (bool success, bytes memory returnedData) = marketPlace.call(
                 abi.encodeWithSignature("sellOrders(uint256)", orderId)
@@ -40,17 +64,36 @@ contract CrabadaExternalAdapter is IExternalAdapter {
                 returnedData,
                 (address, uint256, uint256)
             );
-            onSuccessData = abi.encodeWithSignature(
+            onSuccessTarget = new address[](2);
+            onSuccessData = new bytes[](2);
+            onSuccessTarget[0] = voyager;
+            onSuccessData[0] = abi.encodeWithSignature(
                 "updateNFTPrice(address,uint256,uint256)",
                 erc721Addr,
                 cardId,
                 cardPrice
             );
-            return (voyager, onSuccessData);
+            onSuccessTarget[1] = param.vault;
+            onSuccessData[1] = abi.encodeWithSignature(
+                "refund(address,address,uint256)",
+                erc721Addr,
+                erc20Addr,
+                IERC20(erc20Addr).balanceOf(param.vault)
+            );
+            beforeTarget = new address[](1);
+            beforeData = new bytes[](1);
+            beforeTarget[0] = IVault(param.vault).creditEscrow(erc20Addr);
+            beforeData[0] = abi.encodeWithSignature(
+                "transferUnderlyingTo(address,address,uint256)",
+                erc20Addr,
+                param.vault,
+                cardPrice.mul(2)
+            );
+            return (beforeTarget, beforeData, onSuccessTarget, onSuccessData);
         }
 
-        if (validateERC20Func(target, selector, payload)) {
-            return (address(0), abi.encodeWithSignature(""));
+        if (validateERC20Func(param.target, param.selector, payload)) {
+            return (beforeTarget, beforeData, onSuccessTarget, onSuccessData);
         }
         revert("CrabadaExternalAdapter: invalid call");
     }

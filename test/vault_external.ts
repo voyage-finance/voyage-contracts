@@ -23,7 +23,9 @@ describe('Vault', function () {
       '100000000000000000000'
     );
     await voyager.borrow(tus.address, '100000000000000000000', vault.address);
-    const vaultBalance = await tus.balanceOf(vault.address);
+    const escrowAddr = await vault.creditEscrow(tus.address);
+    console.log('reserve escrow: ', escrowAddr);
+    const vaultBalance = await tus.balanceOf(escrowAddr);
     console.log('vault balance: ', vaultBalance.toString());
 
     await crab.safeMint(alice, 1);
