@@ -1,26 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {ERC20, ERC4626} from "@rari-capital/solmate/src/mixins/ERC4626.sol";
+import {IERC4626} from "../interfaces/IERC4626.sol";
 
-abstract contract IVToken is ERC4626 {
-    constructor(
-        ERC20 _asset,
-        string memory _name,
-        string memory _symbol
-    ) ERC4626(_asset, _name, _symbol) {}
+interface IVToken is IERC4626 {
+    function transferUnderlyingTo(address _target, uint256 _amount) external;
 
-    function transferUnderlyingTo(address _target, uint256 _amount)
-        external
-        virtual;
-
-    function claim(uint256 _withdrawlIdx) external virtual;
+    function claim(uint256 _withdrawlIdx) external;
 
     function unbonding(address _user)
         external
         view
-        virtual
         returns (uint256[] memory, uint256[] memory);
 
-    function totalUnbonding() external view virtual returns (uint256);
+    function totalUnbonding() external view returns (uint256);
 }

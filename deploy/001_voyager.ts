@@ -21,6 +21,22 @@ const deployFn: DeployFunction = async (hre) => {
     from: owner,
     log: true,
   });
+  const marginEscrowImpl = await deploy('MarginEscrow', {
+    from: owner,
+    log: true,
+  });
+  const seniorDepositImpl = await deploy('SeniorDepositToken', {
+    from: owner,
+    log: true,
+  });
+  const juniorDepositImpl = await deploy('JuniorDepositToken', {
+    from: owner,
+    log: true,
+  });
+  await deploy('PriceOracle', {
+    from: owner,
+    log: true,
+  });
 
   const diamondABI: any[] = [];
   const diamondProxyArtifact = await getArtifact('Diamond');
@@ -183,6 +199,9 @@ const deployFn: DeployFunction = async (hre) => {
         {
           initOwner: owner,
           vaultImpl: vaultImpl.address,
+          marginEscrowImpl: marginEscrowImpl.address,
+          seniorDepositTokenImpl: seniorDepositImpl.address,
+          juniorDepositTokenImpl: juniorDepositImpl.address,
         },
       ]);
 

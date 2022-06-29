@@ -3,24 +3,25 @@ pragma solidity ^0.8.9;
 
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {ERC20} from "@rari-capital/solmate/src/tokens/ERC20.sol";
-import {SafeTransferLib} from "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
 import {Errors} from "../../libraries/helpers/Errors.sol";
+import {ERC4626, IERC4626} from "./ERC4626.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IVToken} from "../../interfaces/IVToken.sol";
 
-abstract contract BaseDepositToken is Context, IVToken {
+abstract contract VToken is Initializable, ERC4626, IVToken {
     using SafeMath for uint256;
-    using SafeTransferLib for ERC20;
+    using SafeERC20 for IERC20Metadata;
 
-    address internal immutable voyager;
+    address internal voyager;
     // user address => timestamp => amount
     mapping(address => mapping(uint256 => uint256)) private withdrawals;
 
     // user address => timestamp array
     mapping(address => uint256[]) private pendingTimestamp;
 
-    uint256 public override totalUnbonding;
+    uint256 public totalUnbonding;
 
     uint256 public cooldown = 7 days;
 
@@ -34,27 +35,22 @@ abstract contract BaseDepositToken is Context, IVToken {
         _;
     }
 
-    constructor(
-        address _voyager,
-        ERC20 _asset,
-        string memory _name,
-        string memory _symbol
-    ) IVToken(_asset, _name, _symbol) {
+    function initialize(address _voyager, address _asset) public initializer {
+        IERC20Metadata underlying = IERC20Metadata(_asset);
         voyager = _voyager;
+        __ERC20_init(underlying.name(), underlying.symbol());
+        __ERC20Permit_init(underlying.name());
+        __ERC4626_init(underlying);
     }
 
     function withdraw(
         uint256 _amount,
         address _receiver,
         address _owner
-    ) public override returns (uint256 shares) {
+    ) public override(ERC4626, IERC4626) returns (uint256 shares) {
         shares = previewWithdraw(_amount); // No need to check for rounding error, previewWithdraw rounds up.
-
         if (msg.sender != _owner) {
-            uint256 allowed = allowance[_owner][msg.sender]; // Saves gas for limited approvals.
-
-            if (allowed != type(uint256).max)
-                allowance[_owner][msg.sender] = allowed - shares;
+            _spendAllowance(_owner, msg.sender, shares);
         }
 
         beforeWithdraw(_amount, shares);
@@ -65,7 +61,7 @@ abstract contract BaseDepositToken is Context, IVToken {
         emit Withdraw(msg.sender, _receiver, _owner, _amount, shares);
     }
 
-    function claim(uint256 _index) public override {
+    function claim(uint256 _index) public {
         uint256 amount = popWithdraw(msg.sender, _index);
         require(
             asset.balanceOf(address(this)) >= amount,
@@ -76,7 +72,6 @@ abstract contract BaseDepositToken is Context, IVToken {
 
     function transferUnderlyingTo(address _target, uint256 _amount)
         public
-        override
         onlyAdmin
     {
         asset.safeTransfer(_target, _amount);
@@ -111,7 +106,6 @@ abstract contract BaseDepositToken is Context, IVToken {
     function unbonding(address _user)
         public
         view
-        override
         returns (uint256[] memory, uint256[] memory)
     {
         uint256[] memory times = pendingTimestamp[_user];

@@ -116,6 +116,16 @@ contract DataProviderFacet {
         return poolData;
     }
 
+    function getDepositTokens(address _asset)
+        public
+        view
+        returns (address senior, address junior)
+    {
+        ReserveData memory reserve = LibLiquidity.getReserveData(_asset);
+        senior = reserve.seniorDepositTokenAddress;
+        junior = reserve.juniorDepositTokenAddress;
+    }
+
     function getVault(address _user) external view returns (address) {
         return LibVault.getVaultAddress(_user);
     }
@@ -213,9 +223,11 @@ contract DataProviderFacet {
             _vault,
             _reserve
         );
-        vaultData.ltv = vaultData.gav.add(vaultData.totalMargin).rayDiv(
-            vaultData.totalDebt
-        );
+        vaultData.ltv = vaultData.totalDebt == 0
+            ? 1
+            : vaultData.gav.add(vaultData.totalMargin).rayDiv(
+                vaultData.totalDebt
+            );
 
         return vaultData;
     }

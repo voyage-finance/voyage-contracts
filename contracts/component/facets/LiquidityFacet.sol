@@ -48,8 +48,6 @@ contract LiquidityFacet is Storage, PeripheryPayments {
 
     function initReserve(
         address _asset,
-        address _juniorDepositTokenAddress,
-        address _seniorDepositTokenAddress,
         address _interestRateStrategyAddress,
         address _loanStrategyAddress,
         uint256 _optimalIncomeRatio,
@@ -59,8 +57,7 @@ contract LiquidityFacet is Storage, PeripheryPayments {
         ReserveData storage reserveData = LibLiquidity.getReserveData(_asset);
         require(reserveData.initialized == false, "cannot initialize twice");
         reserveData.init(
-            _juniorDepositTokenAddress,
-            _seniorDepositTokenAddress,
+            _asset,
             _interestRateStrategyAddress,
             _loanStrategyAddress,
             _optimalIncomeRatio,
@@ -70,8 +67,8 @@ contract LiquidityFacet is Storage, PeripheryPayments {
         s._reservesCount++;
         emit ReserveInitialized(
             _asset,
-            _juniorDepositTokenAddress,
-            _seniorDepositTokenAddress,
+            reserveData.juniorDepositTokenAddress,
+            reserveData.seniorDepositTokenAddress,
             _interestRateStrategyAddress,
             _optimalIncomeRatio
         );
