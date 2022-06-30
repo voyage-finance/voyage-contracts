@@ -30,6 +30,7 @@ const setupBase = async ({
   const tus = await ethers.getContract('Tus');
   const crab = await ethers.getContract('Crab');
   const marketPlace = await ethers.getContract('MockMarketPlace');
+  const battleGame = await ethers.getContract('MockCrabadaBattleGame');
   const defaultReserveInterestRateStrategy = await ethers.getContract(
     'DefaultReserveInterestRateStrategy'
   );
@@ -77,6 +78,7 @@ const setupBase = async ({
     tus,
     crab,
     marketPlace,
+    battleGame,
     juniorDepositToken,
     seniorDepositToken,
     vault,

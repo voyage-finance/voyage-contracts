@@ -4,6 +4,27 @@ import { setupTestSuite } from '../helpers/setupTestSuite';
 import { MAX_UINT_256 } from '../helpers/math';
 
 describe('Vault', function () {
+  it('Call battle game should return correct value', async function () {
+    const { vault, battleGame, crab, owner } = await setupTestSuite();
+    const call = [
+      {
+        target: battleGame.address,
+        callData: battleGame.interface.encodeFunctionData(
+          'depositNFT721(address,address,uint256[])',
+          [crab.address, owner, [1, 2]]
+        ),
+      },
+      {
+        target: battleGame.address,
+        callData: battleGame.interface.encodeFunctionData(
+          'withdrawNFT721(address,uint256[],uint256,uint256,bytes)',
+          [crab.address, [1, 2], 123456, 2, '0x1234']
+        ),
+      },
+    ];
+    await vault.callExternal(call);
+  });
+
   it('Full process', async function () {
     const { alice, vault, tus, voyager, crab, marketPlace } =
       await setupTestSuite();

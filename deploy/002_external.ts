@@ -27,6 +27,10 @@ const deployFn: DeployFunction = async (hre) => {
       log: true,
       args: ['Mocked Crab', 'MC'],
     });
+    await deploy('MockCrabadaBattleGame', {
+      from: owner,
+      log: true,
+    });
   }
   const voyager = await deployments.get('Voyager');
   const tus = await ethers.getContract<Tus>('Tus');
@@ -37,10 +41,17 @@ const deployFn: DeployFunction = async (hre) => {
     args: [tus.address, crab.address, 0, owner],
   });
   const mp = await ethers.getContract<MockMarketPlace>('MockMarketPlace');
+  const battle_game = await ethers.getContract('MockCrabadaBattleGame');
   await deploy('CrabadaExternalAdapter', {
     from: owner,
     log: true,
-    args: [voyager.address, crab.address, tus.address, mp.address],
+    args: [
+      voyager.address,
+      crab.address,
+      tus.address,
+      mp.address,
+      battle_game.address,
+    ],
   });
   const strategy = await ethers.getContract<Crab>('CrabadaExternalAdapter');
 
@@ -63,6 +74,13 @@ const deployFn: DeployFunction = async (hre) => {
     { from: owner, log: true },
     'setVaultStrategyAddr',
     mp.address,
+    strategy.address
+  );
+  await execute(
+    'Voyager',
+    { from: owner, log: true },
+    'setVaultStrategyAddr',
+    battle_game.address,
     strategy.address
   );
 

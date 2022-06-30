@@ -13,18 +13,21 @@ contract CrabadaExternalAdapter is IExternalAdapter {
     address immutable erc721Addr;
     address immutable erc20Addr;
     address immutable marketPlace;
+    address immutable battleGame;
     address immutable voyager;
 
     constructor(
         address _voyager,
         address _erc721Addr,
         address _erc20Addr,
-        address _marketPlace
+        address _marketPlace,
+        address _battleGame
     ) {
         voyager = _voyager;
         erc721Addr = _erc721Addr;
         erc20Addr = _erc20Addr;
         marketPlace = _marketPlace;
+        battleGame = _battleGame;
     }
 
     function getERC721() external returns (address) {
@@ -92,10 +95,66 @@ contract CrabadaExternalAdapter is IExternalAdapter {
             return (beforeTarget, beforeData, onSuccessTarget, onSuccessData);
         }
 
-        if (validateERC20Func(param.target, param.selector, payload)) {
+        if (
+            validateERC20Func(param.target, param.selector, payload) ||
+            validateBattle(param.target, param.selector, payload)
+        ) {
             return (beforeTarget, beforeData, onSuccessTarget, onSuccessData);
         }
+
         revert("CrabadaExternalAdapter: invalid call");
+    }
+
+    function validateBattle(
+        address target,
+        bytes4 selector,
+        bytes calldata payload
+    ) internal view returns (bool) {
+        if (target != battleGame) {
+            return false;
+        }
+        // depositNFT721(IERC721Token token, address to, uint256[] calldata ids)
+        if (
+            bytes4(keccak256("depositNFT721(address,address,uint256[])")) ==
+            selector
+        ) {
+            (address token, address to, uint256[] memory ids) = abi.decode(
+                payload,
+                (address, address, uint256[])
+            );
+            if (token == address(0) || to == address(0) || ids.length == 0) {
+                return false;
+            }
+            return true;
+        }
+
+        // withdrawNFT721(IERC721Token token, uint256[] calldata ids, uint256 expiredTime, uint256 nonce, bytes calldata signature)
+        if (
+            bytes4(
+                keccak256(
+                    "withdrawNFT721(address,uint256[],uint256,uint256,bytes)"
+                )
+            ) == selector
+        ) {
+            (
+                address token,
+                uint256[] memory ids,
+                uint256 expiredTime,
+                uint256 nonce,
+                bytes memory signature
+            ) = abi.decode(
+                    payload,
+                    (address, uint256[], uint256, uint256, bytes)
+                );
+
+            if (token == address(0) || ids.length == 0 || expiredTime == 0) {
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     function validateERC20Func(
