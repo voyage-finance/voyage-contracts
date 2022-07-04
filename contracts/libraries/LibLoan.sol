@@ -19,6 +19,7 @@ library LibLoan {
         uint256 term;
         uint256 epoch;
         uint256 nper;
+        address reserve;
         PMT pmt;
         uint256 apr;
         uint256 borrowAt;
@@ -215,6 +216,7 @@ library LibLoan {
         debtDetail.totalInterestPaid = dd.totalInterestPaid;
         debtDetail.totalPrincipalPaid = dd.totalPrincipalPaid;
         debtDetail.paidTimes = dd.paidTimes;
+        debtDetail.reserve = _reserve;
         return debtDetail;
     }
 
