@@ -82,10 +82,6 @@ contract LoanFacet is Storage {
         uint256 _amount,
         address payable _vault
     ) external whenNotPaused {
-        ExecuteBorrowParams memory executeBorrowParams = previewBorrowParams(
-            _asset,
-            _amount
-        );
         // todo use min security deposit
         require(_amount >= 1e19, Errors.LOM_INVALID_AMOUNT);
 
@@ -118,6 +114,11 @@ contract LoanFacet is Storage {
         );
 
         BorrowState memory borrowStat = LibLoan.getBorrowState(_asset);
+
+        ExecuteBorrowParams memory executeBorrowParams = previewBorrowParams(
+            _asset,
+            _amount
+        );
 
         LibLoan.updateStateOnBorrow(
             _asset,
