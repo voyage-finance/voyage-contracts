@@ -82,7 +82,10 @@ contract LoanFacet is Storage {
         uint256 _amount,
         address payable _vault
     ) external whenNotPaused {
-        ExecuteBorrowParams memory executeBorrowParams;
+        ExecuteBorrowParams memory executeBorrowParams = previewBorrowParams(
+            _asset,
+            _amount
+        );
         // todo use min security deposit
         require(_amount >= 1e19, Errors.LOM_INVALID_AMOUNT);
 
@@ -114,29 +117,7 @@ contract LoanFacet is Storage {
             Errors.LOM_CREDIT_NOT_SUFFICIENT
         );
 
-        // 4. update debt logic
-        executeBorrowParams.term = ILoanStrategy(
-            reserveData.loanStrategyAddress
-        ).getTerm();
-        executeBorrowParams.epoch = ILoanStrategy(
-            reserveData.loanStrategyAddress
-        ).getEpoch();
-
-        // 5. update liquidity index and interest rate
         BorrowState memory borrowStat = LibLoan.getBorrowState(_asset);
-        (
-            executeBorrowParams.liquidityRate,
-            executeBorrowParams.borrowRate
-        ) = IReserveInterestRateStrategy(
-            reserveData.interestRateStrategyAddress
-        ).calculateInterestRates(
-                _asset,
-                reserveData.seniorDepositTokenAddress,
-                0,
-                _amount,
-                borrowStat.totalDebt,
-                borrowStat.avgBorrowRate
-            );
 
         LibLoan.updateStateOnBorrow(
             _asset,
@@ -353,6 +334,42 @@ contract LoanFacet is Storage {
         returns (uint256, uint256)
     {
         return LibVault.getVaultDebt(_reserve, _vault);
+    }
+
+    function previewBorrowParams(address _asset, uint256 _amount)
+        public
+        view
+        returns (ExecuteBorrowParams memory)
+    {
+        ExecuteBorrowParams memory executeBorrowParams;
+        ReserveData memory reserveData = LibLiquidity.getReserveData(_asset);
+
+        // 4. update debt logic
+        executeBorrowParams.term = ILoanStrategy(
+            reserveData.loanStrategyAddress
+        ).getTerm();
+        executeBorrowParams.epoch = ILoanStrategy(
+            reserveData.loanStrategyAddress
+        ).getEpoch();
+
+        // 5. update liquidity index and interest rate
+        BorrowState memory borrowStat = LibLoan.getBorrowState(_asset);
+
+        (
+            executeBorrowParams.liquidityRate,
+            executeBorrowParams.borrowRate
+        ) = IReserveInterestRateStrategy(
+            reserveData.interestRateStrategyAddress
+        ).calculateInterestRates(
+                _asset,
+                reserveData.seniorDepositTokenAddress,
+                0,
+                _amount,
+                borrowStat.totalDebt,
+                borrowStat.avgBorrowRate
+            );
+
+        return executeBorrowParams;
     }
 
     function getTotalPaidAndRedeemed(address _reserve, address _vault)
