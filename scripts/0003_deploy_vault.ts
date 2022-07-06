@@ -8,11 +8,17 @@ async function main() {
   const voyage = await ethers.getContract<Voyage>('Voyage', owner);
   let vaultAddress = await voyage.getVault(owner);
   if (ethers.BigNumber.from(vaultAddress).isZero()) {
-    const tx = await voyage.createVault(owner);
+    const salt = ethers.utils.formatBytes32String(
+      (Math.random() + 1).toString(36).substring(7)
+    );
+    const tx = await voyage.createVault(owner, salt);
     await tx.wait();
     vaultAddress = await voyage.getVault(owner);
   }
-  const vault = await ethers.getContractAt<Vault>('Vault', vaultAddress);
+  const vault = await ethers.getContractAt<Vault>(
+    'hardhat-diamond-abi/HardhatDiamondABI.sol:Vault',
+    vaultAddress
+  );
   const marginEscrow = await vault.marginEscrow(tus.address);
   if (ethers.BigNumber.from(marginEscrow).isZero()) {
     const initTx = await voyage.initAsset(vaultAddress, tus.address);

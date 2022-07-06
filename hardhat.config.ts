@@ -58,16 +58,10 @@ const config: HardhatUserConfig = {
       accounts: [DEPLOYER_PRIVATE_KEY],
     },
     avalancheFuji: {
-      url: 'https://fuji-c.staging.voyage.finance/rpc',
+      url: 'https://api.avax-test.network/ext/bc/C/rpc',
       chainId: 43113,
       accounts: [DEPLOYER_PRIVATE_KEY],
       gas: 8000000,
-    },
-    voyage: {
-      url: 'https://vethtest.staging.voyage.finance/',
-      chainId: 666,
-      accounts: [DEPLOYER_PRIVATE_KEY],
-      gas: 20000000,
     },
   },
   watcher: {

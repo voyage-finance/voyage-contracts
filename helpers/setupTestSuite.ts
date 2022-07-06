@@ -122,8 +122,6 @@ const setupMocks = async (
   );
 };
 
-const createVault = async () => {};
-
 export const setupTestSuite = d.createFixture(async (hre) => {
   return setupBase(hre);
 });
