@@ -1,0 +1,1062 @@
+{
+  "address": "0x20693132DCE884f55836CcFEA156AFdaD543d6A6",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "currentVersion",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_version",
+          "type": "uint256"
+        }
+      ],
+      "name": "isUpToDate",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "init",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes",
+          "name": "initArgs",
+          "type": "bytes"
+        },
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "facetAddress",
+              "type": "address"
+            },
+            {
+              "internalType": "bytes4[]",
+              "name": "functionSelectors",
+              "type": "bytes4[]"
+            }
+          ],
+          "internalType": "struct IDiamondLoupe.Facet[]",
+          "name": "facets",
+          "type": "tuple[]"
+        }
+      ],
+      "name": "registerUpgrade",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x20f89e7ce264e36e56e6ce144ea7e9459b4d09ac281e6e7ba2ef2273ed761440",
+  "receipt": {
+    "to": "0x4e59b44847b379578588920cA78FbF26c0B4956C",
+    "from": "0x4C616d9377Fa8d928385F0b11Ab16D4bf0f2d544",
+    "contractAddress": null,
+    "transactionIndex": 2,
+    "gasUsed": "803200",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x34b18f5213ca553d20e6d8180087beb67684b12340abb871e46d43ff51092370",
+    "transactionHash": "0x20f89e7ce264e36e56e6ce144ea7e9459b4d09ac281e6e7ba2ef2273ed761440",
+    "logs": [],
+    "blockNumber": 11320997,
+    "cumulativeGasUsed": "946473",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "69865adbcb28e0ed9c987fbab724fb9c",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.9+commit.e5eed63a\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"currentVersion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_version\",\"type\":\"uint256\"}],\"name\":\"isUpToDate\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"init\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"initArgs\",\"type\":\"bytes\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"facetAddress\",\"type\":\"address\"},{\"internalType\":\"bytes4[]\",\"name\":\"functionSelectors\",\"type\":\"bytes4[]\"}],\"internalType\":\"struct IDiamondLoupe.Facet[]\",\"name\":\"facets\",\"type\":\"tuple[]\"}],\"name\":\"registerUpgrade\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/voyage/facets/DiamondVersionFacet.sol\":\"DiamondVersionFacet\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":2000},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/access/Ownable.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.1 (access/Ownable.sol)\\n\\npragma solidity ^0.8.0;\\n\\nimport \\\"../utils/Context.sol\\\";\\n\\n/**\\n * @dev Contract module which provides a basic access control mechanism, where\\n * there is an account (an owner) that can be granted exclusive access to\\n * specific functions.\\n *\\n * By default, the owner account will be the one that deploys the contract. This\\n * can later be changed with {transferOwnership}.\\n *\\n * This module is used through inheritance. It will make available the modifier\\n * `onlyOwner`, which can be applied to your functions to restrict their use to\\n * the owner.\\n */\\nabstract contract Ownable is Context {\\n    address private _owner;\\n\\n    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);\\n\\n    /**\\n     * @dev Initializes the contract setting the deployer as the initial owner.\\n     */\\n    constructor() {\\n        _transferOwnership(_msgSender());\\n    }\\n\\n    /**\\n     * @dev Returns the address of the current owner.\\n     */\\n    function owner() public view virtual returns (address) {\\n        return _owner;\\n    }\\n\\n    /**\\n     * @dev Throws if called by any account other than the owner.\\n     */\\n    modifier onlyOwner() {\\n        require(owner() == _msgSender(), \\\"Ownable: caller is not the owner\\\");\\n        _;\\n    }\\n\\n    /**\\n     * @dev Leaves the contract without owner. It will not be possible to call\\n     * `onlyOwner` functions anymore. Can only be called by the current owner.\\n     *\\n     * NOTE: Renouncing ownership will leave the contract without an owner,\\n     * thereby removing any functionality that is only available to the owner.\\n     */\\n    function renounceOwnership() public virtual onlyOwner {\\n        _transferOwnership(address(0));\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Can only be called by the current owner.\\n     */\\n    function transferOwnership(address newOwner) public virtual onlyOwner {\\n        require(newOwner != address(0), \\\"Ownable: new owner is the zero address\\\");\\n        _transferOwnership(newOwner);\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Internal function without access restriction.\\n     */\\n    function _transferOwnership(address newOwner) internal virtual {\\n        address oldOwner = _owner;\\n        _owner = newOwner;\\n        emit OwnershipTransferred(oldOwner, newOwner);\\n    }\\n}\\n\",\"keccak256\":\"0x24e0364e503a9bbde94c715d26573a76f14cd2a202d45f96f52134ab806b67b9\",\"license\":\"MIT\"},\"@openzeppelin/contracts/proxy/beacon/IBeacon.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.1 (proxy/beacon/IBeacon.sol)\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @dev This is the interface that {BeaconProxy} expects of its beacon.\\n */\\ninterface IBeacon {\\n    /**\\n     * @dev Must return an address that can be used as a delegate call target.\\n     *\\n     * {BeaconProxy} will check that this address is a contract.\\n     */\\n    function implementation() external view returns (address);\\n}\\n\",\"keccak256\":\"0xd50a3421ac379ccb1be435fa646d66a65c986b4924f0849839f08692f39dde61\",\"license\":\"MIT\"},\"@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.1 (proxy/beacon/UpgradeableBeacon.sol)\\n\\npragma solidity ^0.8.0;\\n\\nimport \\\"./IBeacon.sol\\\";\\nimport \\\"../../access/Ownable.sol\\\";\\nimport \\\"../../utils/Address.sol\\\";\\n\\n/**\\n * @dev This contract is used in conjunction with one or more instances of {BeaconProxy} to determine their\\n * implementation contract, which is where they will delegate all function calls.\\n *\\n * An owner is able to change the implementation the beacon points to, thus upgrading the proxies that use this beacon.\\n */\\ncontract UpgradeableBeacon is IBeacon, Ownable {\\n    address private _implementation;\\n\\n    /**\\n     * @dev Emitted when the implementation returned by the beacon is changed.\\n     */\\n    event Upgraded(address indexed implementation);\\n\\n    /**\\n     * @dev Sets the address of the initial implementation, and the deployer account as the owner who can upgrade the\\n     * beacon.\\n     */\\n    constructor(address implementation_) {\\n        _setImplementation(implementation_);\\n    }\\n\\n    /**\\n     * @dev Returns the current implementation address.\\n     */\\n    function implementation() public view virtual override returns (address) {\\n        return _implementation;\\n    }\\n\\n    /**\\n     * @dev Upgrades the beacon to a new implementation.\\n     *\\n     * Emits an {Upgraded} event.\\n     *\\n     * Requirements:\\n     *\\n     * - msg.sender must be the owner of the contract.\\n     * - `newImplementation` must be a contract.\\n     */\\n    function upgradeTo(address newImplementation) public virtual onlyOwner {\\n        _setImplementation(newImplementation);\\n        emit Upgraded(newImplementation);\\n    }\\n\\n    /**\\n     * @dev Sets the implementation contract address for this beacon\\n     *\\n     * Requirements:\\n     *\\n     * - `newImplementation` must be a contract.\\n     */\\n    function _setImplementation(address newImplementation) private {\\n        require(Address.isContract(newImplementation), \\\"UpgradeableBeacon: implementation is not a contract\\\");\\n        _implementation = newImplementation;\\n    }\\n}\\n\",\"keccak256\":\"0x6ec71aef5659f3f74011169948d2fcda8c6599be5bb38f986380a8737f96cc0f\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/Address.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v4.5.0) (utils/Address.sol)\\n\\npragma solidity ^0.8.1;\\n\\n/**\\n * @dev Collection of functions related to the address type\\n */\\nlibrary Address {\\n    /**\\n     * @dev Returns true if `account` is a contract.\\n     *\\n     * [IMPORTANT]\\n     * ====\\n     * It is unsafe to assume that an address for which this function returns\\n     * false is an externally-owned account (EOA) and not a contract.\\n     *\\n     * Among others, `isContract` will return false for the following\\n     * types of addresses:\\n     *\\n     *  - an externally-owned account\\n     *  - a contract in construction\\n     *  - an address where a contract will be created\\n     *  - an address where a contract lived, but was destroyed\\n     * ====\\n     *\\n     * [IMPORTANT]\\n     * ====\\n     * You shouldn't rely on `isContract` to protect against flash loan attacks!\\n     *\\n     * Preventing calls from contracts is highly discouraged. It breaks composability, breaks support for smart wallets\\n     * like Gnosis Safe, and does not provide security since it can be circumvented by calling from a contract\\n     * constructor.\\n     * ====\\n     */\\n    function isContract(address account) internal view returns (bool) {\\n        // This method relies on extcodesize/address.code.length, which returns 0\\n        // for contracts in construction, since the code is only stored at the end\\n        // of the constructor execution.\\n\\n        return account.code.length > 0;\\n    }\\n\\n    /**\\n     * @dev Replacement for Solidity's `transfer`: sends `amount` wei to\\n     * `recipient`, forwarding all available gas and reverting on errors.\\n     *\\n     * https://eips.ethereum.org/EIPS/eip-1884[EIP1884] increases the gas cost\\n     * of certain opcodes, possibly making contracts go over the 2300 gas limit\\n     * imposed by `transfer`, making them unable to receive funds via\\n     * `transfer`. {sendValue} removes this limitation.\\n     *\\n     * https://diligence.consensys.net/posts/2019/09/stop-using-soliditys-transfer-now/[Learn more].\\n     *\\n     * IMPORTANT: because control is transferred to `recipient`, care must be\\n     * taken to not create reentrancy vulnerabilities. Consider using\\n     * {ReentrancyGuard} or the\\n     * https://solidity.readthedocs.io/en/v0.5.11/security-considerations.html#use-the-checks-effects-interactions-pattern[checks-effects-interactions pattern].\\n     */\\n    function sendValue(address payable recipient, uint256 amount) internal {\\n        require(address(this).balance >= amount, \\\"Address: insufficient balance\\\");\\n\\n        (bool success, ) = recipient.call{value: amount}(\\\"\\\");\\n        require(success, \\\"Address: unable to send value, recipient may have reverted\\\");\\n    }\\n\\n    /**\\n     * @dev Performs a Solidity function call using a low level `call`. A\\n     * plain `call` is an unsafe replacement for a function call: use this\\n     * function instead.\\n     *\\n     * If `target` reverts with a revert reason, it is bubbled up by this\\n     * function (like regular Solidity function calls).\\n     *\\n     * Returns the raw returned data. To convert to the expected return value,\\n     * use https://solidity.readthedocs.io/en/latest/units-and-global-variables.html?highlight=abi.decode#abi-encoding-and-decoding-functions[`abi.decode`].\\n     *\\n     * Requirements:\\n     *\\n     * - `target` must be a contract.\\n     * - calling `target` with `data` must not revert.\\n     *\\n     * _Available since v3.1._\\n     */\\n    function functionCall(address target, bytes memory data) internal returns (bytes memory) {\\n        return functionCall(target, data, \\\"Address: low-level call failed\\\");\\n    }\\n\\n    /**\\n     * @dev Same as {xref-Address-functionCall-address-bytes-}[`functionCall`], but with\\n     * `errorMessage` as a fallback revert reason when `target` reverts.\\n     *\\n     * _Available since v3.1._\\n     */\\n    function functionCall(\\n        address target,\\n        bytes memory data,\\n        string memory errorMessage\\n    ) internal returns (bytes memory) {\\n        return functionCallWithValue(target, data, 0, errorMessage);\\n    }\\n\\n    /**\\n     * @dev Same as {xref-Address-functionCall-address-bytes-}[`functionCall`],\\n     * but also transferring `value` wei to `target`.\\n     *\\n     * Requirements:\\n     *\\n     * - the calling contract must have an ETH balance of at least `value`.\\n     * - the called Solidity function must be `payable`.\\n     *\\n     * _Available since v3.1._\\n     */\\n    function functionCallWithValue(\\n        address target,\\n        bytes memory data,\\n        uint256 value\\n    ) internal returns (bytes memory) {\\n        return functionCallWithValue(target, data, value, \\\"Address: low-level call with value failed\\\");\\n    }\\n\\n    /**\\n     * @dev Same as {xref-Address-functionCallWithValue-address-bytes-uint256-}[`functionCallWithValue`], but\\n     * with `errorMessage` as a fallback revert reason when `target` reverts.\\n     *\\n     * _Available since v3.1._\\n     */\\n    function functionCallWithValue(\\n        address target,\\n        bytes memory data,\\n        uint256 value,\\n        string memory errorMessage\\n    ) internal returns (bytes memory) {\\n        require(address(this).balance >= value, \\\"Address: insufficient balance for call\\\");\\n        require(isContract(target), \\\"Address: call to non-contract\\\");\\n\\n        (bool success, bytes memory returndata) = target.call{value: value}(data);\\n        return verifyCallResult(success, returndata, errorMessage);\\n    }\\n\\n    /**\\n     * @dev Same as {xref-Address-functionCall-address-bytes-}[`functionCall`],\\n     * but performing a static call.\\n     *\\n     * _Available since v3.3._\\n     */\\n    function functionStaticCall(address target, bytes memory data) internal view returns (bytes memory) {\\n        return functionStaticCall(target, data, \\\"Address: low-level static call failed\\\");\\n    }\\n\\n    /**\\n     * @dev Same as {xref-Address-functionCall-address-bytes-string-}[`functionCall`],\\n     * but performing a static call.\\n     *\\n     * _Available since v3.3._\\n     */\\n    function functionStaticCall(\\n        address target,\\n        bytes memory data,\\n        string memory errorMessage\\n    ) internal view returns (bytes memory) {\\n        require(isContract(target), \\\"Address: static call to non-contract\\\");\\n\\n        (bool success, bytes memory returndata) = target.staticcall(data);\\n        return verifyCallResult(success, returndata, errorMessage);\\n    }\\n\\n    /**\\n     * @dev Same as {xref-Address-functionCall-address-bytes-}[`functionCall`],\\n     * but performing a delegate call.\\n     *\\n     * _Available since v3.4._\\n     */\\n    function functionDelegateCall(address target, bytes memory data) internal returns (bytes memory) {\\n        return functionDelegateCall(target, data, \\\"Address: low-level delegate call failed\\\");\\n    }\\n\\n    /**\\n     * @dev Same as {xref-Address-functionCall-address-bytes-string-}[`functionCall`],\\n     * but performing a delegate call.\\n     *\\n     * _Available since v3.4._\\n     */\\n    function functionDelegateCall(\\n        address target,\\n        bytes memory data,\\n        string memory errorMessage\\n    ) internal returns (bytes memory) {\\n        require(isContract(target), \\\"Address: delegate call to non-contract\\\");\\n\\n        (bool success, bytes memory returndata) = target.delegatecall(data);\\n        return verifyCallResult(success, returndata, errorMessage);\\n    }\\n\\n    /**\\n     * @dev Tool to verifies that a low level call was successful, and revert if it wasn't, either by bubbling the\\n     * revert reason using the provided one.\\n     *\\n     * _Available since v4.3._\\n     */\\n    function verifyCallResult(\\n        bool success,\\n        bytes memory returndata,\\n        string memory errorMessage\\n    ) internal pure returns (bytes memory) {\\n        if (success) {\\n            return returndata;\\n        } else {\\n            // Look for revert reason and bubble it up if present\\n            if (returndata.length > 0) {\\n                // The easiest way to bubble the revert reason is using memory via assembly\\n\\n                assembly {\\n                    let returndata_size := mload(returndata)\\n                    revert(add(32, returndata), returndata_size)\\n                }\\n            } else {\\n                revert(errorMessage);\\n            }\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0x2ccf9d2313a313d41a791505f2b5abfdc62191b5d4334f7f7a82691c088a1c87\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/Context.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.1 (utils/Context.sol)\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @dev Provides information about the current execution context, including the\\n * sender of the transaction and its data. While these are generally available\\n * via msg.sender and msg.data, they should not be accessed in such a direct\\n * manner, since when dealing with meta-transactions the account sending and\\n * paying for execution may not be the actual sender (as far as an application\\n * is concerned).\\n *\\n * This contract is only required for intermediate, library-like contracts.\\n */\\nabstract contract Context {\\n    function _msgSender() internal view virtual returns (address) {\\n        return msg.sender;\\n    }\\n\\n    function _msgData() internal view virtual returns (bytes calldata) {\\n        return msg.data;\\n    }\\n}\\n\",\"keccak256\":\"0xe2e337e6dde9ef6b680e07338c493ebea1b5fd09b43424112868e9cc1706bca7\",\"license\":\"MIT\"},\"contracts/shared/diamond/facets/DiamondCutFacet.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.9;\\npragma experimental ABIEncoderV2;\\n\\n/******************************************************************************\\\\\\n* Author: Nick Mudge <nick@perfectabstractions.com> (https://twitter.com/mudgen)\\n* EIP-2535 Diamond Standard: https://eips.ethereum.org/EIPS/eip-2535\\n/******************************************************************************/\\n\\nimport \\\"../interfaces/IDiamondCut.sol\\\";\\nimport \\\"../libraries/LibDiamond.sol\\\";\\nimport \\\"hardhat/console.sol\\\";\\n\\ncontract DiamondCutFacet is IDiamondCut {\\n    /// @notice Add/replace/remove any number of functions and optionally execute\\n    ///         a function with delegatecall\\n    /// @param _diamondCut Contains the facet addresses and function selectors\\n    /// @param _init The address of the contract or facet to execute _calldata\\n    /// @param _calldata A function call, including function selector and arguments\\n    ///                  _calldata is executed with delegatecall on _init\\n    function diamondCut(\\n        FacetCut[] calldata _diamondCut,\\n        address _init,\\n        bytes calldata _calldata\\n    ) external override {\\n        LibDiamond.enforceIsContractOwner();\\n        LibDiamond.diamondCut(_diamondCut, _init, _calldata);\\n    }\\n}\\n\",\"keccak256\":\"0x8645f2422adc25a3f7ec52d3d5d5e70bc37a6e546a65a53c9013e5092dea999a\",\"license\":\"MIT\"},\"contracts/shared/diamond/interfaces/IDiamondCut.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.9;\\npragma experimental ABIEncoderV2;\\n\\n/******************************************************************************\\\\\\n* Author: Nick Mudge <nick@perfectabstractions.com> (https://twitter.com/mudgen)\\n* EIP-2535 Diamond Standard: https://eips.ethereum.org/EIPS/eip-2535\\n/******************************************************************************/\\n\\ninterface IDiamondCut {\\n    enum FacetCutAction {\\n        Add,\\n        Replace,\\n        Remove\\n    }\\n    // Add=0, Replace=1, Remove=2\\n\\n    struct FacetCut {\\n        address facetAddress;\\n        FacetCutAction action;\\n        bytes4[] functionSelectors;\\n    }\\n\\n    /// @notice Add/replace/remove any number of functions and optionally execute\\n    ///         a function with delegatecall\\n    /// @param _diamondCut Contains the facet addresses and function selectors\\n    /// @param _init The address of the contract or facet to execute _calldata\\n    /// @param _calldata A function call, including function selector and arguments\\n    ///                  _calldata is executed with delegatecall on _init\\n    function diamondCut(\\n        FacetCut[] calldata _diamondCut,\\n        address _init,\\n        bytes calldata _calldata\\n    ) external;\\n\\n    event DiamondCut(FacetCut[] _diamondCut, address _init, bytes _calldata);\\n}\\n\",\"keccak256\":\"0x70cec56344b453ec59bcecd3541f711b4f439b5b7e35cc10306b2e82eaa399da\",\"license\":\"MIT\"},\"contracts/shared/diamond/interfaces/IDiamondLoupe.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.9;\\npragma experimental ABIEncoderV2;\\n\\n/******************************************************************************\\\\\\n* Author: Nick Mudge <nick@perfectabstractions.com> (https://twitter.com/mudgen)\\n* EIP-2535 Diamond Standard: https://eips.ethereum.org/EIPS/eip-2535\\n/******************************************************************************/\\n\\n// A loupe is a small magnifying glass used to look at diamonds.\\n// These functions look at diamonds\\ninterface IDiamondLoupe {\\n    /// These functions are expected to be called frequently\\n    /// by tools.\\n\\n    struct Facet {\\n        address facetAddress;\\n        bytes4[] functionSelectors;\\n    }\\n\\n    /// @notice Gets all facet addresses and their four byte function selectors.\\n    /// @return facets_ Facet\\n    function facets() external view returns (Facet[] memory facets_);\\n\\n    /// @notice Gets all the function selectors supported by a specific facet.\\n    /// @param _facet The facet address.\\n    /// @return facetFunctionSelectors_\\n    function facetFunctionSelectors(address _facet)\\n        external\\n        view\\n        returns (bytes4[] memory facetFunctionSelectors_);\\n\\n    /// @notice Get all the facet addresses used by a diamond.\\n    /// @return facetAddresses_\\n    function facetAddresses()\\n        external\\n        view\\n        returns (address[] memory facetAddresses_);\\n\\n    /// @notice Gets the facet that supports the given selector.\\n    /// @dev If facet is not found return address(0).\\n    /// @param _functionSelector The function selector.\\n    /// @return facetAddress_ The facet address.\\n    function facetAddress(bytes4 _functionSelector)\\n        external\\n        view\\n        returns (address facetAddress_);\\n}\\n\",\"keccak256\":\"0x5b20558ac0a152f84527227fa50db6f113dd2241992cb8aa9b1a7dbd193c277f\",\"license\":\"MIT\"},\"contracts/shared/diamond/interfaces/IERC165.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.9;\\npragma experimental ABIEncoderV2;\\n\\ninterface IERC165 {\\n    /// @notice Query if a contract implements an interface\\n    /// @param interfaceId The interface identifier, as specified in ERC-165\\n    /// @dev Interface identification is specified in ERC-165. This function\\n    ///  uses less than 30,000 gas.\\n    /// @return `true` if the contract implements `interfaceID` and\\n    ///  `interfaceID` is not 0xffffffff, `false` otherwise\\n    function supportsInterface(bytes4 interfaceId) external view returns (bool);\\n}\\n\",\"keccak256\":\"0x79ecd45ef37ffd464dd3a612cd046e1b3ec6aed5efd767141c651e539bdee988\",\"license\":\"MIT\"},\"contracts/shared/diamond/interfaces/IERC173.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.9;\\n\\n/// @title ERC-173 Contract Ownership Standard\\n///  Note: the ERC-165 identifier for this interface is 0x7f5828d0\\n/* is ERC165 */\\ninterface IERC173 {\\n    /// @dev This emits when ownership of a contract changes.\\n    event OwnershipTransferred(\\n        address indexed previousOwner,\\n        address indexed newOwner\\n    );\\n\\n    /// @notice Get the address of the owner\\n    /// @return owner_ The address of the owner.\\n    function owner() external view returns (address owner_);\\n\\n    /// @notice Set the address of the new owner of the contract\\n    /// @dev Set _newOwner to address(0) to renounce any ownership.\\n    /// @param _newOwner The address of the new owner of the contract\\n    function transferOwnership(address _newOwner) external;\\n}\\n\",\"keccak256\":\"0x6fae3084e63b6d8cca55d964865dc45e0c2abf2d0eb8fcd9a3fe7428441bf06a\",\"license\":\"MIT\"},\"contracts/shared/diamond/libraries/LibDiamond.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.9;\\npragma experimental ABIEncoderV2;\\n\\n/******************************************************************************\\\\\\n* Author: Nick Mudge <nick@perfectabstractions.com> (https://twitter.com/mudgen)\\n* EIP-2535 Diamond Standard: https://eips.ethereum.org/EIPS/eip-2535\\n/******************************************************************************/\\n\\nimport {IDiamondCut} from \\\"../interfaces/IDiamondCut.sol\\\";\\nimport {IDiamondLoupe} from \\\"../interfaces/IDiamondLoupe.sol\\\";\\nimport {IERC165} from \\\"../interfaces/IERC165.sol\\\";\\nimport {IERC173} from \\\"../interfaces/IERC173.sol\\\";\\nimport \\\"hardhat/console.sol\\\";\\n\\nlibrary LibDiamond {\\n    bytes32 constant DIAMOND_STORAGE_POSITION =\\n        keccak256(\\\"diamond.standard.diamond.storage\\\");\\n\\n    struct FacetAddressAndPosition {\\n        address facetAddress;\\n        uint16 functionSelectorPosition; // position in facetFunctionSelectors.functionSelectors array\\n    }\\n\\n    struct FacetFunctionSelectors {\\n        bytes4[] functionSelectors;\\n        uint16 facetAddressPosition; // position of facetAddress in facetAddresses array\\n    }\\n\\n    struct DiamondStorage {\\n        // maps function selector to the facet address and\\n        // the position of the selector in the facetFunctionSelectors.selectors array\\n        mapping(bytes4 => FacetAddressAndPosition) selectorToFacetAndPosition;\\n        // maps facet addresses to function selectors\\n        mapping(address => FacetFunctionSelectors) facetFunctionSelectors;\\n        // facet addresses\\n        address[] facetAddresses;\\n        // Used to query if a contract implements an interface.\\n        // Used to implement ERC-165.\\n        mapping(bytes4 => bool) supportedInterfaces;\\n        // owner of the contract\\n        address contractOwner;\\n    }\\n\\n    function diamondStorage()\\n        internal\\n        pure\\n        returns (DiamondStorage storage ds)\\n    {\\n        bytes32 position = DIAMOND_STORAGE_POSITION;\\n        assembly {\\n            ds.slot := position\\n        }\\n    }\\n\\n    event OwnershipTransferred(\\n        address indexed previousOwner,\\n        address indexed newOwner\\n    );\\n\\n    function setContractOwner(address _newOwner) internal {\\n        DiamondStorage storage ds = diamondStorage();\\n        address previousOwner = ds.contractOwner;\\n        ds.contractOwner = _newOwner;\\n        emit OwnershipTransferred(previousOwner, _newOwner);\\n    }\\n\\n    function contractOwner() internal view returns (address contractOwner_) {\\n        contractOwner_ = diamondStorage().contractOwner;\\n    }\\n\\n    function enforceIsContractOwner() internal view {\\n        require(\\n            msg.sender == diamondStorage().contractOwner,\\n            \\\"LibDiamond: Must be contract owner\\\"\\n        );\\n    }\\n\\n    event DiamondCut(\\n        IDiamondCut.FacetCut[] _diamondCut,\\n        address _init,\\n        bytes _calldata\\n    );\\n\\n    /// @notice Adds default diamond facets\\n    /// @dev This is always called in the Diamond constructor.\\n    /// @param _diamondCutFacet - address of DiamondCutFacet\\n    /// @param _diamondLoupeFacet - address of the DiamondLoupeFacet\\n    /// @param _ownershipFacet - address of the OwnershipFacet\\n    function addDiamondFunctions(\\n        address _diamondCutFacet,\\n        address _diamondLoupeFacet,\\n        address _ownershipFacet\\n    ) internal {\\n        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](3);\\n        bytes4[] memory functionSelectors = new bytes4[](1);\\n        functionSelectors[0] = IDiamondCut.diamondCut.selector;\\n        cut[0] = IDiamondCut.FacetCut({\\n            facetAddress: _diamondCutFacet,\\n            action: IDiamondCut.FacetCutAction.Add,\\n            functionSelectors: functionSelectors\\n        });\\n        functionSelectors = new bytes4[](5);\\n        functionSelectors[0] = IDiamondLoupe.facets.selector;\\n        functionSelectors[1] = IDiamondLoupe.facetFunctionSelectors.selector;\\n        functionSelectors[2] = IDiamondLoupe.facetAddresses.selector;\\n        functionSelectors[3] = IDiamondLoupe.facetAddress.selector;\\n        functionSelectors[4] = IERC165.supportsInterface.selector;\\n        cut[1] = IDiamondCut.FacetCut({\\n            facetAddress: _diamondLoupeFacet,\\n            action: IDiamondCut.FacetCutAction.Add,\\n            functionSelectors: functionSelectors\\n        });\\n        functionSelectors = new bytes4[](2);\\n        functionSelectors[0] = IERC173.transferOwnership.selector;\\n        functionSelectors[1] = IERC173.owner.selector;\\n        cut[2] = IDiamondCut.FacetCut({\\n            facetAddress: _ownershipFacet,\\n            action: IDiamondCut.FacetCutAction.Add,\\n            functionSelectors: functionSelectors\\n        });\\n        diamondCut(cut, address(0), \\\"\\\");\\n    }\\n\\n    // Internal function version of diamondCut\\n    function diamondCut(\\n        IDiamondCut.FacetCut[] memory _diamondCut,\\n        address _init,\\n        bytes memory _calldata\\n    ) internal {\\n        for (\\n            uint256 facetIndex;\\n            facetIndex < _diamondCut.length;\\n            facetIndex++\\n        ) {\\n            IDiamondCut.FacetCutAction action = _diamondCut[facetIndex].action;\\n            if (action == IDiamondCut.FacetCutAction.Add) {\\n                addFunctions(\\n                    _diamondCut[facetIndex].facetAddress,\\n                    _diamondCut[facetIndex].functionSelectors\\n                );\\n            } else if (action == IDiamondCut.FacetCutAction.Replace) {\\n                replaceFunctions(\\n                    _diamondCut[facetIndex].facetAddress,\\n                    _diamondCut[facetIndex].functionSelectors\\n                );\\n            } else if (action == IDiamondCut.FacetCutAction.Remove) {\\n                removeFunctions(\\n                    _diamondCut[facetIndex].facetAddress,\\n                    _diamondCut[facetIndex].functionSelectors\\n                );\\n            } else {\\n                revert(\\\"LibDiamondCut: Incorrect FacetCutAction\\\");\\n            }\\n        }\\n        emit DiamondCut(_diamondCut, _init, _calldata);\\n        initializeDiamondCut(_init, _calldata);\\n    }\\n\\n    function addFunctions(\\n        address _facetAddress,\\n        bytes4[] memory _functionSelectors\\n    ) internal {\\n        require(\\n            _functionSelectors.length > 0,\\n            \\\"LibDiamondCut: No selectors in facet to cut\\\"\\n        );\\n        DiamondStorage storage ds = diamondStorage();\\n        // uint16 selectorCount = uint16(diamondStorage().selectors.length);\\n        require(\\n            _facetAddress != address(0),\\n            \\\"LibDiamondCut: Add facet can't be address(0)\\\"\\n        );\\n        uint16 selectorPosition = uint16(\\n            ds.facetFunctionSelectors[_facetAddress].functionSelectors.length\\n        );\\n        // add new facet address if it does not exist\\n        if (selectorPosition == 0) {\\n            enforceHasContractCode(\\n                _facetAddress,\\n                \\\"LibDiamondCut: New facet has no code\\\"\\n            );\\n            ds\\n                .facetFunctionSelectors[_facetAddress]\\n                .facetAddressPosition = uint16(ds.facetAddresses.length);\\n            ds.facetAddresses.push(_facetAddress);\\n        }\\n        for (\\n            uint256 selectorIndex;\\n            selectorIndex < _functionSelectors.length;\\n            selectorIndex++\\n        ) {\\n            bytes4 selector = _functionSelectors[selectorIndex];\\n            address oldFacetAddress = ds\\n                .selectorToFacetAndPosition[selector]\\n                .facetAddress;\\n            require(\\n                oldFacetAddress == address(0),\\n                \\\"LibDiamondCut: Can't add function that already exists\\\"\\n            );\\n            ds.facetFunctionSelectors[_facetAddress].functionSelectors.push(\\n                selector\\n            );\\n            ds\\n                .selectorToFacetAndPosition[selector]\\n                .facetAddress = _facetAddress;\\n            ds\\n                .selectorToFacetAndPosition[selector]\\n                .functionSelectorPosition = selectorPosition;\\n            selectorPosition++;\\n        }\\n    }\\n\\n    function replaceFunctions(\\n        address _facetAddress,\\n        bytes4[] memory _functionSelectors\\n    ) internal {\\n        require(\\n            _functionSelectors.length > 0,\\n            \\\"LibDiamondCut: No selectors in facet to cut\\\"\\n        );\\n        DiamondStorage storage ds = diamondStorage();\\n        require(\\n            _facetAddress != address(0),\\n            \\\"LibDiamondCut: Add facet can't be address(0)\\\"\\n        );\\n        uint16 selectorPosition = uint16(\\n            ds.facetFunctionSelectors[_facetAddress].functionSelectors.length\\n        );\\n        // add new facet address if it does not exist\\n        if (selectorPosition == 0) {\\n            enforceHasContractCode(\\n                _facetAddress,\\n                \\\"LibDiamondCut: New facet has no code\\\"\\n            );\\n            ds\\n                .facetFunctionSelectors[_facetAddress]\\n                .facetAddressPosition = uint16(ds.facetAddresses.length);\\n            ds.facetAddresses.push(_facetAddress);\\n        }\\n        for (\\n            uint256 selectorIndex;\\n            selectorIndex < _functionSelectors.length;\\n            selectorIndex++\\n        ) {\\n            bytes4 selector = _functionSelectors[selectorIndex];\\n            address oldFacetAddress = ds\\n                .selectorToFacetAndPosition[selector]\\n                .facetAddress;\\n            require(\\n                oldFacetAddress != _facetAddress,\\n                \\\"LibDiamondCut: Can't replace function with same function\\\"\\n            );\\n            removeFunction(oldFacetAddress, selector);\\n            // add function\\n            ds\\n                .selectorToFacetAndPosition[selector]\\n                .functionSelectorPosition = selectorPosition;\\n            ds.facetFunctionSelectors[_facetAddress].functionSelectors.push(\\n                selector\\n            );\\n            ds\\n                .selectorToFacetAndPosition[selector]\\n                .facetAddress = _facetAddress;\\n            selectorPosition++;\\n        }\\n    }\\n\\n    function removeFunctions(\\n        address _facetAddress,\\n        bytes4[] memory _functionSelectors\\n    ) internal {\\n        require(\\n            _functionSelectors.length > 0,\\n            \\\"LibDiamondCut: No selectors in facet to cut\\\"\\n        );\\n        DiamondStorage storage ds = diamondStorage();\\n        // if function does not exist then do nothing and return\\n        require(\\n            _facetAddress == address(0),\\n            \\\"LibDiamondCut: Remove facet address must be address(0)\\\"\\n        );\\n        for (\\n            uint256 selectorIndex;\\n            selectorIndex < _functionSelectors.length;\\n            selectorIndex++\\n        ) {\\n            bytes4 selector = _functionSelectors[selectorIndex];\\n            address oldFacetAddress = ds\\n                .selectorToFacetAndPosition[selector]\\n                .facetAddress;\\n            removeFunction(oldFacetAddress, selector);\\n        }\\n    }\\n\\n    function removeFunction(address _facetAddress, bytes4 _selector) internal {\\n        DiamondStorage storage ds = diamondStorage();\\n        require(\\n            _facetAddress != address(0),\\n            \\\"LibDiamondCut: Can't remove function that doesn't exist\\\"\\n        );\\n        // an immutable function is a function defined directly in a diamond\\n        require(\\n            _facetAddress != address(this),\\n            \\\"LibDiamondCut: Can't remove immutable function\\\"\\n        );\\n        // replace selector with last selector, then delete last selector\\n        uint256 selectorPosition = ds\\n            .selectorToFacetAndPosition[_selector]\\n            .functionSelectorPosition;\\n        uint256 lastSelectorPosition = ds\\n            .facetFunctionSelectors[_facetAddress]\\n            .functionSelectors\\n            .length - 1;\\n        // if not the same then replace _selector with lastSelector\\n        if (selectorPosition != lastSelectorPosition) {\\n            bytes4 lastSelector = ds\\n                .facetFunctionSelectors[_facetAddress]\\n                .functionSelectors[lastSelectorPosition];\\n            ds.facetFunctionSelectors[_facetAddress].functionSelectors[\\n                    selectorPosition\\n                ] = lastSelector;\\n            ds\\n                .selectorToFacetAndPosition[lastSelector]\\n                .functionSelectorPosition = uint16(selectorPosition);\\n        }\\n        // delete the last selector\\n        ds.facetFunctionSelectors[_facetAddress].functionSelectors.pop();\\n        delete ds.selectorToFacetAndPosition[_selector];\\n\\n        // if no more selectors for facet address then delete the facet address\\n        if (lastSelectorPosition == 0) {\\n            // replace facet address with last facet address and delete last facet address\\n            uint256 lastFacetAddressPosition = ds.facetAddresses.length - 1;\\n            uint256 facetAddressPosition = ds\\n                .facetFunctionSelectors[_facetAddress]\\n                .facetAddressPosition;\\n            if (facetAddressPosition != lastFacetAddressPosition) {\\n                address lastFacetAddress = ds.facetAddresses[\\n                    lastFacetAddressPosition\\n                ];\\n                ds.facetAddresses[facetAddressPosition] = lastFacetAddress;\\n                ds\\n                    .facetFunctionSelectors[lastFacetAddress]\\n                    .facetAddressPosition = uint16(facetAddressPosition);\\n            }\\n            ds.facetAddresses.pop();\\n            delete ds\\n                .facetFunctionSelectors[_facetAddress]\\n                .facetAddressPosition;\\n        }\\n    }\\n\\n    function initializeDiamondCut(address _init, bytes memory _calldata)\\n        internal\\n    {\\n        if (_init == address(0)) {\\n            require(\\n                _calldata.length == 0,\\n                \\\"LibDiamondCut: _init is address(0) but_calldata is not empty\\\"\\n            );\\n        } else {\\n            require(\\n                _calldata.length > 0,\\n                \\\"LibDiamondCut: _calldata is empty but _init is not address(0)\\\"\\n            );\\n            if (_init != address(this)) {\\n                enforceHasContractCode(\\n                    _init,\\n                    \\\"LibDiamondCut: _init address has no code\\\"\\n                );\\n            }\\n            (bool success, bytes memory error) = _init.delegatecall(_calldata);\\n            if (!success) {\\n                if (error.length > 0) {\\n                    // bubble up the error\\n                    revert(string(error));\\n                } else {\\n                    revert(\\\"LibDiamondCut: _init function reverted\\\");\\n                }\\n            }\\n        }\\n    }\\n\\n    function enforceHasContractCode(\\n        address _contract,\\n        string memory _errorMessage\\n    ) internal view {\\n        uint256 contractSize;\\n        assembly {\\n            contractSize := extcodesize(_contract)\\n        }\\n        require(contractSize > 0, _errorMessage);\\n    }\\n}\\n\",\"keccak256\":\"0x83f0cf2cf035db5988c5d5e99c44a9cf8c0b1dd4bd4708b369ab6ba7993aecfb\",\"license\":\"MIT\"},\"contracts/voyage/auth/DSAuth.sol\":{\"content\":\"// SPDX-License-Identifier: GNU-3\\n// This program is free software: you can redistribute it and/or modify\\n// it under the terms of the GNU General Public License as published by\\n// the Free Software Foundation, either version 3 of the License, or\\n// (at your option) any later version.\\n\\n// This program is distributed in the hope that it will be useful,\\n// but WITHOUT ANY WARRANTY; without even the implied warranty of\\n// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\\n// GNU General Public License for more details.\\n\\n// You should have received a copy of the GNU General Public License\\n// along with this program.  If not, see <http://www.gnu.org/licenses/>.\\n\\n// lifted from: https://github.com/dapphub/ds-auth/blob/a51e7caa1f03eeffed66d67f3b38605e0f1f881d/src/auth.sol\\n\\npragma solidity ^0.8.9;\\nimport \\\"hardhat/console.sol\\\";\\n\\ninterface DSAuthority {\\n    function canCall(\\n        address src,\\n        address dst,\\n        bytes4 sig\\n    ) external view returns (bool);\\n}\\n\\ncontract DSAuthEvents {\\n    event LogSetAuthority(address indexed authority);\\n    event LogSetOwner(address indexed owner);\\n}\\n\\ncontract DSAuth is DSAuthEvents {\\n    DSAuthority public authority;\\n    address public owner;\\n\\n    constructor() {\\n        owner = msg.sender;\\n        emit LogSetOwner(msg.sender);\\n    }\\n\\n    function setOwner(address owner_) public auth {\\n        owner = owner_;\\n        emit LogSetOwner(owner);\\n    }\\n\\n    function setAuthority(DSAuthority authority_) public auth {\\n        authority = authority_;\\n        emit LogSetAuthority(address(authority));\\n    }\\n\\n    modifier auth() {\\n        require(isAuthorized(msg.sender, msg.sig), \\\"ds-auth-unauthorized\\\");\\n        _;\\n    }\\n\\n    function isAuthorized(address src, bytes4 sig)\\n        internal\\n        view\\n        returns (bool)\\n    {\\n        if (src == address(this)) {\\n            return true;\\n        } else if (src == owner) {\\n            return true;\\n        } else if (authority == DSAuthority(address(0))) {\\n            return false;\\n        } else {\\n            return authority.canCall(src, address(this), sig);\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0xb32ee9e8adf3c6f0cd9a09f66499de41b8ff0bc7792605b671ecb363ec09634d\",\"license\":\"GNU-3\"},\"contracts/voyage/auth/DSGuard.sol\":{\"content\":\"// guard.sol -- simple whitelist implementation of DSAuthority\\n\\n// Copyright (C) 2017  DappHub, LLC\\n\\n// This program is free software: you can redistribute it and/or modify\\n// it under the terms of the GNU General Public License as published by\\n// the Free Software Foundation, either version 3 of the License, or\\n// (at your option) any later version.\\n\\n// This program is distributed in the hope that it will be useful,\\n// but WITHOUT ANY WARRANTY; without even the implied warranty of\\n// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\\n// GNU General Public License for more details.\\n\\n// You should have received a copy of the GNU General Public License\\n// along with this program.  If not, see <http://www.gnu.org/licenses/>.\\n\\n// lifted from: https://github.com/dapphub/ds-guard/blob/af05632249f98bf3942b9482c5bf69e8bd45284e/src/guard.sol\\n\\npragma solidity ^0.8.9;\\n\\nimport \\\"./DSAuth.sol\\\";\\n\\ncontract DSGuardEvents {\\n    event LogPermit(\\n        bytes32 indexed src,\\n        bytes32 indexed dst,\\n        bytes32 indexed sig\\n    );\\n\\n    event LogForbid(\\n        bytes32 indexed src,\\n        bytes32 indexed dst,\\n        bytes32 indexed sig\\n    );\\n}\\n\\ncontract DSGuard is DSAuth, DSAuthority, DSGuardEvents {\\n    bytes32 public constant ANY = bytes32(type(uint256).max);\\n\\n    mapping(bytes32 => mapping(bytes32 => mapping(bytes32 => bool))) acl;\\n\\n    function canCall(\\n        address src_,\\n        address dst_,\\n        bytes4 sig\\n    ) public view returns (bool) {\\n        bytes32 src = bytes32(bytes20(src_));\\n        bytes32 dst = bytes32(bytes20(dst_));\\n\\n        return\\n            acl[src][dst][sig] ||\\n            acl[src][dst][ANY] ||\\n            acl[src][ANY][sig] ||\\n            acl[src][ANY][ANY] ||\\n            acl[ANY][dst][sig] ||\\n            acl[ANY][dst][ANY] ||\\n            acl[ANY][ANY][sig] ||\\n            acl[ANY][ANY][ANY];\\n    }\\n\\n    function permit(\\n        bytes32 src,\\n        bytes32 dst,\\n        bytes32 sig\\n    ) public auth {\\n        acl[src][dst][sig] = true;\\n        emit LogPermit(src, dst, sig);\\n    }\\n\\n    function forbid(\\n        bytes32 src,\\n        bytes32 dst,\\n        bytes32 sig\\n    ) public auth {\\n        acl[src][dst][sig] = false;\\n        emit LogForbid(src, dst, sig);\\n    }\\n\\n    function permit(\\n        address src,\\n        address dst,\\n        bytes32 sig\\n    ) public {\\n        permit(bytes32(bytes20(src)), bytes32(bytes20(dst)), sig);\\n    }\\n\\n    function forbid(\\n        address src,\\n        address dst,\\n        bytes32 sig\\n    ) public {\\n        forbid(bytes32(bytes20(src)), bytes32(bytes20(dst)), sig);\\n    }\\n}\\n\\ncontract DSGuardFactory {\\n    mapping(address => bool) public isGuard;\\n\\n    function newGuard() public returns (DSGuard guard) {\\n        guard = new DSGuard();\\n        guard.setOwner(msg.sender);\\n        isGuard[address(guard)] = true;\\n    }\\n}\\n\",\"keccak256\":\"0x1c08eb21a713823b838ceed6275d138a6e62fd425094d3d089980697cd94264a\"},\"contracts/voyage/auth/DSRoles.sol\":{\"content\":\"// roles.sol - roled based authentication\\n\\n// Copyright (C) 2017  DappHub, LLC\\n\\n// This program is free software: you can redistribute it and/or modify\\n// it under the terms of the GNU General Public License as published by\\n// the Free Software Foundation, either version 3 of the License, or\\n// (at your option) any later version.\\n\\n// This program is distributed in the hope that it will be useful,\\n// but WITHOUT ANY WARRANTY; without even the implied warranty of\\n// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\\n// GNU General Public License for more details.\\n\\n// You should have received a copy of the GNU General Public License\\n// along with this program.  If not, see <http://www.gnu.org/licenses/>.\\n\\n// forked from: https://github.com/dapphub/ds-roles/blob/53d56949c0f98c9b5909df9c0d95025b67f3bb75/src/roles.sol\\n\\npragma solidity ^0.8.9;\\n\\nimport \\\"./DSAuth.sol\\\";\\n\\ncontract DSRoles is DSAuth, DSAuthority {\\n    mapping(address => bool) _root_users;\\n    mapping(address => bytes32) _user_roles;\\n    mapping(address => mapping(bytes4 => bytes32)) _capability_roles;\\n    mapping(address => mapping(bytes4 => bool)) _public_capabilities;\\n\\n    function getUserRoles(address who) public view returns (bytes32) {\\n        return _user_roles[who];\\n    }\\n\\n    function getCapabilityRoles(address code, bytes4 sig)\\n        public\\n        view\\n        returns (bytes32)\\n    {\\n        return _capability_roles[code][sig];\\n    }\\n\\n    function isUserRoot(address who) public view returns (bool) {\\n        return _root_users[who];\\n    }\\n\\n    function isCapabilityPublic(address code, bytes4 sig)\\n        public\\n        view\\n        returns (bool)\\n    {\\n        return _public_capabilities[code][sig];\\n    }\\n\\n    function hasUserRole(address who, uint8 role) public view returns (bool) {\\n        bytes32 roles = getUserRoles(who);\\n        bytes32 shifted = bytes32(uint256(uint256(2)**uint256(role)));\\n        return bytes32(0) != roles & shifted;\\n    }\\n\\n    function canCall(\\n        address caller,\\n        address code,\\n        bytes4 sig\\n    ) public view returns (bool) {\\n        if (isUserRoot(caller) || isCapabilityPublic(code, sig)) {\\n            return true;\\n        } else {\\n            bytes32 has_roles = getUserRoles(caller);\\n            bytes32 needs_one_of = getCapabilityRoles(code, sig);\\n            return bytes32(0) != has_roles & needs_one_of;\\n        }\\n    }\\n\\n    function BITNOT(bytes32 input) internal pure returns (bytes32 output) {\\n        return (input ^ bytes32(type(uint256).max));\\n    }\\n\\n    function setRootUser(address who, bool enabled) public auth {\\n        _root_users[who] = enabled;\\n    }\\n\\n    function setUserRole(\\n        address who,\\n        uint8 role,\\n        bool enabled\\n    ) public auth {\\n        bytes32 last_roles = _user_roles[who];\\n        bytes32 shifted = bytes32(uint256(uint256(2)**uint256(role)));\\n        if (enabled) {\\n            _user_roles[who] = last_roles | shifted;\\n        } else {\\n            _user_roles[who] = last_roles & BITNOT(shifted);\\n        }\\n    }\\n\\n    function setPublicCapability(\\n        address code,\\n        bytes4 sig,\\n        bool enabled\\n    ) public auth {\\n        _public_capabilities[code][sig] = enabled;\\n    }\\n\\n    function setRoleCapability(\\n        uint8 role,\\n        address code,\\n        bytes4 sig,\\n        bool enabled\\n    ) public auth {\\n        bytes32 last_roles = _capability_roles[code][sig];\\n        bytes32 shifted = bytes32(uint256(uint256(2)**uint256(role)));\\n        if (enabled) {\\n            _capability_roles[code][sig] = last_roles | shifted;\\n        } else {\\n            _capability_roles[code][sig] = last_roles & BITNOT(shifted);\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0x854b2fe5dcb2ab5277a1a1c3a2f97367c4c00f8076f746a88cfbde1eb43b2f15\"},\"contracts/voyage/facets/DiamondVersionFacet.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.9;\\n\\nimport {Snapshot} from \\\"../interfaces/IDiamondVersionFacet.sol\\\";\\nimport {AppStorage, Storage, LibAppStorage} from \\\"../libraries/LibAppStorage.sol\\\";\\nimport {IDiamondLoupe} from \\\"../../shared/diamond/interfaces/IDiamondLoupe.sol\\\";\\nimport {IDiamondCut} from \\\"../../shared/diamond/interfaces/IDiamondCut.sol\\\";\\nimport {DiamondCutFacet} from \\\"../../shared/diamond/facets/DiamondCutFacet.sol\\\";\\n\\ncontract DiamondVersionFacet is Storage {\\n    // increments `version` and stores snapshot in _snapshotMap\\n    // these must be computed offchain, and called by protocol admin (including init args encoding)\\n    function registerUpgrade(\\n        address init,\\n        bytes memory initArgs,\\n        IDiamondLoupe.Facet[] memory facets\\n    ) external authorised {\\n        LibAppStorage.diamondStorage().currentVersion += 1;\\n        uint256 version = LibAppStorage.diamondStorage().currentVersion;\\n        LibAppStorage.diamondStorage().snapshotMap[version].init = init;\\n        LibAppStorage.diamondStorage().snapshotMap[version].initArgs = initArgs;\\n        for (uint256 i = 0; i < facets.length; i++) {\\n            LibAppStorage.diamondStorage().snapshotMap[version].facets.push(\\n                facets[i]\\n            );\\n        }\\n    }\\n\\n    function currentVersion() external view returns (uint256, bytes32) {\\n        uint256 version = LibAppStorage.diamondStorage().currentVersion;\\n        Snapshot memory snapshot = LibAppStorage.diamondStorage().snapshotMap[\\n            version\\n        ];\\n        return (version, computeSnapshotChecksum(snapshot));\\n    }\\n\\n    function isUpToDate(uint256 _version) external view returns (bool) {\\n        return _version == LibAppStorage.diamondStorage().currentVersion;\\n    }\\n\\n    function computeSnapshotChecksum(Snapshot memory snapshot)\\n        internal\\n        view\\n        returns (bytes32)\\n    {\\n        bytes memory data;\\n        for (uint256 i = 0; i < snapshot.facets.length; i++) {\\n            IDiamondLoupe.Facet memory facet = snapshot.facets[i];\\n            data = bytes.concat(data, abi.encodePacked(facet.facetAddress));\\n            for (uint256 j = 0; j < facet.functionSelectors.length; j++) {\\n                data = bytes.concat(data, facet.functionSelectors[j]);\\n            }\\n            bytes32 facetCodeHash;\\n            address facetAddress = facet.facetAddress;\\n            assembly {\\n                facetCodeHash := extcodehash(facetAddress)\\n            }\\n            data = bytes.concat(data, facetCodeHash);\\n        }\\n        return keccak256(data);\\n    }\\n}\\n\",\"keccak256\":\"0x7afd4fab27cbcc4c7975816c9e56e3192f65efea0dbff27bade4bd2b4da7dfa4\",\"license\":\"MIT\"},\"contracts/voyage/interfaces/IDiamondVersionFacet.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.9;\\n\\nimport {IDiamondLoupe} from \\\"../../shared/diamond/interfaces/IDiamondLoupe.sol\\\";\\n\\nstruct Snapshot {\\n    IDiamondLoupe.Facet[] facets;\\n    address init; // address of InitDiamondVx\\n    bytes initArgs; // abi encoded args to pass to InitDiamondVX\\n}\\n\\ninterface IDiamondVersionFacet {\\n    // clone should create a fresh Vault with the facets recorded in `Snapshot` of current version\\n    function clone() external returns (address);\\n\\n    // increments `version` and stores snapshot in _snapshotMap\\n    // these must be computed offchain, and called by protocol admin (including init args encoding)\\n    function registerUpgrade(Snapshot memory _snapshot) external;\\n\\n    // return version number and snapshot hash\\n    function currentVersion() external view returns (uint256, bytes32);\\n\\n    function isUpToDate(uint256 _version) external view returns (bool);\\n\\n    // returns the current snapshot\\n    function getSnapshot() external view returns (Snapshot memory);\\n}\\n\",\"keccak256\":\"0x5c117b65f8ef55b62392d0afde91cf0711832ea41e00719d9fb48a3b608189cc\",\"license\":\"MIT\"},\"contracts/voyage/interfaces/IVaultFactory.sol\":{\"content\":\"// SPDX-License-Identifier: GPL-3.0\\npragma solidity ^0.8.9;\\n\\ninterface IVaultFactory {\\n    function createVault(\\n        address owner,\\n        address voyage,\\n        bytes32 salt\\n    ) external returns (address);\\n}\\n\",\"keccak256\":\"0x75e7790941eb3342ce77c62c583fb28be71039fe28af53bde5eb1a5c7696ca22\",\"license\":\"GPL-3.0\"},\"contracts/voyage/libraries/LibAppStorage.sol\":{\"content\":\"// SPDX-License-Identifier: GPL-3.0\\npragma solidity ^0.8.9;\\n\\nimport {DSRoles} from \\\"../auth/DSRoles.sol\\\";\\nimport {DSGuard} from \\\"../auth/DSGuard.sol\\\";\\nimport {LibSecurity} from \\\"./LibSecurity.sol\\\";\\nimport {Context} from \\\"@openzeppelin/contracts/utils/Context.sol\\\";\\nimport {UpgradeableBeacon} from \\\"@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol\\\";\\nimport {Snapshot} from \\\"../interfaces/IDiamondVersionFacet.sol\\\";\\nimport {IVaultFactory} from \\\"../interfaces/IVaultFactory.sol\\\";\\n\\nenum Tranche {\\n    JUNIOR,\\n    SENIOR\\n}\\n\\nstruct ReserveData {\\n    //stores the reserve configuration\\n    ReserveConfigurationMap configuration;\\n    // for calculating overall interested accumulated\\n    // then split it into two indexs base on two allocations\\n    uint256 currentOverallLiquidityRate;\\n    uint256 currentJuniorLiquidityRate;\\n    uint256 currentSeniorLiquidityRate;\\n    uint256 currentBorrowRate;\\n    // Expressed in ray\\n    uint256 marginRequirement;\\n    //the decimals of the reserve asset\\n    uint256 decimals;\\n    address interestRateStrategyAddress;\\n    address loanStrategyAddress;\\n    address juniorDepositTokenAddress;\\n    address seniorDepositTokenAddress;\\n    uint40 juniorLastUpdateTimestamp;\\n    uint40 seniorLastUpdateTimestamp;\\n    uint256 optimalTrancheRatio;\\n    uint256 currentIncomeRatio;\\n    uint256 optimalIncomeRatio;\\n    address nftAddress;\\n    address priceOracle;\\n    bool initialized;\\n}\\n\\nstruct ReserveConfigurationMap {\\n    //bit 0-15: Liquidate bonus\\n    //bit 16-23: Decimals\\n    //bit 24: Reserve is active\\n    //bit 25: reserve is frozen\\n    //bit 26: borrowing is enabled\\n    //bit 27-30: reserved\\n    //bit 31-46: reserve factor\\n    //bit 47-62: lock up period in seconds\\n    uint256 data;\\n}\\n\\nstruct PMT {\\n    uint256 principal;\\n    uint256 interest;\\n    uint256 pmt;\\n}\\n\\nstruct RepaymentData {\\n    uint256 principal;\\n    uint256 interest;\\n    // principal + interest\\n    uint256 total;\\n    uint40 paidAt;\\n    bool isLiquidated;\\n}\\n\\nstruct DrawDown {\\n    uint256 principal;\\n    uint256 interest;\\n    // the total intended length of the loan in seconds - e.g., 90 days\\n    uint256 term;\\n    // the repayment interval - e.g., 30 days\\n    uint256 epoch;\\n    // number of instalments, term / epoch\\n    uint256 nper;\\n    // the amount to be repaid per instalment (principal + interest)\\n    PMT pmt;\\n    // the borrow rate of this loan\\n    uint256 apr;\\n    uint256 borrowAt;\\n    // next due data\\n    uint256 nextPaymentDue;\\n    // principal paid\\n    uint256 totalPrincipalPaid;\\n    // interest paid\\n    uint256 totalInterestPaid;\\n    RepaymentData[] repayments;\\n    // size pf repayments\\n    uint256 paidTimes;\\n}\\n\\nstruct DrawDownList {\\n    uint256 head;\\n    uint256 tail;\\n}\\n\\nstruct BorrowData {\\n    uint256 paidDrawDownNumber;\\n    // next draw down number\\n    uint256 nextDrawDownNumber;\\n    uint256 totalPrincipal;\\n    uint256 totalInterest;\\n    uint256 mapSize;\\n    mapping(uint256 => DrawDown) drawDowns;\\n    uint256 totalPaid;\\n    uint256 totalRedeemed;\\n}\\n\\nstruct BorrowState {\\n    uint256 totalDebt;\\n    uint256 totalInterest;\\n    uint256 avgBorrowRate;\\n}\\n\\nstruct VaultConfig {\\n    uint256 minMargin;\\n    uint256 maxMargin;\\n    uint256 marginRequirement;\\n}\\n\\nstruct VaultData {\\n    uint256 borrowRate;\\n    uint256 totalDebt;\\n    DrawDownList drawDownList;\\n    uint256 totalMargin;\\n    uint256 withdrawableSecurityDeposit;\\n    uint256 creditLimit;\\n    uint256 spendableBalance;\\n    uint256 gav;\\n    uint256 ltv;\\n    uint256 healthFactor;\\n}\\n\\nstruct Authorisation {\\n    DSRoles rbac;\\n    DSGuard acl;\\n}\\n\\nstruct NFTInfo {\\n    uint256 price;\\n    uint256 timestamp;\\n}\\n\\nstruct AppStorage {\\n    /* -------------------------------- plumbing -------------------------------- */\\n    mapping(bytes32 => address) _addresses;\\n    /* -------------------------------- liquidity ------------------------------- */\\n    UpgradeableBeacon seniorDepositTokenBeacon;\\n    UpgradeableBeacon juniorDepositTokenBeacon;\\n    mapping(address => ReserveData) _reserves;\\n    // List of reserves as a map (reserveId => reserve)\\n    mapping(uint256 => address) _reserveList;\\n    uint16 _reservesCount;\\n    /* ---------------------------------- debt ---------------------------------- */\\n    mapping(address => mapping(address => BorrowData)) _borrowData;\\n    mapping(address => BorrowState) _borrowState;\\n    bool _paused;\\n    /* ---------------------------------- vault --------------------------------- */\\n    UpgradeableBeacon marginEscrowBeacon;\\n    UpgradeableBeacon creditEscrowBeacon;\\n    UpgradeableBeacon subVaultBeacon;\\n    IVaultFactory vaultFactory;\\n    address[] vaults;\\n    // mapping of vault owner to vault instance address\\n    mapping(address => address) vaultMap;\\n    // mapping of vault instance to vault configuration\\n    mapping(address => VaultConfig) vaultConfigMap;\\n    // mapping of erc721 address to vault strategy contract address\\n    mapping(address => address) vaultStrategy;\\n    // erc721 address => token id => nft info\\n    mapping(address => mapping(uint256 => NFTInfo)) nftInfo;\\n    uint256 currentVersion;\\n    mapping(uint256 => Snapshot) snapshotMap;\\n    /* ---------------------------------- security --------------------------------- */\\n    Authorisation auth;\\n}\\n\\nlibrary LibAppStorage {\\n    function diamondStorage() internal pure returns (AppStorage storage ds) {\\n        assembly {\\n            ds.slot := 0\\n        }\\n    }\\n}\\n\\ncontract Storage is Context {\\n    AppStorage internal s;\\n\\n    modifier whenPaused() {\\n        require(s._paused, \\\"Pausable: not paused\\\");\\n        _;\\n    }\\n\\n    modifier whenNotPaused() {\\n        require(!s._paused, \\\"Pausable: paused\\\");\\n        _;\\n    }\\n\\n    modifier authorised() {\\n        require(auth(), \\\"call is not authorised\\\");\\n        _;\\n    }\\n\\n    function auth() internal view returns (bool) {\\n        return LibSecurity.isAuthorisedInbound(s.auth, msg.sender, msg.sig);\\n    }\\n}\\n\",\"keccak256\":\"0x3a995dfbb07c43c0413a0180305cebce25fdc6a87cb03d7862696aa1ff253b08\",\"license\":\"GPL-3.0\"},\"contracts/voyage/libraries/LibSecurity.sol\":{\"content\":\"// SPDX-License-Identifier: GPL-3.0\\npragma solidity ^0.8.9;\\n\\nimport {LibAppStorage, AppStorage, Authorisation} from \\\"./LibAppStorage.sol\\\";\\nimport \\\"hardhat/console.sol\\\";\\n\\nlibrary LibSecurity {\\n    function isAuthorisedInbound(\\n        Authorisation storage auth,\\n        address src,\\n        bytes4 selector\\n    ) internal view returns (bool) {\\n        // s.security.acl/rbac is an instance ds-roles and implements DSAuthority interface\\n        return\\n            auth.rbac.canCall(src, address(this), selector) ||\\n            auth.acl.canCall(src, address(this), selector);\\n    }\\n\\n    function isAuthorisedOutbound(\\n        Authorisation storage auth,\\n        address dst,\\n        bytes4 selector\\n    ) internal view returns (bool) {\\n        // s.security.acl/rbac is an instance ds-guard and implements DSAuthority interface\\n        return\\n            auth.rbac.canCall(msg.sender, dst, selector) ||\\n            auth.acl.canCall(msg.sender, dst, selector);\\n    }\\n\\n    // role can be a enum, but cast to uint8 before calling grantRole\\n    function grantRole(\\n        Authorisation storage auth,\\n        address user,\\n        uint8 role,\\n        bool enabled\\n    ) internal {\\n        // grant role\\n        auth.rbac.setUserRole(user, role, enabled);\\n    }\\n\\n    function grantRolePermission(\\n        Authorisation storage auth,\\n        uint8 role,\\n        address target,\\n        bytes4 sig\\n    ) internal {\\n        // give a role a permission\\n        auth.rbac.setRoleCapability(role, target, sig, true);\\n    }\\n\\n    function revokeRolePermission(\\n        Authorisation storage auth,\\n        uint8 role,\\n        address target,\\n        bytes4 sig\\n    ) internal {\\n        // revoke a role permission\\n        auth.rbac.setRoleCapability(role, target, sig, false);\\n    }\\n\\n    function grantPermission(\\n        Authorisation storage auth,\\n        address src,\\n        address dst,\\n        bytes4 sig\\n    ) internal {\\n        // allow src to call dst.sig\\n        auth.acl.permit(src, dst, sig);\\n    }\\n\\n    function revokePermission(\\n        Authorisation storage auth,\\n        address src,\\n        address dst,\\n        bytes4 sig\\n    ) internal {\\n        auth.acl.forbid(src, dst, sig);\\n    }\\n}\\n\",\"keccak256\":\"0xa9e807effac6adfff27d8139453a38ac43582806389ef8b40f5e77d01b7ed718\",\"license\":\"GPL-3.0\"},\"hardhat/console.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >= 0.4.22 <0.9.0;\\n\\nlibrary console {\\n\\taddress constant CONSOLE_ADDRESS = address(0x000000000000000000636F6e736F6c652e6c6f67);\\n\\n\\tfunction _sendLogPayload(bytes memory payload) private view {\\n\\t\\tuint256 payloadLength = payload.length;\\n\\t\\taddress consoleAddress = CONSOLE_ADDRESS;\\n\\t\\tassembly {\\n\\t\\t\\tlet payloadStart := add(payload, 32)\\n\\t\\t\\tlet r := staticcall(gas(), consoleAddress, payloadStart, payloadLength, 0, 0)\\n\\t\\t}\\n\\t}\\n\\n\\tfunction log() internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log()\\\"));\\n\\t}\\n\\n\\tfunction logInt(int p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(int)\\\", p0));\\n\\t}\\n\\n\\tfunction logUint(uint p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint)\\\", p0));\\n\\t}\\n\\n\\tfunction logString(string memory p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string)\\\", p0));\\n\\t}\\n\\n\\tfunction logBool(bool p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool)\\\", p0));\\n\\t}\\n\\n\\tfunction logAddress(address p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes(bytes memory p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes1(bytes1 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes1)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes2(bytes2 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes2)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes3(bytes3 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes3)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes4(bytes4 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes4)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes5(bytes5 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes5)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes6(bytes6 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes6)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes7(bytes7 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes7)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes8(bytes8 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes8)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes9(bytes9 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes9)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes10(bytes10 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes10)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes11(bytes11 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes11)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes12(bytes12 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes12)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes13(bytes13 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes13)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes14(bytes14 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes14)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes15(bytes15 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes15)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes16(bytes16 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes16)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes17(bytes17 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes17)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes18(bytes18 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes18)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes19(bytes19 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes19)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes20(bytes20 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes20)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes21(bytes21 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes21)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes22(bytes22 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes22)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes23(bytes23 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes23)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes24(bytes24 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes24)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes25(bytes25 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes25)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes26(bytes26 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes26)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes27(bytes27 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes27)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes28(bytes28 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes28)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes29(bytes29 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes29)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes30(bytes30 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes30)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes31(bytes31 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes31)\\\", p0));\\n\\t}\\n\\n\\tfunction logBytes32(bytes32 p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bytes32)\\\", p0));\\n\\t}\\n\\n\\tfunction log(uint p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint)\\\", p0));\\n\\t}\\n\\n\\tfunction log(string memory p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string)\\\", p0));\\n\\t}\\n\\n\\tfunction log(bool p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool)\\\", p0));\\n\\t}\\n\\n\\tfunction log(address p0) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address)\\\", p0));\\n\\t}\\n\\n\\tfunction log(uint p0, uint p1) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,uint)\\\", p0, p1));\\n\\t}\\n\\n\\tfunction log(uint p0, string memory p1) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,string)\\\", p0, p1));\\n\\t}\\n\\n\\tfunction log(uint p0, bool p1) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,bool)\\\", p0, p1));\\n\\t}\\n\\n\\tfunction log(uint p0, address p1) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,address)\\\", p0, p1));\\n\\t}\\n\\n\\tfunction log(string memory p0, uint p1) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint)\\\", p0, p1));\\n\\t}\\n\\n\\tfunction log(string memory p0, string memory p1) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,string)\\\", p0, p1));\\n\\t}\\n\\n\\tfunction log(string memory p0, bool p1) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool)\\\", p0, p1));\\n\\t}\\n\\n\\tfunction log(string memory p0, address p1) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,address)\\\", p0, p1));\\n\\t}\\n\\n\\tfunction log(bool p0, uint p1) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint)\\\", p0, p1));\\n\\t}\\n\\n\\tfunction log(bool p0, string memory p1) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string)\\\", p0, p1));\\n\\t}\\n\\n\\tfunction log(bool p0, bool p1) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool)\\\", p0, p1));\\n\\t}\\n\\n\\tfunction log(bool p0, address p1) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address)\\\", p0, p1));\\n\\t}\\n\\n\\tfunction log(address p0, uint p1) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint)\\\", p0, p1));\\n\\t}\\n\\n\\tfunction log(address p0, string memory p1) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,string)\\\", p0, p1));\\n\\t}\\n\\n\\tfunction log(address p0, bool p1) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool)\\\", p0, p1));\\n\\t}\\n\\n\\tfunction log(address p0, address p1) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,address)\\\", p0, p1));\\n\\t}\\n\\n\\tfunction log(uint p0, uint p1, uint p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,uint,uint)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(uint p0, uint p1, string memory p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,uint,string)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(uint p0, uint p1, bool p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,uint,bool)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(uint p0, uint p1, address p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,uint,address)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(uint p0, string memory p1, uint p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,string,uint)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(uint p0, string memory p1, string memory p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,string,string)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(uint p0, string memory p1, bool p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,string,bool)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(uint p0, string memory p1, address p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,string,address)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(uint p0, bool p1, uint p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,bool,uint)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(uint p0, bool p1, string memory p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,bool,string)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(uint p0, bool p1, bool p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,bool,bool)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(uint p0, bool p1, address p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,bool,address)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(uint p0, address p1, uint p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,address,uint)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(uint p0, address p1, string memory p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,address,string)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(uint p0, address p1, bool p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,address,bool)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(uint p0, address p1, address p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,address,address)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(string memory p0, uint p1, uint p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint,uint)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(string memory p0, uint p1, string memory p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint,string)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(string memory p0, uint p1, bool p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint,bool)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(string memory p0, uint p1, address p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint,address)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(string memory p0, string memory p1, uint p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,uint)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(string memory p0, string memory p1, string memory p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,string)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(string memory p0, string memory p1, bool p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,bool)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(string memory p0, string memory p1, address p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,address)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(string memory p0, bool p1, uint p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,uint)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(string memory p0, bool p1, string memory p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,string)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(string memory p0, bool p1, bool p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,bool)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(string memory p0, bool p1, address p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,address)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(string memory p0, address p1, uint p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,uint)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(string memory p0, address p1, string memory p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,string)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(string memory p0, address p1, bool p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,bool)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(string memory p0, address p1, address p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,address)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(bool p0, uint p1, uint p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint,uint)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(bool p0, uint p1, string memory p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint,string)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(bool p0, uint p1, bool p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint,bool)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(bool p0, uint p1, address p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint,address)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(bool p0, string memory p1, uint p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,uint)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(bool p0, string memory p1, string memory p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,string)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(bool p0, string memory p1, bool p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,bool)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(bool p0, string memory p1, address p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,address)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(bool p0, bool p1, uint p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,uint)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(bool p0, bool p1, string memory p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,string)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(bool p0, bool p1, bool p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,bool)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(bool p0, bool p1, address p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,address)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(bool p0, address p1, uint p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,uint)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(bool p0, address p1, string memory p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,string)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(bool p0, address p1, bool p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,bool)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(bool p0, address p1, address p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,address)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(address p0, uint p1, uint p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint,uint)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(address p0, uint p1, string memory p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint,string)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(address p0, uint p1, bool p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint,bool)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(address p0, uint p1, address p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint,address)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(address p0, string memory p1, uint p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,uint)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(address p0, string memory p1, string memory p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,string)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(address p0, string memory p1, bool p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,bool)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(address p0, string memory p1, address p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,address)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(address p0, bool p1, uint p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,uint)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(address p0, bool p1, string memory p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,string)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(address p0, bool p1, bool p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,bool)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(address p0, bool p1, address p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,address)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(address p0, address p1, uint p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,uint)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(address p0, address p1, string memory p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,string)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(address p0, address p1, bool p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,bool)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(address p0, address p1, address p2) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,address)\\\", p0, p1, p2));\\n\\t}\\n\\n\\tfunction log(uint p0, uint p1, uint p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,uint,uint,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, uint p1, uint p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,uint,uint,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, uint p1, uint p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,uint,uint,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, uint p1, uint p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,uint,uint,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, uint p1, string memory p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,uint,string,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, uint p1, string memory p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,uint,string,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, uint p1, string memory p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,uint,string,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, uint p1, string memory p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,uint,string,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, uint p1, bool p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,uint,bool,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, uint p1, bool p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,uint,bool,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, uint p1, bool p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,uint,bool,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, uint p1, bool p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,uint,bool,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, uint p1, address p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,uint,address,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, uint p1, address p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,uint,address,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, uint p1, address p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,uint,address,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, uint p1, address p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,uint,address,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, string memory p1, uint p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,string,uint,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, string memory p1, uint p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,string,uint,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, string memory p1, uint p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,string,uint,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, string memory p1, uint p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,string,uint,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, string memory p1, string memory p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,string,string,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, string memory p1, string memory p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,string,string,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, string memory p1, string memory p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,string,string,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, string memory p1, string memory p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,string,string,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, string memory p1, bool p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,string,bool,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, string memory p1, bool p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,string,bool,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, string memory p1, bool p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,string,bool,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, string memory p1, bool p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,string,bool,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, string memory p1, address p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,string,address,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, string memory p1, address p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,string,address,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, string memory p1, address p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,string,address,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, string memory p1, address p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,string,address,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, bool p1, uint p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,bool,uint,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, bool p1, uint p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,bool,uint,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, bool p1, uint p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,bool,uint,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, bool p1, uint p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,bool,uint,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, bool p1, string memory p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,bool,string,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, bool p1, string memory p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,bool,string,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, bool p1, string memory p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,bool,string,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, bool p1, string memory p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,bool,string,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, bool p1, bool p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,bool,bool,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, bool p1, bool p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,bool,bool,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, bool p1, bool p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,bool,bool,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, bool p1, bool p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,bool,bool,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, bool p1, address p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,bool,address,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, bool p1, address p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,bool,address,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, bool p1, address p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,bool,address,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, bool p1, address p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,bool,address,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, address p1, uint p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,address,uint,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, address p1, uint p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,address,uint,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, address p1, uint p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,address,uint,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, address p1, uint p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,address,uint,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, address p1, string memory p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,address,string,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, address p1, string memory p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,address,string,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, address p1, string memory p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,address,string,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, address p1, string memory p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,address,string,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, address p1, bool p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,address,bool,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, address p1, bool p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,address,bool,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, address p1, bool p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,address,bool,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, address p1, bool p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,address,bool,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, address p1, address p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,address,address,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, address p1, address p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,address,address,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, address p1, address p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,address,address,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(uint p0, address p1, address p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(uint,address,address,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, uint p1, uint p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint,uint,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, uint p1, uint p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint,uint,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, uint p1, uint p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint,uint,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, uint p1, uint p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint,uint,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, uint p1, string memory p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint,string,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, uint p1, string memory p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint,string,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, uint p1, string memory p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint,string,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, uint p1, string memory p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint,string,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, uint p1, bool p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint,bool,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, uint p1, bool p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint,bool,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, uint p1, bool p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint,bool,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, uint p1, bool p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint,bool,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, uint p1, address p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint,address,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, uint p1, address p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint,address,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, uint p1, address p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint,address,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, uint p1, address p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint,address,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, string memory p1, uint p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,uint,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, string memory p1, uint p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,uint,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, string memory p1, uint p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,uint,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, string memory p1, uint p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,uint,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, string memory p1, string memory p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,string,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, string memory p1, string memory p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,string,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, string memory p1, string memory p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,string,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, string memory p1, string memory p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,string,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, string memory p1, bool p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,bool,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, string memory p1, bool p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,bool,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, string memory p1, bool p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,bool,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, string memory p1, bool p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,bool,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, string memory p1, address p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,address,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, string memory p1, address p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,address,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, string memory p1, address p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,address,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, string memory p1, address p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,address,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, bool p1, uint p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,uint,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, bool p1, uint p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,uint,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, bool p1, uint p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,uint,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, bool p1, uint p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,uint,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, bool p1, string memory p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,string,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, bool p1, string memory p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,string,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, bool p1, string memory p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,string,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, bool p1, string memory p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,string,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, bool p1, bool p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,bool,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, bool p1, bool p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,bool,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, bool p1, bool p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,bool,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, bool p1, bool p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,bool,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, bool p1, address p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,address,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, bool p1, address p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,address,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, bool p1, address p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,address,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, bool p1, address p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,address,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, address p1, uint p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,uint,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, address p1, uint p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,uint,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, address p1, uint p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,uint,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, address p1, uint p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,uint,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, address p1, string memory p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,string,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, address p1, string memory p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,string,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, address p1, string memory p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,string,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, address p1, string memory p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,string,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, address p1, bool p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,bool,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, address p1, bool p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,bool,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, address p1, bool p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,bool,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, address p1, bool p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,bool,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, address p1, address p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,address,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, address p1, address p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,address,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, address p1, address p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,address,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(string memory p0, address p1, address p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,address,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, uint p1, uint p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint,uint,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, uint p1, uint p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint,uint,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, uint p1, uint p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint,uint,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, uint p1, uint p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint,uint,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, uint p1, string memory p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint,string,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, uint p1, string memory p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint,string,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, uint p1, string memory p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint,string,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, uint p1, string memory p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint,string,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, uint p1, bool p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint,bool,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, uint p1, bool p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint,bool,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, uint p1, bool p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint,bool,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, uint p1, bool p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint,bool,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, uint p1, address p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint,address,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, uint p1, address p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint,address,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, uint p1, address p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint,address,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, uint p1, address p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint,address,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, string memory p1, uint p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,uint,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, string memory p1, uint p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,uint,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, string memory p1, uint p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,uint,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, string memory p1, uint p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,uint,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, string memory p1, string memory p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,string,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, string memory p1, string memory p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,string,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, string memory p1, string memory p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,string,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, string memory p1, string memory p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,string,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, string memory p1, bool p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,bool,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, string memory p1, bool p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,bool,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, string memory p1, bool p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,bool,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, string memory p1, bool p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,bool,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, string memory p1, address p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,address,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, string memory p1, address p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,address,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, string memory p1, address p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,address,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, string memory p1, address p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,address,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, bool p1, uint p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,uint,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, bool p1, uint p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,uint,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, bool p1, uint p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,uint,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, bool p1, uint p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,uint,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, bool p1, string memory p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,string,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, bool p1, string memory p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,string,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, bool p1, string memory p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,string,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, bool p1, string memory p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,string,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, bool p1, bool p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,bool,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, bool p1, bool p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,bool,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, bool p1, bool p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,bool,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, bool p1, bool p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,bool,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, bool p1, address p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,address,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, bool p1, address p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,address,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, bool p1, address p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,address,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, bool p1, address p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,address,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, address p1, uint p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,uint,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, address p1, uint p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,uint,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, address p1, uint p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,uint,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, address p1, uint p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,uint,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, address p1, string memory p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,string,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, address p1, string memory p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,string,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, address p1, string memory p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,string,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, address p1, string memory p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,string,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, address p1, bool p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,bool,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, address p1, bool p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,bool,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, address p1, bool p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,bool,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, address p1, bool p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,bool,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, address p1, address p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,address,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, address p1, address p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,address,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, address p1, address p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,address,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(bool p0, address p1, address p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,address,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, uint p1, uint p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint,uint,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, uint p1, uint p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint,uint,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, uint p1, uint p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint,uint,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, uint p1, uint p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint,uint,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, uint p1, string memory p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint,string,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, uint p1, string memory p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint,string,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, uint p1, string memory p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint,string,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, uint p1, string memory p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint,string,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, uint p1, bool p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint,bool,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, uint p1, bool p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint,bool,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, uint p1, bool p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint,bool,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, uint p1, bool p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint,bool,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, uint p1, address p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint,address,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, uint p1, address p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint,address,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, uint p1, address p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint,address,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, uint p1, address p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint,address,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, string memory p1, uint p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,uint,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, string memory p1, uint p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,uint,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, string memory p1, uint p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,uint,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, string memory p1, uint p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,uint,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, string memory p1, string memory p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,string,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, string memory p1, string memory p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,string,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, string memory p1, string memory p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,string,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, string memory p1, string memory p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,string,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, string memory p1, bool p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,bool,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, string memory p1, bool p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,bool,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, string memory p1, bool p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,bool,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, string memory p1, bool p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,bool,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, string memory p1, address p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,address,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, string memory p1, address p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,address,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, string memory p1, address p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,address,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, string memory p1, address p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,address,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, bool p1, uint p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,uint,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, bool p1, uint p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,uint,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, bool p1, uint p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,uint,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, bool p1, uint p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,uint,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, bool p1, string memory p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,string,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, bool p1, string memory p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,string,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, bool p1, string memory p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,string,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, bool p1, string memory p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,string,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, bool p1, bool p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,bool,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, bool p1, bool p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,bool,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, bool p1, bool p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,bool,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, bool p1, bool p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,bool,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, bool p1, address p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,address,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, bool p1, address p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,address,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, bool p1, address p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,address,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, bool p1, address p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,address,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, address p1, uint p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,uint,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, address p1, uint p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,uint,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, address p1, uint p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,uint,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, address p1, uint p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,uint,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, address p1, string memory p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,string,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, address p1, string memory p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,string,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, address p1, string memory p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,string,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, address p1, string memory p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,string,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, address p1, bool p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,bool,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, address p1, bool p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,bool,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, address p1, bool p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,bool,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, address p1, bool p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,bool,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, address p1, address p2, uint p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,address,uint)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, address p1, address p2, string memory p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,address,string)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, address p1, address p2, bool p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,address,bool)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n\\tfunction log(address p0, address p1, address p2, address p3) internal view {\\n\\t\\t_sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,address,address)\\\", p0, p1, p2, p3));\\n\\t}\\n\\n}\\n\",\"keccak256\":\"0x72b6a1d297cd3b033d7c2e4a7e7864934bb767db6453623f1c3082c6534547f4\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b50610d9a806100206000396000f3fe608060405234801561001057600080fd5b50600436106100415760003560e01c8063686350d01461004657806399eefbc3146100705780639d888e8614610085575b600080fd5b61005b6100543660046108db565b6011541490565b60405190151581526020015b60405180910390f35b61008361007e366004610b16565b6100a2565b005b61008d610267565b60408051928352602083019190915201610067565b6100aa610460565b610114576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601660248201527f63616c6c206973206e6f7420617574686f726973656400000000000000000000604482015260640160405180910390fd5b60016000601101600082825461012a9190610bf3565b909155505060115460008181526012602090815260409091206001810180547fffffffffffffffffffffffff00000000000000000000000000000000000000001673ffffffffffffffffffffffffffffffffffffffff881617905584516101999260029092019186019061079f565b5060005b825181101561026057600082815260126020526040902083518490839081106101c8576101c8610c0b565b602090810291909101810151825460018082018555600094855293839020825160029092020180547fffffffffffffffffffffffff00000000000000000000000000000000000000001673ffffffffffffffffffffffffffffffffffffffff9092169190911781558183015180519294919361024a9392850192910190610823565b505050808061025890610c21565b91505061019d565b5050505050565b601154600081815260126020908152604080832081518154938402810160809081019093526060810184815294958695909486949293928492918491879085015b8282101561038c57600084815260209081902060408051808201825260028602909201805473ffffffffffffffffffffffffffffffffffffffff16835260018101805483518187028101870190945280845293949193858301939283018282801561037457602002820191906000526020600020906000905b82829054906101000a900460e01b7bffffffffffffffffffffffffffffffffffffffffffffffffffffffff1916815260200190600401906020826003010492830192600103820291508084116103215790505b505050505081525050815260200190600101906102a8565b50505090825250600182015473ffffffffffffffffffffffffffffffffffffffff1660208201526002820180546040909201916103c890610c5a565b80601f01602080910402602001604051908101604052809291908181526020018280546103f490610c5a565b80156104415780601f1061041657610100808354040283529160200191610441565b820191906000526020600020905b81548152906001019060200180831161042457829003601f168201915b50505050508152505090508161045682610496565b9350935050509091565b60006104916013337fffffffff000000000000000000000000000000000000000000000000000000008435166105ed565b905090565b6000606060005b8351518110156105de576000846000015182815181106104bf576104bf610c0b565b6020026020010151905082816000015160405160200161050a919060609190911b7fffffffffffffffffffffffffffffffffffffffff00000000000000000000000016815260140190565b60408051601f19818403018152908290526105289291602001610cd0565b604051602081830303815290604052925060005b81602001515181101561059d57838260200151828151811061056057610560610c0b565b6020026020010151604051602001610579929190610ce5565b6040516020818303038152906040529350808061059590610c21565b91505061053c565b508051604051813f91906105b79086908490602001610d22565b604051602081830303815290604052945050505080806105d690610c21565b91505061049d565b50805160209091012092915050565b82546040517fb700961300000000000000000000000000000000000000000000000000000000815273ffffffffffffffffffffffffffffffffffffffff84811660048301523060248301527fffffffff0000000000000000000000000000000000000000000000000000000084166044830152600092169063b70096139060640160206040518083038186803b15801561068657600080fd5b505afa15801561069a573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906106be9190610d3b565b80610797575060018401546040517fb700961300000000000000000000000000000000000000000000000000000000815273ffffffffffffffffffffffffffffffffffffffff85811660048301523060248301527fffffffff00000000000000000000000000000000000000000000000000000000851660448301529091169063b70096139060640160206040518083038186803b15801561075f57600080fd5b505afa158015610773573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906107979190610d3b565b949350505050565b8280546107ab90610c5a565b90600052602060002090601f0160209004810192826107cd5760008555610813565b82601f106107e657805160ff1916838001178555610813565b82800160010185558215610813579182015b828111156108135782518255916020019190600101906107f8565b5061081f9291506108c6565b5090565b828054828255906000526020600020906007016008900481019282156108135791602002820160005b8382111561088d57835183826101000a81548163ffffffff021916908360e01c0217905550926020019260040160208160030104928301926001030261084c565b80156108bd5782816101000a81549063ffffffff021916905560040160208160030104928301926001030261088d565b505061081f9291505b5b8082111561081f57600081556001016108c7565b6000602082840312156108ed57600080fd5b5035919050565b803573ffffffffffffffffffffffffffffffffffffffff8116811461091857600080fd5b919050565b634e487b7160e01b600052604160045260246000fd5b6040805190810167ffffffffffffffff811182821017156109565761095661091d565b60405290565b604051601f8201601f1916810167ffffffffffffffff811182821017156109855761098561091d565b604052919050565b600067ffffffffffffffff8211156109a7576109a761091d565b5060051b60200190565b600082601f8301126109c257600080fd5b813560206109d76109d28361098d565b61095c565b828152600592831b85018201928282019190878511156109f657600080fd5b8387015b85811015610b0957803567ffffffffffffffff80821115610a1b5760008081fd5b818a019150604080601f19848e03011215610a365760008081fd5b610a3e610933565b610a498985016108f4565b81528184013583811115610a5d5760008081fd5b8085019450508c603f850112610a7557600092508283fd5b888401359250610a876109d28461098d565b83815292861b8401820192898101908e851115610aa45760008081fd5b948301945b84861015610af457853593507fffffffff0000000000000000000000000000000000000000000000000000000084168414610ae45760008081fd5b838252948a0194908a0190610aa9565b828b01525087525050509284019284016109fa565b5090979650505050505050565b600080600060608486031215610b2b57600080fd5b610b34846108f4565b925060208085013567ffffffffffffffff80821115610b5257600080fd5b818701915087601f830112610b6657600080fd5b813581811115610b7857610b7861091d565b610b8a84601f19601f8401160161095c565b8181528985838601011115610b9e57600080fd5b818585018683013760009181019094015291935060408601359180831115610bc557600080fd5b5050610bd3868287016109b1565b9150509250925092565b634e487b7160e01b600052601160045260246000fd5b60008219821115610c0657610c06610bdd565b500190565b634e487b7160e01b600052603260045260246000fd5b60007fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff821415610c5357610c53610bdd565b5060010190565b600181811c90821680610c6e57607f821691505b60208210811415610c8f57634e487b7160e01b600052602260045260246000fd5b50919050565b6000815160005b81811015610cb65760208185018101518683015201610c9c565b81811115610cc5576000828601525b509290920192915050565b6000610797610cdf8386610c95565b84610c95565b6000610cf18285610c95565b7fffffffff000000000000000000000000000000000000000000000000000000009390931683525050600401919050565b6000610d2e8285610c95565b9283525050602001919050565b600060208284031215610d4d57600080fd5b81518015158114610d5d57600080fd5b939250505056fea26469706673582212201126e72d0688cfd1a7899e9e0d9dd4d9e4aca4d9d65f44c4a950c0ec227713bf64736f6c63430008090033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100415760003560e01c8063686350d01461004657806399eefbc3146100705780639d888e8614610085575b600080fd5b61005b6100543660046108db565b6011541490565b60405190151581526020015b60405180910390f35b61008361007e366004610b16565b6100a2565b005b61008d610267565b60408051928352602083019190915201610067565b6100aa610460565b610114576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601660248201527f63616c6c206973206e6f7420617574686f726973656400000000000000000000604482015260640160405180910390fd5b60016000601101600082825461012a9190610bf3565b909155505060115460008181526012602090815260409091206001810180547fffffffffffffffffffffffff00000000000000000000000000000000000000001673ffffffffffffffffffffffffffffffffffffffff881617905584516101999260029092019186019061079f565b5060005b825181101561026057600082815260126020526040902083518490839081106101c8576101c8610c0b565b602090810291909101810151825460018082018555600094855293839020825160029092020180547fffffffffffffffffffffffff00000000000000000000000000000000000000001673ffffffffffffffffffffffffffffffffffffffff9092169190911781558183015180519294919361024a9392850192910190610823565b505050808061025890610c21565b91505061019d565b5050505050565b601154600081815260126020908152604080832081518154938402810160809081019093526060810184815294958695909486949293928492918491879085015b8282101561038c57600084815260209081902060408051808201825260028602909201805473ffffffffffffffffffffffffffffffffffffffff16835260018101805483518187028101870190945280845293949193858301939283018282801561037457602002820191906000526020600020906000905b82829054906101000a900460e01b7bffffffffffffffffffffffffffffffffffffffffffffffffffffffff1916815260200190600401906020826003010492830192600103820291508084116103215790505b505050505081525050815260200190600101906102a8565b50505090825250600182015473ffffffffffffffffffffffffffffffffffffffff1660208201526002820180546040909201916103c890610c5a565b80601f01602080910402602001604051908101604052809291908181526020018280546103f490610c5a565b80156104415780601f1061041657610100808354040283529160200191610441565b820191906000526020600020905b81548152906001019060200180831161042457829003601f168201915b50505050508152505090508161045682610496565b9350935050509091565b60006104916013337fffffffff000000000000000000000000000000000000000000000000000000008435166105ed565b905090565b6000606060005b8351518110156105de576000846000015182815181106104bf576104bf610c0b565b6020026020010151905082816000015160405160200161050a919060609190911b7fffffffffffffffffffffffffffffffffffffffff00000000000000000000000016815260140190565b60408051601f19818403018152908290526105289291602001610cd0565b604051602081830303815290604052925060005b81602001515181101561059d57838260200151828151811061056057610560610c0b565b6020026020010151604051602001610579929190610ce5565b6040516020818303038152906040529350808061059590610c21565b91505061053c565b508051604051813f91906105b79086908490602001610d22565b604051602081830303815290604052945050505080806105d690610c21565b91505061049d565b50805160209091012092915050565b82546040517fb700961300000000000000000000000000000000000000000000000000000000815273ffffffffffffffffffffffffffffffffffffffff84811660048301523060248301527fffffffff0000000000000000000000000000000000000000000000000000000084166044830152600092169063b70096139060640160206040518083038186803b15801561068657600080fd5b505afa15801561069a573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906106be9190610d3b565b80610797575060018401546040517fb700961300000000000000000000000000000000000000000000000000000000815273ffffffffffffffffffffffffffffffffffffffff85811660048301523060248301527fffffffff00000000000000000000000000000000000000000000000000000000851660448301529091169063b70096139060640160206040518083038186803b15801561075f57600080fd5b505afa158015610773573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906107979190610d3b565b949350505050565b8280546107ab90610c5a565b90600052602060002090601f0160209004810192826107cd5760008555610813565b82601f106107e657805160ff1916838001178555610813565b82800160010185558215610813579182015b828111156108135782518255916020019190600101906107f8565b5061081f9291506108c6565b5090565b828054828255906000526020600020906007016008900481019282156108135791602002820160005b8382111561088d57835183826101000a81548163ffffffff021916908360e01c0217905550926020019260040160208160030104928301926001030261084c565b80156108bd5782816101000a81549063ffffffff021916905560040160208160030104928301926001030261088d565b505061081f9291505b5b8082111561081f57600081556001016108c7565b6000602082840312156108ed57600080fd5b5035919050565b803573ffffffffffffffffffffffffffffffffffffffff8116811461091857600080fd5b919050565b634e487b7160e01b600052604160045260246000fd5b6040805190810167ffffffffffffffff811182821017156109565761095661091d565b60405290565b604051601f8201601f1916810167ffffffffffffffff811182821017156109855761098561091d565b604052919050565b600067ffffffffffffffff8211156109a7576109a761091d565b5060051b60200190565b600082601f8301126109c257600080fd5b813560206109d76109d28361098d565b61095c565b828152600592831b85018201928282019190878511156109f657600080fd5b8387015b85811015610b0957803567ffffffffffffffff80821115610a1b5760008081fd5b818a019150604080601f19848e03011215610a365760008081fd5b610a3e610933565b610a498985016108f4565b81528184013583811115610a5d5760008081fd5b8085019450508c603f850112610a7557600092508283fd5b888401359250610a876109d28461098d565b83815292861b8401820192898101908e851115610aa45760008081fd5b948301945b84861015610af457853593507fffffffff0000000000000000000000000000000000000000000000000000000084168414610ae45760008081fd5b838252948a0194908a0190610aa9565b828b01525087525050509284019284016109fa565b5090979650505050505050565b600080600060608486031215610b2b57600080fd5b610b34846108f4565b925060208085013567ffffffffffffffff80821115610b5257600080fd5b818701915087601f830112610b6657600080fd5b813581811115610b7857610b7861091d565b610b8a84601f19601f8401160161095c565b8181528985838601011115610b9e57600080fd5b818585018683013760009181019094015291935060408601359180831115610bc557600080fd5b5050610bd3868287016109b1565b9150509250925092565b634e487b7160e01b600052601160045260246000fd5b60008219821115610c0657610c06610bdd565b500190565b634e487b7160e01b600052603260045260246000fd5b60007fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff821415610c5357610c53610bdd565b5060010190565b600181811c90821680610c6e57607f821691505b60208210811415610c8f57634e487b7160e01b600052602260045260246000fd5b50919050565b6000815160005b81811015610cb65760208185018101518683015201610c9c565b81811115610cc5576000828601525b509290920192915050565b6000610797610cdf8386610c95565b84610c95565b6000610cf18285610c95565b7fffffffff000000000000000000000000000000000000000000000000000000009390931683525050600401919050565b6000610d2e8285610c95565b9283525050602001919050565b600060208284031215610d4d57600080fd5b81518015158114610d5d57600080fd5b939250505056fea26469706673582212201126e72d0688cfd1a7899e9e0d9dd4d9e4aca4d9d65f44c4a950c0ec227713bf64736f6c63430008090033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 19292,
+        "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+        "label": "s",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_struct(AppStorage)19278_storage"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_array(t_address)dyn_storage": {
+        "base": "t_address",
+        "encoding": "dynamic_array",
+        "label": "address[]",
+        "numberOfBytes": "32"
+      },
+      "t_array(t_bytes4)dyn_storage": {
+        "base": "t_bytes4",
+        "encoding": "dynamic_array",
+        "label": "bytes4[]",
+        "numberOfBytes": "32"
+      },
+      "t_array(t_struct(Facet)8171_storage)dyn_storage": {
+        "base": "t_struct(Facet)8171_storage",
+        "encoding": "dynamic_array",
+        "label": "struct IDiamondLoupe.Facet[]",
+        "numberOfBytes": "32"
+      },
+      "t_array(t_struct(RepaymentData)19094_storage)dyn_storage": {
+        "base": "t_struct(RepaymentData)19094_storage",
+        "encoding": "dynamic_array",
+        "label": "struct RepaymentData[]",
+        "numberOfBytes": "32"
+      },
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_bytes32": {
+        "encoding": "inplace",
+        "label": "bytes32",
+        "numberOfBytes": "32"
+      },
+      "t_bytes4": {
+        "encoding": "inplace",
+        "label": "bytes4",
+        "numberOfBytes": "4"
+      },
+      "t_bytes_storage": {
+        "encoding": "bytes",
+        "label": "bytes",
+        "numberOfBytes": "32"
+      },
+      "t_contract(DSGuard)14577": {
+        "encoding": "inplace",
+        "label": "contract DSGuard",
+        "numberOfBytes": "20"
+      },
+      "t_contract(DSRoles)14966": {
+        "encoding": "inplace",
+        "label": "contract DSRoles",
+        "numberOfBytes": "20"
+      },
+      "t_contract(IVaultFactory)18953": {
+        "encoding": "inplace",
+        "label": "contract IVaultFactory",
+        "numberOfBytes": "20"
+      },
+      "t_contract(UpgradeableBeacon)2867": {
+        "encoding": "inplace",
+        "label": "contract UpgradeableBeacon",
+        "numberOfBytes": "20"
+      },
+      "t_mapping(t_address,t_address)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => address)",
+        "numberOfBytes": "32",
+        "value": "t_address"
+      },
+      "t_mapping(t_address,t_mapping(t_address,t_struct(BorrowData)19149_storage))": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => mapping(address => struct BorrowData))",
+        "numberOfBytes": "32",
+        "value": "t_mapping(t_address,t_struct(BorrowData)19149_storage)"
+      },
+      "t_mapping(t_address,t_mapping(t_uint256,t_struct(NFTInfo)19197_storage))": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => mapping(uint256 => struct NFTInfo))",
+        "numberOfBytes": "32",
+        "value": "t_mapping(t_uint256,t_struct(NFTInfo)19197_storage)"
+      },
+      "t_mapping(t_address,t_struct(BorrowData)19149_storage)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => struct BorrowData)",
+        "numberOfBytes": "32",
+        "value": "t_struct(BorrowData)19149_storage"
+      },
+      "t_mapping(t_address,t_struct(BorrowState)19156_storage)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => struct BorrowState)",
+        "numberOfBytes": "32",
+        "value": "t_struct(BorrowState)19156_storage"
+      },
+      "t_mapping(t_address,t_struct(ReserveData)19073_storage)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => struct ReserveData)",
+        "numberOfBytes": "32",
+        "value": "t_struct(ReserveData)19073_storage"
+      },
+      "t_mapping(t_address,t_struct(VaultConfig)19163_storage)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => struct VaultConfig)",
+        "numberOfBytes": "32",
+        "value": "t_struct(VaultConfig)19163_storage"
+      },
+      "t_mapping(t_bytes32,t_address)": {
+        "encoding": "mapping",
+        "key": "t_bytes32",
+        "label": "mapping(bytes32 => address)",
+        "numberOfBytes": "32",
+        "value": "t_address"
+      },
+      "t_mapping(t_uint256,t_address)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => address)",
+        "numberOfBytes": "32",
+        "value": "t_address"
+      },
+      "t_mapping(t_uint256,t_struct(DrawDown)19124_storage)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => struct DrawDown)",
+        "numberOfBytes": "32",
+        "value": "t_struct(DrawDown)19124_storage"
+      },
+      "t_mapping(t_uint256,t_struct(NFTInfo)19197_storage)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => struct NFTInfo)",
+        "numberOfBytes": "32",
+        "value": "t_struct(NFTInfo)19197_storage"
+      },
+      "t_mapping(t_uint256,t_struct(Snapshot)18729_storage)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => struct Snapshot)",
+        "numberOfBytes": "32",
+        "value": "t_struct(Snapshot)18729_storage"
+      },
+      "t_struct(AppStorage)19278_storage": {
+        "encoding": "inplace",
+        "label": "struct AppStorage",
+        "members": [
+          {
+            "astId": 19201,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "_addresses",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_mapping(t_bytes32,t_address)"
+          },
+          {
+            "astId": 19204,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "seniorDepositTokenBeacon",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(UpgradeableBeacon)2867"
+          },
+          {
+            "astId": 19207,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "juniorDepositTokenBeacon",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_contract(UpgradeableBeacon)2867"
+          },
+          {
+            "astId": 19212,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "_reserves",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_mapping(t_address,t_struct(ReserveData)19073_storage)"
+          },
+          {
+            "astId": 19216,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "_reserveList",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_mapping(t_uint256,t_address)"
+          },
+          {
+            "astId": 19218,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "_reservesCount",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_uint16"
+          },
+          {
+            "astId": 19225,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "_borrowData",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_struct(BorrowData)19149_storage))"
+          },
+          {
+            "astId": 19230,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "_borrowState",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_mapping(t_address,t_struct(BorrowState)19156_storage)"
+          },
+          {
+            "astId": 19232,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "_paused",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_bool"
+          },
+          {
+            "astId": 19235,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "marginEscrowBeacon",
+            "offset": 1,
+            "slot": "8",
+            "type": "t_contract(UpgradeableBeacon)2867"
+          },
+          {
+            "astId": 19238,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "creditEscrowBeacon",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_contract(UpgradeableBeacon)2867"
+          },
+          {
+            "astId": 19241,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "subVaultBeacon",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_contract(UpgradeableBeacon)2867"
+          },
+          {
+            "astId": 19244,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "vaultFactory",
+            "offset": 0,
+            "slot": "11",
+            "type": "t_contract(IVaultFactory)18953"
+          },
+          {
+            "astId": 19247,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "vaults",
+            "offset": 0,
+            "slot": "12",
+            "type": "t_array(t_address)dyn_storage"
+          },
+          {
+            "astId": 19251,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "vaultMap",
+            "offset": 0,
+            "slot": "13",
+            "type": "t_mapping(t_address,t_address)"
+          },
+          {
+            "astId": 19256,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "vaultConfigMap",
+            "offset": 0,
+            "slot": "14",
+            "type": "t_mapping(t_address,t_struct(VaultConfig)19163_storage)"
+          },
+          {
+            "astId": 19260,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "vaultStrategy",
+            "offset": 0,
+            "slot": "15",
+            "type": "t_mapping(t_address,t_address)"
+          },
+          {
+            "astId": 19267,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "nftInfo",
+            "offset": 0,
+            "slot": "16",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(NFTInfo)19197_storage))"
+          },
+          {
+            "astId": 19269,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "currentVersion",
+            "offset": 0,
+            "slot": "17",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19274,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "snapshotMap",
+            "offset": 0,
+            "slot": "18",
+            "type": "t_mapping(t_uint256,t_struct(Snapshot)18729_storage)"
+          },
+          {
+            "astId": 19277,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "auth",
+            "offset": 0,
+            "slot": "19",
+            "type": "t_struct(Authorisation)19192_storage"
+          }
+        ],
+        "numberOfBytes": "672"
+      },
+      "t_struct(Authorisation)19192_storage": {
+        "encoding": "inplace",
+        "label": "struct Authorisation",
+        "members": [
+          {
+            "astId": 19188,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "rbac",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(DSRoles)14966"
+          },
+          {
+            "astId": 19191,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "acl",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(DSGuard)14577"
+          }
+        ],
+        "numberOfBytes": "64"
+      },
+      "t_struct(BorrowData)19149_storage": {
+        "encoding": "inplace",
+        "label": "struct BorrowData",
+        "members": [
+          {
+            "astId": 19131,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "paidDrawDownNumber",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19133,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "nextDrawDownNumber",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19135,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "totalPrincipal",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19137,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "totalInterest",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19139,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "mapSize",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19144,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "drawDowns",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_mapping(t_uint256,t_struct(DrawDown)19124_storage)"
+          },
+          {
+            "astId": 19146,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "totalPaid",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19148,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "totalRedeemed",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_uint256"
+          }
+        ],
+        "numberOfBytes": "256"
+      },
+      "t_struct(BorrowState)19156_storage": {
+        "encoding": "inplace",
+        "label": "struct BorrowState",
+        "members": [
+          {
+            "astId": 19151,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "totalDebt",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19153,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "totalInterest",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19155,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "avgBorrowRate",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_uint256"
+          }
+        ],
+        "numberOfBytes": "96"
+      },
+      "t_struct(DrawDown)19124_storage": {
+        "encoding": "inplace",
+        "label": "struct DrawDown",
+        "members": [
+          {
+            "astId": 19096,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "principal",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19098,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "interest",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19100,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "term",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19102,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "epoch",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19104,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "nper",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19107,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "pmt",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_struct(PMT)19083_storage"
+          },
+          {
+            "astId": 19109,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "apr",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19111,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "borrowAt",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19113,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "nextPaymentDue",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19115,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "totalPrincipalPaid",
+            "offset": 0,
+            "slot": "11",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19117,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "totalInterestPaid",
+            "offset": 0,
+            "slot": "12",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19121,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "repayments",
+            "offset": 0,
+            "slot": "13",
+            "type": "t_array(t_struct(RepaymentData)19094_storage)dyn_storage"
+          },
+          {
+            "astId": 19123,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "paidTimes",
+            "offset": 0,
+            "slot": "14",
+            "type": "t_uint256"
+          }
+        ],
+        "numberOfBytes": "480"
+      },
+      "t_struct(Facet)8171_storage": {
+        "encoding": "inplace",
+        "label": "struct IDiamondLoupe.Facet",
+        "members": [
+          {
+            "astId": 8167,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "facetAddress",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_address"
+          },
+          {
+            "astId": 8170,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "functionSelectors",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_bytes4)dyn_storage"
+          }
+        ],
+        "numberOfBytes": "64"
+      },
+      "t_struct(NFTInfo)19197_storage": {
+        "encoding": "inplace",
+        "label": "struct NFTInfo",
+        "members": [
+          {
+            "astId": 19194,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "price",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19196,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "timestamp",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256"
+          }
+        ],
+        "numberOfBytes": "64"
+      },
+      "t_struct(PMT)19083_storage": {
+        "encoding": "inplace",
+        "label": "struct PMT",
+        "members": [
+          {
+            "astId": 19078,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "principal",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19080,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "interest",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19082,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "pmt",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_uint256"
+          }
+        ],
+        "numberOfBytes": "96"
+      },
+      "t_struct(RepaymentData)19094_storage": {
+        "encoding": "inplace",
+        "label": "struct RepaymentData",
+        "members": [
+          {
+            "astId": 19085,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "principal",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19087,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "interest",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19089,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "total",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19091,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "paidAt",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint40"
+          },
+          {
+            "astId": 19093,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "isLiquidated",
+            "offset": 5,
+            "slot": "3",
+            "type": "t_bool"
+          }
+        ],
+        "numberOfBytes": "128"
+      },
+      "t_struct(ReserveConfigurationMap)19076_storage": {
+        "encoding": "inplace",
+        "label": "struct ReserveConfigurationMap",
+        "members": [
+          {
+            "astId": 19075,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "data",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+          }
+        ],
+        "numberOfBytes": "32"
+      },
+      "t_struct(ReserveData)19073_storage": {
+        "encoding": "inplace",
+        "label": "struct ReserveData",
+        "members": [
+          {
+            "astId": 19036,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "configuration",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_struct(ReserveConfigurationMap)19076_storage"
+          },
+          {
+            "astId": 19038,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "currentOverallLiquidityRate",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19040,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "currentJuniorLiquidityRate",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19042,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "currentSeniorLiquidityRate",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19044,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "currentBorrowRate",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19046,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "marginRequirement",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19048,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "decimals",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19050,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "interestRateStrategyAddress",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_address"
+          },
+          {
+            "astId": 19052,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "loanStrategyAddress",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_address"
+          },
+          {
+            "astId": 19054,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "juniorDepositTokenAddress",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_address"
+          },
+          {
+            "astId": 19056,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "seniorDepositTokenAddress",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_address"
+          },
+          {
+            "astId": 19058,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "juniorLastUpdateTimestamp",
+            "offset": 20,
+            "slot": "10",
+            "type": "t_uint40"
+          },
+          {
+            "astId": 19060,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "seniorLastUpdateTimestamp",
+            "offset": 25,
+            "slot": "10",
+            "type": "t_uint40"
+          },
+          {
+            "astId": 19062,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "optimalTrancheRatio",
+            "offset": 0,
+            "slot": "11",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19064,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "currentIncomeRatio",
+            "offset": 0,
+            "slot": "12",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19066,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "optimalIncomeRatio",
+            "offset": 0,
+            "slot": "13",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19068,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "nftAddress",
+            "offset": 0,
+            "slot": "14",
+            "type": "t_address"
+          },
+          {
+            "astId": 19070,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "priceOracle",
+            "offset": 0,
+            "slot": "15",
+            "type": "t_address"
+          },
+          {
+            "astId": 19072,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "initialized",
+            "offset": 20,
+            "slot": "15",
+            "type": "t_bool"
+          }
+        ],
+        "numberOfBytes": "512"
+      },
+      "t_struct(Snapshot)18729_storage": {
+        "encoding": "inplace",
+        "label": "struct Snapshot",
+        "members": [
+          {
+            "astId": 18724,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "facets",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_array(t_struct(Facet)8171_storage)dyn_storage"
+          },
+          {
+            "astId": 18726,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "init",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_address"
+          },
+          {
+            "astId": 18728,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "initArgs",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_bytes_storage"
+          }
+        ],
+        "numberOfBytes": "96"
+      },
+      "t_struct(VaultConfig)19163_storage": {
+        "encoding": "inplace",
+        "label": "struct VaultConfig",
+        "members": [
+          {
+            "astId": 19158,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "minMargin",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19160,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "maxMargin",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 19162,
+            "contract": "contracts/voyage/facets/DiamondVersionFacet.sol:DiamondVersionFacet",
+            "label": "marginRequirement",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_uint256"
+          }
+        ],
+        "numberOfBytes": "96"
+      },
+      "t_uint16": {
+        "encoding": "inplace",
+        "label": "uint16",
+        "numberOfBytes": "2"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      },
+      "t_uint40": {
+        "encoding": "inplace",
+        "label": "uint40",
+        "numberOfBytes": "5"
+      }
+    }
+  }
+}
