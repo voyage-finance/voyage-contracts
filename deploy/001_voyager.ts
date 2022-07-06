@@ -17,11 +17,11 @@ const deployFn: DeployFunction = async (hre) => {
     args: [90, 30, 10, liquidationBonus, marginRequirement],
     log: true,
   });
-  const vaultImpl = await deploy('Vault', {
+  const marginEscrowImpl = await deploy('MarginEscrow', {
     from: owner,
     log: true,
   });
-  const marginEscrowImpl = await deploy('MarginEscrow', {
+  const creditEscrowImpl = await deploy('CreditEscrow', {
     from: owner,
     log: true,
   });
@@ -37,13 +37,17 @@ const deployFn: DeployFunction = async (hre) => {
     from: owner,
     log: true,
   });
+  const vaultFactory = await deploy('VaultFactory', {
+    from: owner,
+    log: true,
+  });
 
   const diamondABI: any[] = [];
   const diamondProxyArtifact = await getArtifact('Diamond');
   diamondABI.push(diamondProxyArtifact.abi);
 
   // This only returns the bare diamond proxy.
-  let existingProxyDeployment = await getOrNull('VoyagerDiamondProxy');
+  let existingProxyDeployment = await getOrNull('VoyageDiamondProxy');
   let existingFacets: Facet[] = [];
   const existingSelectors: string[] = [];
   const selectorFacetMap: { [selector: string]: Facet } = {};
@@ -53,7 +57,7 @@ const deployFn: DeployFunction = async (hre) => {
       existingProxyDeployment?.address
     );
     // this returns the diamond with merged ABI.
-    const diamond = await ethers.getContract('Voyager');
+    const diamond = await ethers.getContract('Voyage');
     existingFacets = await diamond.facets();
     log.debug('existing facets: %o', existingFacets);
   }
@@ -84,6 +88,11 @@ const deployFn: DeployFunction = async (hre) => {
     },
     {
       name: 'VaultFacet',
+      from: owner,
+      log: true,
+    },
+    {
+      name: 'DiamondVersionFacet',
       from: owner,
       log: true,
     },
@@ -157,8 +166,8 @@ const deployFn: DeployFunction = async (hre) => {
       // TODO: check if there is already a diamond at this address, e.g., in case `deployments` folder was wiped.
       // if there is one, it can actually be re-used
       try {
-        existingProxyDeployment = await deploy('VoyagerDiamondProxy', {
-          contract: 'contracts/component/Voyager.sol:Voyager',
+        existingProxyDeployment = await deploy('VoyageDiamondProxy', {
+          contract: 'contracts/voyage/Voyage.sol:Voyage',
           from: owner,
           log: true,
           args: [owner],
@@ -179,7 +188,7 @@ const deployFn: DeployFunction = async (hre) => {
       skipSupportsInterface: false,
     });
 
-    save('Voyager', {
+    save('Voyage', {
       ...existingProxyDeployment,
       abi: mergedABI,
       facets,
@@ -198,16 +207,17 @@ const deployFn: DeployFunction = async (hre) => {
       const initArgs = initDiamond.interface.encodeFunctionData('init', [
         {
           initOwner: owner,
-          vaultImpl: vaultImpl.address,
           marginEscrowImpl: marginEscrowImpl.address,
+          creditEscrowImpl: creditEscrowImpl.address,
           seniorDepositTokenImpl: seniorDepositImpl.address,
           juniorDepositTokenImpl: juniorDepositImpl.address,
+          vaultFactory: vaultFactory.address,
         },
       ]);
 
       log.debug('Executing cuts: %o', cuts);
       await execute(
-        'Voyager',
+        'Voyage',
         {
           from: owner,
           log: true,
@@ -226,6 +236,6 @@ const deployFn: DeployFunction = async (hre) => {
   }
 };
 
-deployFn.tags = ['Voyager'];
+deployFn.tags = ['Voyage'];
 
 export default deployFn;

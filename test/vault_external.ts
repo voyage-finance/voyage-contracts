@@ -26,27 +26,27 @@ describe('Vault', function () {
   });
 
   it('Full process', async function () {
-    const { alice, vault, tus, voyager, crab, marketPlace } =
+    const { alice, vault, tus, voyage, crab, marketPlace } =
       await setupTestSuite();
     const { owner } = await getNamedAccounts();
     const depositAmount = '100000000000000000000';
-    await voyager.setMaxMargin(tus.address, '1000000000000000000000');
-    await voyager.deposit(tus.address, 0, depositAmount, owner);
-    await voyager.deposit(tus.address, 1, depositAmount, owner);
-    await voyager.setMarginRequirement(
+    await voyage.setMaxMargin(tus.address, '1000000000000000000000');
+    await voyage.deposit(tus.address, 0, depositAmount, owner);
+    await voyage.deposit(tus.address, 1, depositAmount, owner);
+    await voyage.setMarginRequirement(
       tus.address,
       '100000000000000000000000000'
     ); // 0.1
 
-    await voyager.depositMargin(
+    await voyage.depositMargin(
       vault.address,
       tus.address,
       '100000000000000000000'
     );
-    await voyager.borrow(tus.address, '100000000000000000000', vault.address);
-    const escrowAddr = await vault.creditEscrow(tus.address);
-    console.log('reserve escrow: ', escrowAddr);
-    const vaultBalance = await tus.balanceOf(escrowAddr);
+    await voyage.borrow(tus.address, '100000000000000000000', vault.address);
+    const escrowAddr = await voyage.getVaultEscrowAddr(owner, tus.address);
+    console.log('reserve escrow: ', escrowAddr[0]);
+    const vaultBalance = await tus.balanceOf(escrowAddr[0]);
     console.log('vault balance: ', vaultBalance.toString());
 
     await crab.safeMint(alice, 1);
@@ -78,10 +78,10 @@ describe('Vault', function () {
     const vaultBalanceAfter = await tus.balanceOf(vault.address);
     console.log('vault balance after buying: ', vaultBalanceAfter.toString());
 
-    const vaultData = await voyager.getVaultData(vault.address, tus.address);
+    const vaultData = await voyage.getVaultData(vault.address, tus.address);
     console.log('draw down list: ', vaultData.drawDownList.toString());
 
-    const drawDownDetail = await voyager.getDrawDownDetail(
+    const drawDownDetail = await voyage.getDrawDownDetail(
       vault.address,
       tus.address,
       0
@@ -92,9 +92,9 @@ describe('Vault', function () {
       vault.withdrawNFT(tus.address, crab.address, 1)
     ).to.be.revertedWith('Vault: invalid withdrawal');
 
-    await voyager.repay(tus.address, 0, vault.address);
-    await voyager.repay(tus.address, 0, vault.address);
-    await voyager.repay(tus.address, 0, vault.address);
+    await voyage.repay(tus.address, 0, vault.address);
+    await voyage.repay(tus.address, 0, vault.address);
+    await voyage.repay(tus.address, 0, vault.address);
 
     const ownerBefore = await crab.ownerOf(1);
     expect(ownerBefore).to.equal(vault.address);

@@ -1,16 +1,16 @@
 import { ContractTransaction } from 'ethers';
 import { ethers } from 'hardhat';
-import { Voyager } from '../typechain/Voyager';
+import { Voyage } from '../typechain/Voyage';
 
 async function main() {
-  const voyager = await ethers.getContract<Voyager>('Voyager');
+  const voyage = await ethers.getContract<Voyage>('Voyage');
   const tus = await ethers.getContract('Tus');
-  let tx: ContractTransaction = await voyager.setMarginRequirement(
+  let tx: ContractTransaction = await voyage.setMarginRequirement(
     tus.address,
     '100000000000000000000000000'
   );
   await tx.wait();
-  tx = await voyager.setMaxMargin(tus.address, '100000000000000000000000000');
+  tx = await voyage.setMaxMargin(tus.address, '100000000000000000000000000');
   await tx.wait();
 }
 

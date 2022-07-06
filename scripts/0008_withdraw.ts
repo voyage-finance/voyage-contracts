@@ -1,12 +1,12 @@
 import { deployments, ethers, getNamedAccounts } from 'hardhat';
 import { MAX_UINT_256 } from '../helpers/math';
-import { JuniorDepositToken, SeniorDepositToken, Voyager } from '@contracts';
+import { JuniorDepositToken, SeniorDepositToken, Voyage } from '@contracts';
 
 async function main() {
   const { owner } = await getNamedAccounts();
-  const voyager = await ethers.getContract<Voyager>('Voyager');
+  const voyage = await ethers.getContract<Voyage>('Voyage');
   const tus = await deployments.get('Tus');
-  const [senior, junior] = await voyager.getDepositTokens(tus.address);
+  const [senior, junior] = await voyage.getDepositTokens(tus.address);
   const seniorDepositToken = await ethers.getContractAt<SeniorDepositToken>(
     'SeniorDepositToken',
     senior
@@ -16,12 +16,12 @@ async function main() {
     junior
   );
   await seniorDepositToken
-    .approve(voyager.address, MAX_UINT_256)
+    .approve(voyage.address, MAX_UINT_256)
     .then((tx) => tx.wait())
-    .then(() => juniorDepositToken.approve(voyager.address, MAX_UINT_256))
+    .then(() => juniorDepositToken.approve(voyage.address, MAX_UINT_256))
     .then((tx) => tx.wait());
 
-  await voyager.withdraw(tus.address, '1', '10000000000000000000', owner);
+  await voyage.withdraw(tus.address, '1', '10000000000000000000', owner);
 }
 
 main()

@@ -1,13 +1,13 @@
-import { Voyager } from '@contracts';
+import { Voyage } from '@contracts';
 import { deployments, ethers, getNamedAccounts } from 'hardhat';
 
 async function main() {
   const { owner } = await getNamedAccounts();
-  const voyager = await ethers.getContract<Voyager>('Voyager');
-  const vaultAddress = await voyager.getVault(owner);
+  const voyage = await ethers.getContract<Voyage>('Voyage');
+  const vaultAddress = await voyage.getVault(owner);
   const tus = await deployments.get('Tus');
 
-  let tx = await voyager.borrow(
+  let tx = await voyage.borrow(
     tus.address,
     '10000000000000000000',
     vaultAddress

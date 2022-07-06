@@ -1,4 +1,4 @@
-import { Voyager } from '@contracts';
+import { Voyage } from '@contracts';
 import { ContractTransaction } from 'ethers';
 import { ethers, deployments } from 'hardhat';
 
@@ -11,14 +11,14 @@ async function main() {
   const interestStrategy = await getAddress(
     'DefaultReserveInterestRateStrategy'
   );
-  const voyager = await ethers.getContract<Voyager>('Voyager');
+  const voyage = await ethers.getContract<Voyage>('Voyage');
   const tus = await ethers.getContract('Tus');
   const priceOracle = await ethers.getContract('PriceOracle');
 
-  const [initialized, activated] = await voyager.getReserveStatus(tus.address);
+  const [initialized, activated] = await voyage.getReserveStatus(tus.address);
   let tx: ContractTransaction;
   if (!initialized) {
-    tx = await voyager.initReserve(
+    tx = await voyage.initReserve(
       treasureUnderSea,
       interestStrategy,
       loanStrategy,
@@ -28,7 +28,7 @@ async function main() {
     await tx.wait();
   }
   if (!activated) {
-    tx = await voyager.activateReserve(tus.address);
+    tx = await voyage.activateReserve(tus.address);
     await tx.wait();
   }
 }
