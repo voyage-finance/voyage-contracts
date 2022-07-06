@@ -28,9 +28,9 @@ jobs:
       - run: yarn check:hh
       - run: yarn compile
       - run: yarn cov 
-      - name: Run codacy-coverage-reporter
-        uses: codacy/codacy-coverage-reporter-action@v1
-        with:
-          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-          language: Solidity
-          coverage-reports: coverage/lcov.info
+#      - name: Run codacy-coverage-reporter
+#        uses: codacy/codacy-coverage-reporter-action@v1
+#        with:
+#          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+#          language: Solidity
+#          coverage-reports: coverage/lcov.info

@@ -2,7 +2,8 @@ import BigNumber from 'bignumber.js';
 import { deployments as d } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { ERC20 } from '../typechain/ERC20';
-import { Voyager } from '../typechain/Voyager';
+import { Vault } from '../typechain/Vault';
+import { Voyage } from '../typechain/Voyage';
 import { deployFacets, FacetCutAction } from './diamond';
 import { decimals, MAX_UINT_256, toRay } from './math';
 
@@ -13,16 +14,11 @@ const setupBase = async ({
   getNamedAccounts,
   ethers,
 }: HardhatRuntimeEnvironment) => {
-  await deployments.fixture([
-    'Voyager',
-    'Tokenization',
-    'VaultManager',
-    'PriceOracle',
-  ]);
+  await deployments.fixture(['Voyage', 'Vault', 'Tokenization']);
   const { owner, alice, bob } = await getNamedAccounts();
 
-  /* --------------------------------- voyager -------------------------------- */
-  const voyager = await ethers.getContract<Voyager>('Voyager');
+  /* --------------------------------- voyage -------------------------------- */
+  const voyage = await ethers.getContract<Voyage>('Voyage');
 
   /* ---------------------------------- infra --------------------------------- */
   const priceOracle = await ethers.getContract('PriceOracle');
@@ -37,15 +33,15 @@ const setupBase = async ({
   const defaultLoanStrategy = await ethers.getContract('DefaultLoanStrategy');
 
   /* ------------------------- reserve initialisation ------------------------- */
-  await voyager.initReserve(
+  await voyage.initReserve(
     tus.address,
     defaultReserveInterestRateStrategy.address,
     defaultLoanStrategy.address,
     '500000000000000000000000000',
     priceOracle.address
   );
-  await voyager.activateReserve(tus.address);
-  const [senior, junior] = await voyager.getDepositTokens(tus.address);
+  await voyage.activateReserve(tus.address);
+  const [senior, junior] = await voyage.getDepositTokens(tus.address);
   const seniorDepositToken = await ethers.getContractAt(
     'SeniorDepositToken',
     senior
@@ -54,19 +50,25 @@ const setupBase = async ({
     'JuniorDepositToken',
     junior
   );
-  await tus.approve(voyager.address, MAX_UINT_256);
+  await tus.approve(voyage.address, MAX_UINT_256);
 
   /* -------------------------- vault initialisation -------------------------- */
-  await voyager.setMaxMargin(tus.address, '1000000000000000000000');
+  await voyage.setMaxMargin(tus.address, '1000000000000000000000');
   const marginRequirement = toRay(new BigNumber('0.1')).toFixed();
-  await voyager.setMarginRequirement(tus.address, marginRequirement); // 0.1
+  await voyage.setMarginRequirement(tus.address, marginRequirement); // 0.1
 
   // create an empty vault
-  await voyager.createVault(owner);
-  const vaultAddr = await voyager.getVault(owner);
-  const vault = await ethers.getContractAt('Vault', vaultAddr);
-  await voyager.initAsset(vaultAddr, tus.address);
-  await tus.approve(vault.address, MAX_UINT_256);
+  const salt = ethers.utils.formatBytes32String(
+    (Math.random() + 1).toString(36).substring(7)
+  );
+  await voyage.createVault(owner, salt);
+  const deployedVault = await voyage.getVault(owner);
+  await tus.approve(deployedVault, MAX_UINT_256);
+  const vault = await ethers.getContractAt<Vault>(
+    'hardhat-diamond-abi/HardhatDiamondABI.sol:Vault',
+    deployedVault
+  );
+  await voyage.initAsset(deployedVault, tus.address);
 
   return {
     owner,
@@ -82,7 +84,7 @@ const setupBase = async ({
     juniorDepositToken,
     seniorDepositToken,
     vault,
-    voyager,
+    voyage,
   };
 };
 
@@ -111,7 +113,7 @@ const setupMocks = async (
   ]);
 
   await deployments.execute(
-    'Voyager',
+    'Voyage',
     { from: owner, log: true },
     'diamondCut',
     [{ ...facets[0], action: FacetCutAction.Replace }],
@@ -120,6 +122,8 @@ const setupMocks = async (
   );
 };
 
+const createVault = async () => {};
+
 export const setupTestSuite = d.createFixture(async (hre) => {
   return setupBase(hre);
 });
@@ -127,11 +131,11 @@ export const setupTestSuite = d.createFixture(async (hre) => {
 export const setupTestSuiteWithMocks = d.createFixture(async (hre, args) => {
   const base = await setupBase(hre);
   await setupMocks(hre, args);
-  const voyager = await hre.ethers.getContract<Voyager>('Voyager');
+  const voyage = await hre.ethers.getContract<Voyage>('Voyage');
   return {
     ...base,
     underlying: base.tus as ERC20,
     decimals: dec,
-    voyager,
+    voyage,
   };
 });

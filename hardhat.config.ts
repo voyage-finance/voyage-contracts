@@ -85,10 +85,16 @@ const config: HardhatUserConfig = {
     alice: 1,
     bob: 2,
   },
-  diamondAbi: {
-    name: 'Voyager',
-    include: ['contracts/component/facets'],
-  },
+  diamondAbi: [
+    {
+      name: 'Voyage',
+      include: ['contracts/voyage/facets'],
+    },
+    {
+      name: 'Vault',
+      include: ['contracts/vault/facets'],
+    },
+  ],
   solidity: {
     compilers: [
       {

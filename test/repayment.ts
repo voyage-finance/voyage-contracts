@@ -19,36 +19,36 @@ describe('Repayment', function () {
       seniorDepositToken,
       vault,
       tus,
-      voyager,
+      voyage,
     } = await setupTestSuite();
 
     // 100
     const depositAmount = '100000000000000000000';
-    await voyager.setMaxMargin(tus.address, '1000000000000000000000');
-    await voyager.deposit(tus.address, 0, depositAmount, owner);
-    await voyager.deposit(tus.address, 1, depositAmount, owner);
+    await voyage.setMaxMargin(tus.address, '1000000000000000000000');
+    await voyage.deposit(tus.address, 0, depositAmount, owner);
+    await voyage.deposit(tus.address, 1, depositAmount, owner);
     const seniorLiquidity = await tus.balanceOf(seniorDepositToken.address);
     const juniorLiquidity = await tus.balanceOf(juniorDepositToken.address);
     console.log('senior liquidity: ', seniorLiquidity.toString());
     console.log('junior liquidity: ', juniorLiquidity.toString());
-    await voyager.setMarginRequirement(
+    await voyage.setMarginRequirement(
       tus.address,
       '100000000000000000000000000'
     ); // 0.1
 
-    await voyager.depositMargin(
+    await voyage.depositMargin(
       vault.address,
       tus.address,
       '100000000000000000000'
     );
-    await voyager.borrow(tus.address, '10000000000000000000', vault.address);
+    await voyage.borrow(tus.address, '10000000000000000000', vault.address);
 
     // increase seven days
     const sevenDays = 7 * 24 * 60 * 60;
     await ethers.provider.send('evm_increaseTime', [sevenDays]);
     await ethers.provider.send('evm_mine', []);
 
-    const vaultData = await voyager.getVaultData(vault.address, tus.address);
+    const vaultData = await voyage.getVaultData(vault.address, tus.address);
 
     console.log('total debt: ', vaultData.totalDebt.toString());
     console.log(
@@ -59,7 +59,7 @@ describe('Repayment', function () {
       ']'
     );
 
-    const drawDownDetail = await voyager.getDrawDownDetail(
+    const drawDownDetail = await voyage.getDrawDownDetail(
       vault.address,
       tus.address,
       0
@@ -67,9 +67,9 @@ describe('Repayment', function () {
     console.log('draw down 0: ');
     showDrawDown(drawDownDetail);
 
-    await voyager.borrow(tus.address, '10000000000000000000', vault.address);
+    await voyage.borrow(tus.address, '10000000000000000000', vault.address);
 
-    const vaultData2 = await voyager.getVaultData(vault.address, tus.address);
+    const vaultData2 = await voyage.getVaultData(vault.address, tus.address);
 
     console.log('total debt: ', vaultData2.totalDebt.toString());
     console.log(
@@ -79,7 +79,7 @@ describe('Repayment', function () {
       vaultData2.drawDownList.tail.toString(),
       ']'
     );
-    const drawDownDetail2 = await voyager.getDrawDownDetail(
+    const drawDownDetail2 = await voyage.getDrawDownDetail(
       vault.address,
       tus.address,
       1
@@ -88,8 +88,8 @@ describe('Repayment', function () {
     showDrawDown(drawDownDetail2);
 
     // repay the first draw down
-    await voyager.repay(tus.address, 0, vault.address);
-    const drawDownDetail3 = await voyager.getDrawDownDetail(
+    await voyage.repay(tus.address, 0, vault.address);
+    const drawDownDetail3 = await voyage.getDrawDownDetail(
       vault.address,
       tus.address,
       0
@@ -97,8 +97,8 @@ describe('Repayment', function () {
     console.log('draw down 0: ');
     showDrawDown(drawDownDetail3);
 
-    await voyager.repay(tus.address, 0, vault.address);
-    const drawDownDetail4 = await voyager.getDrawDownDetail(
+    await voyage.repay(tus.address, 0, vault.address);
+    const drawDownDetail4 = await voyage.getDrawDownDetail(
       vault.address,
       tus.address,
       0
@@ -106,8 +106,8 @@ describe('Repayment', function () {
     console.log('draw down 0: ');
     showDrawDown(drawDownDetail4);
 
-    await voyager.repay(tus.address, 0, vault.address);
-    const drawDownDetail5 = await voyager.getDrawDownDetail(
+    await voyage.repay(tus.address, 0, vault.address);
+    const drawDownDetail5 = await voyage.getDrawDownDetail(
       vault.address,
       tus.address,
       0
@@ -117,51 +117,51 @@ describe('Repayment', function () {
   });
 
   it('Repay a non-debt should revert', async function () {
-    const { juniorDepositToken, seniorDepositToken, vault, tus, voyager } =
+    const { juniorDepositToken, seniorDepositToken, vault, tus, voyage } =
       await setupTestSuite();
 
     const { owner } = await getNamedAccounts();
 
     // 100
     const depositAmount = '100000000000000000000';
-    await voyager.setMaxMargin(tus.address, '1000000000000000000000');
-    await voyager.deposit(tus.address, 0, depositAmount, owner);
-    await voyager.deposit(tus.address, 1, depositAmount, owner);
+    await voyage.setMaxMargin(tus.address, '1000000000000000000000');
+    await voyage.deposit(tus.address, 0, depositAmount, owner);
+    await voyage.deposit(tus.address, 1, depositAmount, owner);
     const seniorLiquidity = await tus.balanceOf(seniorDepositToken.address);
     const juniorLiquidity = await tus.balanceOf(juniorDepositToken.address);
     console.log('senior liquidity: ', seniorLiquidity.toString());
     console.log('junior liquidity: ', juniorLiquidity.toString());
-    await voyager.setMarginRequirement(
+    await voyage.setMarginRequirement(
       tus.address,
       '100000000000000000000000000'
     ); // 0.1
 
-    await voyager.depositMargin(
+    await voyage.depositMargin(
       vault.address,
       tus.address,
       '100000000000000000000'
     );
-    await voyager.borrow(tus.address, '10000000000000000000', vault.address);
+    await voyage.borrow(tus.address, '10000000000000000000', vault.address);
 
     // increase seven days
     const sevenDays = 7 * 24 * 60 * 60;
     await ethers.provider.send('evm_increaseTime', [sevenDays]);
     await ethers.provider.send('evm_mine', []);
 
-    const drawDownDetail = await voyager.getDrawDownDetail(
+    const drawDownDetail = await voyage.getDrawDownDetail(
       vault.address,
       tus.address,
       0
     );
 
-    await voyager.borrow(tus.address, '10000000000000000000', vault.address);
+    await voyage.borrow(tus.address, '10000000000000000000', vault.address);
 
     // repay the first draw down
-    await voyager.repay(tus.address, 0, vault.address);
-    await voyager.repay(tus.address, 0, vault.address);
-    await voyager.repay(tus.address, 0, vault.address);
+    await voyage.repay(tus.address, 0, vault.address);
+    await voyage.repay(tus.address, 0, vault.address);
+    await voyage.repay(tus.address, 0, vault.address);
     await expect(
-      voyager.repay(tus.address, 0, vault.address)
+      voyage.repay(tus.address, 0, vault.address)
     ).to.be.revertedWith('75');
   });
 });
