@@ -6,8 +6,15 @@ import {LibVaultStorage} from "./libraries/LibVaultStorage.sol";
 import "hardhat/console.sol";
 
 contract Vault is VersionedDiamond {
-    constructor(address _owner, address _voyage) VersionedDiamond(_voyage) {
+    constructor(
+        address _owner,
+        address _voyage,
+        uint256 _version,
+        bytes32 _checksum
+    ) VersionedDiamond(_voyage) {
         LibVaultStorage.diamondStorage().voyage = _voyage;
         LibVaultStorage.diamondStorage().owner = _owner;
+        LibVaultStorage.diamondStorage().version = _version;
+        LibVaultStorage.diamondStorage().checksum = _checksum;
     }
 }

@@ -13,6 +13,8 @@ import {LibDiamond} from "./libraries/LibDiamond.sol";
 import {DiamondCutFacet} from "./facets/DiamondCutFacet.sol";
 import {DiamondLoupeFacet} from "./facets/DiamondLoupeFacet.sol";
 import {OwnershipFacet} from "./facets/OwnershipFacet.sol";
+import {VaultStorageV1} from "../../vault/libraries/LibVaultStorage.sol";
+import {DiamondVersionFacet} from "../../voyage/facets/DiamondVersionFacet.sol";
 
 contract VersionedDiamond {
     // more arguments are added to this struct
@@ -33,12 +35,18 @@ contract VersionedDiamond {
     // Find facet for function that is called and execute the
     // function if a facet is found and return any value.
     fallback() external payable {
-        // todo check version
         LibDiamond.DiamondStorage storage ds;
+        VaultStorageV1 storage vs;
         bytes32 position = LibDiamond.DIAMOND_STORAGE_POSITION;
         assembly {
             ds.slot := position
         }
+        (uint256 version, bytes32 checksum) = DiamondVersionFacet(vs.voyage)
+            .currentVersion();
+        require(
+            version == vs.version && checksum == vs.checksum,
+            "Diamond: Vault outdated"
+        );
         address facet = ds.selectorToFacetAndPosition[msg.sig].facetAddress;
         require(facet != address(0), "Diamond: Function does not exist");
         assembly {
