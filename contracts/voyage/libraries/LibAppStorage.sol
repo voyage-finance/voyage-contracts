@@ -148,6 +148,11 @@ struct NFTInfo {
     uint256 timestamp;
 }
 
+struct ERC721AssetInfo {
+    address marketplace;
+    address erc20Addr;
+}
+
 struct UpgradeParam {
     mapping(address => mapping(bytes4 => address)) existingSelectorFacetMap;
     mapping(address => bytes4[]) existingSelectors;
@@ -184,8 +189,10 @@ struct AppStorage {
     mapping(address => address) vaultMap;
     // mapping of vault instance to vault configuration
     mapping(address => VaultConfig) vaultConfigMap;
-    // mapping of erc721 address to vault strategy contract address
-    mapping(address => address) vaultStrategy;
+    // mapping of marketplace to erc721 address
+    // for validate onNFTReceived
+    mapping(address => address) marketPlaceToAsset;
+    mapping(address => ERC721AssetInfo) erc721AssetInfo;
     // erc721 address => token id => nft info
     mapping(address => mapping(uint256 => NFTInfo)) nftInfo;
     uint256 currentVersion;

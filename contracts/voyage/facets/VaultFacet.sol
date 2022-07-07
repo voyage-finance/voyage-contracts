@@ -101,11 +101,12 @@ contract VaultFacet is Storage, ReentrancyGuard {
     }
 
     /* ---------------------- vault configuration interface --------------------- */
-    function setVaultStrategyAddr(address _target, address _strategyAddr)
-        external
-        authorised
-    {
-        LibVault.setVaultStrategyAddr(_target, _strategyAddr);
+    function setNFTInfo(
+        address _erc721,
+        address _erc20,
+        address _marketplace
+    ) external authorised {
+        LibVault.setNFTInfo(_erc721, _erc20, _marketplace);
     }
 
     /**
@@ -144,32 +145,6 @@ contract VaultFacet is Storage, ReentrancyGuard {
         LibVault.setMarginRequirement(_reserve, _requirement);
     }
 
-    function updateNFTPrice(
-        address _erc721Addr,
-        uint256 _cardId,
-        uint256 _cardPrice
-    ) external {
-        // todo check auth
-        LibVault.updateNFTPrice(_erc721Addr, _cardId, _cardPrice);
-    }
-
-    function validate(
-        address _target,
-        bytes4 _selector,
-        bytes calldata _payload
-    )
-        external
-        view
-        returns (
-            address[] memory,
-            bytes[] memory,
-            address[] memory,
-            bytes[] memory
-        )
-    {
-        return LibVault.validate(_target, _selector, _payload);
-    }
-
     /************************************** View Functions **************************************/
     function marginEscrowBeacon() public view returns (address) {
         return LibVault.marginEscrowBeacon();
@@ -191,10 +166,6 @@ contract VaultFacet is Storage, ReentrancyGuard {
         return LibVault.getNFTInfo(_erc721Addr, _tokenId);
     }
 
-    function getERC721Addr(address _target) external returns (address) {
-        return LibVault.getERC721Addr(_target);
-    }
-
     function getVaultAddr(address _user) external view returns (address) {
         return LibVault.getVaultAddress(_user);
     }
@@ -207,8 +178,20 @@ contract VaultFacet is Storage, ReentrancyGuard {
         return LibVault.getVaultEscrowAddress(_user, _asset);
     }
 
-    function getAdapter(address _target) external view returns (address) {
-        return LibVault.getAdapter(_target);
+    function getTokenAddrByMarketPlace(address _marketplace)
+        external
+        view
+        returns (address)
+    {
+        return LibVault.getTokenAddrByMarketPlace(_marketplace);
+    }
+
+    function getMarketPlaceByAsset(address _asset)
+        external
+        view
+        returns (address)
+    {
+        return LibVault.getMarketPlaceByAsset(_asset);
     }
 
     /**

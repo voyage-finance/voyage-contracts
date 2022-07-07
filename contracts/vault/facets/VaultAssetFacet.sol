@@ -15,6 +15,7 @@ import {PriorityQueue, Heap} from "../libraries/PriorityQueue.sol";
 import {VaultConfig, NFTInfo} from "../../voyage/libraries/LibAppStorage.sol";
 import {VaultFacet} from "../../voyage/facets/VaultFacet.sol";
 import {LoanFacet} from "../../voyage/facets/LoanFacet.sol";
+import "hardhat/console.sol";
 
 contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
     using SafeMath for uint256;
@@ -77,29 +78,7 @@ contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
         }
     }
 
-    /// @notice refund transferred amount back to escrow if there is any
-    /// @param _target To find adapter
-    /// @param _reserve Reserve address
-    /// @param _amountBefore Balance before transferring happen to buy nft etc.
-    function refund(
-        address _target,
-        address _reserve,
-        uint256 _amountBefore
-    ) external {
-        require(msg.sender == address(this), "Vault#refund: invalid caller");
-        uint256 depositAmount = _amountBefore.sub(
-            IERC20(_reserve).balanceOf(address(this))
-        );
-        address escrow = address(
-            LibVaultStorage.diamondStorage().cescrow[_reserve]
-        );
-        require(escrow != address(0), "Vault#refund: asset not initialised");
-        if (depositAmount != 0) {
-            IERC20(_reserve).safeTransfer(escrow, depositAmount);
-        }
-    }
-
-    /// @notice Called by marketplace contract or sub vaults
+    /// @notice Called by erc721 contract or sub vaults
     function onERC721Received(
         address operator,
         address from,
@@ -111,10 +90,10 @@ contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
             .diamondStorage()
             .subvaultOwnerIndex[msg.sender] != address(0);
         require(
-            vf.getAdapter(msg.sender) != address(0) || maybeSubVault,
+            vf.getMarketPlaceByAsset(msg.sender) != address(0) || maybeSubVault,
             "Vault#onERC721Received: invalid sender"
         );
-        if (vf.getAdapter(msg.sender) != address(0)) {
+        if (vf.getMarketPlaceByAsset(msg.sender) != address(0)) {
             LibVaultStorage.diamondStorage().nfts[msg.sender].insert(
                 tokenId,
                 block.timestamp

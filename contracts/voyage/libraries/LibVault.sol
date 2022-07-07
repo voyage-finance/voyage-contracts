@@ -60,35 +60,15 @@ library LibVault {
         s.nftInfo[_erc721Addr][_cardId].timestamp = block.timestamp;
     }
 
-    function setVaultStrategyAddr(address _target, address _strategyAddr)
-        internal
-    {
+    function setNFTInfo(
+        address _nft721,
+        address _erc20,
+        address _marketPlace
+    ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        s.vaultStrategy[_target] = _strategyAddr;
-    }
-
-    function validate(
-        address _target,
-        bytes4 _selector,
-        bytes calldata _payload
-    )
-        internal
-        view
-        returns (
-            address[] memory,
-            bytes[] memory,
-            address[] memory,
-            bytes[] memory
-        )
-    {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        return
-            IExternalAdapter(s.vaultStrategy[_target]).validate(
-                msg.sender,
-                _target,
-                _selector,
-                _payload
-            );
+        s.marketPlaceToAsset[_marketPlace] = _nft721;
+        s.erc721AssetInfo[_nft721].marketplace = _marketPlace;
+        s.erc721AssetInfo[_nft721].erc20Addr = _erc20;
     }
 
     /* ----------------------------- view functions ----------------------------- */
@@ -162,9 +142,27 @@ library LibVault {
         return s.vaultConfigMap[_reserve];
     }
 
-    function getAdapter(address _target) internal view returns (address) {
+    function getTokenAddrByMarketPlace(address _marketplace)
+        internal
+        view
+        returns (address)
+    {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        return s.vaultStrategy[_target];
+        return s.marketPlaceToAsset[_marketplace];
+    }
+
+    function getMarketPlaceByAsset(address _asset)
+        internal
+        view
+        returns (address)
+    {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return s.erc721AssetInfo[_asset].marketplace;
+    }
+
+    function getERC20ByAsset(address _asset) internal view returns (address) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return s.erc721AssetInfo[_asset].erc20Addr;
     }
 
     function getNFTInfo(address _erc721Addr, uint256 _tokenId)
@@ -174,11 +172,6 @@ library LibVault {
     {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return s.nftInfo[_erc721Addr][_tokenId];
-    }
-
-    function getERC721Addr(address _target) internal returns (address) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        return IExternalAdapter(s.vaultStrategy[_target]).getERC721();
     }
 
     /**

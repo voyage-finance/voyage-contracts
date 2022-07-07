@@ -18,7 +18,6 @@ import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {VaultDataFacet} from "../../vault/facets/VaultDataFacet.sol";
 import {VaultMarginFacet} from "../../vault/facets/VaultMarginFacet.sol";
 import {VaultAssetFacet} from "../../vault/facets/VaultAssetFacet.sol";
-import "hardhat/console.sol";
 
 contract LoanFacet is Storage {
     using SafeMath for uint256;
@@ -152,6 +151,12 @@ contract LoanFacet is Storage {
         uint256 _drawDown,
         address payable _vault
     ) external whenNotPaused {
+        // 0. check if the user owns the vault
+        require(
+            LibVault.getVaultAddress(_msgSender()) == _vault,
+            Errors.LOM_NOT_VAULT_OWNER
+        );
+
         // 1. check draw down to get principal and interest
         uint256 principal;
         uint256 interest;
