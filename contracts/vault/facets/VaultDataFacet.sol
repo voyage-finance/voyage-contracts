@@ -133,7 +133,7 @@ contract VaultDataFacet is ReentrancyGuard, Storage, IERC1271 {
 
     function isValidERC721(address _asset) public view returns (bool) {
         VaultFacet vf = VaultFacet(LibVaultStorage.diamondStorage().voyage);
-        return vf.getAdapter(msg.sender) != address(0);
+        return vf.getMarketPlaceByAsset(_asset) != address(0);
     }
 
     /// @notice Should return whether the signature provided is valid for the provided data

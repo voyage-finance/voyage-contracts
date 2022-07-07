@@ -42,46 +42,14 @@ const deployFn: DeployFunction = async (hre) => {
   });
   const mp = await ethers.getContract<MockMarketPlace>('MockMarketPlace');
   const battle_game = await ethers.getContract('MockCrabadaBattleGame');
-  await deploy('CrabadaExternalAdapter', {
-    from: owner,
-    log: true,
-    args: [
-      voyage.address,
-      crab.address,
-      tus.address,
-      mp.address,
-      battle_game.address,
-    ],
-  });
-  const strategy = await ethers.getContract<Crab>('CrabadaExternalAdapter');
 
   await execute(
     'Voyage',
     { from: owner, log: true },
-    'setVaultStrategyAddr',
-    tus.address,
-    strategy.address
-  );
-  await execute(
-    'Voyage',
-    { from: owner, log: true },
-    'setVaultStrategyAddr',
+    'setNFTInfo',
     crab.address,
-    strategy.address
-  );
-  await execute(
-    'Voyage',
-    { from: owner, log: true },
-    'setVaultStrategyAddr',
-    mp.address,
-    strategy.address
-  );
-  await execute(
-    'Voyage',
-    { from: owner, log: true },
-    'setVaultStrategyAddr',
-    battle_game.address,
-    strategy.address
+    tus.address,
+    mp.address
   );
 
   const wadRayMath = await deploy(WRM_NAME, { from: owner, log: true });
