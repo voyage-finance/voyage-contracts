@@ -126,7 +126,9 @@ struct VaultConfig {
 }
 
 struct VaultData {
-    uint256 borrowRate;
+    uint256 overallLiquidityRate;
+    uint256 juniorLiquidityRate;
+    uint256 seniorLiquidityRate;
     uint256 totalDebt;
     DrawDownList drawDownList;
     uint256 totalMargin;

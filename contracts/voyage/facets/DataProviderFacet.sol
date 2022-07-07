@@ -213,7 +213,11 @@ contract DataProviderFacet {
         );
         (principal, interest) = LibVault.getVaultDebt(_reserve, _vault);
         vaultData.drawDownList = drawDownList;
-        vaultData.borrowRate = 0;
+        ReserveData storage reserveData = LibLiquidity.getReserveData(_reserve);
+        vaultData.juniorLiquidityRate = reserveData.currentJuniorLiquidityRate;
+        vaultData.seniorLiquidityRate = reserveData.currentSeniorLiquidityRate;
+        vaultData.overallLiquidityRate = reserveData
+            .currentOverallLiquidityRate;
         vaultData.totalDebt = principal.add(interest);
         vaultData.totalMargin = LibVault.getMargin(_vault, _reserve);
         vaultData.withdrawableSecurityDeposit = LibVault
