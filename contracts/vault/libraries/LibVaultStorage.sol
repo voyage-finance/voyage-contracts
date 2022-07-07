@@ -14,6 +14,8 @@ struct CustodyData {
 struct VaultStorageV1 {
     address owner;
     address voyage;
+    uint256 version;
+    bytes32 checksum;
     // asset (ERC20) => escrow
     mapping(address => address) cescrow;
     mapping(address => address) escrow;
@@ -43,14 +45,9 @@ library LibVaultStorage {
         pure
         returns (VaultStorageV1 storage ds)
     {
-        // Specifies a random position in contract storage
-        // This can be done with a keccak256 hash of a unique string as is
-        // done here or other schemes can be used such as this:
-        // bytes32 storagePosition = keccak256(abi.encodePacked(ERC1155.interfaceId, ERC1155.name, address(this)));
-        bytes32 storagePosition = keccak256("finance.voyage.vault.v1.storage");
         // Set the position of our struct in contract storage
         assembly {
-            ds.slot := storagePosition
+            ds.slot := 0
         }
     }
 }

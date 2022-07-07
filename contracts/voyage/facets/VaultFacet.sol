@@ -43,33 +43,6 @@ contract VaultFacet is Storage, ReentrancyGuard {
         emit VaultCreated(deployedVault, owner, numVaults);
     }
 
-    function clone(address _owner, bytes32 salt) internal returns (address) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        uint256 currentVersion = s.currentVersion;
-        Snapshot memory snapshot = s.snapshotMap[currentVersion];
-        IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](
-            snapshot.facets.length
-        );
-        for (uint256 i = 0; i < snapshot.facets.length; i++) {
-            address facetAddr = snapshot.facets[i].facetAddress;
-            bytes4[] memory selectors = snapshot.facets[i].functionSelectors;
-            facetCuts[i].facetAddress = facetAddr;
-            facetCuts[i].functionSelectors = selectors;
-            facetCuts[i].action = IDiamondCut.FacetCutAction.Add;
-        }
-        address vault = LibAppStorage.diamondStorage().vaultFactory.createVault(
-            _owner,
-            address(this),
-            salt
-        );
-        DiamondCutFacet(vault).diamondCut(
-            facetCuts,
-            snapshot.init,
-            snapshot.initArgs
-        );
-        return vault;
-    }
-
     function initAsset(address _vault, address _asset)
         external
         authorised

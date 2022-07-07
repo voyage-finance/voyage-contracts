@@ -9,13 +9,15 @@ contract VaultFactory is IVaultFactory {
     function createVault(
         address owner,
         address voyage,
+        uint256 version,
+        bytes32 checksum,
         bytes32 salt
     ) external returns (address) {
         bytes memory creationCode = type(Vault).creationCode;
 
         bytes memory bytecode = abi.encodePacked(
             creationCode,
-            abi.encode(owner, voyage)
+            abi.encode(owner, voyage, version, checksum)
         );
 
         return Create2.deploy(0, salt, bytecode);

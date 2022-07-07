@@ -88,8 +88,6 @@ contract LoanFacet is Storage {
         // todo use min security deposit
         require(_amount >= 1e19, Errors.LOM_INVALID_AMOUNT);
 
-        console.log("exit vault: ", LibVault.getVaultAddress(_msgSender()));
-
         // 0. check if the user owns the vault
         require(
             LibVault.getVaultAddress(_msgSender()) == _vault,

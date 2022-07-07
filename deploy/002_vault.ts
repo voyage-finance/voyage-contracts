@@ -131,12 +131,15 @@ const deployFn: DeployFunction = async (hre) => {
       // if there is one, it can actually be re-used
       log.debug('owner: %s', owner);
       log.debug('voyage: %s', voyage.address);
+      const salt = ethers.utils.formatBytes32String(
+        (Math.random() + 1).toString(36).substring(7)
+      );
       try {
         existingProxyDeployment = await deploy('VaultDiamondProxy', {
           contract: 'contracts/vault/Vault.sol:Vault',
           from: owner,
           log: true,
-          args: [owner, voyage.address],
+          args: [owner, voyage.address, 0, salt],
         });
         log.debug(
           'Deployed fresh diamond proxy at: %s',
