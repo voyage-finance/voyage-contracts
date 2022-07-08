@@ -94,7 +94,7 @@ library LibLoan {
         uint256 principal,
         uint256 interest,
         bool isLiquidated
-    ) internal {
+    ) internal returns (uint256) {
         BorrowData storage debtData = getBorrowData(underlying, vault);
         BorrowState storage borrowStat = getBorrowState(underlying);
         DrawDown storage dd = debtData.drawDowns[drawDownNumber];
@@ -132,6 +132,8 @@ library LibLoan {
         borrowStat.totalInterest = borrowStat.totalInterest.sub(
             interestRay.rayToWad()
         );
+
+        return dd.repayments.length == 0 ? 0 : dd.repayments.length - 1;
     }
 
     function updateStateOnBorrow(

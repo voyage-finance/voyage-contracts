@@ -37,6 +37,7 @@ contract LoanFacet is Storage {
         address reserve;
         address vault;
         uint256 drawDownId;
+        uint256 repaymentId;
         uint256 principal;
         uint256 interest;
         uint256 totalDebt;
@@ -51,6 +52,7 @@ contract LoanFacet is Storage {
         uint256 gracePeriod;
         uint256 liquidationBonus;
         uint256 marginRequirement;
+        uint256 amountSlashed;
     }
 
     event Borrow(
@@ -71,6 +73,8 @@ contract LoanFacet is Storage {
         address indexed _liquidator,
         address indexed _vault,
         address indexed _asset,
+        uint256 _drowDownId,
+        uint256 _repaymentId,
         uint256 _debt,
         uint256 _margin,
         uint256 _collateral,
@@ -251,13 +255,13 @@ contract LoanFacet is Storage {
         param.totalSlash = param.totalFromMargin.add(param.discount);
 
         // 4.1 slash margin account
-        uint256 amountSlashed = VaultMarginFacet(param.vault).slash(
+        param.amountSlashed = VaultMarginFacet(param.vault).slash(
             param.reserve,
             payable(address(this)),
             param.totalSlash
         );
 
-        uint256 amountNeedExtra = param.totalSlash.sub(amountSlashed);
+        uint256 amountNeedExtra = param.totalSlash.sub(param.amountSlashed);
 
         // 4.2 transfer from liquidator
         IERC20(param.reserve).safeTransferFrom(
@@ -306,7 +310,7 @@ contract LoanFacet is Storage {
             // todo write down to somewhere
         }
 
-        LibLoan.repay(
+        param.repaymentId = LibLoan.repay(
             param.reserve,
             param.vault,
             param.drawDownId,
@@ -324,8 +328,10 @@ contract LoanFacet is Storage {
             _msgSender(),
             _vault,
             _reserve,
+            param.drawDownId,
+            param.repaymentId,
             param.totalDebt,
-            amountSlashed,
+            param.amountSlashed,
             param.totalToLiquidate,
             param.numNFTsToLiquidate,
             amountToWriteDown
