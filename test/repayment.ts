@@ -162,6 +162,6 @@ describe('Repayment', function () {
     await voyage.repay(tus.address, 0, vault.address);
     await expect(
       voyage.repay(tus.address, 0, vault.address)
-    ).to.be.revertedWith('75');
+    ).to.be.revertedWith('InvalidDebt()');
   });
 });
