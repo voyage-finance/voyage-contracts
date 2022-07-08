@@ -6,7 +6,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
-import {AppStorage, ReserveData, Tranche, VaultConfig, VaultData, DrawDownList} from "../libraries/LibAppStorage.sol";
+import {AppStorage, ReserveData, Tranche, VaultConfig, VaultData, DrawDownList, RepaymentData} from "../libraries/LibAppStorage.sol";
 import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {LibLoan} from "../libraries/LibLoan.sol";
 import {LibVault} from "../libraries/LibVault.sol";
@@ -242,6 +242,14 @@ contract DataProviderFacet {
         uint256 _drawDownId
     ) external view returns (LibLoan.DebtDetail memory) {
         return LibLoan.getDrawDownDetail(_reserve, _vault, _drawDownId);
+    }
+
+    function getRepayment(
+        address _valut,
+        address _reserve,
+        uint256 _drawDownId
+    ) external view returns (RepaymentData[] memory) {
+        return LibLoan.getRepayment(_valut, _reserve, _drawDownId);
     }
 
     function pendingSeniorWithdrawals(address _user, address _reserve)

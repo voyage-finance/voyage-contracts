@@ -2,7 +2,7 @@
 pragma solidity ^0.8.9;
 
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import {LibAppStorage, AppStorage, BorrowData, BorrowState, DrawDown, PMT, RepaymentData, ReserveData} from "./LibAppStorage.sol";
+import {LibAppStorage, AppStorage, BorrowData, BorrowState, DrawDown, PMT, RepaymentData, ReserveData, RepaymentData} from "./LibAppStorage.sol";
 import {LibLiquidity} from "./LibLiquidity.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {MathUtils} from "../../shared/libraries/MathUtils.sol";
@@ -218,6 +218,17 @@ library LibLoan {
         debtDetail.paidTimes = dd.paidTimes;
         debtDetail.reserve = _reserve;
         return debtDetail;
+    }
+
+    function getRepayment(
+        address _reserve,
+        address _vault,
+        uint256 _drawDownId
+    ) internal view returns (RepaymentData[] memory) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        BorrowData storage borrowData = s._borrowData[_reserve][_vault];
+        DrawDown storage dd = borrowData.drawDowns[_drawDownId];
+        return dd.repayments;
     }
 
     function getDrawDownList(address _reserve, address _vault)
