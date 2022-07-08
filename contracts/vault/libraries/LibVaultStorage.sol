@@ -62,9 +62,10 @@ contract Storage {
     }
 
     modifier onlyOwner() {
-        //        VaultFacet vf = VaultFacet(LibVaultStorage.diamondStorage().voyage);
-        //        address vault = vf.getVaultAddr(msg.sender);
-        //        require(vault == address(this), "Vault: not owner");
+        require(
+            msg.sender == LibVaultStorage.diamondStorage().owner,
+            "Not owner"
+        );
         _;
     }
 

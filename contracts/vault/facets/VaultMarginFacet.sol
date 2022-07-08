@@ -22,15 +22,18 @@ contract VaultMarginFacet is ReentrancyGuard, PeripheryPayments, Storage {
             LibVaultStorage.diamondStorage().voyage
         ).getVaultConfig(_reserve);
         IMarginEscrow me = _marginEscrow(_reserve);
-        require(address(me) != address(0), "Vault: asset not initialised");
+        if (address(me) == address(0)) {
+            revert VaultNotInitialised();
+        }
         uint256 maxAllowedAmount = vaultConfig.maxMargin;
         uint256 depositedAmount = me.totalMargin();
-        require(
-            depositedAmount + _amount <= maxAllowedAmount,
-            "Vault: deposit amount exceed"
-        );
+        if (depositedAmount + _amount > maxAllowedAmount) {
+            revert InvalidDeposit("deposit amount exceed");
+        }
         uint256 minAllowedAmount = vaultConfig.minMargin;
-        require(minAllowedAmount <= _amount, "Vault: deposit too small");
+        if (minAllowedAmount > _amount) {
+            revert InvalidDeposit("deposit too small");
+        }
         pullToken(me.asset(), _amount, _sponsor, address(this));
         me.deposit(_amount, _sponsor);
     }
@@ -45,7 +48,9 @@ contract VaultMarginFacet is ReentrancyGuard, PeripheryPayments, Storage {
         uint256 _amount
     ) external payable nonReentrant onlyVoyage {
         IMarginEscrow me = _marginEscrow(_reserve);
-        require(address(me) != address(0), "Vault: asset not initialised");
+        if (address(me) == address(0)) {
+            revert VaultNotInitialised();
+        }
         me.withdraw(_amount, _sponsor, _sponsor);
     }
 
@@ -59,3 +64,7 @@ contract VaultMarginFacet is ReentrancyGuard, PeripheryPayments, Storage {
         return me.slash(_amount, _to);
     }
 }
+
+/* --------------------------------- errors -------------------------------- */
+error VaultNotInitialised();
+error InvalidDeposit(string reason);

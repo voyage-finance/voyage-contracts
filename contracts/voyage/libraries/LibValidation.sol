@@ -2,7 +2,6 @@
 pragma solidity ^0.8.9;
 
 import {LibReserveConfiguration} from "./LibReserveConfiguration.sol";
-import {Errors} from "./Errors.sol";
 import {ReserveConfigurationMap, ReserveData} from "./LibAppStorage.sol";
 
 library ValidationLogic {
@@ -18,8 +17,19 @@ library ValidationLogic {
         view
     {
         (bool isActive, bool isFrozen, ) = reserve.configuration.getFlags();
-        require(amount != 0, Errors.VL_INVALID_AMOUNT);
-        require(isActive, Errors.VL_NO_ACTIVE_RESERVE);
-        require(!isFrozen, Errors.VL_RESERVE_FROZEN);
+        if (amount == 0) {
+            revert InvalidAmount();
+        }
+        if (!isActive) {
+            revert ReserveNotActive();
+        }
+        if (isFrozen) {
+            revert ReserveFrozen();
+        }
     }
 }
+
+/* --------------------------------- errors -------------------------------- */
+error InvalidAmount();
+error ReserveNotActive();
+error ReserveFrozen();

@@ -55,10 +55,11 @@ contract SubVault is Initializable, IERC1271, ISubvault, IERC721Receiver {
         uint256 tokenId,
         bytes calldata data
     ) external returns (bytes4 ret) {
-        require(
-            VaultDataFacet(diamondStorage().parent).isValidERC721(msg.sender),
-            "SubVault#onERC721Received: invalid sender"
-        );
+        if (
+            !VaultDataFacet(diamondStorage().parent).isValidERC721(msg.sender)
+        ) {
+            revert InvalidSender();
+        }
         VaultManageFacet(diamondStorage().parent).onERC721Transferred(
             msg.sender,
             tokenId,
@@ -182,3 +183,6 @@ contract SubVault is Initializable, IERC1271, ISubvault, IERC721Receiver {
         return signer;
     }
 }
+
+/* --------------------------------- errors -------------------------------- */
+error InvalidSender();

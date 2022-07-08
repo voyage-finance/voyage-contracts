@@ -12,7 +12,6 @@ import {VaultMarginFacet} from "../../vault/facets/VaultMarginFacet.sol";
 import {IDiamondCut} from "../../shared/diamond/interfaces/IDiamondCut.sol";
 import {DiamondCutFacet} from "../../shared/diamond/facets/DiamondCutFacet.sol";
 import {DiamondVersionFacet} from "./DiamondVersionFacet.sol";
-import "hardhat/console.sol";
 
 contract VaultFacet is Storage, ReentrancyGuard {
     /* --------------------------------- events --------------------------------- */
@@ -38,7 +37,6 @@ contract VaultFacet is Storage, ReentrancyGuard {
     /* ----------------------------- admin interface ---------------------------- */
     function createVault(address owner, bytes32 salt) external authorised {
         address deployedVault = clone(owner, salt);
-        console.log("VaultFacet#createVault, deployed vault: ", deployedVault);
         uint256 numVaults = LibVault.recordVault(owner, deployedVault);
         emit VaultCreated(deployedVault, owner, numVaults);
     }
@@ -72,7 +70,9 @@ contract VaultFacet is Storage, ReentrancyGuard {
                 _amount
             )
         );
-        require(success, "VaultFacet#depositMargin: call error");
+        if (!success) {
+            revert InvalidVaultCall();
+        }
         emit VaultMarginCredited(_vault, _reserve, msg.sender, _amount);
     }
 
@@ -95,8 +95,9 @@ contract VaultFacet is Storage, ReentrancyGuard {
                 _amount
             )
         );
-        require(success, "VaultFacet#redeemMargin: call error");
-
+        if (!success) {
+            revert InvalidVaultCall();
+        }
         emit VaultMarginRedeemed(_vault, _reserve, msg.sender, _amount);
     }
 
@@ -236,3 +237,6 @@ contract VaultFacet is Storage, ReentrancyGuard {
         return LibVault.getWithdrawableMargin(_vault, _reserve, _user);
     }
 }
+
+/* --------------------------------- errors -------------------------------- */
+error InvalidVaultCall();
