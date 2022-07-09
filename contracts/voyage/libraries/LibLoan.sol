@@ -12,7 +12,7 @@ library LibLoan {
     using WadRayMath for uint256;
 
     uint256 internal constant RAY = 1e27;
-    uint256 internal constant SECOND_PER_MONTH = 30 days;
+    uint256 internal constant SECOND_PER_DAY = 1 days;
 
     struct DebtDetail {
         uint256 principal;
@@ -62,7 +62,7 @@ library LibLoan {
         dd.pmt = pmt;
 
         dd.nextPaymentDue = dd.borrowAt.add(
-            dd.nper.sub(dd.paidTimes).mul(dd.epoch.mul(SECOND_PER_MONTH))
+            dd.paidTimes.add(1).mul(dd.epoch.mul(SECOND_PER_DAY))
         );
 
         borrowData.nextDrawDownNumber++;
@@ -111,7 +111,7 @@ library LibLoan {
             repayment.paidAt = uint40(block.timestamp);
             dd.repayments.push(repayment);
             dd.nextPaymentDue = dd.borrowAt.add(
-                dd.nper.sub(dd.paidTimes).mul(dd.epoch.mul(SECOND_PER_MONTH))
+                dd.paidTimes.add(1).mul(dd.epoch.mul(SECOND_PER_DAY))
             );
         }
 
