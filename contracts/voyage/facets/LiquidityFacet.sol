@@ -5,7 +5,6 @@ import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {Errors} from "../libraries/Errors.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
 import {JuniorDepositToken} from "../tokenization/JuniorDepositToken.sol";
 import {SeniorDepositToken} from "../tokenization/SeniorDepositToken.sol";
@@ -14,7 +13,6 @@ import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol"
 import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PeripheryPayments} from "../../shared/util/PeripheryPayments.sol";
-import "hardhat/console.sol";
 
 contract LiquidityFacet is Storage, PeripheryPayments {
     using LibLiquidity for ReserveData;
@@ -53,9 +51,13 @@ contract LiquidityFacet is Storage, PeripheryPayments {
         uint256 _optimalIncomeRatio,
         address _priceOracle
     ) external authorised {
-        require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
+        if (!Address.isContract(_asset)) {
+            revert InvalidContract();
+        }
         ReserveData storage reserveData = LibLiquidity.getReserveData(_asset);
-        require(reserveData.initialized == false, "cannot initialize twice");
+        if (reserveData.initialized) {
+            revert InvalidInitialize();
+        }
         reserveData.init(
             _asset,
             _interestRateStrategyAddress,
@@ -75,7 +77,9 @@ contract LiquidityFacet is Storage, PeripheryPayments {
     }
 
     function activateReserve(address _asset) external authorised {
-        require(Address.isContract(_asset), Errors.LM_NOT_CONTRACT);
+        if (!Address.isContract(_asset)) {
+            revert InvalidContract();
+        }
         ReserveConfigurationMap memory config = LibLiquidity.getConfiguration(
             _asset
         );
@@ -215,3 +219,7 @@ contract LiquidityFacet is Storage, PeripheryPayments {
         return LibLiquidity.getFlags(_reserve);
     }
 }
+
+/* --------------------------------- errors -------------------------------- */
+error InvalidInitialize();
+error InvalidContract();

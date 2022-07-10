@@ -10,7 +10,7 @@ describe('Borrow', function () {
 
     await expect(
       voyage.borrow(tus.address, '10000000000000000000', voyage.address)
-    ).to.be.revertedWith('73');
+    ).to.be.revertedWith('Unauthorised()');
   });
 
   it('Borrow with insufficient reserve should revert', async function () {
@@ -19,7 +19,7 @@ describe('Borrow', function () {
     const vaultAddr = await voyage.getVault(owner);
     await expect(
       voyage.borrow(tus.address, '10000000000000000000', vaultAddr)
-    ).to.be.revertedWith('70');
+    ).to.be.revertedWith('InsufficientLiquidity()');
   });
 
   it('Does not panic when credit < debt', async () => {
@@ -43,7 +43,7 @@ describe('Borrow', function () {
     await voyage.borrow(tus.address, borrowAmount, vaultAddr);
     await expect(
       voyage.borrow(tus.address, margin.mul(11), vaultAddr)
-    ).to.be.revertedWith('71');
+    ).to.be.revertedWith('InsufficientCreditLimit()');
   });
 
   it('Insufficient credit limit should revert', async function () {
@@ -60,7 +60,7 @@ describe('Borrow', function () {
 
     await expect(
       voyage.borrow(tus.address, '10000000000000000000', vault.address)
-    ).to.be.revertedWith('71');
+    ).to.be.revertedWith('InsufficientCreditLimit()');
   });
 
   it('Sufficient credit limit should return correct value', async function () {

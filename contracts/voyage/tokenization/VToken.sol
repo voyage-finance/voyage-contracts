@@ -5,7 +5,6 @@ import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {Errors} from "../libraries/Errors.sol";
 import {ERC4626, IERC4626} from "../../shared/tokenization/ERC4626.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
@@ -28,10 +27,7 @@ abstract contract VToken is Initializable, ERC4626, IVToken {
     event Claim(address receiver, uint256 amount);
 
     modifier onlyAdmin() {
-        require(
-            _msgSender() == voyage,
-            Errors.CT_CALLER_MUST_BE_LIQUIDITY_MANAGER_POOL
-        );
+        require(_msgSender() == voyage, "Not admin");
         _;
     }
 
@@ -63,10 +59,9 @@ abstract contract VToken is Initializable, ERC4626, IVToken {
 
     function claim(uint256 _index) public {
         uint256 amount = popWithdraw(msg.sender, _index);
-        require(
-            asset.balanceOf(address(this)) >= amount,
-            "Insufficient liquidity available"
-        );
+        if (asset.balanceOf(address(this)) < amount) {
+            revert InsufficientLiquidity();
+        }
         asset.safeTransfer(msg.sender, amount);
     }
 
@@ -78,7 +73,9 @@ abstract contract VToken is Initializable, ERC4626, IVToken {
     }
 
     function pushWithdraw(address _user, uint256 _amount) internal {
-        require(withdrawals[_user][block.timestamp] == 0, "invalid withdraw");
+        if (withdrawals[_user][block.timestamp] != 0) {
+            revert InvalidWithdrawal();
+        }
         withdrawals[_user][block.timestamp] = _amount;
         pendingTimestamp[_user].push(block.timestamp);
         totalUnbonding += _amount;
@@ -89,9 +86,13 @@ abstract contract VToken is Initializable, ERC4626, IVToken {
         returns (uint256)
     {
         uint256[] storage times = pendingTimestamp[_user];
-        require(_index < times.length, "invalid index");
+        if (_index >= times.length) {
+            revert InvalidIndex();
+        }
         uint256 ts = times[_index];
-        require(block.timestamp - ts > cooldown, "cool down error");
+        if (block.timestamp - ts <= cooldown) {
+            revert CollDownError();
+        }
 
         uint256 last = times[times.length - 1];
         times[_index] = last;
@@ -118,3 +119,9 @@ abstract contract VToken is Initializable, ERC4626, IVToken {
         return (times, amounts);
     }
 }
+
+/* --------------------------------- errors -------------------------------- */
+error InsufficientLiquidity();
+error InvalidWithdrawal();
+error InvalidIndex();
+error CollDownError();

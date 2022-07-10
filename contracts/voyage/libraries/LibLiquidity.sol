@@ -5,7 +5,6 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
-import {Errors} from "./Errors.sol";
 import {LibReserveConfiguration} from "./LibReserveConfiguration.sol";
 import {IReserveInterestRateStrategy} from "../interfaces/IReserveInterestRateStrategy.sol";
 import {ValidationLogic} from "./LibValidation.sol";
@@ -123,10 +122,7 @@ library LibLiquidity {
                 vars.totalDebt,
                 vars.avgBorrowRate
             );
-        require(
-            vars.newLiquidityRate <= type(uint128).max,
-            Errors.RL_LIQUIDITY_RATE_OVERFLOW
-        );
+        require(vars.newLiquidityRate <= type(uint128).max);
 
         vars.seniorLiquidity = IERC20(_seniorDepositTokenAddress).totalSupply();
         vars.juniorLiquidity =
@@ -370,3 +366,5 @@ library LibLiquidity {
                 : totalDebt.rayDiv(availableLiquidity.add(totalDebt));
     }
 }
+
+/* --------------------------------- errors -------------------------------- */

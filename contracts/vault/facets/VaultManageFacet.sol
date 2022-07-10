@@ -30,10 +30,9 @@ contract VaultManageFacet is ReentrancyGuard, Storage {
             )
         );
         address subvault = address(proxy);
-        require(
-            subvault != address(0),
-            "Vault#createSubvault: deploy vault beacon failed"
-        );
+        if (subvault == address(0)) {
+            revert FailedDeploySubvaultBeacon();
+        }
         LibVaultStorage.diamondStorage().subvaults.push(subvault);
         LibVaultStorage.diamondStorage().subvaultOwnerIndex[subvault] = _owner;
         LibVaultStorage.diamondStorage().ownerSubvaultIndex[_owner] = subvault;
@@ -51,10 +50,9 @@ contract VaultManageFacet is ReentrancyGuard, Storage {
         address oldOwner = LibVaultStorage.diamondStorage().subvaultOwnerIndex[
             _subvault
         ];
-        require(
-            oldOwner != address(0),
-            "Vault#updateSubvaultOwner: invalid subvault address"
-        );
+        if (oldOwner == address(0)) {
+            revert InvalidSubvaultAddress(_subvault);
+        }
         ISubvault(_subvault).updateOwner(_newOwner);
         LibVaultStorage.diamondStorage().subvaultOwnerIndex[
             _subvault
@@ -68,22 +66,24 @@ contract VaultManageFacet is ReentrancyGuard, Storage {
     /// @notice Pause sub vault
     /// @param _subvault The address of the subvault
     function pauseSubvault(address _subvault) external onlyOwner {
-        require(
-            LibVaultStorage.diamondStorage().subvaultOwnerIndex[_subvault] !=
-                address(0),
-            "Vault#pauseSubvault: invalid subvault address"
-        );
+        if (
+            LibVaultStorage.diamondStorage().subvaultOwnerIndex[_subvault] ==
+            address(0)
+        ) {
+            revert InvalidSubvaultAddress(_subvault);
+        }
         LibVaultStorage.diamondStorage().subvaultStatusIndex[_subvault] = true;
     }
 
     /// @notice Uppause the sub vault
     /// @param _subvault The address of the subvault
     function unpauseSubvault(address _subvault) external onlyOwner {
-        require(
-            LibVaultStorage.diamondStorage().subvaultOwnerIndex[_subvault] !=
-                address(0),
-            "Vault#pauseSubvault: invalid subvault address"
-        );
+        if (
+            LibVaultStorage.diamondStorage().subvaultOwnerIndex[_subvault] ==
+            address(0)
+        ) {
+            revert InvalidSubvaultAddress(_subvault);
+        }
         LibVaultStorage.diamondStorage().subvaultStatusIndex[_subvault] = false;
     }
 
@@ -93,23 +93,28 @@ contract VaultManageFacet is ReentrancyGuard, Storage {
         address _src,
         address _dst
     ) external {
-        require(
-            msg.sender == address(this) ||
-                LibVaultStorage.diamondStorage().subvaultOwnerIndex[
-                    msg.sender
-                ] !=
-                address(0),
-            "Vault#onERC721Transferred: invalid sender"
-        );
-        require(
+        if (
+            msg.sender != address(this) &&
+            LibVaultStorage.diamondStorage().subvaultOwnerIndex[msg.sender] ==
+            address(0)
+        ) {
+            revert InvalidTransfer("invalid sender");
+        }
+        if (
             LibVaultStorage
             .diamondStorage()
-            .custodyIndex[_asset][_tokenId].owner == address(0),
-            "Vault#onERC721Transferred: token id exists"
-        );
+            .custodyIndex[_asset][_tokenId].owner != address(0)
+        ) {
+            revert InvalidTransfer("invalid token id");
+        }
         LibVaultStorage
         .diamondStorage()
         .custodyIndex[_asset][_tokenId].owner = _src;
         LibVaultStorage.diamondStorage().tokenSet[_asset].push(_tokenId);
     }
 }
+
+/* --------------------------------- errors -------------------------------- */
+error FailedDeploySubvaultBeacon();
+error InvalidTransfer(string reason);
+error InvalidSubvaultAddress(address subvault);

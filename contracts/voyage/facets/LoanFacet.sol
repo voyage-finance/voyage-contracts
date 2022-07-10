@@ -5,7 +5,6 @@ import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ERC4626} from "@rari-capital/solmate/src/mixins/ERC4626.sol";
-import {Errors} from "../libraries/Errors.sol";
 import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {LibLoan} from "../libraries/LibLoan.sol";
 import {LibVault} from "../libraries/LibVault.sol";
@@ -38,6 +37,7 @@ contract LoanFacet is Storage {
         address reserve;
         address vault;
         uint256 drawDownId;
+        uint256 repaymentId;
         uint256 principal;
         uint256 interest;
         uint256 totalDebt;
@@ -52,6 +52,7 @@ contract LoanFacet is Storage {
         uint256 gracePeriod;
         uint256 liquidationBonus;
         uint256 marginRequirement;
+        uint256 amountSlashed;
     }
 
     event Borrow(
@@ -72,6 +73,8 @@ contract LoanFacet is Storage {
         address indexed _liquidator,
         address indexed _vault,
         address indexed _asset,
+        uint256 _drowDownId,
+        uint256 _repaymentId,
         uint256 _debt,
         uint256 _margin,
         uint256 _collateral,
@@ -84,14 +87,10 @@ contract LoanFacet is Storage {
         uint256 _amount,
         address payable _vault
     ) external whenNotPaused {
-        // todo use min security deposit
-        require(_amount >= 1e19, Errors.LOM_INVALID_AMOUNT);
-
         // 0. check if the user owns the vault
-        require(
-            LibVault.getVaultAddress(_msgSender()) == _vault,
-            Errors.LOM_NOT_VAULT_OWNER
-        );
+        if (LibVault.getVaultAddress(_msgSender()) != _vault) {
+            revert Unauthorised();
+        }
 
         // 1. check if pool liquidity is sufficient
         ReserveData memory reserveData = LibLiquidity.getReserveData(_asset);
@@ -99,10 +98,9 @@ contract LoanFacet is Storage {
         uint256 availableSeniorLiquidity = IERC20(_asset).balanceOf(
             reserveData.seniorDepositTokenAddress
         );
-        require(
-            availableSeniorLiquidity >= _amount,
-            Errors.LOM_RESERVE_NOT_SUFFICIENT
-        );
+        if (availableSeniorLiquidity < _amount) {
+            revert InsufficientLiquidity();
+        }
 
         // 3. check credit limit
         uint256 availableCreditLimit = LibVault.getAvailableCredit(
@@ -110,10 +108,9 @@ contract LoanFacet is Storage {
             _asset
         );
 
-        require(
-            availableCreditLimit >= _amount,
-            Errors.LOM_CREDIT_NOT_SUFFICIENT
-        );
+        if (availableCreditLimit < _amount) {
+            revert InsufficientCreditLimit();
+        }
 
         BorrowState memory borrowStat = LibLoan.getBorrowState(_asset);
 
@@ -152,16 +149,17 @@ contract LoanFacet is Storage {
         address payable _vault
     ) external whenNotPaused {
         // 0. check if the user owns the vault
-        require(
-            LibVault.getVaultAddress(_msgSender()) == _vault,
-            Errors.LOM_NOT_VAULT_OWNER
-        );
+        if (LibVault.getVaultAddress(_msgSender()) != _vault) {
+            revert Unauthorised();
+        }
 
         // 1. check draw down to get principal and interest
         uint256 principal;
         uint256 interest;
         (principal, interest) = LibLoan.getPMT(_asset, _vault, _drawDown);
-        require(principal.add(interest) != 0, Errors.LOM_INVALID_DEBT);
+        if (principal.add(interest) == 0) {
+            revert InvalidDebt();
+        }
 
         // 2. update liquidity index and interest rate
         BorrowState memory borrowStat = LibLoan.getBorrowState(_asset);
@@ -222,10 +220,11 @@ contract LoanFacet is Storage {
         );
 
         // 2. check if the debt is qualified to be liquidated
-        require(
-            block.timestamp.sub(debtDetail.nextPaymentDue) > param.gracePeriod,
-            Errors.LOM_INVALID_LIQUIDATE
-        );
+        if (
+            block.timestamp.sub(debtDetail.nextPaymentDue) <= param.gracePeriod
+        ) {
+            revert InvalidLiquidate();
+        }
 
         // 3.1 if it is, get debt info
         (param.principal, param.interest) = LibLoan.getPMT(
@@ -256,13 +255,13 @@ contract LoanFacet is Storage {
         param.totalSlash = param.totalFromMargin.add(param.discount);
 
         // 4.1 slash margin account
-        uint256 amountSlashed = VaultMarginFacet(param.vault).slash(
+        param.amountSlashed = VaultMarginFacet(param.vault).slash(
             param.reserve,
             payable(address(this)),
             param.totalSlash
         );
 
-        uint256 amountNeedExtra = param.totalSlash.sub(amountSlashed);
+        uint256 amountNeedExtra = param.totalSlash.sub(param.amountSlashed);
 
         // 4.2 transfer from liquidator
         IERC20(param.reserve).safeTransferFrom(
@@ -311,7 +310,7 @@ contract LoanFacet is Storage {
             // todo write down to somewhere
         }
 
-        LibLoan.repay(
+        param.repaymentId = LibLoan.repay(
             param.reserve,
             param.vault,
             param.drawDownId,
@@ -329,8 +328,10 @@ contract LoanFacet is Storage {
             _msgSender(),
             _vault,
             _reserve,
+            param.drawDownId,
+            param.repaymentId,
             param.totalDebt,
-            amountSlashed,
+            param.amountSlashed,
             param.totalToLiquidate,
             param.numNFTsToLiquidate,
             amountToWriteDown
@@ -394,7 +395,7 @@ contract LoanFacet is Storage {
         address _vault,
         uint256 _amount
     ) external {
-        // todo auth
+        require(msg.sender == address(this));
         return LibVault.increaseTotalRedeemed(_reserve, _vault, _amount);
     }
 
@@ -436,3 +437,10 @@ contract LoanFacet is Storage {
         return discountValueInRay.rayToWad();
     }
 }
+
+/* --------------------------------- errors -------------------------------- */
+error Unauthorised();
+error InsufficientLiquidity();
+error InsufficientCreditLimit();
+error InvalidDebt();
+error InvalidLiquidate();

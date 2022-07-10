@@ -15,7 +15,6 @@ import {PriorityQueue, Heap} from "../libraries/PriorityQueue.sol";
 import {VaultConfig, NFTInfo} from "../../voyage/libraries/LibAppStorage.sol";
 import {VaultFacet} from "../../voyage/facets/VaultFacet.sol";
 import {LoanFacet} from "../../voyage/facets/LoanFacet.sol";
-import "hardhat/console.sol";
 
 contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
     using SafeMath for uint256;
@@ -40,12 +39,13 @@ contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
             _reserve,
             address(this)
         );
-        require(
-            totalPaid >= totalRedeemed,
-            "Vault: invalid total paid and redeemed"
-        );
+        if (totalPaid < totalRedeemed) {
+            revert InvalidTotalPaidAndRedeemed(totalPaid, totalRedeemed);
+        }
         uint256 availableAmount = totalPaid.sub(totalRedeemed);
-        require(availableAmount >= nftInfo.price, "Vault: invalid withdrawal");
+        if (availableAmount < nftInfo.price) {
+            revert InvalidWithdrawal(availableAmount, nftInfo.price);
+        }
         lf.increaseTotalRedeemed(_reserve, address(this), nftInfo.price);
 
         // 2. remove from heap
@@ -89,10 +89,11 @@ contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
         bool maybeSubVault = LibVaultStorage
             .diamondStorage()
             .subvaultOwnerIndex[msg.sender] != address(0);
-        require(
-            vf.getMarketPlaceByAsset(msg.sender) != address(0) || maybeSubVault,
-            "Vault#onERC721Received: invalid sender"
-        );
+        if (
+            vf.getMarketPlaceByAsset(msg.sender) == address(0) && !maybeSubVault
+        ) {
+            revert InvalidSender(msg.sender);
+        }
         if (vf.getMarketPlaceByAsset(msg.sender) != address(0)) {
             LibVaultStorage.diamondStorage().nfts[msg.sender].insert(
                 tokenId,
@@ -114,22 +115,23 @@ contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
         address _receiver,
         uint256 _amount
     ) external onlyOwner {
-        require(
-            IERC20(_reserve).balanceOf(address(this)) >= _amount,
-            "Vault: fund not enough"
-        );
+        uint256 reserveBalance = IERC20(_reserve).balanceOf(address(this));
+        if (reserveBalance < _amount) {
+            revert InsufficientFund(reserveBalance);
+        }
         IERC20(_reserve).safeTransfer(_receiver, _amount);
     }
 
     /// @notice Init asset, deploying margin escrow and credit escrow
     /// @param _asset Address of reserve
-    function initAsset(address _asset) public onlyOwner returns (address) {
-        require(_asset != address(0), "_asset must be a valid address");
+    function initAsset(address _asset) public onlyVoyage returns (address) {
+        if (_asset == address(0)) {
+            revert InvalidAssetAddress();
+        }
         VaultStorageV1 storage s = LibVaultStorage.diamondStorage();
-        require(
-            address(s.escrow[_asset]) == address(0),
-            "asset already initialised"
-        );
+        if (address(s.escrow[_asset]) != address(0)) {
+            revert AssetInitialized();
+        }
         BeaconProxy creditEscrowProxy = new BeaconProxy(
             address(
                 VaultFacet(LibVaultStorage.diamondStorage().voyage)
@@ -154,9 +156,13 @@ contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
             )
         );
         address _me = address(marginEscrowProxy);
-        require(_me != address(0), "failed to deploy margin escrow");
+        if (_me == address(0)) {
+            revert FailedDeployMarginEscrow();
+        }
         address _ce = address(creditEscrowProxy);
-        require(_ce != address(0), "failed to deploy credit escrow");
+        if (_ce == address(0)) {
+            revert FailedDeployCreditEscrow();
+        }
         s.escrow[_asset] = _me;
         s.cescrow[_asset] = _ce;
         // max approve escrow
@@ -165,3 +171,13 @@ contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
         return _me;
     }
 }
+
+/* --------------------------------- errors -------------------------------- */
+error InvalidTotalPaidAndRedeemed(uint256 totalPaid, uint256 totalRedeemed);
+error InvalidWithdrawal(uint256 availableAmount, uint256 nftPrice);
+error InvalidSender(address sender);
+error InsufficientFund(uint256 reserveBalance);
+error InvalidAssetAddress();
+error AssetInitialized();
+error FailedDeployMarginEscrow();
+error FailedDeployCreditEscrow();

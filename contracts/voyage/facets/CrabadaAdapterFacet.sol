@@ -2,7 +2,6 @@
 pragma solidity ^0.8.9;
 
 import {AppStorage, Storage} from "../libraries/LibAppStorage.sol";
-import {Errors} from "../libraries/Errors.sol";
 import {LibVault} from "../libraries/LibVault.sol";
 import {Call} from "../../vault/interfaces/ICallExternal.sol";
 import {VaultDataFacet} from "../../vault/facets/VaultDataFacet.sol";
@@ -130,7 +129,9 @@ contract CrabadaAdapterFacet is Storage, ReentrancyGuard {
             .staticcall(
                 abi.encodeWithSignature("sellOrders(uint256)", param.orderId)
             );
-        require(success, "CrabadaAdapterFacet#buy: check price failed");
+        if (!success) {
+            revert FiledPriceCheck();
+        }
 
         (param.seller, param.tokenId, param.tokenPrice) = abi.decode(
             returnedData,
@@ -175,10 +176,9 @@ contract CrabadaAdapterFacet is Storage, ReentrancyGuard {
     }
 
     function _auth(address _vault) internal {
-        require(
-            LibVault.getVaultAddress(_msgSender()) == _vault,
-            Errors.LOM_NOT_VAULT_OWNER
-        );
+        if (LibVault.getVaultAddress(_msgSender()) != _vault) {
+            revert UnAuthorised();
+        }
     }
 
     function _call(
@@ -190,3 +190,7 @@ contract CrabadaAdapterFacet is Storage, ReentrancyGuard {
         return vef.callExternal(_target, _data);
     }
 }
+
+/* --------------------------------- errors -------------------------------- */
+error FiledPriceCheck();
+error UnAuthorised();
