@@ -3,7 +3,6 @@ pragma solidity ^0.8.9;
 
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import {LibReserveConfiguration} from "./LibReserveConfiguration.sol";
 import {IReserveInterestRateStrategy} from "../interfaces/IReserveInterestRateStrategy.sol";
@@ -14,7 +13,6 @@ import {VToken} from "../tokenization/VToken.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 
 library LibLiquidity {
-    using SafeMath for uint256;
     using WadRayMath for uint256;
     using LibReserveConfiguration for ReserveConfigurationMap;
 
@@ -348,9 +346,7 @@ library LibLiquidity {
         AppStorage storage s = LibAppStorage.diamondStorage();
         ReserveData memory reserve = getReserveData(_reserve);
         BorrowState memory borrowState = s._borrowState[_reserve];
-        uint256 totalDebt = borrowState.totalDebt.add(
-            borrowState.totalInterest
-        );
+        uint256 totalDebt = borrowState.totalDebt + borrowState.totalInterest;
 
         uint256 totalPendingWithdrawal = IVToken(
             reserve.seniorDepositTokenAddress
@@ -363,7 +359,7 @@ library LibLiquidity {
         return
             totalDebt == 0
                 ? 0
-                : totalDebt.rayDiv(availableLiquidity.add(totalDebt));
+                : totalDebt.rayDiv(availableLiquidity + totalDebt);
     }
 }
 

@@ -7,12 +7,10 @@ import {Call} from "../../vault/interfaces/ICallExternal.sol";
 import {VaultDataFacet} from "../../vault/facets/VaultDataFacet.sol";
 import {VaultExternalFacet} from "../../vault/facets/VaultExternalFacet.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract CrabadaAdapterFacet is Storage, ReentrancyGuard {
-    using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
     struct ExecuteBuyParam {
@@ -145,7 +143,7 @@ contract CrabadaAdapterFacet is Storage, ReentrancyGuard {
             "transferUnderlyingTo(address,address,uint256)",
             param.erc20Addr,
             param.vault,
-            param.tokenPrice.mul(2)
+            param.tokenPrice * 2
         );
         address escrow = VaultDataFacet(param.vault).creditEscrow(
             param.erc20Addr
@@ -162,7 +160,7 @@ contract CrabadaAdapterFacet is Storage, ReentrancyGuard {
         // 4. refund
         IERC20(param.erc20Addr).safeTransfer(
             escrow,
-            IERC20(param.erc20Addr).balanceOf(param.vault).sub(balanceBefore)
+            IERC20(param.erc20Addr).balanceOf(param.vault) - balanceBefore
         );
 
         LibVault.updateNFTPrice(param.nftAddr, param.tokenId, param.tokenPrice);

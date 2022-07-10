@@ -2,7 +2,6 @@
 pragma solidity ^0.8.9;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -17,7 +16,6 @@ import {VaultFacet} from "../../voyage/facets/VaultFacet.sol";
 import {LoanFacet} from "../../voyage/facets/LoanFacet.sol";
 
 contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
-    using SafeMath for uint256;
     using PriorityQueue for Heap;
     using SafeERC20 for IERC20;
 
@@ -42,7 +40,7 @@ contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
         if (totalPaid < totalRedeemed) {
             revert InvalidTotalPaidAndRedeemed(totalPaid, totalRedeemed);
         }
-        uint256 availableAmount = totalPaid.sub(totalRedeemed);
+        uint256 availableAmount = totalPaid - totalRedeemed;
         if (availableAmount < nftInfo.price) {
             revert InvalidWithdrawal(availableAmount, nftInfo.price);
         }

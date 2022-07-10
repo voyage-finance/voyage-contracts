@@ -15,7 +15,6 @@
 // lifted from: https://github.com/dapphub/ds-auth/blob/a51e7caa1f03eeffed66d67f3b38605e0f1f881d/src/auth.sol
 
 pragma solidity ^0.8.9;
-import "hardhat/console.sol";
 
 interface DSAuthority {
     function canCall(

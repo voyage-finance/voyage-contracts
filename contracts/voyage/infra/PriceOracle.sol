@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {IPriceOracle} from "../interfaces/IPriceOracle.sol";
 
 contract PriceOracle is IPriceOracle, Ownable {
-    using SafeMath for uint256;
     using WadRayMath for uint256;
 
     struct CumulativePrice {
@@ -71,17 +69,17 @@ contract PriceOracle is IPriceOracle, Ownable {
             uint256 blockTimeStamp
         ) = currentCumulativePrice(_asset);
         uint256 timeElapsed = blockTimeStamp - cp.blockTimestampLast;
-        cp.priceAverage = priceCumulative.sub(cp.priceCumulativeLast).div(
-            timeElapsed
-        );
+        cp.priceAverage =
+            (priceCumulative - cp.priceCumulativeLast) /
+            timeElapsed;
         cp.priceCumulativeLast = priceCumulative;
         cp.blockTimestampLast = blockTimeStamp;
     }
 
     function _updateCumulative(address _asset, uint256 _price) internal {
         PriceData storage pd = ticket[_asset];
-        uint256 timeElapsed = block.timestamp.sub(pd.blockTimestamp);
-        pd.priceCumulative = pd.priceCumulative.add(_price.mul(timeElapsed));
+        uint256 timeElapsed = block.timestamp - pd.blockTimestamp;
+        pd.priceCumulative = pd.priceCumulative + _price * timeElapsed;
         pd.blockTimestamp = block.timestamp;
     }
 }

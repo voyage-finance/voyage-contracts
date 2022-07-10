@@ -9,7 +9,6 @@ pragma experimental ABIEncoderV2;
 
 import "../interfaces/IDiamondCut.sol";
 import "../libraries/LibDiamond.sol";
-import "hardhat/console.sol";
 
 contract DiamondCutFacet is IDiamondCut {
     /// @notice Add/replace/remove any number of functions and optionally execute

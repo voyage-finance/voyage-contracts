@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {LibAppStorage, AppStorage, BorrowData, VaultConfig, NFTInfo} from "./LibAppStorage.sol";
@@ -12,7 +11,6 @@ import {VaultAssetFacet} from "../../vault/facets/VaultAssetFacet.sol";
 
 library LibVault {
     using WadRayMath for uint256;
-    using SafeMath for uint256;
 
     function recordVault(address _owner, address _vault)
         internal
@@ -130,7 +128,7 @@ library LibVault {
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         BorrowData storage borrowData = s._borrowData[_reserve][_vault];
-        borrowData.totalRedeemed = borrowData.totalRedeemed.add(_amount);
+        borrowData.totalRedeemed = borrowData.totalRedeemed + _amount;
     }
 
     function getVaultConfig(address _reserve)
@@ -188,7 +186,7 @@ library LibVault {
         uint256 principal;
         uint256 interest;
         (principal, interest) = getVaultDebt(_reserve, _vault);
-        uint256 accumulatedDebt = principal.add(interest);
+        uint256 accumulatedDebt = principal + interest;
         if (creditLimit < accumulatedDebt) {
             return 0;
         }

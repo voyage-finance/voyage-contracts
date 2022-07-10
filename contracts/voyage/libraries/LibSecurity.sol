@@ -2,7 +2,6 @@
 pragma solidity ^0.8.9;
 
 import {LibAppStorage, AppStorage, Authorisation} from "./LibAppStorage.sol";
-import "hardhat/console.sol";
 
 library LibSecurity {
     function isAuthorisedInbound(
