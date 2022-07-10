@@ -200,7 +200,7 @@ struct AppStorage {
     address[] vaults;
     // mapping of vault owner to vault instance address
     mapping(address => address) vaultMap;
-    // mapping of vault instance to vault configuration
+    // mapping of underlying asset to vault configuration
     mapping(address => VaultConfig) vaultConfigMap;
     // mapping of marketplace to erc721 address
     // for validate onNFTReceived

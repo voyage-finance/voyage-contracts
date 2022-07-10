@@ -108,9 +108,9 @@ const config: HardhatUserConfig = {
   gasReporter: {
     enabled: reportGas,
     currency: 'USD',
-    token: 'AVAX',
-    gasPriceApi:
-      'https://api.snowtrace.io/api?module=proxy&action=eth_gasPrice',
+    token: 'ETH',
+    // gasPriceApi:
+      // 'https://api.snowtrace.io/api?module=proxy&action=eth_gasPrice',
     // TODO: regenerate key before going to prd
     coinmarketcap: '49d8a069-b7bf-4a9e-8cb4-dc9c19bff806',
   },
