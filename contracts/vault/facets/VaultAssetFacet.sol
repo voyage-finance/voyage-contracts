@@ -137,7 +137,11 @@ contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
 
     /// @notice Init asset, deploying margin escrow and credit escrow
     /// @param _asset Address of reserve
-    function initAsset(address _asset) public onlyVoyage returns (address) {
+    function initAsset(address _asset)
+        public
+        onlyVoyage
+        returns (address, address)
+    {
         if (_asset == address(0)) {
             revert InvalidAssetAddress();
         }
@@ -181,7 +185,7 @@ contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
         // max approve escrow
         IERC20(_asset).safeApprove(_ce, type(uint256).max);
         IERC20(_asset).safeApprove(_me, type(uint256).max);
-        return _me;
+        return (_me, _ce);
     }
 }
 

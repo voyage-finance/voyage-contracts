@@ -26,10 +26,10 @@ library LibVault {
 
     function initVaultAsset(address _vault, address _asset)
         internal
-        returns (address)
+        returns (address, address)
     {
-        address escrow = VaultAssetFacet(_vault).initAsset(_asset);
-        return escrow;
+        (address me, address ce) = VaultAssetFacet(_vault).initAsset(_asset);
+        return (me, ce);
     }
 
     function setMaxMargin(address _reserve, uint256 _amount) internal {

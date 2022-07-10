@@ -22,7 +22,8 @@ contract VaultFacet is Storage, ReentrancyGuard {
     event VaultAssetInitialized(
         address indexed _vault,
         address indexed _asset,
-        address _escrow
+        address _me,
+        address _ce
     );
     event VaultMarginCredited(
         address indexed _vault,
@@ -66,11 +67,11 @@ contract VaultFacet is Storage, ReentrancyGuard {
     function initAsset(address _vault, address _asset)
         external
         authorised
-        returns (address)
+        returns (address, address)
     {
-        address escrow = LibVault.initVaultAsset(_vault, _asset);
-        emit VaultAssetInitialized(_vault, _asset, escrow);
-        return escrow;
+        (address me, address ce) = LibVault.initVaultAsset(_vault, _asset);
+        emit VaultAssetInitialized(_vault, _asset, me, ce);
+        return (me, ce);
     }
 
     /* ----------------------------- user interface ----------------------------- */
