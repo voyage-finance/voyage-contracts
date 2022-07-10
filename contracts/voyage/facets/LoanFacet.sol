@@ -45,6 +45,7 @@ contract LoanFacet is Storage {
         uint256 totalToLiquidate;
         uint256 discount;
         uint256 totalSlash;
+        uint256 receivedAmount;
         address liquidator;
         uint256 floorPrice;
         uint256 totalNFTNums;
@@ -260,6 +261,7 @@ contract LoanFacet is Storage {
             payable(address(this)),
             param.totalSlash
         );
+        param.receivedAmount = param.receivedAmount.add(param.amountSlashed);
 
         uint256 amountNeedExtra = param.totalSlash.sub(param.amountSlashed);
 
@@ -269,6 +271,7 @@ contract LoanFacet is Storage {
             address(this),
             param.totalToLiquidate
         );
+        param.receivedAmount = param.receivedAmount.add(param.totalToLiquidate);
 
         if (param.totalNFTNums < param.numNFTsToLiquidate) {
             uint256 missingNFTNums = param.numNFTsToLiquidate.sub(
@@ -298,6 +301,7 @@ contract LoanFacet is Storage {
                     address(this),
                     amountNeedExtra
                 );
+            param.receivedAmount = param.receivedAmount.add(amountNeedExtra);
         } else {
             IVToken(reserveData.juniorDepositTokenAddress).transferUnderlyingTo(
                     address(this),
@@ -307,7 +311,9 @@ contract LoanFacet is Storage {
             amountToWriteDown = amountNeedExtra.sub(
                 totalAssetFromJuniorTranche
             );
-            // todo write down to somewhere
+            param.receivedAmount = param.receivedAmount.add(
+                totalAssetFromJuniorTranche
+            );
         }
 
         param.repaymentId = LibLoan.repay(
@@ -321,7 +327,7 @@ contract LoanFacet is Storage {
 
         IERC20(param.reserve).safeTransfer(
             reserveData.seniorDepositTokenAddress,
-            param.totalDebt
+            param.receivedAmount
         );
 
         emit Liquidate(
