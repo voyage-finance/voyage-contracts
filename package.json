@@ -20,6 +20,7 @@
     "node:deploy:interval": "MINING_MODE=interval yarn node:deploy",
     "scripts": "ts-node scripts/runner.ts",
     "test": "hardhat test",
+    "test:gas": "REPORT_GAS=true hardhat test",
     "format": "yarn format:sol && yarn format:js",
     "format:js": "prettier --config .prettierrc.js.json --write {helpers,deploy,test,scripts}/*.ts",
     "format:sol": "hardhat format",

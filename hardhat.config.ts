@@ -25,7 +25,7 @@ if (cov) {
   require('solidity-coverage');
 }
 
-const reportGas = process.env.GAS_REPORT === 'true';
+const reportGas = process.env.REPORT_GAS === 'true';
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -92,33 +92,6 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: '0.6.12',
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 2000,
-          },
-        },
-      },
-      {
-        version: '0.6.6',
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 2000,
-          },
-        },
-      },
-      {
-        version: '0.8.4',
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 2000,
-          },
-        },
-      },
-      {
         version: '0.8.9',
         settings: {
           optimizer: {
@@ -133,9 +106,13 @@ const config: HardhatUserConfig = {
     apiKey: ETHERSCAN_API_KEY,
   },
   gasReporter: {
-    currency: 'USD',
-    gasPrice: 100,
     enabled: reportGas,
+    currency: 'USD',
+    token: 'AVAX',
+    gasPriceApi:
+      'https://api.snowtrace.io/api?module=proxy&action=eth_gasPrice',
+    // TODO: regenerate key before going to prd
+    coinmarketcap: '49d8a069-b7bf-4a9e-8cb4-dc9c19bff806',
   },
   typechain: {
     outDir: 'typechain',
