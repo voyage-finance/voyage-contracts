@@ -39,7 +39,8 @@ const setupBase = async ({
     defaultReserveInterestRateStrategy.address,
     defaultLoanStrategy.address,
     '500000000000000000000000000',
-    priceOracle.address
+    priceOracle.address,
+    crab.address
   );
   await voyage.activateReserve(tus.address);
   const [senior, junior] = await voyage.getDepositTokens(tus.address);

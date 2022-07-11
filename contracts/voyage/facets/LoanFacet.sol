@@ -214,10 +214,6 @@ contract LoanFacet is Storage {
         param.vault = _vault;
         param.drawDownId = _drawDownId;
         param.liquidator = _msgSender();
-        console.log(
-            "loan strategy address: ",
-            reserveData.interestRateStrategyAddress
-        );
         (
             param.gracePeriod,
             param.liquidationBonus,

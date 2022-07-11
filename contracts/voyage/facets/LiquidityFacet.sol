@@ -47,7 +47,8 @@ contract LiquidityFacet is Storage, PeripheryPayments {
         address _interestRateStrategyAddress,
         address _loanStrategyAddress,
         uint256 _optimalIncomeRatio,
-        address _priceOracle
+        address _priceOracle,
+        address _nftAddr
     ) external authorised {
         if (!Address.isContract(_asset)) {
             revert InvalidContract();
@@ -61,7 +62,8 @@ contract LiquidityFacet is Storage, PeripheryPayments {
             _interestRateStrategyAddress,
             _loanStrategyAddress,
             _optimalIncomeRatio,
-            _priceOracle
+            _priceOracle,
+            _nftAddr
         );
         s._reserveList[s._reservesCount] = _asset;
         s._reservesCount++;

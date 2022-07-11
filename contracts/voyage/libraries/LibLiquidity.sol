@@ -41,7 +41,8 @@ library LibLiquidity {
         address _interestRateStrategyAddress,
         address _loanStrategyAddress,
         uint256 _optimalIncomeRatio,
-        address _priceOracle
+        address _priceOracle,
+        address _nftAddr
     ) internal {
         require(
             reserve.seniorDepositTokenAddress == address(0) &&
@@ -68,9 +69,9 @@ library LibLiquidity {
         reserve.interestRateStrategyAddress = _interestRateStrategyAddress;
         reserve.optimalIncomeRatio = _optimalIncomeRatio;
         reserve.loanStrategyAddress = _loanStrategyAddress;
-        console.log("a: ", reserve.loanStrategyAddress);
         reserve.initialized = true;
         reserve.priceOracle = _priceOracle;
+        reserve.nftAddress = _nftAddr;
     }
 
     function deployBeaconProxy(address _impl, bytes memory _data)
