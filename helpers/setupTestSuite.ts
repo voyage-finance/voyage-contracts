@@ -31,6 +31,7 @@ const setupBase = async ({
     'DefaultReserveInterestRateStrategy'
   );
   const defaultLoanStrategy = await ethers.getContract('DefaultLoanStrategy');
+  console.log('default loan straategy: ', defaultLoanStrategy.address);
 
   /* ------------------------- reserve initialisation ------------------------- */
   await voyage.initReserve(

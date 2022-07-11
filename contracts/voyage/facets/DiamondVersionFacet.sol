@@ -19,10 +19,13 @@ contract DiamondVersionFacet is Storage {
         uint256 version = LibAppStorage.diamondStorage().currentVersion;
         LibAppStorage.diamondStorage().snapshotMap[version].init = init;
         LibAppStorage.diamondStorage().snapshotMap[version].initArgs = initArgs;
-        for (uint256 i = 0; i < facets.length; i++) {
+        for (uint256 i = 0; i < facets.length; ) {
             LibAppStorage.diamondStorage().snapshotMap[version].facets.push(
                 facets[i]
             );
+            unchecked {
+                i++;
+            }
         }
     }
 

@@ -30,7 +30,6 @@ contract MockLoanFacet is TestStorage {
     }
 
     function liquidate(
-        address _liquidator,
         address _reserve,
         address _vault,
         uint256 _drawDownId

@@ -45,9 +45,12 @@ library PriorityQueue {
     ) internal {
         uint256 element = (_tokenId << 128) | _timestamp;
         uint256 index = 1;
-        for (uint256 i = 1; i < heap.currentSize + 1; i++) {
+        for (uint256 i = 1; i < heap.currentSize + 1; ) {
             if (heap.heapList[i] == element) {
                 index = i;
+            }
+            unchecked {
+                i++;
             }
         }
         if (index == heap.currentSize) {

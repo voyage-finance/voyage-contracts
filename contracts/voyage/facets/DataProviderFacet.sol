@@ -139,12 +139,15 @@ contract DataProviderFacet {
             reserveList.length
         );
 
-        for (uint256 i = 0; i < reserveList.length; i++) {
+        for (uint256 i = 0; i < reserveList.length; ) {
             address reserveAddress = reserveList[i];
             reserves[i] = FungibleTokenData({
                 symbol: IERC20Metadata(reserveAddress).symbol(),
                 tokenAddress: reserveAddress
             });
+            unchecked {
+                ++i;
+            }
         }
 
         return reserves;

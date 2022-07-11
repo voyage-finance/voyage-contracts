@@ -65,7 +65,7 @@ contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
         address _to,
         uint256 _num
     ) external nonReentrant onlyVoyage {
-        for (uint256 i = 0; i < _num; i++) {
+        for (uint256 i = 0; i < _num; ) {
             uint256 tokenId;
             uint256 timestamp;
             (tokenId, timestamp) = LibVaultStorage
@@ -73,6 +73,9 @@ contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
                 .nfts[_erc721Addr]
                 .delMin();
             IERC721(_erc721Addr).transferFrom(address(this), _to, tokenId);
+            unchecked {
+                ++i;
+            }
         }
     }
 

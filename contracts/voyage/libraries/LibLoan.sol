@@ -90,13 +90,15 @@ library LibLoan {
         uint256 principal,
         uint256 interest,
         bool isLiquidated
-    ) internal returns (uint256) {
+    ) internal returns (uint256, bool) {
+        bool isFinal = false;
         BorrowData storage debtData = getBorrowData(underlying, vault);
         BorrowState storage borrowStat = getBorrowState(underlying);
         DrawDown storage dd = debtData.drawDowns[drawDownNumber];
         dd.paidTimes += 1;
         if (dd.paidTimes == dd.nper) {
             delete debtData.drawDowns[drawDownNumber];
+            isFinal = true;
         } else {
             dd.totalPrincipalPaid = dd.totalPrincipalPaid + principal;
             dd.totalInterestPaid = dd.totalInterestPaid + interest;
@@ -128,7 +130,10 @@ library LibLoan {
             borrowStat.totalInterest -
             interestRay.rayToWad();
 
-        return dd.repayments.length == 0 ? 0 : dd.repayments.length - 1;
+        return (
+            dd.repayments.length == 0 ? 0 : dd.repayments.length - 1,
+            isFinal
+        );
     }
 
     function updateStateOnBorrow(

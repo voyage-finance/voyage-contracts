@@ -31,8 +31,11 @@ contract PriceOracle is IPriceOracle, Ownable {
     }
 
     function updateAssetPrices(address[] calldata _assets) external onlyOwner {
-        for (uint256 i = 0; i < _assets.length; i++) {
+        for (uint256 i = 0; i < _assets.length; ) {
             _updateAssetPrice(_assets[i]);
+            unchecked {
+                ++i;
+            }
         }
     }
 

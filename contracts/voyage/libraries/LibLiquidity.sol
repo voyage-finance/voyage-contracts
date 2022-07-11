@@ -11,6 +11,7 @@ import {LibAppStorage, AppStorage, ReserveData, ReserveConfigurationMap, BorrowD
 import {IVToken} from "../interfaces/IVToken.sol";
 import {VToken} from "../tokenization/VToken.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
+import "hardhat/console.sol";
 
 library LibLiquidity {
     using WadRayMath for uint256;
@@ -67,6 +68,7 @@ library LibLiquidity {
         reserve.interestRateStrategyAddress = _interestRateStrategyAddress;
         reserve.optimalIncomeRatio = _optimalIncomeRatio;
         reserve.loanStrategyAddress = _loanStrategyAddress;
+        console.log("a: ", reserve.loanStrategyAddress);
         reserve.initialized = true;
         reserve.priceOracle = _priceOracle;
     }
@@ -244,8 +246,11 @@ library LibLiquidity {
     function getReserveList() internal view returns (address[] memory) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         address[] memory reserveList = new address[](s._reservesCount);
-        for (uint256 i = 0; i < s._reservesCount; i++) {
+        for (uint256 i = 0; i < s._reservesCount; ) {
             reserveList[i] = s._reserveList[i];
+            unchecked {
+                ++i;
+            }
         }
         return reserveList;
     }
@@ -279,8 +284,11 @@ library LibLiquidity {
         }
         (, uint256[] memory amounts) = IVToken(vToken).unbonding(_user);
         uint256 unbondingBalance = 0;
-        for (uint8 i = 0; i < amounts.length; i++) {
+        for (uint8 i = 0; i < amounts.length; ) {
             unbondingBalance += amounts[i];
+            unchecked {
+                ++i;
+            }
         }
         return unbondingBalance;
     }

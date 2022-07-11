@@ -220,7 +220,7 @@ const deployFn: DeployFunction = async (hre) => {
         },
       ]);
 
-      log.debug('Executing cuts: %o', cuts);
+      log.info('Executing cuts: %o', cuts);
       await execute(
         'Voyage',
         {
