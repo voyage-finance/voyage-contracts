@@ -11,7 +11,6 @@ import {LibAppStorage, AppStorage, ReserveData, ReserveConfigurationMap, BorrowD
 import {IVToken} from "../interfaces/IVToken.sol";
 import {VToken} from "../tokenization/VToken.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
-import "hardhat/console.sol";
 
 library LibLiquidity {
     using WadRayMath for uint256;
@@ -160,6 +159,15 @@ library LibLiquidity {
         );
     }
 
+    /* --------------------------- fee management --------------------------- */
+    function updateProtocolFee(address _treasuryAddr, uint256 _cutRatio)
+        internal
+    {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        s.protocolFee.treasuryAddress = _treasuryAddr;
+        s.protocolFee.cutRatio = _cutRatio;
+    }
+
     /* ------------------------ state mutation functions ------------------------ */
     function updateStateOnDeposit(
         address _asset,
@@ -235,6 +243,11 @@ library LibLiquidity {
     }
 
     /* ----------------------------- view functions ----------------------------- */
+    function getProtocolFee() internal view returns (address, uint256) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return (s.protocolFee.treasuryAddress, s.protocolFee.cutRatio);
+    }
+
     function getReserveData(address _asset)
         internal
         view

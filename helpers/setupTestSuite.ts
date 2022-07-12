@@ -43,6 +43,8 @@ const setupBase = async ({
     crab.address
   );
   await voyage.activateReserve(tus.address);
+  const cutRatio = toRay(new BigNumber('0.2')).toFixed();
+  await voyage.updateProtocolFee(owner, cutRatio);
   const [senior, junior] = await voyage.getDepositTokens(tus.address);
   const seniorDepositToken = await ethers.getContractAt(
     'SeniorDepositToken',
