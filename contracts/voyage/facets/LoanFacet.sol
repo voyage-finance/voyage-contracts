@@ -90,6 +90,8 @@ contract LoanFacet is Storage {
         uint256 _amountToWriteDown
     );
 
+    event CollateralTransferred(address from, address to, uint256[] tokenIds);
+
     function borrow(
         address _asset,
         uint256 _amount,
@@ -310,11 +312,12 @@ contract LoanFacet is Storage {
         }
 
         // 4.3 sell nft
-        VaultAssetFacet(param.vault).transferNFT(
+        uint256[] memory ids = VaultAssetFacet(param.vault).transferNFT(
             reserveData.nftAddress,
             param.liquidator,
             param.numNFTsToLiquidate
         );
+        emit CollateralTransferred(param.vault, param.liquidator, ids);
 
         // 4.4 transfer from junior tranche
         param.totalAssetFromJuniorTranche = ERC4626(

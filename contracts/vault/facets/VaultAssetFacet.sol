@@ -19,8 +19,6 @@ contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
     using PriorityQueue for Heap;
     using SafeERC20 for IERC20;
 
-    event CollateralTransferred(address from, address to, uint256 tokenId);
-
     /// @notice Withdraw NFT from vault
     /// @param _reserve The addresss of the reserve
     /// @param _reserve NFT address
@@ -66,7 +64,8 @@ contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
         address _erc721Addr,
         address _to,
         uint256 _num
-    ) external nonReentrant onlyVoyage {
+    ) external nonReentrant onlyVoyage returns (uint256[] memory) {
+        uint256[] memory ids = new uint256[](_num);
         for (uint256 i = 0; i < _num; ) {
             uint256 tokenId;
             uint256 timestamp;
@@ -75,11 +74,12 @@ contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
                 .nfts[_erc721Addr]
                 .delMin();
             IERC721(_erc721Addr).transferFrom(address(this), _to, tokenId);
-            emit CollateralTransferred(address(this), _to, tokenId);
+            ids[i] = tokenId;
             unchecked {
                 ++i;
             }
         }
+        return ids;
     }
 
     /// @notice Called by erc721 contract or sub vaults
