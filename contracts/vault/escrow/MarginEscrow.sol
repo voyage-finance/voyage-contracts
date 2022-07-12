@@ -4,7 +4,6 @@ pragma solidity ^0.8.9;
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {SafeTransferLib} from "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
@@ -21,7 +20,6 @@ contract MarginEscrow is
     IMarginEscrow,
     ReentrancyGuard
 {
-    using SafeMath for uint256;
     using WadRayMath for uint256;
     using SafeERC20 for IERC20Metadata;
     using Address for address payable;
@@ -108,7 +106,7 @@ contract MarginEscrow is
             .rayMul(marginRequirement)
             .rayToWad();
         if (totalMargin >= marginMin) {
-            return totalMargin.sub(marginMin);
+            return totalMargin - marginMin;
         }
         return 0;
     }

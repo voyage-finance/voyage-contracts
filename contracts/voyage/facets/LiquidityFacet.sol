@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -18,7 +17,6 @@ contract LiquidityFacet is Storage, PeripheryPayments {
     using LibLiquidity for ReserveData;
     using LibReserveConfiguration for ReserveConfigurationMap;
     using WadRayMath for uint256;
-    using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
     event ReserveInitialized(
@@ -49,7 +47,8 @@ contract LiquidityFacet is Storage, PeripheryPayments {
         address _interestRateStrategyAddress,
         address _loanStrategyAddress,
         uint256 _optimalIncomeRatio,
-        address _priceOracle
+        address _priceOracle,
+        address _nftAddr
     ) external authorised {
         if (!Address.isContract(_asset)) {
             revert InvalidContract();
@@ -63,7 +62,8 @@ contract LiquidityFacet is Storage, PeripheryPayments {
             _interestRateStrategyAddress,
             _loanStrategyAddress,
             _optimalIncomeRatio,
-            _priceOracle
+            _priceOracle,
+            _nftAddr
         );
         s._reserveList[s._reservesCount] = _asset;
         s._reservesCount++;
@@ -98,9 +98,7 @@ contract LiquidityFacet is Storage, PeripheryPayments {
     ) external {
         ReserveData memory reserve = s._reserves[_asset];
         BorrowState memory borrowState = s._borrowState[_asset];
-        uint256 totalDebt = borrowState.totalDebt.add(
-            borrowState.totalInterest
-        );
+        uint256 totalDebt = borrowState.totalDebt + borrowState.totalInterest;
         uint256 avgBorrowRate = borrowState.avgBorrowRate;
         LibLiquidity.updateStateOnDeposit(
             _asset,
@@ -135,9 +133,7 @@ contract LiquidityFacet is Storage, PeripheryPayments {
             amountToWithdraw = userBalance;
         }
         BorrowState memory borrowState = s._borrowState[_asset];
-        uint256 totalDebt = borrowState.totalDebt.add(
-            borrowState.totalInterest
-        );
+        uint256 totalDebt = borrowState.totalDebt + borrowState.totalInterest;
         uint256 avgBorrowRate = borrowState.avgBorrowRate;
         IVToken(vToken).withdraw(_amount, _user, _user);
         LibLiquidity.updateStateOnWithdraw(
@@ -189,9 +185,7 @@ contract LiquidityFacet is Storage, PeripheryPayments {
     function utilizationRate(address _reserve) external view returns (uint256) {
         ReserveData memory reserve = LibLiquidity.getReserveData(_reserve);
         BorrowState storage borrowState = s._borrowState[_reserve];
-        uint256 totalDebt = borrowState.totalDebt.add(
-            borrowState.totalInterest
-        );
+        uint256 totalDebt = borrowState.totalDebt + borrowState.totalInterest;
 
         uint256 totalPendingWithdrawal = IVToken(
             reserve.seniorDepositTokenAddress
@@ -204,7 +198,7 @@ contract LiquidityFacet is Storage, PeripheryPayments {
         return
             totalDebt == 0
                 ? 0
-                : totalDebt.rayDiv(availableLiquidity.add(totalDebt));
+                : totalDebt.rayDiv(availableLiquidity + totalDebt);
     }
 
     function getReserveFlags(address _reserve)

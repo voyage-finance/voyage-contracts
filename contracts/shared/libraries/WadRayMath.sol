@@ -1,7 +1,5 @@
 pragma solidity ^0.8.9;
 
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
-
 /******************
 @title WadRayMath library
 @author Aave
@@ -9,8 +7,6 @@ import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
  */
 
 library WadRayMath {
-    using SafeMath for uint256;
-
     uint256 internal constant WAD = 1e18;
     uint256 internal constant halfWAD = WAD / 2;
 
@@ -40,33 +36,33 @@ library WadRayMath {
     }
 
     function wadMul(uint256 a, uint256 b) internal pure returns (uint256) {
-        return halfWAD.add(a.mul(b)).div(WAD);
+        return (halfWAD + a * b) / WAD;
     }
 
     function wadDiv(uint256 a, uint256 b) internal pure returns (uint256) {
         uint256 halfB = b / 2;
 
-        return halfB.add(a.mul(WAD)).div(b);
+        return (halfB + a * WAD) / b;
     }
 
     function rayMul(uint256 a, uint256 b) internal pure returns (uint256) {
-        return halfRAY.add(a.mul(b)).div(RAY);
+        return (halfRAY + a * b) / RAY;
     }
 
     function rayDiv(uint256 a, uint256 b) internal pure returns (uint256) {
         uint256 halfB = b / 2;
 
-        return halfB.add(a.mul(RAY)).div(b);
+        return (halfB + a * RAY) / b;
     }
 
     function rayToWad(uint256 a) internal pure returns (uint256) {
         uint256 halfRatio = WAD_RAY_RATIO / 2;
 
-        return halfRatio.add(a).div(WAD_RAY_RATIO);
+        return (halfRatio + a) / WAD_RAY_RATIO;
     }
 
     function wadToRay(uint256 a) internal pure returns (uint256) {
-        return a.mul(WAD_RAY_RATIO);
+        return a * WAD_RAY_RATIO;
     }
 
     // @dev calculates base^exp. The code uses the ModExp precompile

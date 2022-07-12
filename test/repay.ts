@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { ethers, getNamedAccounts } from 'hardhat';
 import { setupTestSuite } from '../helpers/setupTestSuite';
 
-describe('Repayment', function () {
+describe('Repay', function () {
   function showDrawDown(drawDown: any) {
     console.log('principal: ', drawDown.principal.toString());
     console.log('totalPrincipalPaid', drawDown.totalPrincipalPaid.toString());

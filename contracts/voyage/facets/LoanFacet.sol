@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ERC4626} from "@rari-capital/solmate/src/mixins/ERC4626.sol";
@@ -19,7 +18,6 @@ import {VaultMarginFacet} from "../../vault/facets/VaultMarginFacet.sol";
 import {VaultAssetFacet} from "../../vault/facets/VaultAssetFacet.sol";
 
 contract LoanFacet is Storage {
-    using SafeMath for uint256;
     using WadRayMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -45,6 +43,9 @@ contract LoanFacet is Storage {
         uint256 totalToLiquidate;
         uint256 discount;
         uint256 totalSlash;
+        uint256 amountNeedExtra;
+        uint256 juniorTrancheAmount;
+        uint256 receivedAmount;
         address liquidator;
         uint256 floorPrice;
         uint256 totalNFTNums;
@@ -52,7 +53,10 @@ contract LoanFacet is Storage {
         uint256 gracePeriod;
         uint256 liquidationBonus;
         uint256 marginRequirement;
-        uint256 amountSlashed;
+        uint256 slashedMargin;
+        uint256 writeDownAmount;
+        uint256 totalAssetFromJuniorTranche;
+        bool isFinal;
     }
 
     event Borrow(
@@ -62,13 +66,17 @@ contract LoanFacet is Storage {
         uint256 _principal,
         uint256 _interest
     );
-    event Repay(
+
+    event Repayment(
         address indexed _user,
         address indexed _vault,
         address indexed _asset,
         uint256 _drawdownId,
-        uint256 _amount
+        uint256 _repaymentId,
+        uint256 _amount,
+        bool isFinal
     );
+
     event Liquidate(
         address indexed _liquidator,
         address indexed _vault,
@@ -78,9 +86,11 @@ contract LoanFacet is Storage {
         uint256 _debt,
         uint256 _margin,
         uint256 _collateral,
-        uint256 _numCollateral,
-        uint256 _writedown
+        uint256 _fromJuniorTranche,
+        uint256 _amountToWriteDown
     );
+
+    event CollateralTransferred(address from, address to, uint256[] tokenIds);
 
     function borrow(
         address _asset,
@@ -122,7 +132,7 @@ contract LoanFacet is Storage {
         LibLoan.updateStateOnBorrow(
             _asset,
             _amount,
-            borrowStat.totalDebt.add(borrowStat.totalInterest),
+            borrowStat.totalDebt + borrowStat.totalInterest,
             executeBorrowParams.borrowRate
         );
 
@@ -157,43 +167,58 @@ contract LoanFacet is Storage {
         uint256 principal;
         uint256 interest;
         (principal, interest) = LibLoan.getPMT(_asset, _vault, _drawDown);
-        if (principal.add(interest) == 0) {
+        if (principal + interest == 0) {
             revert InvalidDebt();
         }
 
         // 2. update liquidity index and interest rate
         BorrowState memory borrowStat = LibLoan.getBorrowState(_asset);
-        uint256 totalDebt = borrowStat.totalDebt.add(borrowStat.totalInterest);
+        uint256 totalDebt = borrowStat.totalDebt + borrowStat.totalInterest;
         uint256 avgBorrowRate = borrowStat.avgBorrowRate;
         LibLoan.updateStateOnRepayment(
             _asset,
-            principal.add(interest),
+            principal + interest,
             totalDebt,
             avgBorrowRate
         );
 
         // 3. update repay data
-        LibLoan.repay(_asset, _vault, _drawDown, principal, interest, false);
+        (uint256 repaymentId, bool isFinal) = LibLoan.repay(
+            _asset,
+            _vault,
+            _drawDown,
+            principal,
+            interest,
+            false
+        );
 
         // 4. transfer underlying asset
         ReserveData memory reserveData = LibLiquidity.getReserveData(_asset);
 
-        uint256 total = principal.add(interest);
+        uint256 total = principal + interest;
         IERC20(_asset).safeTransferFrom(
             _msgSender(),
             reserveData.seniorDepositTokenAddress,
             total
         );
-        emit Repay(_msgSender(), _vault, _asset, _drawDown, total);
+        emit Repayment(
+            _msgSender(),
+            _vault,
+            _asset,
+            _drawDown,
+            repaymentId,
+            total,
+            isFinal
+        );
     }
 
     function liquidate(
-        address _liquidator,
         address _reserve,
         address _vault,
         uint256 _drawDownId
     ) external whenNotPaused {
         ExecuteLiquidateParams memory param;
+        param.reserve = _reserve;
         ReserveData memory reserveData = LibLiquidity.getReserveData(
             param.reserve
         );
@@ -202,7 +227,7 @@ contract LoanFacet is Storage {
         param.reserve = _reserve;
         param.vault = _vault;
         param.drawDownId = _drawDownId;
-        param.liquidator = _liquidator;
+        param.liquidator = _msgSender();
         (
             param.gracePeriod,
             param.liquidationBonus,
@@ -221,7 +246,9 @@ contract LoanFacet is Storage {
 
         // 2. check if the debt is qualified to be liquidated
         if (
-            block.timestamp.sub(debtDetail.nextPaymentDue) <= param.gracePeriod
+            block.timestamp <= debtDetail.nextPaymentDue ||
+            block.timestamp - debtDetail.nextPaymentDue <=
+            param.gracePeriod * LibLoan.SECOND_PER_DAY
         ) {
             revert InvalidLiquidate();
         }
@@ -232,13 +259,13 @@ contract LoanFacet is Storage {
             param.vault,
             param.drawDownId
         );
-        param.totalDebt = param.principal.add(param.interest);
+        param.totalDebt = param.principal + param.interest;
         param.totalFromMargin = param
             .totalDebt
             .wadToRay()
             .rayMul(param.marginRequirement)
             .rayToWad();
-        param.totalToLiquidate = param.totalDebt.sub(param.totalFromMargin);
+        param.totalToLiquidate = param.totalDebt - param.totalFromMargin;
         param.discount = getDiscount(
             param.totalToLiquidate,
             param.liquidationBonus
@@ -248,20 +275,23 @@ contract LoanFacet is Storage {
         IPriceOracle priceOracle = IPriceOracle(reserveData.priceOracle);
         param.floorPrice = priceOracle.getAssetPrice(reserveData.nftAddress);
 
-        param.numNFTsToLiquidate = param
-            .totalToLiquidate
-            .sub(param.discount)
-            .div(param.floorPrice);
-        param.totalSlash = param.totalFromMargin.add(param.discount);
+        if (param.floorPrice == 0) {
+            revert InvalidFloorPrice();
+        }
+        param.numNFTsToLiquidate =
+            (param.totalToLiquidate - param.discount) /
+            param.floorPrice;
+        param.totalSlash = param.totalFromMargin + param.discount;
 
         // 4.1 slash margin account
-        param.amountSlashed = VaultMarginFacet(param.vault).slash(
+        param.slashedMargin = VaultMarginFacet(param.vault).slash(
             param.reserve,
             payable(address(this)),
             param.totalSlash
         );
+        param.receivedAmount = param.receivedAmount + param.slashedMargin;
 
-        uint256 amountNeedExtra = param.totalSlash.sub(param.amountSlashed);
+        param.amountNeedExtra = param.totalSlash - param.slashedMargin;
 
         // 4.2 transfer from liquidator
         IERC20(param.reserve).safeTransferFrom(
@@ -269,48 +299,54 @@ contract LoanFacet is Storage {
             address(this),
             param.totalToLiquidate
         );
+        param.receivedAmount = param.receivedAmount + param.totalToLiquidate;
 
         if (param.totalNFTNums < param.numNFTsToLiquidate) {
-            uint256 missingNFTNums = param.numNFTsToLiquidate.sub(
-                param.totalNFTNums
-            );
-            amountNeedExtra = missingNFTNums.mul(param.floorPrice).add(
-                amountNeedExtra
-            );
+            uint256 missingNFTNums = param.numNFTsToLiquidate -
+                param.totalNFTNums;
+            param.amountNeedExtra =
+                missingNFTNums *
+                param.floorPrice +
+                param.amountNeedExtra;
             param.numNFTsToLiquidate = param.totalNFTNums;
         }
 
         // 4.3 sell nft
-        VaultAssetFacet(param.vault).transferNFT(
+        uint256[] memory ids = VaultAssetFacet(param.vault).transferNFT(
             reserveData.nftAddress,
             param.liquidator,
             param.numNFTsToLiquidate
         );
+        emit CollateralTransferred(param.vault, param.liquidator, ids);
 
         // 4.4 transfer from junior tranche
-        uint256 amountToWriteDown = 0;
-        uint256 totalAssetFromJuniorTranche = ERC4626(
+        param.totalAssetFromJuniorTranche = ERC4626(
             reserveData.juniorDepositTokenAddress
         ).totalAssets();
 
-        if (totalAssetFromJuniorTranche >= amountNeedExtra) {
+        if (param.totalAssetFromJuniorTranche >= param.amountNeedExtra) {
             IVToken(reserveData.juniorDepositTokenAddress).transferUnderlyingTo(
                     address(this),
-                    amountNeedExtra
+                    param.amountNeedExtra
                 );
+            param.receivedAmount = param.receivedAmount + param.amountNeedExtra;
+            param.juniorTrancheAmount = param.amountNeedExtra;
         } else {
             IVToken(reserveData.juniorDepositTokenAddress).transferUnderlyingTo(
                     address(this),
-                    totalAssetFromJuniorTranche
+                    param.totalAssetFromJuniorTranche
                 );
+            param.juniorTrancheAmount = param.totalAssetFromJuniorTranche;
 
-            amountToWriteDown = amountNeedExtra.sub(
-                totalAssetFromJuniorTranche
-            );
-            // todo write down to somewhere
+            param.writeDownAmount =
+                param.amountNeedExtra -
+                param.totalAssetFromJuniorTranche;
+            param.receivedAmount =
+                param.receivedAmount +
+                param.totalAssetFromJuniorTranche;
         }
 
-        param.repaymentId = LibLoan.repay(
+        (param.repaymentId, param.isFinal) = LibLoan.repay(
             param.reserve,
             param.vault,
             param.drawDownId,
@@ -319,9 +355,19 @@ contract LoanFacet is Storage {
             true
         );
 
+        emit Repayment(
+            _msgSender(),
+            param.vault,
+            param.reserve,
+            param.drawDownId,
+            param.repaymentId,
+            param.totalDebt,
+            param.isFinal
+        );
+
         IERC20(param.reserve).safeTransfer(
             reserveData.seniorDepositTokenAddress,
-            param.totalDebt
+            param.receivedAmount
         );
 
         emit Liquidate(
@@ -331,10 +377,10 @@ contract LoanFacet is Storage {
             param.drawDownId,
             param.repaymentId,
             param.totalDebt,
-            param.amountSlashed,
+            param.slashedMargin,
             param.totalToLiquidate,
-            param.numNFTsToLiquidate,
-            amountToWriteDown
+            param.juniorTrancheAmount,
+            param.writeDownAmount
         );
     }
 
@@ -444,3 +490,4 @@ error InsufficientLiquidity();
 error InsufficientCreditLimit();
 error InvalidDebt();
 error InvalidLiquidate();
+error InvalidFloorPrice();

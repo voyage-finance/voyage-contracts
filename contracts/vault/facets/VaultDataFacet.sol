@@ -3,7 +3,6 @@ pragma solidity ^0.8.9;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
 import {CustodyData, LibVaultStorage, Storage} from "../libraries/LibVaultStorage.sol";
 import {VaultConfig} from "../../voyage/libraries/LibAppStorage.sol";
@@ -12,8 +11,6 @@ import {VaultFacet} from "../../voyage/facets/VaultFacet.sol";
 import {DataProviderFacet} from "../../voyage/facets/DataProviderFacet.sol";
 
 contract VaultDataFacet is ReentrancyGuard, Storage, IERC1271 {
-    using SafeMath for uint256;
-
     /// @notice Get the number of NFT owned by this vault
     /// @param _erc721Addr Address of NFT
     function getTotalNFTNumbers(address _erc721Addr)
@@ -32,7 +29,7 @@ contract VaultDataFacet is ReentrancyGuard, Storage, IERC1271 {
         (principal, interest) = LoanFacet(
             LibVaultStorage.diamondStorage().voyage
         ).getVaultDebt(_reserve, address(this));
-        total = principal.add(interest);
+        total = principal + interest;
     }
 
     /// @notice Get margin requirement

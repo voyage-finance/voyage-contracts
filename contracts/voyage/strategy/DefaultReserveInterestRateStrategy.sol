@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
 import {IReserveInterestRateStrategy} from "../interfaces/IReserveInterestRateStrategy.sol";
@@ -9,7 +8,6 @@ import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 
 contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
     using WadRayMath for uint256;
-    using SafeMath for uint256;
     /**
      * this constant represents the utilization rate at which the pool aims to obtain most competitive borrow rates
      * Expressed in RAY
@@ -68,9 +66,10 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
             seniorDepositTokenAddress
         ) - totalPendingWithdrawal;
 
-        availableLiquidity = availableLiquidity.add(liquidityAdded).sub(
-            liquidityTaken
-        );
+        availableLiquidity =
+            availableLiquidity +
+            liquidityAdded -
+            liquidityTaken;
         return
             calculateInterestRates(
                 reserve,
@@ -102,25 +101,25 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
 
         vars.utilizationRate = vars.totalDebt == 0
             ? 0
-            : vars.totalDebt.rayDiv(availableLiquidity.add(vars.totalDebt));
+            : vars.totalDebt.rayDiv(availableLiquidity + vars.totalDebt);
 
         if (vars.utilizationRate > OPTIMAL_UTILIZATION_RATE) {
-            vars.currentStableBorrowRate = vars
-                .currentStableBorrowRate
-                .add(stableRateSlope1)
-                .add(
+            vars.currentStableBorrowRate =
+                vars.currentStableBorrowRate +
+                stableRateSlope1 +
+                (
                     stableRateSlope2
-                        .rayMul(
-                            vars.utilizationRate.sub(OPTIMAL_UTILIZATION_RATE)
-                        )
-                        .rayDiv(WadRayMath.Ray().sub(OPTIMAL_UTILIZATION_RATE))
+                        .rayMul(vars.utilizationRate - OPTIMAL_UTILIZATION_RATE)
+                        .rayDiv(WadRayMath.Ray() - OPTIMAL_UTILIZATION_RATE)
                 );
         } else {
-            vars.currentStableBorrowRate = vars.currentStableBorrowRate.add(
-                stableRateSlope1.rayMul(vars.utilizationRate).rayDiv(
-                    OPTIMAL_UTILIZATION_RATE
-                )
-            );
+            vars.currentStableBorrowRate =
+                vars.currentStableBorrowRate +
+                (
+                    stableRateSlope1.rayMul(vars.utilizationRate).rayDiv(
+                        OPTIMAL_UTILIZATION_RATE
+                    )
+                );
         }
 
         vars.currentLiquidityRate = averageBorrowRate.rayMul(

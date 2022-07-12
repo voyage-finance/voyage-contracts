@@ -5,6 +5,7 @@ import BigNumber from 'bignumber.js';
 
 const WRM_NAME = 'WadRayMath';
 const INTEREST_STRATEGY_NAME = 'DefaultReserveInterestRateStrategy';
+const LOAN_STRATEGY_NAME = 'DefaultLoanStrategy';
 
 const RAY = new BigNumber(10).pow(27);
 
@@ -64,6 +65,15 @@ const deployFn: DeployFunction = async (hre) => {
     log: true,
     libraries: { WadRayMath: wadRayMath.address },
     args: [utilisationRate, slope1, slope2, baseInterest],
+  });
+
+  const liquidationBonus = new BigNumber('0.2').multipliedBy(RAY).toFixed();
+  const marginRequirement = new BigNumber('0.2').multipliedBy(RAY).toFixed();
+
+  await deploy(LOAN_STRATEGY_NAME, {
+    from: owner,
+    log: true,
+    args: [90, 30, 10, liquidationBonus, marginRequirement],
   });
 };
 

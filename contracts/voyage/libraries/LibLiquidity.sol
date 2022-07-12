@@ -3,7 +3,6 @@ pragma solidity ^0.8.9;
 
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import {LibReserveConfiguration} from "./LibReserveConfiguration.sol";
 import {IReserveInterestRateStrategy} from "../interfaces/IReserveInterestRateStrategy.sol";
@@ -12,9 +11,9 @@ import {LibAppStorage, AppStorage, ReserveData, ReserveConfigurationMap, BorrowD
 import {IVToken} from "../interfaces/IVToken.sol";
 import {VToken} from "../tokenization/VToken.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
+import "hardhat/console.sol";
 
 library LibLiquidity {
-    using SafeMath for uint256;
     using WadRayMath for uint256;
     using LibReserveConfiguration for ReserveConfigurationMap;
 
@@ -42,7 +41,8 @@ library LibLiquidity {
         address _interestRateStrategyAddress,
         address _loanStrategyAddress,
         uint256 _optimalIncomeRatio,
-        address _priceOracle
+        address _priceOracle,
+        address _nftAddr
     ) internal {
         require(
             reserve.seniorDepositTokenAddress == address(0) &&
@@ -71,6 +71,7 @@ library LibLiquidity {
         reserve.loanStrategyAddress = _loanStrategyAddress;
         reserve.initialized = true;
         reserve.priceOracle = _priceOracle;
+        reserve.nftAddress = _nftAddr;
     }
 
     function deployBeaconProxy(address _impl, bytes memory _data)
@@ -246,8 +247,11 @@ library LibLiquidity {
     function getReserveList() internal view returns (address[] memory) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         address[] memory reserveList = new address[](s._reservesCount);
-        for (uint256 i = 0; i < s._reservesCount; i++) {
+        for (uint256 i = 0; i < s._reservesCount; ) {
             reserveList[i] = s._reserveList[i];
+            unchecked {
+                ++i;
+            }
         }
         return reserveList;
     }
@@ -281,8 +285,11 @@ library LibLiquidity {
         }
         (, uint256[] memory amounts) = IVToken(vToken).unbonding(_user);
         uint256 unbondingBalance = 0;
-        for (uint8 i = 0; i < amounts.length; i++) {
+        for (uint8 i = 0; i < amounts.length; ) {
             unbondingBalance += amounts[i];
+            unchecked {
+                ++i;
+            }
         }
         return unbondingBalance;
     }
@@ -348,9 +355,7 @@ library LibLiquidity {
         AppStorage storage s = LibAppStorage.diamondStorage();
         ReserveData memory reserve = getReserveData(_reserve);
         BorrowState memory borrowState = s._borrowState[_reserve];
-        uint256 totalDebt = borrowState.totalDebt.add(
-            borrowState.totalInterest
-        );
+        uint256 totalDebt = borrowState.totalDebt + borrowState.totalInterest;
 
         uint256 totalPendingWithdrawal = IVToken(
             reserve.seniorDepositTokenAddress
@@ -363,7 +368,7 @@ library LibLiquidity {
         return
             totalDebt == 0
                 ? 0
-                : totalDebt.rayDiv(availableLiquidity.add(totalDebt));
+                : totalDebt.rayDiv(availableLiquidity + totalDebt);
     }
 }
 

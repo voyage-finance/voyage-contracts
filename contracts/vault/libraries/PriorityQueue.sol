@@ -1,17 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
-import "hardhat/console.sol";
-
 struct Heap {
     uint256[] heapList;
     uint256 currentSize;
 }
 
 library PriorityQueue {
-    using SafeMath for uint256;
-
     /**
      * @dev Returns the top element of the heap.
      * @return The smallest element in the priority queue.
@@ -39,7 +34,7 @@ library PriorityQueue {
         }
         uint256 element = (_tokenId << 128) | _timestamp;
         heap.heapList.push(element);
-        heap.currentSize = heap.currentSize.add(1);
+        heap.currentSize = heap.currentSize + 1;
         _percUp(heap, heap.currentSize);
     }
 
@@ -50,14 +45,17 @@ library PriorityQueue {
     ) internal {
         uint256 element = (_tokenId << 128) | _timestamp;
         uint256 index = 1;
-        for (uint256 i = 1; i < heap.currentSize.add(1); i++) {
+        for (uint256 i = 1; i < heap.currentSize + 1; ) {
             if (heap.heapList[i] == element) {
                 index = i;
+            }
+            unchecked {
+                i++;
             }
         }
         if (index == heap.currentSize) {
             heap.heapList.pop();
-            heap.currentSize = heap.currentSize.sub(1);
+            heap.currentSize = heap.currentSize - 1;
             return;
         }
 
@@ -67,7 +65,7 @@ library PriorityQueue {
             heap.heapList[heap.currentSize]
         );
         heap.heapList.pop();
-        heap.currentSize = heap.currentSize.sub(1);
+        heap.currentSize = heap.currentSize - 1;
 
         if (isGreater) {
             _percDown(heap, index);
@@ -84,7 +82,7 @@ library PriorityQueue {
         uint256 retVal = heap.heapList[1];
         heap.heapList[1] = heap.heapList[heap.currentSize];
         delete heap.heapList[heap.currentSize];
-        heap.currentSize = heap.currentSize.sub(1);
+        heap.currentSize = heap.currentSize - 1;
         _percDown(heap, 1);
         //heap.heapList.length = heap.heapList.length.sub(1);
         return _splitElement(retVal);
@@ -97,9 +95,9 @@ library PriorityQueue {
         uint256 index = _index;
         uint256 j = index;
         uint256 newVal = heap.heapList[index];
-        while (newVal < heap.heapList[index.div(2)]) {
-            heap.heapList[index] = heap.heapList[index.div(2)];
-            index = index.div(2);
+        while (newVal < heap.heapList[index / 2]) {
+            heap.heapList[index] = heap.heapList[index / 2];
+            index = index / 2;
         }
         if (index != j) heap.heapList[index] = newVal;
     }
@@ -114,16 +112,13 @@ library PriorityQueue {
         view
         returns (uint256)
     {
-        if (_index.mul(2).add(1) > heap.currentSize) {
-            return _index.mul(2);
+        if (_index * 2 + 1 > heap.currentSize) {
+            return _index * 2;
         } else {
-            if (
-                heap.heapList[_index.mul(2)] <
-                heap.heapList[_index.mul(2).add(1)]
-            ) {
-                return _index.mul(2);
+            if (heap.heapList[_index * 2] < heap.heapList[_index * 2 + 1]) {
+                return _index * 2;
             } else {
-                return _index.mul(2).add(1);
+                return _index * 2 + 1;
             }
         }
     }

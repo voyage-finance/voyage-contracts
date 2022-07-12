@@ -1,14 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {LibAppStorage, AppStorage, BorrowData, BorrowState, DrawDown, PMT, RepaymentData, ReserveData, RepaymentData} from "./LibAppStorage.sol";
 import {LibLiquidity} from "./LibLiquidity.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
-import {MathUtils} from "../../shared/libraries/MathUtils.sol";
 
 library LibLoan {
-    using SafeMath for uint256;
     using WadRayMath for uint256;
 
     uint256 internal constant RAY = 1e27;
@@ -47,7 +44,7 @@ library LibLoan {
         dd.term = _term;
         dd.epoch = _epoch;
         dd.apr = _apr;
-        dd.nper = _term.div(_epoch);
+        dd.nper = _term / _epoch;
         dd.borrowAt = block.timestamp;
 
         uint256 principalRay = _principal.wadToRay();
@@ -56,33 +53,32 @@ library LibLoan {
         dd.interest = interest;
 
         PMT memory pmt;
-        pmt.principal = _principal.div(dd.nper);
-        pmt.interest = interestRay.rayToWad().div(dd.nper);
-        pmt.pmt = pmt.principal.add(pmt.interest);
+        pmt.principal = _principal / dd.nper;
+        pmt.interest = interestRay.rayToWad() / dd.nper;
+        pmt.pmt = pmt.principal + pmt.interest;
         dd.pmt = pmt;
 
-        dd.nextPaymentDue = dd.borrowAt.add(
-            dd.paidTimes.add(1).mul(dd.epoch.mul(SECOND_PER_DAY))
-        );
+        dd.nextPaymentDue =
+            dd.borrowAt +
+            (dd.paidTimes + 1) *
+            dd.epoch *
+            SECOND_PER_DAY;
 
         borrowData.nextDrawDownNumber++;
         borrowData.mapSize++;
-        borrowData.totalPrincipal = borrowData.totalPrincipal.add(_principal);
-        borrowData.totalInterest = borrowData.totalInterest.add(
-            interestRay.rayToWad()
-        );
+        borrowData.totalPrincipal = borrowData.totalPrincipal + _principal;
+        borrowData.totalInterest =
+            borrowData.totalInterest +
+            interestRay.rayToWad();
 
         uint256 totalDebtRay = borrowState.totalDebt.wadToRay();
-        borrowState.avgBorrowRate = totalDebtRay
-            .rayMul(borrowState.avgBorrowRate)
-            .add(principalRay.rayMul(_apr))
-            .rayDiv(totalDebtRay.add(principalRay));
-        borrowState.totalDebt = borrowState.totalDebt.add(
-            principalRay.rayToWad()
-        );
-        borrowState.totalInterest = borrowState.totalInterest.add(
-            interestRay.rayToWad()
-        );
+        borrowState.avgBorrowRate = (totalDebtRay.rayMul(
+            borrowState.avgBorrowRate
+        ) + principalRay.rayMul(_apr)).rayDiv(totalDebtRay + principalRay);
+        borrowState.totalDebt = borrowState.totalDebt + principalRay.rayToWad();
+        borrowState.totalInterest =
+            borrowState.totalInterest +
+            interestRay.rayToWad();
 
         return (currentDrawDownNumber, dd);
     }
@@ -94,46 +90,56 @@ library LibLoan {
         uint256 principal,
         uint256 interest,
         bool isLiquidated
-    ) internal returns (uint256) {
+    ) internal returns (uint256, bool) {
+        bool isFinal = false;
         BorrowData storage debtData = getBorrowData(underlying, vault);
         BorrowState storage borrowStat = getBorrowState(underlying);
         DrawDown storage dd = debtData.drawDowns[drawDownNumber];
         dd.paidTimes += 1;
         if (dd.paidTimes == dd.nper) {
             delete debtData.drawDowns[drawDownNumber];
+            isFinal = true;
         } else {
-            dd.totalPrincipalPaid = dd.totalPrincipalPaid.add(principal);
-            dd.totalInterestPaid = dd.totalInterestPaid.add(interest);
+            dd.totalPrincipalPaid = dd.totalPrincipalPaid + principal;
+            dd.totalInterestPaid = dd.totalInterestPaid + interest;
             RepaymentData memory repayment;
             repayment.interest = interest;
             repayment.principal = principal;
-            repayment.total = principal.add(interest);
+            repayment.total = principal + interest;
             repayment.paidAt = uint40(block.timestamp);
             dd.repayments.push(repayment);
-            dd.nextPaymentDue = dd.borrowAt.add(
-                dd.paidTimes.add(1).mul(dd.epoch.mul(SECOND_PER_DAY))
-            );
+            dd.nextPaymentDue =
+                dd.borrowAt +
+                (dd.paidTimes + 1) *
+                dd.epoch *
+                SECOND_PER_DAY;
         }
 
-        debtData.totalPrincipal = debtData.totalPrincipal.sub(principal);
-        debtData.totalInterest = debtData.totalInterest.sub(interest);
-        debtData.totalPaid = debtData.totalPaid.add(principal);
+        debtData.totalPrincipal = debtData.totalPrincipal - principal;
+        debtData.totalInterest = debtData.totalInterest - interest;
+        debtData.totalPaid = debtData.totalPaid + principal;
         uint256 interestRay = interest.wadToRay();
         uint256 principalRay = principal.wadToRay();
 
         uint256 totalDebtRay = borrowStat.totalDebt.wadToRay();
-        borrowStat.avgBorrowRate = totalDebtRay
-            .rayMul(borrowStat.avgBorrowRate)
-            .sub(principalRay.rayMul(dd.apr))
-            .rayDiv(totalDebtRay.sub(principalRay));
-        borrowStat.totalDebt = borrowStat.totalDebt.sub(
-            principalRay.rayToWad()
-        );
-        borrowStat.totalInterest = borrowStat.totalInterest.sub(
-            interestRay.rayToWad()
-        );
+        if (totalDebtRay == principalRay) {
+            borrowStat.avgBorrowRate = 0;
+        } else {
+            borrowStat.avgBorrowRate = (totalDebtRay.rayMul(
+                borrowStat.avgBorrowRate
+            ) - principalRay.rayMul(dd.apr)).rayDiv(
+                    totalDebtRay - principalRay
+                );
+        }
+        borrowStat.totalDebt = borrowStat.totalDebt - principalRay.rayToWad();
+        borrowStat.totalInterest =
+            borrowStat.totalInterest -
+            interestRay.rayToWad();
 
-        return dd.repayments.length == 0 ? 0 : dd.repayments.length - 1;
+        return (
+            dd.repayments.length == 0 ? 0 : dd.repayments.length - 1,
+            isFinal
+        );
     }
 
     function updateStateOnBorrow(

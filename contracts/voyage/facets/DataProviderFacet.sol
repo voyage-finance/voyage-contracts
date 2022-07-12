@@ -3,7 +3,6 @@ pragma solidity ^0.8.9;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
 import {AppStorage, ReserveData, Tranche, VaultConfig, VaultData, DrawDownList, RepaymentData} from "../libraries/LibAppStorage.sol";
@@ -12,7 +11,6 @@ import {LibLoan} from "../libraries/LibLoan.sol";
 import {LibVault} from "../libraries/LibVault.sol";
 
 contract DataProviderFacet {
-    using SafeMath for uint256;
     using WadRayMath for uint256;
 
     AppStorage internal s;
@@ -85,9 +83,9 @@ contract DataProviderFacet {
         PoolData memory poolData;
         poolData.juniorLiquidity = depositAndDebt.juniorDepositAmount;
         poolData.seniorLiquidity = depositAndDebt.seniorDepositAmount;
-        poolData.totalLiquidity = depositAndDebt.seniorDepositAmount.add(
-            depositAndDebt.juniorDepositAmount
-        );
+        poolData.totalLiquidity =
+            depositAndDebt.seniorDepositAmount +
+            depositAndDebt.juniorDepositAmount;
         poolData.juniorLiquidityRate = LibLiquidity.getLiquidityRate(
             underlyingAsset,
             Tranche.JUNIOR
@@ -141,12 +139,15 @@ contract DataProviderFacet {
             reserveList.length
         );
 
-        for (uint256 i = 0; i < reserveList.length; i++) {
+        for (uint256 i = 0; i < reserveList.length; ) {
             address reserveAddress = reserveList[i];
             reserves[i] = FungibleTokenData({
                 symbol: IERC20Metadata(reserveAddress).symbol(),
                 tokenAddress: reserveAddress
             });
+            unchecked {
+                ++i;
+            }
         }
 
         return reserves;
@@ -170,9 +171,8 @@ contract DataProviderFacet {
             _user,
             Tranche.SENIOR
         );
-        uint256 seniorTrancheTotalBalance = seniorTrancheWithdrawable.add(
-            seniorTrancheUnbonding
-        );
+        uint256 seniorTrancheTotalBalance = seniorTrancheWithdrawable +
+            seniorTrancheUnbonding;
         uint256 juniorTrancheWithdrawable = LibLiquidity.balance(
             _reserve,
             _user,
@@ -183,9 +183,8 @@ contract DataProviderFacet {
             _user,
             Tranche.JUNIOR
         );
-        uint256 juniorTrancheTotalBalance = juniorTrancheWithdrawable.add(
-            juniorTrancheUnbonding
-        );
+        uint256 juniorTrancheTotalBalance = juniorTrancheWithdrawable +
+            juniorTrancheUnbonding;
 
         userPoolData.juniorTrancheBalance = juniorTrancheTotalBalance;
         userPoolData
@@ -214,11 +213,7 @@ contract DataProviderFacet {
         (principal, interest) = LibVault.getVaultDebt(_reserve, _vault);
         vaultData.drawDownList = drawDownList;
         ReserveData storage reserveData = LibLiquidity.getReserveData(_reserve);
-        vaultData.juniorLiquidityRate = reserveData.currentJuniorLiquidityRate;
-        vaultData.seniorLiquidityRate = reserveData.currentSeniorLiquidityRate;
-        vaultData.overallLiquidityRate = reserveData
-            .currentOverallLiquidityRate;
-        vaultData.totalDebt = principal.add(interest);
+        vaultData.totalDebt = principal + interest;
         vaultData.totalMargin = LibVault.getMargin(_vault, _reserve);
         vaultData.withdrawableSecurityDeposit = LibVault
             .getTotalWithdrawableMargin(_vault, _reserve);
@@ -229,7 +224,7 @@ contract DataProviderFacet {
         );
         vaultData.ltv = vaultData.totalDebt == 0
             ? 1
-            : vaultData.gav.add(vaultData.totalMargin).rayDiv(
+            : (vaultData.gav + vaultData.totalMargin).rayDiv(
                 vaultData.totalDebt
             );
 

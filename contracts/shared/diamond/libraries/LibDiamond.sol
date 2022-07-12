@@ -11,7 +11,6 @@ import {IDiamondCut} from "../interfaces/IDiamondCut.sol";
 import {IDiamondLoupe} from "../interfaces/IDiamondLoupe.sol";
 import {IERC165} from "../interfaces/IERC165.sol";
 import {IERC173} from "../interfaces/IERC173.sol";
-import "hardhat/console.sol";
 
 library LibDiamond {
     bytes32 constant DIAMOND_STORAGE_POSITION =
