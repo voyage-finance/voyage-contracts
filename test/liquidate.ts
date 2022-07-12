@@ -67,7 +67,7 @@ describe('Liquidate', function () {
     ).to.be.revertedWith('InvalidFloorPrice()');
   });
 
-  it('Valid liquidate with nft should return correct value', async function () {
+  it.only('Valid liquidate with nft should return correct value', async function () {
     const {
       owner,
       juniorDepositToken,
@@ -79,15 +79,16 @@ describe('Liquidate', function () {
       crab,
     } = await setupTestSuite();
 
-    const depositAmount = toWadValue(100);
+    const depositAmount = toWadValue(120);
+    const margin = toWadValue(100);
     const maxMargin = toWadValue(1000);
     await voyage.setMaxMargin(tus.address, maxMargin);
     await voyage.deposit(tus.address, 0, depositAmount, owner);
     await voyage.deposit(tus.address, 1, depositAmount, owner);
     const marginRequirement = new BigNumber(0.1).multipliedBy(RAY).toFixed();
     await voyage.setMarginRequirement(tus.address, marginRequirement);
-    await voyage.depositMargin(vault.address, tus.address, depositAmount);
-    const borrowAmount = toWadValue(100);
+    await voyage.depositMargin(vault.address, tus.address, margin);
+    const borrowAmount = toWadValue(120);
     await voyage.borrow(tus.address, borrowAmount, vault.address);
 
     await crab.safeMint(vault.address, 1);
@@ -114,6 +115,16 @@ describe('Liquidate', function () {
       for (const event of receipt.events) {
         if (event.event == 'Liquidate') {
           console.log(event.args);
+          if (event.args) {
+            console.log('event args: ');
+            console.log('liquidator: ', event.args[0]);
+            console.log('vault: ', event.args[1]);
+            console.log('asset: ', event.args[2]);
+            console.log('draw down id: ', event.args[3]);
+            console.log('repayment id: ', event.args[4]);
+            console.log('debt: ', event.args[5].toString());
+            console.log('margin: ', event.args[6].toString());
+          }
         }
       }
     }

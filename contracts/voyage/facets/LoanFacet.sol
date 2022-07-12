@@ -45,6 +45,7 @@ contract LoanFacet is Storage {
         uint256 discount;
         uint256 totalSlash;
         uint256 amountNeedExtra;
+        uint256 juniorTrancheAmount;
         uint256 receivedAmount;
         address liquidator;
         uint256 floorPrice;
@@ -53,7 +54,9 @@ contract LoanFacet is Storage {
         uint256 gracePeriod;
         uint256 liquidationBonus;
         uint256 marginRequirement;
-        uint256 amountSlashed;
+        uint256 slashedMargin;
+        uint256 writeDownAmount;
+        uint256 totalAssetFromJuniorTranche;
         bool isFinal;
     }
 
@@ -83,7 +86,9 @@ contract LoanFacet is Storage {
         uint256 _margin,
         uint256 _collateral,
         uint256 _numCollateral,
-        bool isFinal
+        uint256 _fromJuniorTranche,
+        uint256 _amountToWriteDown,
+        bool _isFinalRepayment
     );
 
     function borrow(
@@ -274,15 +279,14 @@ contract LoanFacet is Storage {
         console.log("total slash: ", param.totalSlash);
 
         // 4.1 slash margin account
-        param.amountSlashed = VaultMarginFacet(param.vault).slash(
+        param.slashedMargin = VaultMarginFacet(param.vault).slash(
             param.reserve,
             payable(address(this)),
             param.totalSlash
         );
-        console.log("slashed: ", param.amountSlashed);
-        param.receivedAmount = param.receivedAmount + param.amountSlashed;
+        param.receivedAmount = param.receivedAmount + param.slashedMargin;
 
-        param.amountNeedExtra = param.totalSlash - param.amountSlashed;
+        param.amountNeedExtra = param.totalSlash - param.slashedMargin;
 
         // 4.2 transfer from liquidator
         IERC20(param.reserve).safeTransferFrom(
@@ -311,27 +315,30 @@ contract LoanFacet is Storage {
         );
 
         // 4.4 transfer from junior tranche
-        uint256 amountToWriteDown = 0;
-        uint256 totalAssetFromJuniorTranche = ERC4626(
+        param.totalAssetFromJuniorTranche = ERC4626(
             reserveData.juniorDepositTokenAddress
         ).totalAssets();
 
-        if (totalAssetFromJuniorTranche >= param.amountNeedExtra) {
+        if (param.totalAssetFromJuniorTranche >= param.amountNeedExtra) {
             IVToken(reserveData.juniorDepositTokenAddress).transferUnderlyingTo(
                     address(this),
                     param.amountNeedExtra
                 );
             param.receivedAmount = param.receivedAmount + param.amountNeedExtra;
+            param.juniorTrancheAmount = param.amountNeedExtra;
         } else {
             IVToken(reserveData.juniorDepositTokenAddress).transferUnderlyingTo(
                     address(this),
-                    totalAssetFromJuniorTranche
+                    param.totalAssetFromJuniorTranche
                 );
+            param.juniorTrancheAmount = param.totalAssetFromJuniorTranche;
 
-            //            amountToWriteDown = amountNeedExtra - totalAssetFromJuniorTranche;
+            param.writeDownAmount =
+                param.amountNeedExtra -
+                param.totalAssetFromJuniorTranche;
             param.receivedAmount =
                 param.receivedAmount +
-                totalAssetFromJuniorTranche;
+                param.totalAssetFromJuniorTranche;
         }
 
         (param.repaymentId, param.isFinal) = LibLoan.repay(
@@ -355,9 +362,11 @@ contract LoanFacet is Storage {
             param.drawDownId,
             param.repaymentId,
             param.totalDebt,
-            param.amountSlashed,
+            param.slashedMargin,
             param.totalToLiquidate,
             param.numNFTsToLiquidate,
+            param.juniorTrancheAmount,
+            param.writeDownAmount,
             param.isFinal
         );
     }
