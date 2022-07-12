@@ -88,6 +88,13 @@ contract LiquidityFacet is Storage, PeripheryPayments {
         emit ReserveActivated(_asset);
     }
 
+    function updateProtocolFee(address _treasuryAddr, uint256 _cutRatio)
+        external
+        authorised
+    {
+        LibLiquidity.updateProtocolFee(_treasuryAddr, _cutRatio);
+    }
+
     /* ----------------------------- user interface ----------------------------- */
 
     function deposit(

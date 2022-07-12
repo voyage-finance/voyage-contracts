@@ -3,8 +3,11 @@ pragma solidity ^0.8.9;
 
 import {AppStorage, Storage} from "../libraries/LibAppStorage.sol";
 import {LibVault} from "../libraries/LibVault.sol";
+import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {Call} from "../../vault/interfaces/ICallExternal.sol";
+import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {VaultDataFacet} from "../../vault/facets/VaultDataFacet.sol";
+import {VaultAssetFacet} from "../../vault/facets/VaultAssetFacet.sol";
 import {VaultExternalFacet} from "../../vault/facets/VaultExternalFacet.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -12,6 +15,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 
 contract CrabadaAdapterFacet is Storage, ReentrancyGuard {
     using SafeERC20 for IERC20;
+    using WadRayMath for uint256;
 
     struct ExecuteBuyParam {
         address nftAddr;
@@ -138,26 +142,41 @@ contract CrabadaAdapterFacet is Storage, ReentrancyGuard {
 
         uint256 balanceBefore = IERC20(param.erc20Addr).balanceOf(param.vault);
 
+        (address treasury, uint256 cutRatio) = LibLiquidity.getProtocolFee();
+        uint256 feeAmount = param
+            .tokenPrice
+            .wadToRay()
+            .rayMul(cutRatio)
+            .rayToWad();
+
         // 2. transfer money from escrow to vault
         bytes memory transferData = abi.encodeWithSignature(
             "transferUnderlyingTo(address,address,uint256)",
             param.erc20Addr,
             param.vault,
-            param.tokenPrice * 2
+            param.tokenPrice * 2 + feeAmount
         );
         address escrow = VaultDataFacet(param.vault).creditEscrow(
             param.erc20Addr
         );
         _call(param.vault, escrow, transferData);
 
-        // 3. execute buy
+        // 3. protocol fee
+
+        VaultAssetFacet(param.vault).transferReserve(
+            param.erc20Addr,
+            treasury,
+            feeAmount
+        );
+
+        // 4. execute buy
         bytes memory callData = abi.encodeWithSignature(
             "buyCard(uint256)",
             _orderId
         );
         _call(param.vault, param.marketplace, callData);
 
-        // 4. refund
+        // 5. refund
         IERC20(param.erc20Addr).safeTransfer(
             escrow,
             IERC20(param.erc20Addr).balanceOf(param.vault) - balanceBefore

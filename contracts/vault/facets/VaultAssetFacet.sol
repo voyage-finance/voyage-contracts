@@ -82,6 +82,14 @@ contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
         return ids;
     }
 
+    function transferReserve(
+        address _reserve,
+        address _to,
+        uint256 _amount
+    ) external nonReentrant onlyVoyage {
+        IERC20(_reserve).safeTransfer(_to, _amount);
+    }
+
     /// @notice Called by erc721 contract or sub vaults
     function onERC721Received(
         address operator,

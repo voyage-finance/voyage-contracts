@@ -125,6 +125,11 @@ struct VaultConfig {
     uint256 marginRequirement;
 }
 
+struct ProtocolFee {
+    address treasuryAddress;
+    uint256 cutRatio; // express in Ray
+}
+
 struct VaultData {
     uint256 totalDebt;
     DrawDownList drawDownList;
@@ -198,6 +203,8 @@ struct AppStorage {
     mapping(uint256 => Snapshot) snapshotMap;
     /* ---------------------------------- security --------------------------------- */
     Authorisation auth;
+    /* --------------------------------- protocol fee ------------------------------ */
+    ProtocolFee protocolFee;
     /* ---------------------------------- helper --------------------------------- */
     // mapping of sender address to helper maps, need to clear after computing
     UpgradeParam upgradeParam;
