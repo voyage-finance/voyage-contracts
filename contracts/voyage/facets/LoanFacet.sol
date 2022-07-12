@@ -16,7 +16,6 @@ import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {VaultDataFacet} from "../../vault/facets/VaultDataFacet.sol";
 import {VaultMarginFacet} from "../../vault/facets/VaultMarginFacet.sol";
 import {VaultAssetFacet} from "../../vault/facets/VaultAssetFacet.sol";
-import "hardhat/console.sol";
 
 contract LoanFacet is Storage {
     using WadRayMath for uint256;
@@ -67,11 +66,13 @@ contract LoanFacet is Storage {
         uint256 _principal,
         uint256 _interest
     );
-    event Repay(
+
+    event Repayment(
         address indexed _user,
         address indexed _vault,
         address indexed _asset,
         uint256 _drawdownId,
+        uint256 _repaymentId,
         uint256 _amount,
         bool isFinal
     );
@@ -85,10 +86,8 @@ contract LoanFacet is Storage {
         uint256 _debt,
         uint256 _margin,
         uint256 _collateral,
-        uint256 _numCollateral,
         uint256 _fromJuniorTranche,
-        uint256 _amountToWriteDown,
-        bool _isFinalRepayment
+        uint256 _amountToWriteDown
     );
 
     function borrow(
@@ -182,7 +181,7 @@ contract LoanFacet is Storage {
         );
 
         // 3. update repay data
-        (, bool isFinal) = LibLoan.repay(
+        (uint256 repaymentId, bool isFinal) = LibLoan.repay(
             _asset,
             _vault,
             _drawDown,
@@ -200,7 +199,15 @@ contract LoanFacet is Storage {
             reserveData.seniorDepositTokenAddress,
             total
         );
-        emit Repay(_msgSender(), _vault, _asset, _drawDown, total, isFinal);
+        emit Repayment(
+            _msgSender(),
+            _vault,
+            _asset,
+            _drawDown,
+            repaymentId,
+            total,
+            isFinal
+        );
     }
 
     function liquidate(
@@ -251,7 +258,6 @@ contract LoanFacet is Storage {
             param.drawDownId
         );
         param.totalDebt = param.principal + param.interest;
-        console.log("total debt: ", param.totalDebt);
         param.totalFromMargin = param
             .totalDebt
             .wadToRay()
@@ -266,7 +272,6 @@ contract LoanFacet is Storage {
         // 3.2 get floor price from oracle contract
         IPriceOracle priceOracle = IPriceOracle(reserveData.priceOracle);
         param.floorPrice = priceOracle.getAssetPrice(reserveData.nftAddress);
-        console.log("floor price: ", param.floorPrice);
 
         if (param.floorPrice == 0) {
             revert InvalidFloorPrice();
@@ -274,9 +279,7 @@ contract LoanFacet is Storage {
         param.numNFTsToLiquidate =
             (param.totalToLiquidate - param.discount) /
             param.floorPrice;
-        console.log("nft to be liquidated: ", param.numNFTsToLiquidate);
         param.totalSlash = param.totalFromMargin + param.discount;
-        console.log("total slash: ", param.totalSlash);
 
         // 4.1 slash margin account
         param.slashedMargin = VaultMarginFacet(param.vault).slash(
@@ -299,7 +302,6 @@ contract LoanFacet is Storage {
         if (param.totalNFTNums < param.numNFTsToLiquidate) {
             uint256 missingNFTNums = param.numNFTsToLiquidate -
                 param.totalNFTNums;
-            console.log("missing nft: ", missingNFTNums);
             param.amountNeedExtra =
                 missingNFTNums *
                 param.floorPrice +
@@ -350,6 +352,16 @@ contract LoanFacet is Storage {
             true
         );
 
+        emit Repayment(
+            _msgSender(),
+            param.vault,
+            param.reserve,
+            param.drawDownId,
+            param.repaymentId,
+            param.totalDebt,
+            param.isFinal
+        );
+
         IERC20(param.reserve).safeTransfer(
             reserveData.seniorDepositTokenAddress,
             param.receivedAmount
@@ -364,10 +376,8 @@ contract LoanFacet is Storage {
             param.totalDebt,
             param.slashedMargin,
             param.totalToLiquidate,
-            param.numNFTsToLiquidate,
             param.juniorTrancheAmount,
-            param.writeDownAmount,
-            param.isFinal
+            param.writeDownAmount
         );
     }
 

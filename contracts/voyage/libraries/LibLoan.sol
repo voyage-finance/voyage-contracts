@@ -122,9 +122,15 @@ library LibLoan {
         uint256 principalRay = principal.wadToRay();
 
         uint256 totalDebtRay = borrowStat.totalDebt.wadToRay();
-        borrowStat.avgBorrowRate = (totalDebtRay.rayMul(
-            borrowStat.avgBorrowRate
-        ) - principalRay.rayMul(dd.apr)).rayDiv(totalDebtRay - principalRay);
+        if (totalDebtRay == principalRay) {
+            borrowStat.avgBorrowRate = 0;
+        } else {
+            borrowStat.avgBorrowRate = (totalDebtRay.rayMul(
+                borrowStat.avgBorrowRate
+            ) - principalRay.rayMul(dd.apr)).rayDiv(
+                    totalDebtRay - principalRay
+                );
+        }
         borrowStat.totalDebt = borrowStat.totalDebt - principalRay.rayToWad();
         borrowStat.totalInterest =
             borrowStat.totalInterest -
