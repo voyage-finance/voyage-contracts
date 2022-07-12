@@ -84,7 +84,7 @@ describe('Liquidate', function () {
     ).to.be.revertedWith('InvalidFloorPrice()');
   });
 
-  it.only('Valid liquidate should return correct value', async function () {
+  it('Valid liquidate with nft should return correct value', async function () {
     const {
       owner,
       juniorDepositToken,
@@ -115,9 +115,11 @@ describe('Liquidate', function () {
       tus.address,
       '100000000000000000000'
     );
-    await voyage.borrow(tus.address, '10000000000000000000', vault.address);
+    await voyage.borrow(tus.address, '100000000000000000000', vault.address);
 
-    // update
+    await crab.safeMint(vault.address, 1);
+
+    // update oracle price
     await priceOracle.updateCumulative(crab.address, '10000000000000000000');
     await ethers.provider.send('evm_increaseTime', [10]);
     await ethers.provider.send('evm_mine', []);
@@ -132,6 +134,18 @@ describe('Liquidate', function () {
     await ethers.provider.send('evm_increaseTime', [days]);
     await ethers.provider.send('evm_mine', []);
 
-    await voyage.liquidate(tus.address, vault.address, 0);
+    const tx = await voyage.liquidate(tus.address, vault.address, 0);
+
+    const receipt = await tx.wait();
+    if (receipt.events !== undefined) {
+      for (const event of receipt.events) {
+        if (event.event == 'Liquidate') {
+          console.log(event.args);
+        }
+      }
+    }
+
+    const ownerOfCrab = await crab.ownerOf(1);
+    await expect(await crab.ownerOf(1)).to.equal(owner);
   });
 });

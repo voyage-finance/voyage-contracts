@@ -246,6 +246,7 @@ contract LoanFacet is Storage {
             param.drawDownId
         );
         param.totalDebt = param.principal + param.interest;
+        console.log("total debt: ", param.totalDebt);
         param.totalFromMargin = param
             .totalDebt
             .wadToRay()
@@ -260,6 +261,7 @@ contract LoanFacet is Storage {
         // 3.2 get floor price from oracle contract
         IPriceOracle priceOracle = IPriceOracle(reserveData.priceOracle);
         param.floorPrice = priceOracle.getAssetPrice(reserveData.nftAddress);
+        console.log("floor price: ", param.floorPrice);
 
         if (param.floorPrice == 0) {
             revert InvalidFloorPrice();
@@ -267,7 +269,9 @@ contract LoanFacet is Storage {
         param.numNFTsToLiquidate =
             (param.totalToLiquidate - param.discount) /
             param.floorPrice;
+        console.log("nft to be liquidated: ", param.numNFTsToLiquidate);
         param.totalSlash = param.totalFromMargin + param.discount;
+        console.log("total slash: ", param.totalSlash);
 
         // 4.1 slash margin account
         param.amountSlashed = VaultMarginFacet(param.vault).slash(
@@ -275,6 +279,7 @@ contract LoanFacet is Storage {
             payable(address(this)),
             param.totalSlash
         );
+        console.log("slashed: ", param.amountSlashed);
         param.receivedAmount = param.receivedAmount + param.amountSlashed;
 
         param.amountNeedExtra = param.totalSlash - param.amountSlashed;
@@ -290,6 +295,7 @@ contract LoanFacet is Storage {
         if (param.totalNFTNums < param.numNFTsToLiquidate) {
             uint256 missingNFTNums = param.numNFTsToLiquidate -
                 param.totalNFTNums;
+            console.log("missing nft: ", missingNFTNums);
             param.amountNeedExtra =
                 missingNFTNums *
                 param.floorPrice +

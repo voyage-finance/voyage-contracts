@@ -105,6 +105,7 @@ contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
         delete LibVaultStorage.diamondStorage().custodyIndex[msg.sender][
             tokenId
         ];
+        return this.onERC721Received.selector;
     }
 
     /// @notice Withdraw rewards
