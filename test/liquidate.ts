@@ -1,6 +1,8 @@
 import { expect } from 'chai';
 import { ethers, getNamedAccounts } from 'hardhat';
 import { setupTestSuite } from '../helpers/setupTestSuite';
+import { RAY, toWadValue, WAD } from '../helpers/math';
+import BigNumber from 'bignumber.js';
 
 describe('Liquidate', function () {
   it('Liquidate a invalid debt should revert', async function () {
@@ -13,26 +15,17 @@ describe('Liquidate', function () {
       voyage,
     } = await setupTestSuite();
 
-    // 100
-    const depositAmount = '100000000000000000000';
-    await voyage.setMaxMargin(tus.address, '1000000000000000000000');
+    const depositAmount = toWadValue(100);
+    const maxMargin = toWadValue(1000);
+    await voyage.setMaxMargin(tus.address, maxMargin);
     await voyage.deposit(tus.address, 0, depositAmount, owner);
     await voyage.deposit(tus.address, 1, depositAmount, owner);
-    const seniorLiquidity = await tus.balanceOf(seniorDepositToken.address);
-    const juniorLiquidity = await tus.balanceOf(juniorDepositToken.address);
-    console.log('senior liquidity: ', seniorLiquidity.toString());
-    console.log('junior liquidity: ', juniorLiquidity.toString());
-    await voyage.setMarginRequirement(
-      tus.address,
-      '100000000000000000000000000'
-    ); // 0.1
+    const marginRequirement = new BigNumber(0.1).multipliedBy(RAY).toFixed();
+    await voyage.setMarginRequirement(tus.address, marginRequirement);
 
-    await voyage.depositMargin(
-      vault.address,
-      tus.address,
-      '100000000000000000000'
-    );
-    await voyage.borrow(tus.address, '10000000000000000000', vault.address);
+    await voyage.depositMargin(vault.address, tus.address, depositAmount);
+    const borrowAmount = toWadValue(10);
+    await voyage.borrow(tus.address, borrowAmount, vault.address);
 
     // repay the first draw down
     await voyage.repay(tus.address, 0, vault.address);
@@ -53,27 +46,17 @@ describe('Liquidate', function () {
       voyage,
     } = await setupTestSuite();
 
-    // 100
-    const depositAmount = '100000000000000000000';
-    await voyage.setMaxMargin(tus.address, '1000000000000000000000');
+    const depositAmount = toWadValue(100);
+    const maxMargin = toWadValue(1000);
+    await voyage.setMaxMargin(tus.address, maxMargin);
     await voyage.deposit(tus.address, 0, depositAmount, owner);
     await voyage.deposit(tus.address, 1, depositAmount, owner);
-    const seniorLiquidity = await tus.balanceOf(seniorDepositToken.address);
-    const juniorLiquidity = await tus.balanceOf(juniorDepositToken.address);
-    console.log('senior liquidity: ', seniorLiquidity.toString());
-    console.log('junior liquidity: ', juniorLiquidity.toString());
-    await voyage.setMarginRequirement(
-      tus.address,
-      '100000000000000000000000000'
-    ); // 0.1
+    const marginRequirement = new BigNumber(0.1).multipliedBy(RAY).toFixed();
+    await voyage.setMarginRequirement(tus.address, marginRequirement);
 
-    await voyage.depositMargin(
-      vault.address,
-      tus.address,
-      '100000000000000000000'
-    );
-    await voyage.borrow(tus.address, '10000000000000000000', vault.address);
-
+    await voyage.depositMargin(vault.address, tus.address, depositAmount);
+    const borrowAmount = toWadValue(10);
+    await voyage.borrow(tus.address, borrowAmount, vault.address);
     // increase 51 days
     const days = 51 * 24 * 60 * 60;
     await ethers.provider.send('evm_increaseTime', [days]);
@@ -96,26 +79,16 @@ describe('Liquidate', function () {
       crab,
     } = await setupTestSuite();
 
-    // 100
-    const depositAmount = '100000000000000000000';
-    await voyage.setMaxMargin(tus.address, '1000000000000000000000');
+    const depositAmount = toWadValue(100);
+    const maxMargin = toWadValue(1000);
+    await voyage.setMaxMargin(tus.address, maxMargin);
     await voyage.deposit(tus.address, 0, depositAmount, owner);
     await voyage.deposit(tus.address, 1, depositAmount, owner);
-    const seniorLiquidity = await tus.balanceOf(seniorDepositToken.address);
-    const juniorLiquidity = await tus.balanceOf(juniorDepositToken.address);
-    console.log('senior liquidity: ', seniorLiquidity.toString());
-    console.log('junior liquidity: ', juniorLiquidity.toString());
-    await voyage.setMarginRequirement(
-      tus.address,
-      '100000000000000000000000000'
-    ); // 0.1
-
-    await voyage.depositMargin(
-      vault.address,
-      tus.address,
-      '100000000000000000000'
-    );
-    await voyage.borrow(tus.address, '100000000000000000000', vault.address);
+    const marginRequirement = new BigNumber(0.1).multipliedBy(RAY).toFixed();
+    await voyage.setMarginRequirement(tus.address, marginRequirement);
+    await voyage.depositMargin(vault.address, tus.address, depositAmount);
+    const borrowAmount = toWadValue(100);
+    await voyage.borrow(tus.address, borrowAmount, vault.address);
 
     await crab.safeMint(vault.address, 1);
 
@@ -145,7 +118,6 @@ describe('Liquidate', function () {
       }
     }
 
-    const ownerOfCrab = await crab.ownerOf(1);
     await expect(await crab.ownerOf(1)).to.equal(owner);
   });
 });

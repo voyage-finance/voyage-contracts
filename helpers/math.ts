@@ -12,6 +12,11 @@ export const toRay = (n: BigNumber) => {
   return n.multipliedBy(RAY);
 };
 
+export const toWadValue = (value: number) => {
+  const n = new BigNumber(value);
+  return n.multipliedBy(WAD).toFixed();
+};
+
 export const formatTokenBalance = (
   n: ethers.BigNumber,
   decimals: number,
