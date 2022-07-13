@@ -2,7 +2,6 @@
 pragma solidity ^0.8.9;
 
 import {CustodyData, VaultStorageV1, LibVaultStorage, Storage} from "../libraries/LibVaultStorage.sol";
-import {Call} from "../interfaces/ICallExternal.sol";
 import {VaultFacet} from "../../voyage/facets/VaultFacet.sol";
 
 contract VaultExternalFacet is Storage {

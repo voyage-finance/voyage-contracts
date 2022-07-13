@@ -19,6 +19,7 @@ const setupBase = async ({
 
   /* --------------------------------- voyage -------------------------------- */
   const voyage = await ethers.getContract<Voyage>('Voyage');
+  const vault = await ethers.getContract<Vault>('Vault');
 
   /* ---------------------------------- infra --------------------------------- */
   const priceOracle = await ethers.getContract('PriceOracle');
@@ -31,8 +32,6 @@ const setupBase = async ({
     'DefaultReserveInterestRateStrategy'
   );
   const defaultLoanStrategy = await ethers.getContract('DefaultLoanStrategy');
-  console.log('default loan straategy: ', defaultLoanStrategy.address);
-
   /* ------------------------- reserve initialisation ------------------------- */
   await voyage.initReserve(
     tus.address,
@@ -62,16 +61,13 @@ const setupBase = async ({
   await voyage.setMarginRequirement(tus.address, marginRequirement); // 0.1
 
   // create an empty vault
-  const salt = ethers.utils.formatBytes32String(
-    (Math.random() + 1).toString(36).substring(7)
-  );
-  await voyage.createVault(owner, salt);
+  await voyage.createVault(owner);
   const deployedVault = await voyage.getVault(owner);
   await tus.approve(deployedVault, MAX_UINT_256);
-  const vault = await ethers.getContractAt<Vault>(
-    'hardhat-diamond-abi/HardhatDiamondABI.sol:Vault',
-    deployedVault
-  );
+  // const vault = await ethers.getContractAt<Vault>(
+  //   'hardhat-diamond-abi/HardhatDiamondABI.sol:Vault',
+  //   deployedVault
+  // );
   await voyage.initAsset(deployedVault, tus.address);
 
   return {

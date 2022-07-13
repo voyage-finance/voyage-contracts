@@ -2,8 +2,9 @@
 pragma solidity ^0.8.9;
 
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
+import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {LibAppStorage, AppStorage, BorrowData, VaultConfig, NFTInfo} from "./LibAppStorage.sol";
+import {LibAppStorage, AppStorage, BorrowData, VaultConfig, NFTInfo, DiamondFacet} from "./LibAppStorage.sol";
 import {IExternalAdapter} from "../interfaces/IExternalAdapter.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {VaultDataFacet} from "../../vault/facets/VaultDataFacet.sol";
@@ -48,6 +49,11 @@ library LibVault {
         s.vaultConfigMap[_reserve].marginRequirement = _requirement;
     }
 
+    function setVaultBeacon(address _impl) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        s.vaultBeacon = new UpgradeableBeacon(_impl);
+    }
+
     function updateNFTPrice(
         address _erc721Addr,
         uint256 _cardId,
@@ -70,6 +76,11 @@ library LibVault {
     }
 
     /* ----------------------------- view functions ----------------------------- */
+    function vaultBeacon() internal view returns (address) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return address(s.vaultBeacon);
+    }
+
     function marginEscrowBeacon() internal view returns (address) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         return address(s.marginEscrowBeacon);
@@ -109,6 +120,11 @@ library LibVault {
         AppStorage storage s = LibAppStorage.diamondStorage();
         BorrowData storage borrowData = s._borrowData[_reserve][_vault];
         return (borrowData.totalPrincipal, borrowData.totalInterest);
+    }
+
+    function getDiamondFacets() internal view returns (DiamondFacet memory) {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        return s.diamondFacet;
     }
 
     function getTotalPaidAndRedeemed(address _reserve, address _vault)

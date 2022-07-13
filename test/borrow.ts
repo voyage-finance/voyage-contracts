@@ -47,8 +47,8 @@ describe('Borrow', function () {
   });
 
   it('Insufficient credit limit should revert', async function () {
-    const { tus, voyage, vault } = await setupTestSuite();
-    const { owner } = await getNamedAccounts();
+    const { tus, voyage, owner } = await setupTestSuite();
+    const vault = await voyage.getVault(owner);
     // deposit sufficient reserve
     const depositAmount = '100000000000000000000';
     await voyage.deposit(tus.address, 1, depositAmount, owner);
@@ -59,14 +59,14 @@ describe('Borrow', function () {
     ); // 0.1
 
     await expect(
-      voyage.borrow(tus.address, '10000000000000000000', vault.address)
+      voyage.borrow(tus.address, '10000000000000000000', vault)
     ).to.be.revertedWith('InsufficientCreditLimit()');
   });
 
   it('Sufficient credit limit should return correct value', async function () {
-    const { juniorDepositToken, seniorDepositToken, vault, tus, voyage } =
+    const { juniorDepositToken, seniorDepositToken, owner, tus, voyage } =
       await setupTestSuite();
-    const { owner } = await getNamedAccounts();
+    const vault = await voyage.getVault(owner);
     const depositAmount = '100000000000000000000';
     await voyage.setMaxMargin(tus.address, '1000000000000000000000');
     await voyage.deposit(tus.address, 0, depositAmount, owner);
@@ -80,24 +80,17 @@ describe('Borrow', function () {
       '100000000000000000000000000'
     ); // 0.1
 
-    await voyage.depositMargin(
-      vault.address,
-      tus.address,
-      '100000000000000000000'
-    );
-    await voyage.borrow(tus.address, '10000000000000000000', vault.address);
+    await voyage.depositMargin(vault, tus.address, '100000000000000000000');
+    await voyage.borrow(tus.address, '10000000000000000000', vault);
     const escrowAddr = await voyage.getVaultEscrowAddr(owner, tus.address);
     const vaultBalance = await tus.balanceOf(escrowAddr[0]);
     expect(vaultBalance).to.equal(BigNumber.from('10000000000000000000'));
-    const creditLimit = await voyage.getCreditLimit(vault.address, tus.address);
-    const availableCredit = await voyage.getAvailableCredit(
-      vault.address,
-      tus.address
-    );
+    const creditLimit = await voyage.getCreditLimit(vault, tus.address);
+    const availableCredit = await voyage.getAvailableCredit(vault, tus.address);
     console.log('credit limit: ', creditLimit.toString());
     console.log('available credit: ', availableCredit.toString());
-    await voyage.borrow(tus.address, '10000000000000000000', vault.address);
-    const vaultBalance2 = await tus.balanceOf(vault.address);
+    await voyage.borrow(tus.address, '10000000000000000000', vault);
+    const vaultBalance2 = await tus.balanceOf(vault);
     console.log('vault balance: ', vaultBalance2.toString());
     console.log('credit limit: ', creditLimit.toString());
     console.log('available credit: ', availableCredit.toString());

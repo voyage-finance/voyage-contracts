@@ -4,7 +4,6 @@ pragma solidity ^0.8.9;
 import {AppStorage, Storage} from "../libraries/LibAppStorage.sol";
 import {LibVault} from "../libraries/LibVault.sol";
 import {LibLiquidity} from "../libraries/LibLiquidity.sol";
-import {Call} from "../../vault/interfaces/ICallExternal.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {VaultDataFacet} from "../../vault/facets/VaultDataFacet.sol";
 import {VaultAssetFacet} from "../../vault/facets/VaultAssetFacet.sol";
@@ -61,6 +60,7 @@ contract CrabadaAdapterFacet is Storage, ReentrancyGuard {
         uint256[] calldata ids
     ) public nonReentrant {
         _auth(_vault);
+        // todo
         bytes memory callData = abi.encodeWithSignature(
             "depositNFT721(address,address,uint256)",
             _tokenAddr,

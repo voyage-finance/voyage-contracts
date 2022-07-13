@@ -15,21 +15,23 @@ import {DiamondLoupeFacet} from "./facets/DiamondLoupeFacet.sol";
 import {OwnershipFacet} from "./facets/OwnershipFacet.sol";
 import {VaultStorageV1} from "../../vault/libraries/LibVaultStorage.sol";
 import {DiamondVersionFacet} from "../../voyage/facets/DiamondVersionFacet.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-contract VersionedDiamond {
+contract VersionedDiamond is Initializable {
     // more arguments are added to this struct
     // this avoids stack too deep errors
     struct DiamondArgs {
         address owner;
     }
 
-    constructor(address _owner) {
+    function _initialize(
+        address _owner,
+        address _cutFacet,
+        address _loupeFacet,
+        address _ownershipFacet
+    ) internal {
         LibDiamond.setContractOwner(_owner);
-        LibDiamond.addDiamondFunctions(
-            address(new DiamondCutFacet()),
-            address(new DiamondLoupeFacet()),
-            address(new OwnershipFacet())
-        );
+        LibDiamond.addDiamondFunctions(_cutFacet, _loupeFacet, _ownershipFacet);
     }
 
     // Find facet for function that is called and execute the
@@ -41,12 +43,6 @@ contract VersionedDiamond {
         assembly {
             ds.slot := position
         }
-        (uint256 version, bytes32 checksum) = DiamondVersionFacet(vs.voyage)
-            .currentVersion();
-        require(
-            version == vs.version && checksum == vs.checksum,
-            "Diamond: Vault outdated"
-        );
         address facet = ds.selectorToFacetAndPosition[msg.sig].facetAddress;
         require(facet != address(0), "Diamond: Function does not exist");
         assembly {

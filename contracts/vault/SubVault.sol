@@ -8,10 +8,8 @@ import {Vault} from "./Vault.sol";
 import {VaultAssetFacet} from "./facets/VaultAssetFacet.sol";
 import {VaultDataFacet} from "./facets/VaultDataFacet.sol";
 import {VaultManageFacet} from "./facets/VaultManageFacet.sol";
-import {ISubvault} from "./interfaces/ISubvault.sol";
-import {Call} from "./interfaces/ICallExternal.sol";
 
-contract SubVault is Initializable, IERC1271, ISubvault, IERC721Receiver {
+contract SubVault is Initializable, IERC1271, IERC721Receiver {
     struct SubVaultStorageV1 {
         address owner;
         address parent;
@@ -43,11 +41,15 @@ contract SubVault is Initializable, IERC1271, ISubvault, IERC721Receiver {
         diamondStorage().parent = _parent;
     }
 
-    function callExternal(Call[] calldata calls)
+    function callExternal(address target, bytes calldata data)
         external
         authorised
-        returns (bytes[] memory ret)
-    {}
+        returns (bytes memory)
+    {
+        (bool success, bytes memory ret) = target.call(data);
+        require(success);
+        return ret;
+    }
 
     function onERC721Received(
         address operator,

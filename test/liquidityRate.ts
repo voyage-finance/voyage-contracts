@@ -23,19 +23,16 @@ describe('Liquidity Rate', function () {
   });
 
   it('Junior deposit should return correct interest rate', async function () {
-    const { owner, tus, vault, voyage } = await setupTestSuite();
+    const { owner, tus, voyage } = await setupTestSuite();
+    const vault = await voyage.getVault(owner);
 
     const seniorDepositAmount = '500000000000000000000';
     const juniorDepositAmount = '100000000000000000000';
     await voyage.deposit(tus.address, 0, juniorDepositAmount, owner);
     await voyage.deposit(tus.address, 1, seniorDepositAmount, owner);
-    await voyage.depositMargin(
-      vault.address,
-      tus.address,
-      '100000000000000000000'
-    );
+    await voyage.depositMargin(vault, tus.address, '100000000000000000000');
 
-    await voyage.borrow(tus.address, '400000000000000000000', vault.address);
+    await voyage.borrow(tus.address, '400000000000000000000', vault);
     const poolData = await voyage.getPoolData(tus.address);
 
     const juniorLiquidityRate = poolData.juniorLiquidityRate.div(RAY);
@@ -54,20 +51,17 @@ describe('Liquidity Rate', function () {
   });
 
   it('Senior deposit should return correct interest rate', async function () {
-    const { owner, tus, vault, voyage } = await setupTestSuite();
+    const { owner, tus, voyage } = await setupTestSuite();
+    const vault = await voyage.getVault(owner);
 
     const seniorDepositAmount = '50000000000000000000';
     const juniorDepositAmount = '10000000000000000000';
 
     await voyage.deposit(tus.address, 0, juniorDepositAmount, owner);
     await voyage.deposit(tus.address, 1, seniorDepositAmount, owner);
-    await voyage.depositMargin(
-      vault.address,
-      tus.address,
-      '100000000000000000000'
-    );
+    await voyage.depositMargin(vault, tus.address, '100000000000000000000');
 
-    await voyage.borrow(tus.address, '25000000000000000000', vault.address);
+    await voyage.borrow(tus.address, '25000000000000000000', vault);
     const poolData = await voyage.getPoolData(tus.address);
 
     const juniorLiquidityRate = poolData.juniorLiquidityRate.div(RAY);
@@ -87,14 +81,9 @@ describe('Liquidity Rate', function () {
   });
 
   it('Borrow should return correct interest rate', async function () {
-    const {
-      owner,
-      tus,
-      seniorDepositToken,
-      juniorDepositToken,
-      vault,
-      voyage,
-    } = await setupTestSuite();
+    const { owner, tus, seniorDepositToken, juniorDepositToken, voyage } =
+      await setupTestSuite();
+    const vault = await voyage.getVault(owner);
 
     const seniorDepositAmount = '500000000000000000000';
     const juniorDepositAmount = '100000000000000000000';
@@ -106,12 +95,8 @@ describe('Liquidity Rate', function () {
     console.log('senior liquidity: ', seniorLiquidity.toString());
     console.log('junior liquidity: ', juniorLiquidity.toString());
 
-    await voyage.depositMargin(
-      vault.address,
-      tus.address,
-      '100000000000000000000'
-    );
-    await voyage.borrow(tus.address, '100000000000000000000', vault.address);
+    await voyage.depositMargin(vault, tus.address, '100000000000000000000');
+    await voyage.borrow(tus.address, '100000000000000000000', vault);
 
     const poolData = await voyage.getPoolData(tus.address);
     console.log('total liquidity: ', poolData.totalLiquidity.toString());

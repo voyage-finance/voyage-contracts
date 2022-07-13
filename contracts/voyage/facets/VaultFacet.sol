@@ -2,8 +2,10 @@
 pragma solidity ^0.8.9;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import {LibAppStorage, AppStorage, Storage, VaultConfig, NFTInfo} from "../libraries/LibAppStorage.sol";
+import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
+import {LibAppStorage, AppStorage, Storage, VaultConfig, NFTInfo, DiamondFacet} from "../libraries/LibAppStorage.sol";
 import {LibVault} from "../libraries/LibVault.sol";
+import {IVault} from "../../vault/interfaces/IVault.sol";
 import {IExternalAdapter} from "../interfaces/IExternalAdapter.sol";
 import {IDiamondVersionFacet, Snapshot} from "../interfaces/IDiamondVersionFacet.sol";
 import {Vault} from "../../vault/Vault.sol";
@@ -12,6 +14,7 @@ import {VaultMarginFacet} from "../../vault/facets/VaultMarginFacet.sol";
 import {IDiamondCut} from "../../shared/diamond/interfaces/IDiamondCut.sol";
 import {DiamondCutFacet} from "../../shared/diamond/facets/DiamondCutFacet.sol";
 import {DiamondVersionFacet} from "./DiamondVersionFacet.sol";
+import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 
 contract VaultFacet is Storage, ReentrancyGuard {
     /* --------------------------------- events --------------------------------- */
@@ -35,10 +38,29 @@ contract VaultFacet is Storage, ReentrancyGuard {
     );
 
     /* ----------------------------- admin interface ---------------------------- */
-    function createVault(address owner, bytes32 salt) external authorised {
-        address deployedVault = clone(owner, salt);
-        uint256 numVaults = LibVault.recordVault(owner, deployedVault);
-        emit VaultCreated(deployedVault, owner, numVaults);
+    function createVault(address owner) external authorised {
+        DiamondFacet memory cutFacet = LibVault.getDiamondFacets();
+        bytes memory data = abi.encodeWithSelector(
+            IVault(address(0)).initialize.selector,
+            address(this),
+            address(this),
+            cutFacet.diamondCutFacet,
+            cutFacet.diamondLoupeFacet,
+            cutFacet.ownershipFacet
+        );
+        BeaconProxy vaultBeaconProxy = new BeaconProxy(
+            address(vaultBeacon()),
+            data
+        );
+        if (address(vaultBeaconProxy) == address(0)) {
+            revert FailedDeployVault();
+        }
+        diamondCut(address(vaultBeaconProxy));
+        uint256 numVaults = LibVault.recordVault(
+            owner,
+            address(vaultBeaconProxy)
+        );
+        emit VaultCreated(address(vaultBeaconProxy), owner, numVaults);
     }
 
     function initAsset(address _vault, address _asset)
@@ -146,7 +168,15 @@ contract VaultFacet is Storage, ReentrancyGuard {
         LibVault.setMarginRequirement(_reserve, _requirement);
     }
 
+    function setVaultBeacon(address _impl) external authorised {
+        LibVault.setVaultBeacon(_impl);
+    }
+
     /************************************** View Functions **************************************/
+    function vaultBeacon() public view returns (address) {
+        return LibVault.vaultBeacon();
+    }
+
     function marginEscrowBeacon() public view returns (address) {
         return LibVault.marginEscrowBeacon();
     }
@@ -240,3 +270,4 @@ contract VaultFacet is Storage, ReentrancyGuard {
 
 /* --------------------------------- errors -------------------------------- */
 error InvalidVaultCall();
+error FailedDeployVault();

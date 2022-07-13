@@ -7,14 +7,9 @@ import { lchmod } from 'fs';
 
 describe('Liquidate', function () {
   it('Liquidate a invalid debt should revert', async function () {
-    const {
-      owner,
-      juniorDepositToken,
-      seniorDepositToken,
-      vault,
-      tus,
-      voyage,
-    } = await setupTestSuite();
+    const { owner, juniorDepositToken, seniorDepositToken, tus, voyage } =
+      await setupTestSuite();
+    const vault = await voyage.getVault(owner);
 
     const depositAmount = toWadValue(100);
     const maxMargin = toWadValue(1000);
@@ -24,28 +19,23 @@ describe('Liquidate', function () {
     const marginRequirement = new BigNumber(0.1).multipliedBy(RAY).toFixed();
     await voyage.setMarginRequirement(tus.address, marginRequirement);
 
-    await voyage.depositMargin(vault.address, tus.address, depositAmount);
+    await voyage.depositMargin(vault, tus.address, depositAmount);
     const borrowAmount = toWadValue(10);
-    await voyage.borrow(tus.address, borrowAmount, vault.address);
+    await voyage.borrow(tus.address, borrowAmount, vault);
 
     // repay the first draw down
-    await voyage.repay(tus.address, 0, vault.address);
+    await voyage.repay(tus.address, 0, vault);
 
     // try to liquidate
-    await expect(
-      voyage.liquidate(tus.address, vault.address, 0)
-    ).to.be.revertedWith('InvalidLiquidate()');
+    await expect(voyage.liquidate(tus.address, vault, 0)).to.be.revertedWith(
+      'InvalidLiquidate()'
+    );
   });
 
   it('Invalid floor price should revert', async function () {
-    const {
-      owner,
-      juniorDepositToken,
-      seniorDepositToken,
-      vault,
-      tus,
-      voyage,
-    } = await setupTestSuite();
+    const { owner, juniorDepositToken, seniorDepositToken, tus, voyage } =
+      await setupTestSuite();
+    const vault = await voyage.getVault(owner);
 
     const depositAmount = toWadValue(100);
     const maxMargin = toWadValue(1000);
@@ -55,17 +45,17 @@ describe('Liquidate', function () {
     const marginRequirement = new BigNumber(0.1).multipliedBy(RAY).toFixed();
     await voyage.setMarginRequirement(tus.address, marginRequirement);
 
-    await voyage.depositMargin(vault.address, tus.address, depositAmount);
+    await voyage.depositMargin(vault, tus.address, depositAmount);
     const borrowAmount = toWadValue(10);
-    await voyage.borrow(tus.address, borrowAmount, vault.address);
+    await voyage.borrow(tus.address, borrowAmount, vault);
     // increase 51 days
     const days = 51 * 24 * 60 * 60;
     await ethers.provider.send('evm_increaseTime', [days]);
     await ethers.provider.send('evm_mine', []);
 
-    await expect(
-      voyage.liquidate(tus.address, vault.address, 0)
-    ).to.be.revertedWith('InvalidFloorPrice()');
+    await expect(voyage.liquidate(tus.address, vault, 0)).to.be.revertedWith(
+      'InvalidFloorPrice()'
+    );
   });
 
   it('Valid liquidate with nft should return correct value', async function () {
@@ -73,12 +63,12 @@ describe('Liquidate', function () {
       owner,
       juniorDepositToken,
       seniorDepositToken,
-      vault,
       tus,
       voyage,
       priceOracle,
       crab,
     } = await setupTestSuite();
+    const vault = await voyage.getVault(owner);
 
     const depositAmount = toWadValue(120);
     const juniorDeposit = toWadValue(50);
@@ -89,11 +79,11 @@ describe('Liquidate', function () {
     await voyage.deposit(tus.address, 1, depositAmount, owner);
     const marginRequirement = new BigNumber(0.1).multipliedBy(RAY).toFixed();
     await voyage.setMarginRequirement(tus.address, marginRequirement);
-    await voyage.depositMargin(vault.address, tus.address, margin);
+    await voyage.depositMargin(vault, tus.address, margin);
     const borrowAmount = toWadValue(120);
-    await voyage.borrow(tus.address, borrowAmount, vault.address);
+    await voyage.borrow(tus.address, borrowAmount, vault);
 
-    await crab.safeMint(vault.address, 1);
+    await crab.safeMint(vault, 1);
 
     // update oracle price
     await priceOracle.updateCumulative(crab.address, '10000000000000000000');
@@ -107,7 +97,7 @@ describe('Liquidate', function () {
 
     // increase 51 days
     await increase(51);
-    const tx = await voyage.liquidate(tus.address, vault.address, 0);
+    const tx = await voyage.liquidate(tus.address, vault, 0);
 
     const receipt = await tx.wait();
     log(receipt);
@@ -116,14 +106,14 @@ describe('Liquidate', function () {
 
     // increase 51 days again
     await increase(51);
-    const tx2 = await voyage.liquidate(tus.address, vault.address, 0);
+    const tx2 = await voyage.liquidate(tus.address, vault, 0);
 
     const receipt2 = await tx2.wait();
     log(receipt2);
 
     // increase 51 days again
     await increase(51);
-    const tx3 = await voyage.liquidate(tus.address, vault.address, 0);
+    const tx3 = await voyage.liquidate(tus.address, vault, 0);
 
     const receipt3 = await tx3.wait();
     log(receipt3);
