@@ -5,10 +5,22 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
-import {AppStorage, ReserveData, Tranche, VaultConfig, VaultData, LoanList, RepaymentData} from "../libraries/LibAppStorage.sol";
+import {AppStorage, ReserveData, Tranche, VaultConfig, LoanList, RepaymentData} from "../libraries/LibAppStorage.sol";
 import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {LibLoan} from "../libraries/LibLoan.sol";
 import {LibVault} from "../libraries/LibVault.sol";
+
+struct CreditLineData {
+    uint256 totalDebt;
+    LoanList loanList;
+    uint256 totalMargin;
+    uint256 withdrawableSecurityDeposit;
+    uint256 creditLimit;
+    uint256 spendableBalance;
+    uint256 gav;
+    uint256 ltv;
+    uint256 healthFactor;
+}
 
 contract DataProviderFacet {
     using WadRayMath for uint256;
@@ -197,35 +209,34 @@ contract DataProviderFacet {
         return userPoolData;
     }
 
-    function getVaultData(address _vault, address _reserve)
+    function getCreditLineData(address _vault, address _reserve)
         external
         view
-        returns (VaultData memory)
+        returns (CreditLineData memory)
     {
-        VaultData memory vaultData;
+        CreditLineData memory creditLineData;
         uint256 principal;
         uint256 interest;
         LoanList memory loanList;
         (loanList.head, loanList.tail) = LibLoan.getLoanList(_reserve, _vault);
         (principal, interest) = LibVault.getVaultDebt(_reserve, _vault);
-        vaultData.loanList = loanList;
-        ReserveData storage reserveData = LibLiquidity.getReserveData(_reserve);
-        vaultData.totalDebt = principal + interest;
-        vaultData.totalMargin = LibVault.getMargin(_vault, _reserve);
-        vaultData.withdrawableSecurityDeposit = LibVault
+        creditLineData.loanList = loanList;
+        creditLineData.totalDebt = principal + interest;
+        creditLineData.totalMargin = LibVault.getMargin(_vault, _reserve);
+        creditLineData.withdrawableSecurityDeposit = LibVault
             .getTotalWithdrawableMargin(_vault, _reserve);
-        vaultData.creditLimit = LibVault.getCreditLimit(_vault, _reserve);
-        vaultData.spendableBalance = LibVault.getAvailableCredit(
+        creditLineData.creditLimit = LibVault.getCreditLimit(_vault, _reserve);
+        creditLineData.spendableBalance = LibVault.getAvailableCredit(
             _vault,
             _reserve
         );
-        vaultData.ltv = vaultData.totalDebt == 0
+        creditLineData.ltv = creditLineData.totalDebt == 0
             ? 1
-            : (vaultData.gav + vaultData.totalMargin).rayDiv(
-                vaultData.totalDebt
+            : (creditLineData.gav + creditLineData.totalMargin).rayDiv(
+                creditLineData.totalDebt
             );
 
-        return vaultData;
+        return creditLineData;
     }
 
     function getLoanDetail(

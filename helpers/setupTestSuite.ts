@@ -68,7 +68,7 @@ const setupBase = async ({
   //   'hardhat-diamond-abi/HardhatDiamondABI.sol:Vault',
   //   deployedVault
   // );
-  await voyage.initAsset(deployedVault, tus.address);
+  await voyage.initCreditLine(deployedVault, tus.address);
 
   return {
     owner,

@@ -19,7 +19,7 @@ import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol"
 contract VaultFacet is Storage, ReentrancyGuard {
     /* --------------------------------- events --------------------------------- */
     event VaultCreated(address _vault, address _owner, uint256 _numVaults);
-    event VaultAssetInitialized(
+    event VaultCreditLineInitialized(
         address indexed _vault,
         address indexed _asset,
         address _me,
@@ -64,14 +64,14 @@ contract VaultFacet is Storage, ReentrancyGuard {
         emit VaultCreated(address(vaultBeaconProxy), owner, numVaults);
     }
 
-    function initAsset(address _vault, address _asset)
+    function initCreditLine(address _vault, address _asset)
         external
         authorised
         returns (address, address)
     {
-        (address me, address ce) = LibVault.initVaultAsset(_vault, _asset);
-        emit VaultAssetInitialized(_vault, _asset, me, ce);
-        return (me, ce);
+        (address _me, address _ce) = LibVault.initCreditLine(_vault, _asset);
+        emit VaultCreditLineInitialized(_vault, _asset, _me, _ce);
+        return (_me, _ce);
     }
 
     /* ----------------------------- user interface ----------------------------- */

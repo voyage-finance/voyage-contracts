@@ -64,7 +64,8 @@ contract LoanFacet is Storage {
         address indexed _asset,
         uint256 _loanId,
         uint256 _principal,
-        uint256 _interest
+        uint256 _interest,
+        uint256 _apr
     );
 
     event Repayment(
@@ -150,7 +151,14 @@ contract LoanFacet is Storage {
             _amount
         );
 
-        emit Borrow(_vault, _asset, loanId, loan.principal, loan.interest);
+        emit Borrow(
+            _vault,
+            _asset,
+            loanId,
+            loan.principal,
+            loan.interest,
+            loan.apr
+        );
     }
 
     function repay(
