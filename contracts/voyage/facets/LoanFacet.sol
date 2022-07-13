@@ -11,7 +11,7 @@ import {IReserveInterestRateStrategy} from "../interfaces/IReserveInterestRateSt
 import {ILoanStrategy} from "../interfaces/ILoanStrategy.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
 import {IPriceOracle} from "../interfaces/IPriceOracle.sol";
-import {LibAppStorage, AppStorage, Storage, BorrowData, BorrowState, DrawDown, ReserveData} from "../libraries/LibAppStorage.sol";
+import {LibAppStorage, AppStorage, Storage, BorrowData, BorrowState, Loan, ReserveData} from "../libraries/LibAppStorage.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {VaultDataFacet} from "../../vault/facets/VaultDataFacet.sol";
 import {VaultMarginFacet} from "../../vault/facets/VaultMarginFacet.sol";
@@ -34,7 +34,7 @@ contract LoanFacet is Storage {
     struct ExecuteLiquidateParams {
         address reserve;
         address vault;
-        uint256 drawDownId;
+        uint256 loanId;
         uint256 repaymentId;
         uint256 principal;
         uint256 interest;
@@ -62,7 +62,7 @@ contract LoanFacet is Storage {
     event Borrow(
         address indexed _vault,
         address indexed _asset,
-        uint256 _drawdownId,
+        uint256 _loanId,
         uint256 _principal,
         uint256 _interest
     );
@@ -71,7 +71,7 @@ contract LoanFacet is Storage {
         address indexed _user,
         address indexed _vault,
         address indexed _asset,
-        uint256 _drawdownId,
+        uint256 _loanId,
         uint256 _repaymentId,
         uint256 _amount,
         bool isFinal
@@ -136,7 +136,7 @@ contract LoanFacet is Storage {
             executeBorrowParams.borrowRate
         );
 
-        (uint256 drawdownId, DrawDown memory dd) = LibLoan.insertDebt(
+        (uint256 loanId, Loan memory loan) = LibLoan.insertDebt(
             _asset,
             _vault,
             _amount,
@@ -150,12 +150,12 @@ contract LoanFacet is Storage {
             _amount
         );
 
-        emit Borrow(_vault, _asset, drawdownId, dd.principal, dd.interest);
+        emit Borrow(_vault, _asset, loanId, loan.principal, loan.interest);
     }
 
     function repay(
         address _asset,
-        uint256 _drawDown,
+        uint256 _loan,
         address payable _vault
     ) external whenNotPaused {
         // 0. check if the user owns the vault
@@ -166,7 +166,7 @@ contract LoanFacet is Storage {
         // 1. check draw down to get principal and interest
         uint256 principal;
         uint256 interest;
-        (principal, interest) = LibLoan.getPMT(_asset, _vault, _drawDown);
+        (principal, interest) = LibLoan.getPMT(_asset, _vault, _loan);
         if (principal + interest == 0) {
             revert InvalidDebt();
         }
@@ -186,7 +186,7 @@ contract LoanFacet is Storage {
         (uint256 repaymentId, bool isFinal) = LibLoan.repay(
             _asset,
             _vault,
-            _drawDown,
+            _loan,
             principal,
             interest,
             false
@@ -205,7 +205,7 @@ contract LoanFacet is Storage {
             _msgSender(),
             _vault,
             _asset,
-            _drawDown,
+            _loan,
             repaymentId,
             total,
             isFinal
@@ -215,7 +215,7 @@ contract LoanFacet is Storage {
     function liquidate(
         address _reserve,
         address _vault,
-        uint256 _drawDownId
+        uint256 _loanId
     ) external whenNotPaused {
         ExecuteLiquidateParams memory param;
         param.reserve = _reserve;
@@ -226,7 +226,7 @@ contract LoanFacet is Storage {
         // 1. prepare basic info and some strategy parameters
         param.reserve = _reserve;
         param.vault = _vault;
-        param.drawDownId = _drawDownId;
+        param.loanId = _loanId;
         param.liquidator = _msgSender();
         (
             param.gracePeriod,
@@ -238,16 +238,16 @@ contract LoanFacet is Storage {
             reserveData.nftAddress
         );
 
-        LibLoan.DebtDetail memory debtDetail = LibLoan.getDrawDownDetail(
+        LibLoan.LoanDetail memory loanDetail = LibLoan.getLoanDetail(
             param.reserve,
             param.vault,
-            param.drawDownId
+            param.loanId
         );
 
         // 2. check if the debt is qualified to be liquidated
         if (
-            block.timestamp <= debtDetail.nextPaymentDue ||
-            block.timestamp - debtDetail.nextPaymentDue <=
+            block.timestamp <= loanDetail.nextPaymentDue ||
+            block.timestamp - loanDetail.nextPaymentDue <=
             param.gracePeriod * LibLoan.SECOND_PER_DAY
         ) {
             revert InvalidLiquidate();
@@ -257,7 +257,7 @@ contract LoanFacet is Storage {
         (param.principal, param.interest) = LibLoan.getPMT(
             param.reserve,
             param.vault,
-            param.drawDownId
+            param.loanId
         );
         param.totalDebt = param.principal + param.interest;
         param.totalFromMargin = param
@@ -349,7 +349,7 @@ contract LoanFacet is Storage {
         (param.repaymentId, param.isFinal) = LibLoan.repay(
             param.reserve,
             param.vault,
-            param.drawDownId,
+            param.loanId,
             param.principal,
             param.interest,
             true
@@ -359,7 +359,7 @@ contract LoanFacet is Storage {
             _msgSender(),
             param.vault,
             param.reserve,
-            param.drawDownId,
+            param.loanId,
             param.repaymentId,
             param.totalDebt,
             param.isFinal
@@ -374,7 +374,7 @@ contract LoanFacet is Storage {
             _msgSender(),
             _vault,
             _reserve,
-            param.drawDownId,
+            param.loanId,
             param.repaymentId,
             param.totalDebt,
             param.slashedMargin,

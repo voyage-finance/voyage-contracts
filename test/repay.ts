@@ -3,13 +3,13 @@ import { ethers, getNamedAccounts } from 'hardhat';
 import { setupTestSuite } from '../helpers/setupTestSuite';
 
 describe('Repay', function () {
-  function showDrawDown(drawDown: any) {
-    console.log('principal: ', drawDown.principal.toString());
-    console.log('totalPrincipalPaid', drawDown.totalPrincipalPaid.toString());
-    console.log('totalInterestPaid', drawDown.totalInterestPaid.toString());
-    console.log('pmt.principal: ', drawDown.pmt.principal.toString());
-    console.log('pmt.interest: ', drawDown.pmt.interest.toString());
-    console.log('pmt: ', drawDown.pmt.pmt.toString());
+  function showLoan(loan: any) {
+    console.log('principal: ', loan.principal.toString());
+    console.log('totalPrincipalPaid', loan.totalPrincipalPaid.toString());
+    console.log('totalInterestPaid', loan.totalInterestPaid.toString());
+    console.log('pmt.principal: ', loan.pmt.principal.toString());
+    console.log('pmt.interest: ', loan.pmt.interest.toString());
+    console.log('pmt: ', loan.pmt.pmt.toString());
   }
 
   it('Repay should return correct value', async function () {
@@ -45,19 +45,15 @@ describe('Repay', function () {
     console.log('total debt: ', vaultData.totalDebt.toString());
     console.log(
       'draw down list: [',
-      vaultData.drawDownList.head.toString(),
+      vaultData.loanList.head.toString(),
       ',',
-      vaultData.drawDownList.tail.toString(),
+      vaultData.loanList.tail.toString(),
       ']'
     );
 
-    const drawDownDetail = await voyage.getDrawDownDetail(
-      vault,
-      tus.address,
-      0
-    );
+    const loanDetail = await voyage.getLoanDetail(vault, tus.address, 0);
     console.log('draw down 0: ');
-    showDrawDown(drawDownDetail);
+    showLoan(loanDetail);
 
     await voyage.borrow(tus.address, '10000000000000000000', vault);
 
@@ -66,46 +62,30 @@ describe('Repay', function () {
     console.log('total debt: ', vaultData2.totalDebt.toString());
     console.log(
       'draw down list: [',
-      vaultData2.drawDownList.head.toString(),
+      vaultData2.loanList.head.toString(),
       ',',
-      vaultData2.drawDownList.tail.toString(),
+      vaultData2.loanList.tail.toString(),
       ']'
     );
-    const drawDownDetail2 = await voyage.getDrawDownDetail(
-      vault,
-      tus.address,
-      1
-    );
+    const loanDetail2 = await voyage.getLoanDetail(vault, tus.address, 1);
     console.log('draw down 1: ');
-    showDrawDown(drawDownDetail2);
+    showLoan(loanDetail2);
 
     // repay the first draw down
     await voyage.repay(tus.address, 0, vault);
-    const drawDownDetail3 = await voyage.getDrawDownDetail(
-      vault,
-      tus.address,
-      0
-    );
+    const loanDetail3 = await voyage.getLoanDetail(vault, tus.address, 0);
     console.log('draw down 0: ');
-    showDrawDown(drawDownDetail3);
+    showLoan(loanDetail3);
 
     await voyage.repay(tus.address, 0, vault);
-    const drawDownDetail4 = await voyage.getDrawDownDetail(
-      vault,
-      tus.address,
-      0
-    );
+    const loanDetail4 = await voyage.getLoanDetail(vault, tus.address, 0);
     console.log('draw down 0: ');
-    showDrawDown(drawDownDetail4);
+    showLoan(loanDetail4);
 
     await voyage.repay(tus.address, 0, vault);
-    const drawDownDetail5 = await voyage.getDrawDownDetail(
-      vault,
-      tus.address,
-      0
-    );
+    const loanDetail5 = await voyage.getLoanDetail(vault, tus.address, 0);
     console.log('draw down 0: ');
-    showDrawDown(drawDownDetail5);
+    showLoan(loanDetail5);
   });
 
   it('Repay a non-debt should revert', async function () {
@@ -135,11 +115,7 @@ describe('Repay', function () {
     await ethers.provider.send('evm_increaseTime', [sevenDays]);
     await ethers.provider.send('evm_mine', []);
 
-    const drawDownDetail = await voyage.getDrawDownDetail(
-      vault,
-      tus.address,
-      0
-    );
+    const loanDetail = await voyage.getLoanDetail(vault, tus.address, 0);
 
     await voyage.borrow(tus.address, '10000000000000000000', vault);
 
