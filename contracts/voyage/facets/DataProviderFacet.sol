@@ -5,7 +5,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
-import {AppStorage, ReserveData, Tranche, VaultConfig, VaultData, DrawDownList, RepaymentData} from "../libraries/LibAppStorage.sol";
+import {AppStorage, ReserveData, Tranche, VaultConfig, VaultData, LoanList, RepaymentData} from "../libraries/LibAppStorage.sol";
 import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {LibLoan} from "../libraries/LibLoan.sol";
 import {LibVault} from "../libraries/LibVault.sol";
@@ -205,13 +205,10 @@ contract DataProviderFacet {
         VaultData memory vaultData;
         uint256 principal;
         uint256 interest;
-        DrawDownList memory drawDownList;
-        (drawDownList.head, drawDownList.tail) = LibLoan.getDrawDownList(
-            _reserve,
-            _vault
-        );
+        LoanList memory loanList;
+        (loanList.head, loanList.tail) = LibLoan.getLoanList(_reserve, _vault);
         (principal, interest) = LibVault.getVaultDebt(_reserve, _vault);
-        vaultData.drawDownList = drawDownList;
+        vaultData.loanList = loanList;
         ReserveData storage reserveData = LibLiquidity.getReserveData(_reserve);
         vaultData.totalDebt = principal + interest;
         vaultData.totalMargin = LibVault.getMargin(_vault, _reserve);
@@ -231,20 +228,20 @@ contract DataProviderFacet {
         return vaultData;
     }
 
-    function getDrawDownDetail(
+    function getLoanDetail(
         address _vault,
         address _reserve,
-        uint256 _drawDownId
-    ) external view returns (LibLoan.DebtDetail memory) {
-        return LibLoan.getDrawDownDetail(_reserve, _vault, _drawDownId);
+        uint256 _loanId
+    ) external view returns (LibLoan.LoanDetail memory) {
+        return LibLoan.getLoanDetail(_reserve, _vault, _loanId);
     }
 
     function getRepayment(
         address _valut,
         address _reserve,
-        uint256 _drawDownId
+        uint256 _loanId
     ) external view returns (RepaymentData[] memory) {
-        return LibLoan.getRepayment(_valut, _reserve, _drawDownId);
+        return LibLoan.getRepayment(_valut, _reserve, _loanId);
     }
 
     function pendingSeniorWithdrawals(address _user, address _reserve)

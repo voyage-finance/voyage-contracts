@@ -72,7 +72,7 @@ struct RepaymentData {
     bool isLiquidated;
 }
 
-struct DrawDown {
+struct Loan {
     uint256 principal;
     uint256 interest;
     // the total intended length of the loan in seconds - e.g., 90 days
@@ -97,19 +97,19 @@ struct DrawDown {
     uint256 paidTimes;
 }
 
-struct DrawDownList {
+struct LoanList {
     uint256 head;
     uint256 tail;
 }
 
 struct BorrowData {
-    uint256 paidDrawDownNumber;
+    uint256 paidLoanNumber;
     // next draw down number
-    uint256 nextDrawDownNumber;
+    uint256 nextLoanNumber;
     uint256 totalPrincipal;
     uint256 totalInterest;
     uint256 mapSize;
-    mapping(uint256 => DrawDown) drawDowns;
+    mapping(uint256 => Loan) loans;
     uint256 totalPaid;
     uint256 totalRedeemed;
 }
@@ -133,7 +133,7 @@ struct ProtocolFee {
 
 struct VaultData {
     uint256 totalDebt;
-    DrawDownList drawDownList;
+    LoanList loanList;
     uint256 totalMargin;
     uint256 withdrawableSecurityDeposit;
     uint256 creditLimit;

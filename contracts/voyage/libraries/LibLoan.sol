@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import {LibAppStorage, AppStorage, BorrowData, BorrowState, DrawDown, PMT, RepaymentData, ReserveData, RepaymentData} from "./LibAppStorage.sol";
+import {LibAppStorage, AppStorage, BorrowData, BorrowState, Loan, PMT, RepaymentData, ReserveData, RepaymentData} from "./LibAppStorage.sol";
 import {LibLiquidity} from "./LibLiquidity.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 
@@ -11,8 +11,9 @@ library LibLoan {
     uint256 internal constant RAY = 1e27;
     uint256 internal constant SECOND_PER_DAY = 1 days;
 
-    struct DebtDetail {
+    struct LoanDetail {
         uint256 principal;
+        uint256 interest;
         uint256 term;
         uint256 epoch;
         uint256 nper;
@@ -35,36 +36,36 @@ library LibLoan {
         uint256 _term,
         uint256 _epoch,
         uint256 _apr
-    ) internal returns (uint256 drawdownId, DrawDown storage) {
+    ) internal returns (uint256 loanId, Loan storage) {
         BorrowState storage borrowState = getBorrowState(_reserve);
         BorrowData storage borrowData = getBorrowData(_reserve, _vault);
-        uint256 currentDrawDownNumber = borrowData.nextDrawDownNumber;
-        DrawDown storage dd = borrowData.drawDowns[currentDrawDownNumber];
-        dd.principal = _principal;
-        dd.term = _term;
-        dd.epoch = _epoch;
-        dd.apr = _apr;
-        dd.nper = _term / _epoch;
-        dd.borrowAt = block.timestamp;
+        uint256 currentLoanNumber = borrowData.nextLoanNumber;
+        Loan storage loan = borrowData.loans[currentLoanNumber];
+        loan.principal = _principal;
+        loan.term = _term;
+        loan.epoch = _epoch;
+        loan.apr = _apr;
+        loan.nper = _term / _epoch;
+        loan.borrowAt = block.timestamp;
 
         uint256 principalRay = _principal.wadToRay();
         uint256 interestRay = principalRay.rayMul(_apr);
         uint256 interest = interestRay.rayToWad();
-        dd.interest = interest;
+        loan.interest = interest;
 
         PMT memory pmt;
-        pmt.principal = _principal / dd.nper;
-        pmt.interest = interestRay.rayToWad() / dd.nper;
+        pmt.principal = _principal / loan.nper;
+        pmt.interest = interestRay.rayToWad() / loan.nper;
         pmt.pmt = pmt.principal + pmt.interest;
-        dd.pmt = pmt;
+        loan.pmt = pmt;
 
-        dd.nextPaymentDue =
-            dd.borrowAt +
-            (dd.paidTimes + 1) *
-            dd.epoch *
+        loan.nextPaymentDue =
+            loan.borrowAt +
+            (loan.paidTimes + 1) *
+            loan.epoch *
             SECOND_PER_DAY;
 
-        borrowData.nextDrawDownNumber++;
+        borrowData.nextLoanNumber++;
         borrowData.mapSize++;
         borrowData.totalPrincipal = borrowData.totalPrincipal + _principal;
         borrowData.totalInterest =
@@ -80,13 +81,13 @@ library LibLoan {
             borrowState.totalInterest +
             interestRay.rayToWad();
 
-        return (currentDrawDownNumber, dd);
+        return (currentLoanNumber, loan);
     }
 
     function repay(
         address underlying,
         address vault,
-        uint256 drawDownNumber,
+        uint256 loanNumber,
         uint256 principal,
         uint256 interest,
         bool isLiquidated
@@ -94,24 +95,24 @@ library LibLoan {
         bool isFinal = false;
         BorrowData storage debtData = getBorrowData(underlying, vault);
         BorrowState storage borrowStat = getBorrowState(underlying);
-        DrawDown storage dd = debtData.drawDowns[drawDownNumber];
-        dd.paidTimes += 1;
-        if (dd.paidTimes == dd.nper) {
-            delete debtData.drawDowns[drawDownNumber];
+        Loan storage loan = debtData.loans[loanNumber];
+        loan.paidTimes += 1;
+        if (loan.paidTimes == loan.nper) {
+            delete debtData.loans[loanNumber];
             isFinal = true;
         } else {
-            dd.totalPrincipalPaid = dd.totalPrincipalPaid + principal;
-            dd.totalInterestPaid = dd.totalInterestPaid + interest;
+            loan.totalPrincipalPaid = loan.totalPrincipalPaid + principal;
+            loan.totalInterestPaid = loan.totalInterestPaid + interest;
             RepaymentData memory repayment;
             repayment.interest = interest;
             repayment.principal = principal;
             repayment.total = principal + interest;
             repayment.paidAt = uint40(block.timestamp);
-            dd.repayments.push(repayment);
-            dd.nextPaymentDue =
-                dd.borrowAt +
-                (dd.paidTimes + 1) *
-                dd.epoch *
+            loan.repayments.push(repayment);
+            loan.nextPaymentDue =
+                loan.borrowAt +
+                (loan.paidTimes + 1) *
+                loan.epoch *
                 SECOND_PER_DAY;
         }
 
@@ -127,7 +128,7 @@ library LibLoan {
         } else {
             borrowStat.avgBorrowRate = (totalDebtRay.rayMul(
                 borrowStat.avgBorrowRate
-            ) - principalRay.rayMul(dd.apr)).rayDiv(
+            ) - principalRay.rayMul(loan.apr)).rayDiv(
                     totalDebtRay - principalRay
                 );
         }
@@ -137,7 +138,7 @@ library LibLoan {
             interestRay.rayToWad();
 
         return (
-            dd.repayments.length == 0 ? 0 : dd.repayments.length - 1,
+            loan.repayments.length == 0 ? 0 : loan.repayments.length - 1,
             isFinal
         );
     }
@@ -204,60 +205,59 @@ library LibLoan {
         return s._borrowData[_underlying][_vault];
     }
 
-    function getDrawDownDetail(
+    function getLoanDetail(
         address _reserve,
         address _vault,
-        uint256 _drawDownId
-    ) internal view returns (DebtDetail memory) {
+        uint256 _loanId
+    ) internal view returns (LoanDetail memory) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         BorrowData storage borrowData = s._borrowData[_reserve][_vault];
-        DrawDown storage dd = borrowData.drawDowns[_drawDownId];
-        DebtDetail memory debtDetail;
-        debtDetail.principal = dd.principal;
-        debtDetail.term = dd.term;
-        debtDetail.epoch = dd.epoch;
-        debtDetail.nper = dd.nper;
-        debtDetail.pmt = dd.pmt;
-        debtDetail.apr = dd.apr;
-        debtDetail.borrowAt = dd.borrowAt;
-        debtDetail.nextPaymentDue = dd.nextPaymentDue;
-        debtDetail.totalInterestPaid = dd.totalInterestPaid;
-        debtDetail.totalPrincipalPaid = dd.totalPrincipalPaid;
-        debtDetail.paidTimes = dd.paidTimes;
-        debtDetail.reserve = _reserve;
-        return debtDetail;
+        Loan storage loan = borrowData.loans[_loanId];
+        LoanDetail memory loanDetail;
+        loanDetail.principal = loan.principal;
+        loanDetail.interest = loan.interest;
+        loanDetail.term = loan.term;
+        loanDetail.epoch = loan.epoch;
+        loanDetail.nper = loan.nper;
+        loanDetail.pmt = loan.pmt;
+        loanDetail.apr = loan.apr;
+        loanDetail.borrowAt = loan.borrowAt;
+        loanDetail.nextPaymentDue = loan.nextPaymentDue;
+        loanDetail.totalInterestPaid = loan.totalInterestPaid;
+        loanDetail.totalPrincipalPaid = loan.totalPrincipalPaid;
+        loanDetail.paidTimes = loan.paidTimes;
+        loanDetail.reserve = _reserve;
+        return loanDetail;
     }
 
     function getRepayment(
         address _reserve,
         address _vault,
-        uint256 _drawDownId
+        uint256 _loanId
     ) internal view returns (RepaymentData[] memory) {
         AppStorage storage s = LibAppStorage.diamondStorage();
         BorrowData storage borrowData = s._borrowData[_reserve][_vault];
-        DrawDown storage dd = borrowData.drawDowns[_drawDownId];
-        return dd.repayments;
+        Loan storage loan = borrowData.loans[_loanId];
+        return loan.repayments;
     }
 
-    function getDrawDownList(address _reserve, address _vault)
+    function getLoanList(address _reserve, address _vault)
         internal
         view
         returns (uint256, uint256)
     {
         AppStorage storage s = LibAppStorage.diamondStorage();
         BorrowData storage borrowData = s._borrowData[_reserve][_vault];
-        return (borrowData.paidDrawDownNumber, borrowData.nextDrawDownNumber);
+        return (borrowData.paidLoanNumber, borrowData.nextLoanNumber);
     }
 
     function getPMT(
         address _reserve,
         address _vault,
-        uint256 _drawDown
+        uint256 _loan
     ) internal view returns (uint256, uint256) {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        DrawDown storage dd = s._borrowData[_reserve][_vault].drawDowns[
-            _drawDown
-        ];
-        return (dd.pmt.principal, dd.pmt.interest);
+        Loan storage loan = s._borrowData[_reserve][_vault].loans[_loan];
+        return (loan.pmt.principal, loan.pmt.interest);
     }
 }

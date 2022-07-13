@@ -23,7 +23,7 @@ contract MockLoanFacet is TestStorage {
 
     function repay(
         address _asset,
-        uint256 _drawDown,
+        uint256 _loan,
         address payable _vault
     ) external {
         revert("not implemented");
@@ -32,7 +32,7 @@ contract MockLoanFacet is TestStorage {
     function liquidate(
         address _reserve,
         address _vault,
-        uint256 _drawDownId
+        uint256 _loanId
     ) external {
         revert("not implemented");
     }
