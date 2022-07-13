@@ -135,9 +135,9 @@ contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
         IERC20(_reserve).safeTransfer(_receiver, _amount);
     }
 
-    /// @notice Init asset, deploying margin escrow and credit escrow
+    /// @notice Inititalizes a credit line the asset, deploying margin escrow and credit escrow
     /// @param _asset Address of reserve
-    function initAsset(address _asset)
+    function initCreditLine(address _asset)
         public
         onlyVoyage
         returns (address, address)

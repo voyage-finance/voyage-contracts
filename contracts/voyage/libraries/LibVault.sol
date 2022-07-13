@@ -24,11 +24,13 @@ library LibVault {
         return (s.vaults.length);
     }
 
-    function initVaultAsset(address _vault, address _asset)
+    function initCreditLine(address _vault, address _asset)
         internal
         returns (address, address)
     {
-        (address me, address ce) = VaultAssetFacet(_vault).initAsset(_asset);
+        (address me, address ce) = VaultAssetFacet(_vault).initCreditLine(
+            _asset
+        );
         return (me, ce);
     }
 

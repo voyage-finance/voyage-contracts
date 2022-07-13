@@ -13,6 +13,7 @@ async function main() {
   );
   const voyage = await ethers.getContract<Voyage>('Voyage');
   const tus = await ethers.getContract('Tus');
+  const crab = await ethers.getContract('Crab');
   const priceOracle = await ethers.getContract('PriceOracle');
 
   const [initialized, activated] = await voyage.getReserveStatus(tus.address);
@@ -23,7 +24,8 @@ async function main() {
       interestStrategy,
       loanStrategy,
       '500000000000000000000000000',
-      priceOracle.address
+      priceOracle.address,
+      crab.address
     );
     await tx.wait();
   }

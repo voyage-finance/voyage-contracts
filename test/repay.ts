@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { ethers, getNamedAccounts } from 'hardhat';
+import { ethers } from 'hardhat';
 import { setupTestSuite } from '../helpers/setupTestSuite';
 
 describe('Repay', function () {
@@ -40,14 +40,14 @@ describe('Repay', function () {
     await ethers.provider.send('evm_increaseTime', [sevenDays]);
     await ethers.provider.send('evm_mine', []);
 
-    const vaultData = await voyage.getVaultData(vault, tus.address);
+    const creditLineData = await voyage.getCreditLineData(vault, tus.address);
 
-    console.log('total debt: ', vaultData.totalDebt.toString());
+    console.log('total debt: ', creditLineData.totalDebt.toString());
     console.log(
       'draw down list: [',
-      vaultData.loanList.head.toString(),
+      creditLineData.loanList.head.toString(),
       ',',
-      vaultData.loanList.tail.toString(),
+      creditLineData.loanList.tail.toString(),
       ']'
     );
 
@@ -57,7 +57,7 @@ describe('Repay', function () {
 
     await voyage.borrow(tus.address, '10000000000000000000', vault);
 
-    const vaultData2 = await voyage.getVaultData(vault, tus.address);
+    const vaultData2 = await voyage.getCreditLineData(vault, tus.address);
 
     console.log('total debt: ', vaultData2.totalDebt.toString());
     console.log(

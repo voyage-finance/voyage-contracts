@@ -11,7 +11,7 @@ async function main() {
     const salt = ethers.utils.formatBytes32String(
       (Math.random() + 1).toString(36).substring(7)
     );
-    const tx = await voyage.createVault(owner, salt);
+    const tx = await voyage.createVault(owner);
     await tx.wait();
     vaultAddress = await voyage.getVault(owner);
   }
@@ -21,7 +21,7 @@ async function main() {
   );
   const marginEscrow = await vault.marginEscrow(tus.address);
   if (ethers.BigNumber.from(marginEscrow).isZero()) {
-    const initTx = await voyage.initAsset(vaultAddress, tus.address);
+    const initTx = await voyage.initCreditLine(vaultAddress, tus.address);
     await initTx.wait();
   }
 }
