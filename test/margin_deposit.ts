@@ -21,7 +21,8 @@ describe('Margin Deposit', function () {
   });
 
   it('Security deposit should return correct value', async function () {
-    const { tus, vault, voyage, owner } = await setupTestSuite();
+    const { tus, voyage, owner } = await setupTestSuite();
+    const vault = await voyage.getVault(owner);
     await voyage.setMaxMargin(tus.address, '100000000000000000000');
     const escrowAddr = await voyage.getVaultEscrowAddr(owner, tus.address);
     const marginEscrow = await ethers.getContractAt(
@@ -31,11 +32,7 @@ describe('Margin Deposit', function () {
     const depositAmount = await marginEscrow.totalMargin();
     expect(depositAmount).to.equal('0');
 
-    await voyage.depositMargin(
-      vault.address,
-      tus.address,
-      '10000000000000000000'
-    );
+    await voyage.depositMargin(vault, tus.address, '10000000000000000000');
     const depositAmountAfter = await marginEscrow.totalMargin();
     expect(depositAmountAfter).to.equal('10000000000000000000');
   });

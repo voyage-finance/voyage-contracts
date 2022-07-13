@@ -5,9 +5,9 @@ import { MAX_UINT_256 } from '../helpers/math';
 
 describe('Vault adapter', function () {
   it('Call buy nft should return correct value', async function () {
-    const { alice, vault, tus, voyage, crab, marketPlace } =
+    const { alice, tus, voyage, crab, marketPlace, owner } =
       await setupTestSuite();
-    const { owner } = await getNamedAccounts();
+    const vault = await voyage.getVault(owner);
     const depositAmount = '100000000000000000000';
     await voyage.setMaxMargin(tus.address, '1000000000000000000000');
     await voyage.deposit(tus.address, 0, depositAmount, owner);
@@ -17,12 +17,8 @@ describe('Vault adapter', function () {
       '100000000000000000000000000'
     ); // 0.1
 
-    await voyage.depositMargin(
-      vault.address,
-      tus.address,
-      '100000000000000000000'
-    );
-    await voyage.borrow(tus.address, '100000000000000000000', vault.address);
+    await voyage.depositMargin(vault, tus.address, '100000000000000000000');
+    await voyage.borrow(tus.address, '100000000000000000000', vault);
     const escrowAddr = await voyage.getVaultEscrowAddr(owner, tus.address);
     console.log('reserve escrow: ', escrowAddr[0]);
     const vaultBalance = await tus.balanceOf(escrowAddr[0]);
@@ -35,6 +31,6 @@ describe('Vault adapter', function () {
     await marketPlace
       .connect(await ethers.getSigner(alice))
       .makeSellOrder(1, '20000000000000000000');
-    await voyage.approveBuy(crab.address, 0, vault.address);
+    await voyage.approveBuy(crab.address, 0, vault);
   });
 });

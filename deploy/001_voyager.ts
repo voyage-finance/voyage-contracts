@@ -41,6 +41,18 @@ const deployFn: DeployFunction = async (hre) => {
     from: owner,
     log: true,
   });
+  const diamondCutFacet = await deploy('DiamondCutFacet', {
+    from: owner,
+    log: true,
+  });
+  const diamondLoupeFacet = await deploy('DiamondLoupeFacet', {
+    from: owner,
+    log: true,
+  });
+  const ownershipFacet = await deploy('OwnershipFacet', {
+    from: owner,
+    log: true,
+  });
 
   const diamondABI: any[] = [];
   const diamondProxyArtifact = await getArtifact('Diamond');
@@ -217,6 +229,9 @@ const deployFn: DeployFunction = async (hre) => {
           seniorDepositTokenImpl: seniorDepositImpl.address,
           juniorDepositTokenImpl: juniorDepositImpl.address,
           vaultFactory: vaultFactory.address,
+          diamondCutFacet: diamondCutFacet.address,
+          diamondLoupeFacet: diamondLoupeFacet.address,
+          ownershipFacet: ownershipFacet.address,
         },
       ]);
 

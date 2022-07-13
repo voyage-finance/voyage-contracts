@@ -30,29 +30,20 @@ describe('Withdraw', function () {
   });
 
   it('Withdraw with interest should return correct value', async function () {
-    const {
-      voyage,
-      seniorDepositToken,
-      juniorDepositToken,
-      tus,
-      vault,
-      owner,
-    } = await setupTestSuite();
+    const { voyage, seniorDepositToken, juniorDepositToken, tus, owner } =
+      await setupTestSuite();
     const amount = ethers.BigNumber.from(100).mul(decimals(18));
     await voyage.deposit(tus.address, 1, amount, owner);
+    const vault = await voyage.getVaultAddr(owner);
 
     await voyage.setMarginRequirement(
       tus.address,
       '100000000000000000000000000'
     ); // 0.1
 
-    await voyage.depositMargin(
-      vault.address,
-      tus.address,
-      '100000000000000000000'
-    );
-    await voyage.borrow(tus.address, '10000000000000000000', vault.address);
-    await voyage.borrow(tus.address, '10000000000000000000', vault.address);
+    await voyage.depositMargin(vault, tus.address, '100000000000000000000');
+    await voyage.borrow(tus.address, '10000000000000000000', vault);
+    await voyage.borrow(tus.address, '10000000000000000000', vault);
     const tenDay = 10 * 24 * 60 * 60;
 
     await ethers.provider.send('evm_increaseTime', [tenDay]);

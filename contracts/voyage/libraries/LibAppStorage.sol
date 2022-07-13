@@ -11,6 +11,7 @@ import {IVaultFactory} from "../interfaces/IVaultFactory.sol";
 import {IDiamondCut} from "../../shared/diamond/interfaces/IDiamondCut.sol";
 import {IDiamondLoupe} from "../../shared/diamond/interfaces/IDiamondLoupe.sol";
 import {DiamondCutFacet} from "../../shared/diamond/facets/DiamondCutFacet.sol";
+import "hardhat/console.sol";
 
 enum Tranche {
     JUNIOR,
@@ -169,6 +170,12 @@ struct UpgradeParam {
     mapping(uint256 => bytes4[]) selectorsRemoved;
 }
 
+struct DiamondFacet {
+    address diamondCutFacet;
+    address diamondLoupeFacet;
+    address ownershipFacet;
+}
+
 struct AppStorage {
     /* -------------------------------- plumbing -------------------------------- */
     mapping(bytes32 => address) _addresses;
@@ -187,6 +194,8 @@ struct AppStorage {
     UpgradeableBeacon marginEscrowBeacon;
     UpgradeableBeacon creditEscrowBeacon;
     UpgradeableBeacon subVaultBeacon;
+    UpgradeableBeacon vaultBeacon;
+    DiamondFacet diamondFacet;
     IVaultFactory vaultFactory;
     address[] vaults;
     // mapping of vault owner to vault instance address
@@ -289,7 +298,7 @@ contract Storage is Context {
         return keccak256(data);
     }
 
-    function clone(address _owner, bytes32 salt) internal returns (address) {
+    function diamondCut(address vault) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         uint256 currentVersion = s.currentVersion;
         Snapshot memory snapshot = s.snapshotMap[currentVersion];
@@ -297,6 +306,7 @@ contract Storage is Context {
         IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](
             snapshot.facets.length
         );
+        console.log("facet length: ", snapshot.facets.length);
         for (uint256 i = 0; i < snapshot.facets.length; ) {
             address facetAddr = snapshot.facets[i].facetAddress;
             bytes4[] memory selectors = snapshot.facets[i].functionSelectors;
@@ -307,18 +317,10 @@ contract Storage is Context {
                 ++i;
             }
         }
-        address vault = LibAppStorage.diamondStorage().vaultFactory.createVault(
-            _owner,
-            address(this),
-            currentVersion,
-            checksum,
-            salt
-        );
         DiamondCutFacet(vault).diamondCut(
             facetCuts,
             snapshot.init,
             snapshot.initArgs
         );
-        return vault;
     }
 }

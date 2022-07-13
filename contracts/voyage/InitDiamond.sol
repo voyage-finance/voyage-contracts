@@ -22,6 +22,9 @@ contract InitDiamond {
         address seniorDepositTokenImpl;
         address juniorDepositTokenImpl;
         address vaultFactory;
+        address diamondCutFacet;
+        address diamondLoupeFacet;
+        address ownershipFacet;
     }
 
     function init(Args memory _args) external {
@@ -70,6 +73,18 @@ contract InitDiamond {
 
         if (address(s.vaultFactory) == address(0)) {
             s.vaultFactory = IVaultFactory(_args.vaultFactory);
+        }
+
+        if (s.diamondFacet.diamondCutFacet == address(0)) {
+            s.diamondFacet.diamondCutFacet = _args.diamondCutFacet;
+        }
+
+        if (s.diamondFacet.diamondLoupeFacet == address(0)) {
+            s.diamondFacet.diamondLoupeFacet = _args.diamondLoupeFacet;
+        }
+
+        if (s.diamondFacet.ownershipFacet == address(0)) {
+            s.diamondFacet.ownershipFacet = _args.ownershipFacet;
         }
     }
 }

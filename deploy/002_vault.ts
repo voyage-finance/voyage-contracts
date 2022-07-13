@@ -2,6 +2,7 @@ import { ethers } from 'hardhat';
 import { DeployFunction, Facet, FacetCut } from 'hardhat-deploy/types';
 import { deployFacets, FacetCutAction, mergeABIs } from '../helpers/diamond';
 import { log } from '../helpers/logger';
+import { Vault } from '@contracts';
 
 const deployFn: DeployFunction = async (hre) => {
   const { deployments, getNamedAccounts } = hre;
@@ -65,7 +66,6 @@ const deployFn: DeployFunction = async (hre) => {
     }
   );
 
-  console.log('facets number: ', facets.length);
   const newSelectors: string[] = facets.reduce<string[]>(
     (acc, { functionSelectors }) => [...acc, ...functionSelectors],
     []
@@ -129,19 +129,15 @@ const deployFn: DeployFunction = async (hre) => {
       log.debug('Initialising with diamond cuts: %s', cuts);
       // TODO: check if there is already a diamond at this address, e.g., in case `deployments` folder was wiped.
       // if there is one, it can actually be re-used
-      log.debug('owner: %s', owner);
-      log.debug('voyage: %s', voyage.address);
-      const salt = ethers.utils.formatBytes32String(
-        (Math.random() + 1).toString(36).substring(7)
-      );
+      log.info('owner: %s', owner);
+      log.info('voyage: %s', voyage.address);
       try {
         existingProxyDeployment = await deploy('VaultDiamondProxy', {
           contract: 'contracts/vault/Vault.sol:Vault',
           from: owner,
           log: true,
-          args: [owner, voyage.address, 0, salt],
         });
-        log.debug(
+        log.info(
           'Deployed fresh diamond proxy at: %s',
           existingProxyDeployment.address
         );
@@ -164,7 +160,6 @@ const deployFn: DeployFunction = async (hre) => {
     });
 
     if (cuts.length > 0) {
-      log.debug('Executing cuts: %o', cuts);
       await deploy('VaultInitDiamond', {
         from: owner,
         log: true,
@@ -178,6 +173,8 @@ const deployFn: DeployFunction = async (hre) => {
           initOwner: owner,
         },
       ]);
+
+      log.info('Executing registerUpgrade');
       await execute(
         'Voyage',
         {
@@ -189,7 +186,19 @@ const deployFn: DeployFunction = async (hre) => {
         initArgs,
         cuts
       );
-      log.debug('Executing cuts done');
+
+      const vault = await ethers.getContract<Vault>('Vault');
+
+      log.info('Executing setVaultBeacon');
+      await execute(
+        'Voyage',
+        {
+          from: owner,
+          log: true,
+        },
+        'setVaultBeacon',
+        vault.address
+      );
     } else {
       log.debug(
         'No facets to update for diamond at %s',
