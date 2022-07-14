@@ -142,7 +142,7 @@ contract VaultDataFacet is ReentrancyGuard, Storage, IERC1271 {
         returns (bytes4 magicValue)
     {
         address sender = recoverSigner(hash, signature);
-        if (LibVaultStorage.diamondStorage().owner == sender) {
+        if (LibVaultStorage.diamondStorage().user == sender) {
             return 0x1626ba7e;
         }
         return 0xffffffff;

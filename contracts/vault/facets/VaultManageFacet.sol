@@ -15,7 +15,7 @@ contract VaultManageFacet is ReentrancyGuard, Storage {
     /// @param _owner The address of the owner
     function createSubvault(address _owner)
         external
-        onlyOwner
+        onlyUser
         returns (address)
     {
         BeaconProxy proxy = new BeaconProxy(
@@ -45,7 +45,7 @@ contract VaultManageFacet is ReentrancyGuard, Storage {
     /// @param _newOwner The address of the new owner
     function updateSubvaultOwner(address _subvault, address _newOwner)
         external
-        onlyOwner
+        onlyUser
     {
         address oldOwner = LibVaultStorage.diamondStorage().subvaultOwnerIndex[
             _subvault
@@ -65,7 +65,7 @@ contract VaultManageFacet is ReentrancyGuard, Storage {
 
     /// @notice Pause sub vault
     /// @param _subvault The address of the subvault
-    function pauseSubvault(address _subvault) external onlyOwner {
+    function pauseSubvault(address _subvault) external onlyUser {
         if (
             LibVaultStorage.diamondStorage().subvaultOwnerIndex[_subvault] ==
             address(0)
@@ -77,7 +77,7 @@ contract VaultManageFacet is ReentrancyGuard, Storage {
 
     /// @notice Uppause the sub vault
     /// @param _subvault The address of the subvault
-    function unpauseSubvault(address _subvault) external onlyOwner {
+    function unpauseSubvault(address _subvault) external onlyUser {
         if (
             LibVaultStorage.diamondStorage().subvaultOwnerIndex[_subvault] ==
             address(0)

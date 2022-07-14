@@ -306,7 +306,6 @@ contract Storage is Context {
         IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](
             snapshot.facets.length
         );
-        console.log("facet length: ", snapshot.facets.length);
         for (uint256 i = 0; i < snapshot.facets.length; ) {
             address facetAddr = snapshot.facets[i].facetAddress;
             bytes4[] memory selectors = snapshot.facets[i].functionSelectors;
