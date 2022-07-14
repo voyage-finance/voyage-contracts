@@ -24,10 +24,9 @@ contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
         SecurityFacet sf = SecurityFacet(
             LibVaultStorage.diamondStorage().voyage
         );
-        require(
-            sf.isAuthorised(msg.sender, address(this), msg.sig),
-            "call is not authorised"
-        );
+        if (!sf.isAuthorised(msg.sender, address(this), msg.sig)) {
+            revert UnAuthorised();
+        }
         _;
     }
 
@@ -210,3 +209,4 @@ error InvalidAssetAddress();
 error AssetInitialized();
 error FailedDeployMarginEscrow();
 error FailedDeployCreditEscrow();
+error UnAuthorised();
