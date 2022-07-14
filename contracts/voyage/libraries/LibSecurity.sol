@@ -4,6 +4,17 @@ pragma solidity ^0.8.9;
 import {LibAppStorage, AppStorage, Authorisation} from "./LibAppStorage.sol";
 
 library LibSecurity {
+    function isAuthorised(
+        Authorisation storage auth,
+        address src,
+        address dst,
+        bytes4 selector
+    ) internal view returns (bool) {
+        return
+            auth.rbac.canCall(src, dst, selector) ||
+            auth.acl.canCall(src, dst, selector);
+    }
+
     function isAuthorisedInbound(
         Authorisation storage auth,
         address src,
@@ -55,6 +66,17 @@ library LibSecurity {
     ) internal {
         // revoke a role permission
         auth.rbac.setRoleCapability(role, target, sig, false);
+    }
+
+    function grantPermissions(
+        Authorisation storage auth,
+        address src,
+        address dst,
+        bytes4[] memory sig
+    ) internal {
+        for (uint256 i = 0; i < sig.length; i++) {
+            grantPermission(auth, src, dst, sig[i]);
+        }
     }
 
     function grantPermission(

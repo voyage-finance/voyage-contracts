@@ -62,14 +62,6 @@ contract Storage {
         _;
     }
 
-    modifier onlyUser() {
-        require(
-            msg.sender == LibVaultStorage.diamondStorage().user,
-            "Not owner"
-        );
-        _;
-    }
-
     function _marginEscrow(address _asset)
         internal
         view

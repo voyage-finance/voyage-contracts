@@ -5,4 +5,8 @@ interface ISubvault {
     function initialize(address _parent, address _owner) external;
 
     function updateOwner(address _newOwner) external;
+
+    function callExternal(address target, bytes calldata data)
+        external
+        returns (bytes memory);
 }
