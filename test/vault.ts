@@ -26,6 +26,6 @@ describe('Vault', function () {
       vaultAssetFacet
         .connect(await ethers.getSigner(alice))
         .withdrawRewards(tus.address, alice, toWadValue(100))
-    ).to.be.revertedWith('call is not authorised');
+    ).to.be.revertedWith('unauthorised');
   });
 });

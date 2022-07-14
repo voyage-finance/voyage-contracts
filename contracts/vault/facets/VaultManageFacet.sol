@@ -10,8 +10,9 @@ import {ISubvault} from "../interfaces/ISubvault.sol";
 import {VaultConfig} from "../../voyage/libraries/LibAppStorage.sol";
 import {VaultFacet} from "../../voyage/facets/VaultFacet.sol";
 import {SecurityFacet} from "../../voyage/facets/SecurityFacet.sol";
+import {VaultAuth} from "../libraries/LibAuth.sol";
 
-contract VaultManageFacet is ReentrancyGuard, Storage {
+contract VaultManageFacet is ReentrancyGuard, Storage, VaultAuth {
     /// @notice Create sub vault
     /// @param _owner The address of the owner
     function createSubvault(address _owner)
@@ -141,16 +142,6 @@ contract VaultManageFacet is ReentrancyGuard, Storage {
         .diamondStorage()
         .custodyIndex[_asset][_tokenId].owner = _src;
         LibVaultStorage.diamondStorage().tokenSet[_asset].push(_tokenId);
-    }
-
-    modifier authorised() {
-        SecurityFacet sf = SecurityFacet(
-            LibVaultStorage.diamondStorage().voyage
-        );
-        if (!sf.isAuthorisedOutbound(address(this), msg.sig)) {
-            revert UnAuthorised();
-        }
-        _;
     }
 }
 

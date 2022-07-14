@@ -15,20 +15,16 @@ import {VaultConfig, NFTInfo} from "../../voyage/libraries/LibAppStorage.sol";
 import {VaultFacet} from "../../voyage/facets/VaultFacet.sol";
 import {SecurityFacet} from "../../voyage/facets/SecurityFacet.sol";
 import {LoanFacet} from "../../voyage/facets/LoanFacet.sol";
+import {VaultAuth} from "../libraries/LibAuth.sol";
 
-contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
+contract VaultAssetFacet is
+    ReentrancyGuard,
+    Storage,
+    IERC721Receiver,
+    VaultAuth
+{
     using PriorityQueue for Heap;
     using SafeERC20 for IERC20;
-
-    modifier authorised() {
-        SecurityFacet sf = SecurityFacet(
-            LibVaultStorage.diamondStorage().voyage
-        );
-        if (!sf.isAuthorised(msg.sender, address(this), msg.sig)) {
-            revert UnAuthorised();
-        }
-        _;
-    }
 
     /// @notice Withdraw NFT from vault
     /// @param _reserve The addresss of the reserve
@@ -209,4 +205,3 @@ error InvalidAssetAddress();
 error AssetInitialized();
 error FailedDeployMarginEscrow();
 error FailedDeployCreditEscrow();
-error UnAuthorised();
