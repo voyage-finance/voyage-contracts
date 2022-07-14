@@ -6,6 +6,7 @@ import { Vault } from '../typechain/Vault';
 import { Voyage } from '../typechain/Voyage';
 import { deployFacets, FacetCutAction } from './diamond';
 import { decimals, MAX_UINT_256, toRay } from './math';
+import './wadraymath';
 
 const dec = decimals(18);
 
@@ -31,16 +32,18 @@ const setupBase = async ({
   const defaultReserveInterestRateStrategy = await ethers.getContract(
     'DefaultReserveInterestRateStrategy'
   );
-  const defaultLoanStrategy = await ethers.getContract('DefaultLoanStrategy');
   /* ------------------------- reserve initialisation ------------------------- */
   await voyage.initReserve(
     tus.address,
     defaultReserveInterestRateStrategy.address,
-    defaultLoanStrategy.address,
-    '5000',
     priceOracle.address,
     crab.address
   );
+  // 105%
+  await voyage.setLiquidationBonus(tus.address, 10500);
+  await voyage.setIncomeRatio(tus.address, 0.5 * 1e4);
+  await voyage.setMarginParams(tus.address, 0, 10000, 0.1 * 1e4);
+  await voyage.setLoanParams(tus.address, 30, 90, 10);
   await voyage.activateReserve(tus.address);
   const cutRatio = toRay(new BigNumber('0.2')).toFixed();
   await voyage.updateProtocolFee(owner, cutRatio);
@@ -56,25 +59,17 @@ const setupBase = async ({
   await tus.approve(voyage.address, MAX_UINT_256);
 
   /* -------------------------- vault initialisation -------------------------- */
-  await voyage.setMaxMargin(tus.address, '1000000000000000000000');
-  const marginRequirement = toRay(new BigNumber('0.1')).toFixed();
-  await voyage.setMarginRequirement(tus.address, marginRequirement); // 0.1
 
   // create an empty vault
   await voyage.createVault(owner);
   const deployedVault = await voyage.getVault(owner);
   await tus.approve(deployedVault, MAX_UINT_256);
-  // const vault = await ethers.getContractAt<Vault>(
-  //   'hardhat-diamond-abi/HardhatDiamondABI.sol:Vault',
-  //   deployedVault
-  // );
   await voyage.initCreditLine(deployedVault, tus.address);
 
   return {
     owner,
     alice,
     bob,
-    defaultLoanStrategy,
     defaultReserveInterestRateStrategy,
     priceOracle,
     tus,
