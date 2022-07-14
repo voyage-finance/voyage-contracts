@@ -281,7 +281,7 @@ contract LoanFacet is Storage {
 
         // 3.2 get floor price from oracle contract
         IPriceOracle priceOracle = IPriceOracle(reserveData.priceOracle);
-        param.floorPrice = priceOracle.getAssetPrice(reserveData.nftAddress);
+        param.floorPrice = priceOracle.getTwap(reserveData.nftAddress);
 
         if (param.floorPrice == 0) {
             revert InvalidFloorPrice();

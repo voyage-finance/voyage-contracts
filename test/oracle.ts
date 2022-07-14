@@ -17,7 +17,7 @@ describe('Price Oracle', function () {
 
     await priceOracle.updateCumulative(tus.address, '100');
 
-    await priceOracle.updateAssetPrice(tus.address);
+    await priceOracle.updateTwap(tus.address);
 
     await ethers.provider.send('evm_increaseTime', [10]);
     await ethers.provider.send('evm_mine', []);
@@ -34,9 +34,9 @@ describe('Price Oracle', function () {
 
     await priceOracle.updateCumulative(tus.address, '100');
 
-    await priceOracle.updateAssetPrice(tus.address);
+    await priceOracle.updateTwap(tus.address);
 
-    const average0 = await priceOracle.getAssetPrice(tus.address);
+    const average0 = await priceOracle.getTwap(tus.address);
     console.log(average0.toString());
   });
 
@@ -55,7 +55,7 @@ describe('Price Oracle', function () {
 
     await priceOracle.updateCumulative(tus.address, '200');
 
-    await priceOracle.updateAssetPrice(tus.address);
+    await priceOracle.updateTwap(tus.address);
 
     await ethers.provider.send('evm_increaseTime', [10]);
     await ethers.provider.send('evm_mine', []);
@@ -72,9 +72,9 @@ describe('Price Oracle', function () {
 
     await priceOracle.updateCumulative(tus.address, '150');
 
-    await priceOracle.updateAssetPrice(tus.address);
+    await priceOracle.updateTwap(tus.address);
 
-    const average0 = await priceOracle.getAssetPrice(tus.address);
+    const average0 = await priceOracle.getTwap(tus.address);
     console.log(average0.toString());
   });
 });
