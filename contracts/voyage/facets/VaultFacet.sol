@@ -43,7 +43,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         bytes memory data = abi.encodeWithSelector(
             IVault(address(0)).initialize.selector,
             address(this),
-            address(this),
+            owner,
             cutFacet.diamondCutFacet,
             cutFacet.diamondLoupeFacet,
             cutFacet.ownershipFacet

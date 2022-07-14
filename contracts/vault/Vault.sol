@@ -10,13 +10,13 @@ import "hardhat/console.sol";
 contract Vault is VersionedDiamond, IVault {
     function initialize(
         address _owner,
-        address _voyage,
+        address _user,
         address _cutFacet,
         address _loupeFacet,
         address _ownershipFacet
     ) public initializer {
-        LibVaultStorage.diamondStorage().voyage = _voyage;
-        LibVaultStorage.diamondStorage().owner = _owner;
+        LibVaultStorage.diamondStorage().voyage = _owner;
+        LibVaultStorage.diamondStorage().user = _user;
         _initialize(_owner, _cutFacet, _loupeFacet, _ownershipFacet);
     }
 }

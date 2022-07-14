@@ -14,6 +14,7 @@ struct CustodyData {
 struct VaultStorageV1 {
     address owner;
     address voyage;
+    address user;
     uint256 version;
     bytes32 checksum;
     // asset (ERC20) => escrow
@@ -61,9 +62,9 @@ contract Storage {
         _;
     }
 
-    modifier onlyOwner() {
+    modifier onlyUser() {
         require(
-            msg.sender == LibVaultStorage.diamondStorage().owner,
+            msg.sender == LibVaultStorage.diamondStorage().user,
             "Not owner"
         );
         _;

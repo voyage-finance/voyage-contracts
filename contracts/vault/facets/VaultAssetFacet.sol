@@ -27,7 +27,7 @@ contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
         address _reserve,
         address _erc721Addr,
         uint256 _tokenId
-    ) external onlyOwner {
+    ) external onlyUser {
         VaultFacet vf = VaultFacet(LibVaultStorage.diamondStorage().voyage);
         NFTInfo memory nftInfo = vf.getNFTInfo(_erc721Addr, _tokenId);
 
@@ -127,7 +127,7 @@ contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
         address _reserve,
         address _receiver,
         uint256 _amount
-    ) external onlyOwner {
+    ) external onlyUser {
         uint256 reserveBalance = IERC20(_reserve).balanceOf(address(this));
         if (reserveBalance < _amount) {
             revert InsufficientFund(reserveBalance);
