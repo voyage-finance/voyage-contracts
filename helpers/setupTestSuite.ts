@@ -37,7 +37,7 @@ const setupBase = async ({
     tus.address,
     defaultReserveInterestRateStrategy.address,
     defaultLoanStrategy.address,
-    '500000000000000000000000000',
+    '5000',
     priceOracle.address,
     crab.address
   );
