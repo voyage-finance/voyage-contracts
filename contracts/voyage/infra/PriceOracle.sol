@@ -22,11 +22,11 @@ contract PriceOracle is IPriceOracle, Ownable {
     mapping(address => CumulativePrice) prices;
     mapping(address => PriceData) ticket;
 
-    function getAssetPrice(address _asset) external view returns (uint256) {
+    function getTwap(address _asset) external view returns (uint256) {
         return prices[_asset].priceAverage;
     }
 
-    function updateAssetPrice(address _asset) external onlyOwner {
+    function updateTwap(address _asset) external onlyOwner {
         _updateAssetPrice(_asset);
     }
 

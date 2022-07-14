@@ -93,7 +93,7 @@ describe('Liquidate', function () {
     await ethers.provider.send('evm_increaseTime', [10]);
     await ethers.provider.send('evm_mine', []);
     await priceOracle.updateCumulative(crab.address, '10000000000000000000');
-    await priceOracle.updateAssetPrice(crab.address);
+    await priceOracle.updateTwap(crab.address);
 
     // increase 51 days
     await increase(51);
