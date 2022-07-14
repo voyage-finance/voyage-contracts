@@ -8,9 +8,10 @@
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
+    "baseUrl": ".",
     "paths": {
-      "@contracts": ["./typechain"],
-      "@helpers/*": ["./helpers/*"]
+      "@contracts": ["typechain"],
+      "@helpers/*": ["helpers/*"]
     },
     "lib": [
       "dom",

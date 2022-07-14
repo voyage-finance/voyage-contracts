@@ -2,21 +2,12 @@ import { ethers } from 'hardhat';
 import { DeployFunction, Facet, FacetCut } from 'hardhat-deploy/types';
 import { deployFacets, FacetCutAction, mergeABIs } from '../helpers/diamond';
 import { log } from '../helpers/logger';
-import { RAY } from '../helpers/math';
-import BigNumber from 'bignumber.js';
 
 const deployFn: DeployFunction = async (hre) => {
   const { deployments, getNamedAccounts } = hre;
   const { deploy, execute, getOrNull, save, getArtifact } = deployments;
   const { owner } = await getNamedAccounts();
 
-  const liquidationBonus = new BigNumber('0.1').multipliedBy(RAY).toFixed();
-  const marginRequirement = new BigNumber('0.3').multipliedBy(RAY).toFixed();
-  await deploy('DefaultLoanStrategy', {
-    from: owner,
-    args: [90, 30, 10, liquidationBonus, marginRequirement],
-    log: true,
-  });
   const marginEscrowImpl = await deploy('MarginEscrow', {
     from: owner,
     log: true,
@@ -105,6 +96,11 @@ const deployFn: DeployFunction = async (hre) => {
     },
     {
       name: 'DiamondVersionFacet',
+      from: owner,
+      log: true,
+    },
+    {
+      name: 'ConfigurationFacet',
       from: owner,
       log: true,
     },

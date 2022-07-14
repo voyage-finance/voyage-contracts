@@ -1,9 +1,8 @@
-import { decimals, MAX_UINT_256, RAY } from '../helpers/math';
 import { expect } from 'chai';
 import { BigNumber } from 'ethers';
 import { ethers } from 'hardhat';
+import { decimals, MAX_UINT_256 } from '../helpers/math';
 import { setupTestSuite } from '../helpers/setupTestSuite';
-import { BeaconProxy } from '@contracts';
 
 describe('Margin Redeem', function () {
   it('Unused margin should be redeemable', async function () {

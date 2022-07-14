@@ -1,6 +1,7 @@
 import { Voyage } from '@contracts';
-import { MAX_UINT_256, toEthersBN, WAD } from '../helpers/math';
 import { ethers, getNamedAccounts } from 'hardhat';
+import { WAD } from '../helpers/constants';
+import { MAX_UINT_256 } from '../helpers/math';
 
 async function main() {
   const { owner } = await getNamedAccounts();
@@ -9,7 +10,7 @@ async function main() {
   // max approve voyage, for deposits
   let tx = await tus.approve(voyage.address, MAX_UINT_256);
   await tx.wait();
-  const depositAmount = ethers.BigNumber.from(500_000).mul(toEthersBN(WAD));
+  const depositAmount = ethers.BigNumber.from(500_000).mul(WAD);
 
   tx = await voyage.deposit(tus.address, '1', depositAmount, owner);
   await tx.wait();
