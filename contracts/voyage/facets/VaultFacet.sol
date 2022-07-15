@@ -5,6 +5,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import {LibAppStorage, AppStorage, Storage, VaultConfig, NFTInfo, DiamondFacet} from "../libraries/LibAppStorage.sol";
 import {LibVault} from "../libraries/LibVault.sol";
+import {LibSecurity} from "../libraries/LibSecurity.sol";
 import {IVault} from "../../vault/interfaces/IVault.sol";
 import {IExternalAdapter} from "../interfaces/IExternalAdapter.sol";
 import {IDiamondVersionFacet, Snapshot} from "../interfaces/IDiamondVersionFacet.sol";
@@ -14,6 +15,8 @@ import {VaultMarginFacet} from "../../vault/facets/VaultMarginFacet.sol";
 import {IDiamondCut} from "../../shared/diamond/interfaces/IDiamondCut.sol";
 import {DiamondCutFacet} from "../../shared/diamond/facets/DiamondCutFacet.sol";
 import {DiamondVersionFacet} from "./DiamondVersionFacet.sol";
+import {VaultAssetFacet} from "../../vault/facets/VaultAssetFacet.sol";
+import {VaultManageFacet} from "../../vault/facets/VaultManageFacet.sol";
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 
 contract VaultFacet is Storage, ReentrancyGuard {
@@ -49,19 +52,23 @@ contract VaultFacet is Storage, ReentrancyGuard {
             cutFacet.diamondLoupeFacet,
             cutFacet.ownershipFacet
         );
-        BeaconProxy vaultBeaconProxy = new BeaconProxy(
-            address(vaultBeacon()),
-            data
+        address vaultBeaconProxy = address(
+            new BeaconProxy(address(vaultBeacon()), data)
         );
         if (address(vaultBeaconProxy) == address(0)) {
             revert FailedDeployVault();
         }
-        diamondCut(address(vaultBeaconProxy));
-        uint256 numVaults = LibVault.recordVault(
-            owner,
-            address(vaultBeaconProxy)
-        );
-        emit VaultCreated(address(vaultBeaconProxy), owner, numVaults);
+        diamondCut(vaultBeaconProxy);
+        uint256 numVaults = LibVault.recordVault(owner, vaultBeaconProxy);
+        bytes4[] memory sigs = new bytes4[](6);
+        sigs[0] = VaultAssetFacet(address(0)).withdrawRewards.selector;
+        sigs[1] = VaultAssetFacet(address(0)).withdrawNFT.selector;
+        sigs[2] = VaultManageFacet(address(0)).createSubvault.selector;
+        sigs[3] = VaultManageFacet(address(0)).updateSubvaultOwner.selector;
+        sigs[4] = VaultManageFacet(address(0)).pauseSubvault.selector;
+        sigs[5] = VaultManageFacet(address(0)).unpauseSubvault.selector;
+        LibSecurity.grantPermissions(s.auth, owner, vaultBeaconProxy, sigs);
+        emit VaultCreated(vaultBeaconProxy, owner, numVaults);
     }
 
     function initCreditLine(address _vault, address _asset)

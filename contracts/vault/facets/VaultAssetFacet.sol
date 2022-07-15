@@ -13,9 +13,16 @@ import {ICreditEscrow} from "../interfaces/ICreditEscrow.sol";
 import {PriorityQueue, Heap} from "../libraries/PriorityQueue.sol";
 import {VaultConfig, NFTInfo} from "../../voyage/libraries/LibAppStorage.sol";
 import {VaultFacet} from "../../voyage/facets/VaultFacet.sol";
+import {SecurityFacet} from "../../voyage/facets/SecurityFacet.sol";
 import {LoanFacet} from "../../voyage/facets/LoanFacet.sol";
+import {VaultAuth} from "../libraries/LibAuth.sol";
 
-contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
+contract VaultAssetFacet is
+    ReentrancyGuard,
+    Storage,
+    IERC721Receiver,
+    VaultAuth
+{
     using PriorityQueue for Heap;
     using SafeERC20 for IERC20;
 
@@ -27,7 +34,7 @@ contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
         address _reserve,
         address _erc721Addr,
         uint256 _tokenId
-    ) external onlyUser {
+    ) external authorised {
         VaultFacet vf = VaultFacet(LibVaultStorage.diamondStorage().voyage);
         NFTInfo memory nftInfo = vf.getNFTInfo(_erc721Addr, _tokenId);
 
@@ -127,7 +134,7 @@ contract VaultAssetFacet is ReentrancyGuard, Storage, IERC721Receiver {
         address _reserve,
         address _receiver,
         uint256 _amount
-    ) external onlyUser {
+    ) external authorised {
         uint256 reserveBalance = IERC20(_reserve).balanceOf(address(this));
         if (reserveBalance < _amount) {
             revert InsufficientFund(reserveBalance);

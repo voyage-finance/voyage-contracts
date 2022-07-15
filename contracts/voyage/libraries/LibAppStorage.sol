@@ -37,6 +37,7 @@ struct ReserveData {
     address seniorDepositTokenAddress;
     uint40 juniorLastUpdateTimestamp;
     uint40 seniorLastUpdateTimestamp;
+    // Expressed in basis point
     uint256 optimalTrancheRatio;
     uint256 currentIncomeRatio;
     uint256 optimalIncomeRatio;

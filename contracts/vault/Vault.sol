@@ -5,7 +5,6 @@ import {VersionedDiamond} from "../shared/diamond/VersionedDiamond.sol";
 import {LibVaultStorage} from "./libraries/LibVaultStorage.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {IVault} from "./interfaces/IVault.sol";
-import "hardhat/console.sol";
 
 contract Vault is VersionedDiamond, IVault {
     function initialize(

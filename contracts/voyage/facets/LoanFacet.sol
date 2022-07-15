@@ -21,6 +21,8 @@ contract LoanFacet is Storage {
     using WadRayMath for uint256;
     using SafeERC20 for IERC20;
 
+    uint256 public immutable TEN_THOUSANDS = 10000;
+
     struct ExecuteBorrowParams {
         address asset;
         address user;
@@ -57,6 +59,13 @@ contract LoanFacet is Storage {
         uint256 writeDownAmount;
         uint256 totalAssetFromJuniorTranche;
         bool isFinal;
+    }
+
+    struct ExecuteRepayParams {
+        uint256 principal;
+        uint256 interest;
+        uint256 total;
+        uint256 totalDebt;
     }
 
     event Borrow(
@@ -166,27 +175,33 @@ contract LoanFacet is Storage {
         uint256 _loan,
         address payable _vault
     ) external whenNotPaused {
+        ExecuteRepayParams memory params;
+
         // 0. check if the user owns the vault
         if (LibVault.getVaultAddress(_msgSender()) != _vault) {
             revert Unauthorised();
         }
 
         // 1. check draw down to get principal and interest
-        uint256 principal;
-        uint256 interest;
-        (principal, interest) = LibLoan.getPMT(_asset, _vault, _loan);
-        if (principal + interest == 0) {
+        (params.principal, params.interest) = LibLoan.getPMT(
+            _asset,
+            _vault,
+            _loan
+        );
+        if (params.principal + params.interest == 0) {
             revert InvalidDebt();
         }
 
+        params.total = params.principal + params.interest;
+
         // 2. update liquidity index and interest rate
         BorrowState memory borrowStat = LibLoan.getBorrowState(_asset);
-        uint256 totalDebt = borrowStat.totalDebt + borrowStat.totalInterest;
+        params.totalDebt = borrowStat.totalDebt + borrowStat.totalInterest;
         uint256 avgBorrowRate = borrowStat.avgBorrowRate;
         LibLoan.updateStateOnRepayment(
             _asset,
-            principal + interest,
-            totalDebt,
+            params.principal + params.interest,
+            params.totalDebt,
             avgBorrowRate
         );
 
@@ -195,27 +210,37 @@ contract LoanFacet is Storage {
             _asset,
             _vault,
             _loan,
-            principal,
-            interest,
+            params.principal,
+            params.interest,
             false
         );
 
         // 4. transfer underlying asset
         ReserveData memory reserveData = LibLiquidity.getReserveData(_asset);
 
-        uint256 total = principal + interest;
+        uint256 seniorInterest = (params.interest *
+            reserveData.optimalTrancheRatio) / TEN_THOUSANDS;
+        uint256 juniorInterest = params.interest - seniorInterest;
+
         IERC20(_asset).safeTransferFrom(
             _msgSender(),
             reserveData.seniorDepositTokenAddress,
-            total
+            params.principal + seniorInterest
         );
+
+        IERC20(_asset).safeTransferFrom(
+            _msgSender(),
+            reserveData.juniorDepositTokenAddress,
+            juniorInterest
+        );
+
         emit Repayment(
             _msgSender(),
             _vault,
             _asset,
             _loan,
             repaymentId,
-            total,
+            params.total,
             isFinal
         );
     }

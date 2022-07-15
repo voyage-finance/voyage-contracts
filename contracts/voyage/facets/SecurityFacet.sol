@@ -5,6 +5,7 @@ import {Pausable} from "@openzeppelin/contracts/security/Pausable.sol";
 import {Storage, Authorisation} from "../libraries/LibAppStorage.sol";
 import {LibSecurity} from "../libraries/LibSecurity.sol";
 import {VaultFacet} from "./VaultFacet.sol";
+import "hardhat/console.sol";
 
 contract SecurityFacet is Storage {
     using LibSecurity for Authorisation;
@@ -78,5 +79,13 @@ contract SecurityFacet is Storage {
         returns (bool)
     {
         return LibSecurity.isAuthorisedOutbound(s.auth, dst, sig);
+    }
+
+    function isAuthorised(
+        address src,
+        address dst,
+        bytes4 sig
+    ) public returns (bool) {
+        return LibSecurity.isAuthorised(s.auth, src, dst, sig);
     }
 }

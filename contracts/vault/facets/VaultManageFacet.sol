@@ -9,13 +9,15 @@ import {IMarginEscrow} from "../interfaces/IMarginEscrow.sol";
 import {ISubvault} from "../interfaces/ISubvault.sol";
 import {VaultConfig} from "../../voyage/libraries/LibAppStorage.sol";
 import {VaultFacet} from "../../voyage/facets/VaultFacet.sol";
+import {SecurityFacet} from "../../voyage/facets/SecurityFacet.sol";
+import {VaultAuth} from "../libraries/LibAuth.sol";
 
-contract VaultManageFacet is ReentrancyGuard, Storage {
+contract VaultManageFacet is ReentrancyGuard, Storage, VaultAuth {
     /// @notice Create sub vault
     /// @param _owner The address of the owner
     function createSubvault(address _owner)
         external
-        onlyUser
+        authorised
         returns (address)
     {
         BeaconProxy proxy = new BeaconProxy(
@@ -37,6 +39,14 @@ contract VaultManageFacet is ReentrancyGuard, Storage {
         LibVaultStorage.diamondStorage().subvaultOwnerIndex[subvault] = _owner;
         LibVaultStorage.diamondStorage().ownerSubvaultIndex[_owner] = subvault;
         LibVaultStorage.diamondStorage().subvaultStatusIndex[subvault] = false;
+        SecurityFacet sf = SecurityFacet(
+            LibVaultStorage.diamondStorage().voyage
+        );
+        sf.grantPermission(
+            _owner,
+            subvault,
+            ISubvault(address(0)).callExternal.selector
+        );
         return subvault;
     }
 
@@ -45,7 +55,7 @@ contract VaultManageFacet is ReentrancyGuard, Storage {
     /// @param _newOwner The address of the new owner
     function updateSubvaultOwner(address _subvault, address _newOwner)
         external
-        onlyUser
+        authorised
     {
         address oldOwner = LibVaultStorage.diamondStorage().subvaultOwnerIndex[
             _subvault
@@ -65,7 +75,7 @@ contract VaultManageFacet is ReentrancyGuard, Storage {
 
     /// @notice Pause sub vault
     /// @param _subvault The address of the subvault
-    function pauseSubvault(address _subvault) external onlyUser {
+    function pauseSubvault(address _subvault) external authorised {
         if (
             LibVaultStorage.diamondStorage().subvaultOwnerIndex[_subvault] ==
             address(0)
@@ -77,7 +87,7 @@ contract VaultManageFacet is ReentrancyGuard, Storage {
 
     /// @notice Uppause the sub vault
     /// @param _subvault The address of the subvault
-    function unpauseSubvault(address _subvault) external onlyUser {
+    function unpauseSubvault(address _subvault) external authorised {
         if (
             LibVaultStorage.diamondStorage().subvaultOwnerIndex[_subvault] ==
             address(0)
@@ -85,6 +95,27 @@ contract VaultManageFacet is ReentrancyGuard, Storage {
             revert InvalidSubvaultAddress(_subvault);
         }
         LibVaultStorage.diamondStorage().subvaultStatusIndex[_subvault] = false;
+    }
+
+    function callSubVault(
+        address _subvault,
+        address target,
+        bytes calldata data
+    ) external {
+        SecurityFacet sf = SecurityFacet(
+            LibVaultStorage.diamondStorage().voyage
+        );
+        if (
+            !sf.isAuthorised(
+                msg.sender,
+                _subvault,
+                ISubvault(address(0)).callExternal.selector
+            )
+        ) {
+            revert UnAuthorised();
+        }
+
+        ISubvault(_subvault).callExternal(target, data);
     }
 
     function onERC721Transferred(
@@ -118,3 +149,4 @@ contract VaultManageFacet is ReentrancyGuard, Storage {
 error FailedDeploySubvaultBeacon();
 error InvalidTransfer(string reason);
 error InvalidSubvaultAddress(address subvault);
+error UnAuthorised();
