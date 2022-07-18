@@ -12,9 +12,10 @@ describe('Margin Deposit', function () {
   });
 
   it('Security deposit setup should return correct value', async function () {
-    const { tus, voyage } = await setupTestSuite();
+    const { tus, voyage, owner } = await setupTestSuite();
     voyage.setMarginParams(tus.address, 0, 1000, 0.1 * 1e4);
-    const amountAfterSetting = await voyage.getVaultConfig(tus.address);
+    const vault = await voyage.getVault(owner);
+    const amountAfterSetting = await voyage.getVaultConfig(tus.address, vault);
     expect(amountAfterSetting.maxMargin.toString()).to.equal(
       '1000000000000000000000'
     );

@@ -273,18 +273,23 @@ library LibReserveConfiguration {
         )
     {
         uint256 localData = self.data;
-        uint256 decimals = (localData & ~DECIMAL_MASK) >>
-            DECIMAL_MASK_BIT_POSITION;
-        uint256 assetUnit = 10**decimals;
-
         return (
-            ((localData & ~MIN_MARGIN_MASK) >> MIN_MARGIN_MASK_BIT_POSITION) *
-                assetUnit,
-            ((localData & ~MAX_MARGIN_MASK) >> MAX_MARGIN_MASK_BIT_POSITION) *
-                assetUnit,
+            (localData & ~MIN_MARGIN_MASK) >> MIN_MARGIN_MASK_BIT_POSITION,
+            (localData & ~MAX_MARGIN_MASK) >> MAX_MARGIN_MASK_BIT_POSITION,
             (localData & ~MARGIN_REQUIREMENT_MASK) >>
                 MARGIN_REQUIREMENT_MASK_BIT_POSITION
         );
+    }
+
+    function validateMarginParams(
+        uint256 _min,
+        uint256 _max,
+        uint256 _marginRequirement
+    ) internal pure returns (bool) {
+        if (_min > _max || _marginRequirement == 0) {
+            return false;
+        }
+        return true;
     }
 
     function getBorrowParams(ReserveConfigurationMap memory self)

@@ -288,11 +288,24 @@ contract DataProviderFacet {
         return (times, amounts);
     }
 
-    function getVaultConfig(address _reserve)
+    function getMarginConfiguration(address _asset)
         external
         view
-        returns (VaultConfig memory)
+        returns (
+            uint256,
+            uint256,
+            uint256
+        )
     {
-        return LibVault.getVaultConfig(_reserve);
+        ReserveConfigurationMap memory conf = LibReserveConfiguration
+            .getConfiguration(_asset);
+        uint256 decimals = conf.getDecimals();
+        uint256 assetUnit = 10**decimals;
+        (
+            uint256 min,
+            uint256 max,
+            uint256 marginRequirement
+        ) = LibReserveConfiguration.getConfiguration(_asset).getMarginParams();
+        return (min * assetUnit, max * assetUnit, marginRequirement);
     }
 }

@@ -80,7 +80,13 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
         uint256 _max,
         uint256 _marginRequirement
     ) external authorised {
-        if (_min > _max || _marginRequirement == 0) {
+        if (
+            !LibReserveConfiguration.validateMarginParams(
+                _min,
+                _max,
+                _marginRequirement
+            )
+        ) {
             revert IllegalMarginParameters();
         }
         ReserveConfigurationMap memory conf = LibReserveConfiguration

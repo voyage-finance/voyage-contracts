@@ -38,26 +38,26 @@ library LibVault {
         return (me, ce);
     }
 
-    function setMaxMargin(address _reserve, uint256 _amount) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        s.vaultConfigMap[_reserve].maxMargin = _amount;
-    }
-
-    function setMinMargin(address _reserve, uint256 _amount) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        s.vaultConfigMap[_reserve].minMargin = _amount;
-    }
-
-    function setMarginRequirement(address _reserve, uint256 _requirement)
-        internal
-    {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        s.vaultConfigMap[_reserve].marginRequirement = _requirement;
-    }
-
     function setVaultBeacon(address _impl) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         s.vaultBeacon = new UpgradeableBeacon(_impl);
+    }
+
+    function setVaultConfig(
+        address _reserve,
+        address _vault,
+        uint256 _min,
+        uint256 _max,
+        uint256 _marginRequirement
+    ) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        VaultConfig memory config = VaultConfig({
+            minMargin: _min,
+            maxMargin: _max,
+            marginRequirement: _marginRequirement,
+            overrideGlobal: true
+        });
+        s.vaultConfigMap[_reserve][_vault] = config;
     }
 
     function updateNFTPrice(
@@ -153,17 +153,29 @@ library LibVault {
         borrowData.totalRedeemed = borrowData.totalRedeemed + _amount;
     }
 
-    function getVaultConfig(address _reserve)
+    function getVaultConfig(address _reserve, address _vault)
         internal
         view
         returns (VaultConfig memory)
     {
-        VaultConfig memory vaultConfig;
-        (
-            vaultConfig.minMargin,
-            vaultConfig.maxMargin,
-            vaultConfig.marginRequirement
-        ) = LibReserveConfiguration.getConfiguration(_reserve).getMarginParams();
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        ReserveConfigurationMap memory conf = LibReserveConfiguration
+            .getConfiguration(_reserve);
+        uint256 decimals = conf.getDecimals();
+        uint256 assetUnit = 10**decimals;
+        VaultConfig memory vaultConfig = s.vaultConfigMap[_reserve][_vault];
+        if (!vaultConfig.overrideGlobal) {
+            (
+                vaultConfig.minMargin,
+                vaultConfig.maxMargin,
+                vaultConfig.marginRequirement
+            ) = LibReserveConfiguration
+                .getConfiguration(_reserve)
+                .getMarginParams();
+        }
+        vaultConfig.minMargin = vaultConfig.minMargin * assetUnit;
+        vaultConfig.maxMargin = vaultConfig.maxMargin * assetUnit;
+
         return vaultConfig;
     }
 
@@ -230,13 +242,9 @@ library LibVault {
         returns (uint256)
     {
         uint256 currentMargin = getMargin(_vault, _reserve);
-        // TODO: use overridable vault config
-        // VaultConfig memory vc = getVaultConfig(_reserve);
-        (, , uint256 marginRequirement) = LibReserveConfiguration
-            .getConfiguration(_reserve)
-            .getMarginParams();
-        require(marginRequirement != 0, "margin requirement cannot be 0");
-        return currentMargin.percentDiv(marginRequirement);
+        VaultConfig memory vc = getVaultConfig(_reserve, _vault);
+        require(vc.marginRequirement != 0, "margin requirement cannot be 0");
+        return currentMargin.percentDiv(vc.marginRequirement);
     }
 
     function getMargin(address _vault, address _reserve)
