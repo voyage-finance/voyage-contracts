@@ -4,14 +4,18 @@ pragma solidity ^0.8.9;
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {LibAppStorage, AppStorage, BorrowData, VaultConfig, NFTInfo, DiamondFacet} from "./LibAppStorage.sol";
+import {LibAppStorage, AppStorage, BorrowData, VaultConfig, NFTInfo, DiamondFacet, ReserveConfigurationMap} from "./LibAppStorage.sol";
+import {LibReserveConfiguration} from "./LibReserveConfiguration.sol";
 import {IExternalAdapter} from "../interfaces/IExternalAdapter.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
+import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
 import {VaultDataFacet} from "../../vault/facets/VaultDataFacet.sol";
 import {VaultAssetFacet} from "../../vault/facets/VaultAssetFacet.sol";
 
 library LibVault {
     using WadRayMath for uint256;
+    using PercentageMath for uint256;
+    using LibReserveConfiguration for ReserveConfigurationMap;
 
     function recordVault(address _owner, address _vault)
         internal
@@ -34,26 +38,26 @@ library LibVault {
         return (me, ce);
     }
 
-    function setMaxMargin(address _reserve, uint256 _amount) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        s.vaultConfigMap[_reserve].maxMargin = _amount;
-    }
-
-    function setMinMargin(address _reserve, uint256 _amount) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        s.vaultConfigMap[_reserve].minMargin = _amount;
-    }
-
-    function setMarginRequirement(address _reserve, uint256 _requirement)
-        internal
-    {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        s.vaultConfigMap[_reserve].marginRequirement = _requirement;
-    }
-
     function setVaultBeacon(address _impl) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         s.vaultBeacon = new UpgradeableBeacon(_impl);
+    }
+
+    function setVaultConfig(
+        address _reserve,
+        address _vault,
+        uint256 _min,
+        uint256 _max,
+        uint256 _marginRequirement
+    ) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        VaultConfig memory config = VaultConfig({
+            minMargin: _min,
+            maxMargin: _max,
+            marginRequirement: _marginRequirement,
+            overrideGlobal: true
+        });
+        s.vaultConfigMap[_reserve][_vault] = config;
     }
 
     function updateNFTPrice(
@@ -149,13 +153,30 @@ library LibVault {
         borrowData.totalRedeemed = borrowData.totalRedeemed + _amount;
     }
 
-    function getVaultConfig(address _reserve)
+    function getVaultConfig(address _reserve, address _vault)
         internal
         view
         returns (VaultConfig memory)
     {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        return s.vaultConfigMap[_reserve];
+        ReserveConfigurationMap memory conf = LibReserveConfiguration
+            .getConfiguration(_reserve);
+        uint256 decimals = conf.getDecimals();
+        uint256 assetUnit = 10**decimals;
+        VaultConfig memory vaultConfig = s.vaultConfigMap[_reserve][_vault];
+        if (!vaultConfig.overrideGlobal) {
+            (
+                vaultConfig.minMargin,
+                vaultConfig.maxMargin,
+                vaultConfig.marginRequirement
+            ) = LibReserveConfiguration
+                .getConfiguration(_reserve)
+                .getMarginParams();
+        }
+        vaultConfig.minMargin = vaultConfig.minMargin * assetUnit;
+        vaultConfig.maxMargin = vaultConfig.maxMargin * assetUnit;
+
+        return vaultConfig;
     }
 
     function getTokenAddrByMarketPlace(address _marketplace)
@@ -201,9 +222,7 @@ library LibVault {
         returns (uint256)
     {
         uint256 creditLimit = getCreditLimit(_vault, _reserve);
-        uint256 principal;
-        uint256 interest;
-        (principal, interest) = getVaultDebt(_reserve, _vault);
+        (uint256 principal, uint256 interest) = getVaultDebt(_reserve, _vault);
         uint256 accumulatedDebt = principal + interest;
         if (creditLimit < accumulatedDebt) {
             return 0;
@@ -223,13 +242,9 @@ library LibVault {
         returns (uint256)
     {
         uint256 currentMargin = getMargin(_vault, _reserve);
-        VaultConfig memory vc = getVaultConfig(_reserve);
-        uint256 marginRequirement = vc.marginRequirement;
-        require(marginRequirement != 0, "margin requirement cannot be 0");
-        uint256 creditLimitInRay = currentMargin.wadToRay().rayDiv(
-            marginRequirement
-        );
-        return creditLimitInRay.rayToWad();
+        VaultConfig memory vc = getVaultConfig(_reserve, _vault);
+        require(vc.marginRequirement != 0, "margin requirement cannot be 0");
+        return currentMargin.percentDiv(vc.marginRequirement);
     }
 
     function getMargin(address _vault, address _reserve)

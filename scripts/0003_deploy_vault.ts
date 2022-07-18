@@ -8,9 +8,6 @@ async function main() {
   const voyage = await ethers.getContract<Voyage>('Voyage', owner);
   let vaultAddress = await voyage.getVault(owner);
   if (ethers.BigNumber.from(vaultAddress).isZero()) {
-    const salt = ethers.utils.formatBytes32String(
-      (Math.random() + 1).toString(36).substring(7)
-    );
     const tx = await voyage.createVault(owner);
     await tx.wait();
     vaultAddress = await voyage.getVault(owner);

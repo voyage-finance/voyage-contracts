@@ -2,6 +2,8 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { setupTestSuite } from '../helpers/setupTestSuite';
 
+const max = 1000;
+const requirement = 0.1 * 1e4;
 describe('Repay', function () {
   function showLoan(loan: any) {
     console.log('principal: ', loan.principal.toString());
@@ -20,17 +22,13 @@ describe('Repay', function () {
 
     // 100
     const depositAmount = '100000000000000000000';
-    await voyage.setMaxMargin(tus.address, '1000000000000000000000');
+    await voyage.setMarginParams(tus.address, 0, max, requirement);
     await voyage.deposit(tus.address, 0, depositAmount, owner);
     await voyage.deposit(tus.address, 1, depositAmount, owner);
     const seniorLiquidity = await tus.balanceOf(seniorDepositToken.address);
     const juniorLiquidity = await tus.balanceOf(juniorDepositToken.address);
     console.log('senior liquidity: ', seniorLiquidity.toString());
     console.log('junior liquidity: ', juniorLiquidity.toString());
-    await voyage.setMarginRequirement(
-      tus.address,
-      '100000000000000000000000000'
-    ); // 0.1
 
     await voyage.depositMargin(vault, tus.address, '100000000000000000000');
     await voyage.borrow(tus.address, '10000000000000000000', vault);
@@ -95,18 +93,13 @@ describe('Repay', function () {
 
     // 100
     const depositAmount = '100000000000000000000';
-    await voyage.setMaxMargin(tus.address, '1000000000000000000000');
+    await voyage.setMarginParams(tus.address, 0, max, requirement);
     await voyage.deposit(tus.address, 0, depositAmount, owner);
     await voyage.deposit(tus.address, 1, depositAmount, owner);
     const seniorLiquidity = await tus.balanceOf(seniorDepositToken.address);
     const juniorLiquidity = await tus.balanceOf(juniorDepositToken.address);
     console.log('senior liquidity: ', seniorLiquidity.toString());
     console.log('junior liquidity: ', juniorLiquidity.toString());
-    await voyage.setMarginRequirement(
-      tus.address,
-      '100000000000000000000000000'
-    ); // 0.1
-
     await voyage.depositMargin(vault, tus.address, '100000000000000000000');
     await voyage.borrow(tus.address, '10000000000000000000', vault);
 

@@ -7,7 +7,6 @@ const getAddress = (contract: string) =>
 
 async function main() {
   const treasureUnderSea = await getAddress('Tus');
-  const loanStrategy = await getAddress('DefaultLoanStrategy');
   const interestStrategy = await getAddress(
     'DefaultReserveInterestRateStrategy'
   );
@@ -19,19 +18,22 @@ async function main() {
   const [initialized, activated] = await voyage.getReserveStatus(tus.address);
   let tx: ContractTransaction;
   if (!initialized) {
-    tx = await voyage.initReserve(
-      treasureUnderSea,
-      interestStrategy,
-      loanStrategy,
-      '500000000000000000000000000',
-      priceOracle.address,
-      crab.address
-    );
-    await tx.wait();
+    await voyage
+      .initReserve(
+        treasureUnderSea,
+        interestStrategy,
+        priceOracle.address,
+        crab.address
+      )
+      .then((tx) => tx.wait());
+    await Promise.all([
+      voyage.setLiquidationBonus(tus.address, 10500),
+      voyage.setIncomeRatio(tus.address, 0.5 * 1e4),
+      voyage.setLoanParams(tus.address, 30, 90, 10),
+    ]).then((txs) => txs.map((tx) => tx.wait()));
   }
   if (!activated) {
-    tx = await voyage.activateReserve(tus.address);
-    await tx.wait();
+    await voyage.activateReserve(tus.address).then((tx) => tx.wait());
   }
 }
 

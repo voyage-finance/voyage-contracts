@@ -3,9 +3,10 @@ pragma solidity ^0.8.9;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
-import {LibAppStorage, AppStorage, Storage, VaultConfig, NFTInfo, DiamondFacet} from "../libraries/LibAppStorage.sol";
+import {LibAppStorage, AppStorage, Storage, VaultConfig, NFTInfo, DiamondFacet, ReserveConfigurationMap} from "../libraries/LibAppStorage.sol";
 import {LibVault} from "../libraries/LibVault.sol";
 import {LibSecurity} from "../libraries/LibSecurity.sol";
+import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
 import {IVault} from "../../vault/interfaces/IVault.sol";
 import {IExternalAdapter} from "../interfaces/IExternalAdapter.sol";
 import {IDiamondVersionFacet, Snapshot} from "../interfaces/IDiamondVersionFacet.sol";
@@ -20,6 +21,7 @@ import {VaultManageFacet} from "../../vault/facets/VaultManageFacet.sol";
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 
 contract VaultFacet is Storage, ReentrancyGuard {
+    using LibReserveConfiguration for ReserveConfigurationMap;
     /* --------------------------------- events --------------------------------- */
     event VaultCreated(address _vault, address _owner, uint256 _numVaults);
     event VaultCreditLineInitialized(
@@ -39,6 +41,13 @@ contract VaultFacet is Storage, ReentrancyGuard {
         address indexed _asset,
         address _sponsor,
         uint256 _amount
+    );
+    event VaultMarginParametersUpdated(
+        address indexed _asset,
+        address indexed _vault,
+        uint256 _min,
+        uint256 _max,
+        uint256 _marginRequirement
     );
 
     /* ----------------------------- admin interface ---------------------------- */
@@ -140,44 +149,48 @@ contract VaultFacet is Storage, ReentrancyGuard {
         LibVault.setNFTInfo(_erc721, _erc20, _marketplace);
     }
 
-    /**
-     * @dev Set max margin for _reserve
-     * @param _reserve reserve address
-     * @param _amount max amount sponsor can deposit
-     */
-    function setMaxMargin(address _reserve, uint256 _amount)
-        external
-        authorised
-    {
-        LibVault.setMaxMargin(_reserve, _amount);
-    }
-
-    /**
-     * @dev Set min margin for _reserve
-     * @param _reserve reserve address
-     * @param _amount min amount sponsor can deposit
-     */
-    function setMinMargin(address _reserve, uint256 _amount)
-        external
-        authorised
-    {
-        LibVault.setMinMargin(_reserve, _amount);
-    }
-
-    /**
-     * @dev Update the margin requirement
-     * @param _reserve reserve address
-     * @param _requirement expressed in Ray
-     */
-    function setMarginRequirement(address _reserve, uint256 _requirement)
-        external
-        authorised
-    {
-        LibVault.setMarginRequirement(_reserve, _requirement);
-    }
-
     function setVaultBeacon(address _impl) external authorised {
         LibVault.setVaultBeacon(_impl);
+    }
+
+    /// @dev overrides global reserve margin parameters. use with extreme caution.
+    /// @param _reserve address of the underlying asset
+    /// @param _vault address of the vault
+    /// @param _min min margin in whole tokens
+    /// @param _max max margin in whole tokens
+    /// @param _marginRequirement margin requirement
+    function overrideMarginConfig(
+        address _reserve,
+        address _vault,
+        uint256 _min,
+        uint256 _max,
+        uint256 _marginRequirement
+    ) external authorised {
+        if (
+            !LibReserveConfiguration.validateMarginParams(
+                _min,
+                _max,
+                _marginRequirement
+            )
+        ) {
+            revert IllegalVaultMarginParameters();
+        }
+
+        LibVault.setVaultConfig(
+            _reserve,
+            _vault,
+            _min,
+            _max,
+            _marginRequirement
+        );
+
+        emit VaultMarginParametersUpdated(
+            _reserve,
+            _vault,
+            _min,
+            _max,
+            _marginRequirement
+        );
     }
 
     /************************************** View Functions **************************************/
@@ -267,6 +280,14 @@ contract VaultFacet is Storage, ReentrancyGuard {
         return LibVault.getMargin(_vault, _reserve);
     }
 
+    function getVaultConfig(address _reserve, address _vault)
+        external
+        view
+        returns (VaultConfig memory)
+    {
+        return LibVault.getVaultConfig(_reserve, _vault);
+    }
+
     function getWithdrawableMargin(
         address _vault,
         address _reserve,
@@ -279,3 +300,4 @@ contract VaultFacet is Storage, ReentrancyGuard {
 /* --------------------------------- errors -------------------------------- */
 error InvalidVaultCall();
 error FailedDeployVault();
+error IllegalVaultMarginParameters();

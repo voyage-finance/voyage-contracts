@@ -4,12 +4,15 @@ pragma solidity ^0.8.9;
 import {LibAppStorage, AppStorage, BorrowData, BorrowState, Loan, PMT, RepaymentData, ReserveData, RepaymentData} from "./LibAppStorage.sol";
 import {LibLiquidity} from "./LibLiquidity.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
+import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
 
 library LibLoan {
     using WadRayMath for uint256;
+    using PercentageMath for uint256;
 
     uint256 internal constant RAY = 1e27;
     uint256 internal constant SECOND_PER_DAY = 1 days;
+    uint256 internal constant SECONDS_PER_YEAR = 365 days;
 
     struct LoanDetail {
         uint256 principal;
@@ -45,17 +48,17 @@ library LibLoan {
         loan.term = _term;
         loan.epoch = _epoch;
         loan.apr = _apr;
-        loan.nper = _term / _epoch;
+        loan.nper = (_term * SECOND_PER_DAY) / (_epoch * SECOND_PER_DAY);
         loan.borrowAt = block.timestamp;
-
-        uint256 principalRay = _principal.wadToRay();
-        uint256 interestRay = principalRay.rayMul(_apr);
-        uint256 interest = interestRay.rayToWad();
-        loan.interest = interest;
+        uint256 periodsPerYear = SECONDS_PER_YEAR /
+            (loan.epoch * SECOND_PER_DAY);
+        // eir = (apr * nper ) / periods_per_year
+        uint256 effectiveInterestRate = (loan.apr * loan.nper) / periodsPerYear;
+        loan.interest = loan.principal.rayMul(effectiveInterestRate);
 
         PMT memory pmt;
-        pmt.principal = _principal / loan.nper;
-        pmt.interest = interestRay.rayToWad() / loan.nper;
+        pmt.principal = loan.principal / loan.nper;
+        pmt.interest = loan.interest / loan.nper;
         pmt.pmt = pmt.principal + pmt.interest;
         loan.pmt = pmt;
 
@@ -68,18 +71,19 @@ library LibLoan {
         borrowData.nextLoanNumber++;
         borrowData.mapSize++;
         borrowData.totalPrincipal = borrowData.totalPrincipal + _principal;
-        borrowData.totalInterest =
-            borrowData.totalInterest +
-            interestRay.rayToWad();
+        borrowData.totalInterest = borrowData.totalInterest + loan.interest;
 
-        uint256 totalDebtRay = borrowState.totalDebt.wadToRay();
-        borrowState.avgBorrowRate = (totalDebtRay.rayMul(
-            borrowState.avgBorrowRate
-        ) + principalRay.rayMul(_apr)).rayDiv(totalDebtRay + principalRay);
-        borrowState.totalDebt = borrowState.totalDebt + principalRay.rayToWad();
-        borrowState.totalInterest =
-            borrowState.totalInterest +
-            interestRay.rayToWad();
+        /// @dev most of the time, principal and totalDebt are denominated in wad
+        /// we use ray operations as we are seeking avgBorrowRate, which is supposed to be epxressed in ray.
+        /// in the vast majority of cases, as the underlying asset has 18 DPs, we end up just padding the LSBs with 0 to make avgBorrowRate a ray.
+        ///  formula: ((debt * avgBorrowRate) + (principal*apr)) / (debt + principal)
+        uint256 numer = (
+            borrowState.totalDebt.rayMul(borrowState.avgBorrowRate)
+        ) + (loan.principal.rayMul(loan.apr));
+        uint256 denom = borrowState.totalDebt + loan.principal;
+        borrowState.avgBorrowRate = numer.rayDiv(denom);
+        borrowState.totalDebt = borrowState.totalDebt + loan.principal;
+        borrowState.totalInterest = borrowState.totalInterest + loan.interest;
 
         return (currentLoanNumber, loan);
     }
@@ -94,7 +98,7 @@ library LibLoan {
     ) internal returns (uint256, bool) {
         bool isFinal = false;
         BorrowData storage debtData = getBorrowData(underlying, vault);
-        BorrowState storage borrowStat = getBorrowState(underlying);
+        BorrowState storage borrowState = getBorrowState(underlying);
         Loan storage loan = debtData.loans[loanNumber];
         loan.paidTimes += 1;
         if (loan.paidTimes == loan.nper) {
@@ -119,23 +123,17 @@ library LibLoan {
         debtData.totalPrincipal = debtData.totalPrincipal - principal;
         debtData.totalInterest = debtData.totalInterest - interest;
         debtData.totalPaid = debtData.totalPaid + principal;
-        uint256 interestRay = interest.wadToRay();
-        uint256 principalRay = principal.wadToRay();
-
-        uint256 totalDebtRay = borrowStat.totalDebt.wadToRay();
-        if (totalDebtRay == principalRay) {
-            borrowStat.avgBorrowRate = 0;
+        if (borrowState.totalDebt == principal) {
+            borrowState.avgBorrowRate = 0;
         } else {
-            borrowStat.avgBorrowRate = (totalDebtRay.rayMul(
-                borrowStat.avgBorrowRate
-            ) - principalRay.rayMul(loan.apr)).rayDiv(
-                    totalDebtRay - principalRay
-                );
+            uint256 numer = borrowState.totalDebt.rayMul(
+                borrowState.avgBorrowRate
+            ) - principal.rayMul(loan.apr);
+            uint256 denom = borrowState.totalDebt - principal;
+            borrowState.avgBorrowRate = numer.rayDiv(denom);
         }
-        borrowStat.totalDebt = borrowStat.totalDebt - principalRay.rayToWad();
-        borrowStat.totalInterest =
-            borrowStat.totalInterest -
-            interestRay.rayToWad();
+        borrowState.totalDebt = borrowState.totalDebt - principal;
+        borrowState.totalInterest = borrowState.totalInterest - interest;
 
         return (
             loan.repayments.length == 0 ? 0 : loan.repayments.length - 1,

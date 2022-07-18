@@ -7,23 +7,24 @@ describe('Margin Deposit', function () {
     const { alice, tus, voyage } = await setupTestSuite();
     const signer = await ethers.getSigner(alice);
     await expect(
-      voyage.connect(signer).setMaxMargin(tus.address, '100000000000000000000')
+      voyage.connect(signer).setMarginParams(tus.address, 0, 1000, 0.1 * 1e4)
     ).to.be.revertedWith('call is not authorised');
   });
 
   it('Security deposit setup should return correct value', async function () {
-    const { tus, voyage } = await setupTestSuite();
-    await voyage.setMaxMargin(tus.address, '100000000000000000000');
-    const amountAfterSetting = await voyage.getVaultConfig(tus.address);
+    const { tus, voyage, owner } = await setupTestSuite();
+    voyage.setMarginParams(tus.address, 0, 1000, 0.1 * 1e4);
+    const vault = await voyage.getVault(owner);
+    const amountAfterSetting = await voyage.getVaultConfig(tus.address, vault);
     expect(amountAfterSetting.maxMargin.toString()).to.equal(
-      '100000000000000000000'
+      '1000000000000000000000'
     );
   });
 
   it('Security deposit should return correct value', async function () {
     const { tus, voyage, owner } = await setupTestSuite();
     const vault = await voyage.getVault(owner);
-    await voyage.setMaxMargin(tus.address, '100000000000000000000');
+    voyage.setMarginParams(tus.address, 0, 1000, 0.1 * 1e4);
     const escrowAddr = await voyage.getVaultEscrowAddr(owner, tus.address);
     const marginEscrow = await ethers.getContractAt(
       'MarginEscrow',

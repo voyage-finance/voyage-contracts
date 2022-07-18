@@ -7,12 +7,13 @@ import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {LibLoan} from "../libraries/LibLoan.sol";
 import {LibVault} from "../libraries/LibVault.sol";
 import {IReserveInterestRateStrategy} from "../interfaces/IReserveInterestRateStrategy.sol";
-import {ILoanStrategy} from "../interfaces/ILoanStrategy.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
 import {IPriceOracle} from "../interfaces/IPriceOracle.sol";
-import {LibAppStorage, AppStorage, Storage, BorrowData, BorrowState, Loan, ReserveData} from "../libraries/LibAppStorage.sol";
+import {LibAppStorage, AppStorage, Storage, BorrowData, BorrowState, Loan, ReserveConfigurationMap, ReserveData} from "../libraries/LibAppStorage.sol";
+import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {SafeTransferLib} from "../../shared/libraries/SafeTransferLib.sol";
+import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
 import {VaultDataFacet} from "../../vault/facets/VaultDataFacet.sol";
 import {VaultMarginFacet} from "../../vault/facets/VaultMarginFacet.sol";
 import {VaultAssetFacet} from "../../vault/facets/VaultAssetFacet.sol";
@@ -20,6 +21,8 @@ import {VaultAssetFacet} from "../../vault/facets/VaultAssetFacet.sol";
 contract LoanFacet is Storage {
     using WadRayMath for uint256;
     using SafeTransferLib for IERC20;
+    using PercentageMath for uint256;
+    using LibReserveConfiguration for ReserveConfigurationMap;
 
     uint256 public immutable TEN_THOUSANDS = 10000;
 
@@ -132,7 +135,7 @@ contract LoanFacet is Storage {
             revert InsufficientCreditLimit();
         }
 
-        BorrowState memory borrowStat = LibLoan.getBorrowState(_asset);
+        BorrowState memory borrowState = LibLoan.getBorrowState(_asset);
 
         ExecuteBorrowParams memory executeBorrowParams = previewBorrowParams(
             _asset,
@@ -142,7 +145,7 @@ contract LoanFacet is Storage {
         LibLoan.updateStateOnBorrow(
             _asset,
             _amount,
-            borrowStat.totalDebt + borrowStat.totalInterest,
+            borrowState.totalDebt + borrowState.totalInterest,
             executeBorrowParams.borrowRate
         );
 
@@ -195,9 +198,9 @@ contract LoanFacet is Storage {
         params.total = params.principal + params.interest;
 
         // 2. update liquidity index and interest rate
-        BorrowState memory borrowStat = LibLoan.getBorrowState(_asset);
-        params.totalDebt = borrowStat.totalDebt + borrowStat.totalInterest;
-        uint256 avgBorrowRate = borrowStat.avgBorrowRate;
+        BorrowState memory borrowState = LibLoan.getBorrowState(_asset);
+        uint256 totalDebt = borrowState.totalDebt + borrowState.totalInterest;
+        uint256 avgBorrowRate = borrowState.avgBorrowRate;
         LibLoan.updateStateOnRepayment(
             _asset,
             params.principal + params.interest,
@@ -217,10 +220,10 @@ contract LoanFacet is Storage {
 
         // 4. transfer underlying asset
         ReserveData memory reserveData = LibLiquidity.getReserveData(_asset);
-
-        uint256 seniorInterest = (params.interest *
-            reserveData.optimalTrancheRatio) / TEN_THOUSANDS;
-        uint256 juniorInterest = params.interest - seniorInterest;
+        uint256 incomeRatio = LibReserveConfiguration
+            .getConfiguration(_asset)
+            .getIncomeRatio();
+        uint256 seniorInterest = params.interest.percentMul(incomeRatio);
 
         IERC20(_asset).safeTransferFrom(
             _msgSender(),
@@ -231,7 +234,7 @@ contract LoanFacet is Storage {
         IERC20(_asset).safeTransferFrom(
             _msgSender(),
             reserveData.juniorDepositTokenAddress,
-            juniorInterest
+            params.interest - seniorInterest
         );
 
         emit Repayment(
@@ -255,6 +258,8 @@ contract LoanFacet is Storage {
         ReserveData memory reserveData = LibLiquidity.getReserveData(
             param.reserve
         );
+        ReserveConfigurationMap memory reserveConf = LibReserveConfiguration
+            .getConfiguration(_reserve);
 
         // 1. prepare basic info and some strategy parameters
         param.reserve = _reserve;
@@ -262,11 +267,10 @@ contract LoanFacet is Storage {
         param.loanId = _loanId;
         param.liquidator = _msgSender();
         (
-            param.gracePeriod,
             param.liquidationBonus,
-            param.marginRequirement
-        ) = ILoanStrategy(reserveData.loanStrategyAddress)
-            .getLiquidationParams();
+            param.marginRequirement,
+            param.gracePeriod
+        ) = reserveConf.getLiquidationParams();
         param.totalNFTNums = VaultDataFacet(param.vault).getTotalNFTNumbers(
             reserveData.nftAddress
         );
@@ -432,17 +436,15 @@ contract LoanFacet is Storage {
     {
         ExecuteBorrowParams memory executeBorrowParams;
         ReserveData memory reserveData = LibLiquidity.getReserveData(_asset);
+        ReserveConfigurationMap memory reserveConf = LibReserveConfiguration
+            .getConfiguration(_asset);
 
         // 4. update debt logic
-        executeBorrowParams.term = ILoanStrategy(
-            reserveData.loanStrategyAddress
-        ).getTerm();
-        executeBorrowParams.epoch = ILoanStrategy(
-            reserveData.loanStrategyAddress
-        ).getEpoch();
+        (executeBorrowParams.epoch, executeBorrowParams.term) = reserveConf
+            .getBorrowParams();
 
         // 5. update liquidity index and interest rate
-        BorrowState memory borrowStat = LibLoan.getBorrowState(_asset);
+        BorrowState memory borrowState = LibLoan.getBorrowState(_asset);
 
         (
             executeBorrowParams.liquidityRate,
@@ -454,8 +456,8 @@ contract LoanFacet is Storage {
                 reserveData.seniorDepositTokenAddress,
                 0,
                 _amount,
-                borrowStat.totalDebt,
-                borrowStat.avgBorrowRate
+                borrowState.totalDebt,
+                borrowState.avgBorrowRate
             );
 
         return executeBorrowParams;
@@ -511,9 +513,8 @@ contract LoanFacet is Storage {
         pure
         returns (uint256)
     {
-        uint256 valueInRay = _value.wadToRay();
-        uint256 discountValueInRay = valueInRay.rayMul(_liquidationBonus);
-        return discountValueInRay.rayToWad();
+        uint256 withBonus = _value.percentMul(_liquidationBonus);
+        return withBonus - _value;
     }
 }
 

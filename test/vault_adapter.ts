@@ -1,22 +1,17 @@
-import { ethers, getNamedAccounts } from 'hardhat';
-import { expect } from 'chai';
+import { ethers } from 'hardhat';
 import { setupTestSuite } from '../helpers/setupTestSuite';
-import { MAX_UINT_256 } from '../helpers/math';
 
+const max = 1000;
+const requirement = 0.1 * 1e4;
 describe('Vault adapter', function () {
   it('Call buy nft should return correct value', async function () {
     const { alice, tus, voyage, crab, marketPlace, owner } =
       await setupTestSuite();
     const vault = await voyage.getVault(owner);
     const depositAmount = '100000000000000000000';
-    await voyage.setMaxMargin(tus.address, '1000000000000000000000');
+    await voyage.setMarginParams(tus.address, 0, max, requirement);
     await voyage.deposit(tus.address, 0, depositAmount, owner);
     await voyage.deposit(tus.address, 1, depositAmount, owner);
-    await voyage.setMarginRequirement(
-      tus.address,
-      '100000000000000000000000000'
-    ); // 0.1
-
     await voyage.depositMargin(vault, tus.address, '100000000000000000000');
     await voyage.borrow(tus.address, '100000000000000000000', vault);
     const escrowAddr = await voyage.getVaultEscrowAddr(owner, tus.address);

@@ -1,23 +1,20 @@
 import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers';
+import { RAY, WAD } from './constants';
 
 export const MAX_UINT_256 =
   '115792089237316195423570985008687907853269984665640564039457584007913129639935';
-
-export const WAD = new BigNumber(10).pow(18);
-
-export const RAY = new BigNumber(10).pow(27);
 
 export const toRay = (n: BigNumber) => {
   return n.multipliedBy(RAY);
 };
 
-export const toWadValue = (value: number) => {
+export const toWad = (value: number) => {
   const n = new BigNumber(value);
   return n.multipliedBy(WAD).toFixed();
 };
 
-export const formatTokenBalance = (
+export const formatBN = (
   n: ethers.BigNumber,
   decimals: number,
   precision: number = 5

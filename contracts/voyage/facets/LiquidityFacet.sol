@@ -23,8 +23,7 @@ contract LiquidityFacet is Storage {
         address indexed _asset,
         address _juniorDepositTokenAddress,
         address _seniorDepositTokenAddress,
-        address _interestRateStrategyAddress,
-        uint256 _optimalIncomeRatio
+        address _interestRateStrategyAddress
     );
     event ReserveActivated(address indexed _asset);
     event Deposit(
@@ -41,12 +40,9 @@ contract LiquidityFacet is Storage {
     );
 
     /* ----------------------------- admin interface ---------------------------- */
-
     function initReserve(
         address _asset,
         address _interestRateStrategyAddress,
-        address _loanStrategyAddress,
-        uint256 _optimalIncomeRatio,
         address _priceOracle,
         address _nftAddr
     ) external authorised {
@@ -60,8 +56,6 @@ contract LiquidityFacet is Storage {
         reserveData.init(
             _asset,
             _interestRateStrategyAddress,
-            _loanStrategyAddress,
-            _optimalIncomeRatio,
             _priceOracle,
             _nftAddr
         );
@@ -71,8 +65,7 @@ contract LiquidityFacet is Storage {
             _asset,
             reserveData.juniorDepositTokenAddress,
             reserveData.seniorDepositTokenAddress,
-            _interestRateStrategyAddress,
-            _optimalIncomeRatio
+            _interestRateStrategyAddress
         );
     }
 
@@ -80,11 +73,10 @@ contract LiquidityFacet is Storage {
         if (!Address.isContract(_asset)) {
             revert InvalidContract();
         }
-        ReserveConfigurationMap memory config = LibLiquidity.getConfiguration(
-            _asset
-        );
+        ReserveConfigurationMap memory config = LibReserveConfiguration
+            .getConfiguration(_asset);
         config.setActive(true);
-        s._reserves[_asset].configuration.data = config.data;
+        LibReserveConfiguration.saveConfiguration(_asset, config);
         emit ReserveActivated(_asset);
     }
 
@@ -171,7 +163,9 @@ contract LiquidityFacet is Storage {
         returns (bool initialized, bool activated)
     {
         initialized = LibLiquidity.getReserveData(_reserve).initialized;
-        (activated, , ) = LibLiquidity.getFlags(_reserve);
+        (activated, , ) = LibReserveConfiguration
+            .getConfiguration(_reserve)
+            .getFlags();
     }
 
     function balance(
@@ -226,7 +220,7 @@ contract LiquidityFacet is Storage {
             bool
         )
     {
-        return LibLiquidity.getFlags(_reserve);
+        return LibReserveConfiguration.getConfiguration(_reserve).getFlags();
     }
 }
 

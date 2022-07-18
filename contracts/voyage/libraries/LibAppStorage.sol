@@ -27,34 +27,33 @@ struct ReserveData {
     uint256 currentJuniorLiquidityRate;
     uint256 currentSeniorLiquidityRate;
     uint256 currentBorrowRate;
-    // Expressed in ray
-    uint256 marginRequirement;
     //the decimals of the reserve asset
     uint256 decimals;
     address interestRateStrategyAddress;
-    address loanStrategyAddress;
     address juniorDepositTokenAddress;
     address seniorDepositTokenAddress;
     uint40 juniorLastUpdateTimestamp;
     uint40 seniorLastUpdateTimestamp;
-    // Expressed in basis point
-    uint256 optimalTrancheRatio;
-    uint256 currentIncomeRatio;
-    uint256 optimalIncomeRatio;
     address nftAddress;
     address priceOracle;
     bool initialized;
 }
 
 struct ReserveConfigurationMap {
-    //bit 0-15: Liquidate bonus
-    //bit 16-23: Decimals
-    //bit 24: Reserve is active
+    //bit 0-15: liquidation bonus (uint16)
+    //bit 16-23: decimals (uint8)
+    //bit 24: reserve is active
     //bit 25: reserve is frozen
     //bit 26: borrowing is enabled
-    //bit 27-30: reserved
-    //bit 31-46: reserve factor
-    //bit 47-62: lock up period in seconds
+    //bit 27: reserved
+    //bit 28-63: min margin (uint36)
+    //bit 64-99: max margin (uint36)
+    //bit 100-115: margin requirement (uint16)
+    //bit 116-131: income ratio (uint16)
+    //bit 132-139: instalment interval (uint8)
+    //bit 140-155: loan term (uint16)
+    //bit 156-163: repayment grace period (uint8)
+    //bit 164-255: unused
     uint256 data;
 }
 
@@ -125,6 +124,7 @@ struct VaultConfig {
     uint256 minMargin;
     uint256 maxMargin;
     uint256 marginRequirement;
+    bool overrideGlobal;
 }
 
 struct ProtocolFee {
@@ -203,7 +203,7 @@ struct AppStorage {
     // mapping of vault owner to vault instance address
     mapping(address => address) vaultMap;
     // mapping of underlying asset to vault configuration
-    mapping(address => VaultConfig) vaultConfigMap;
+    mapping(address => mapping(address => VaultConfig)) vaultConfigMap;
     // mapping of marketplace to erc721 address
     // for validate onNFTReceived
     mapping(address => address) marketPlaceToAsset;

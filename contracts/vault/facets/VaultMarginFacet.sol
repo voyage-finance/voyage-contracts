@@ -5,8 +5,8 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 import {CustodyData, VaultStorageV1, LibVaultStorage, Storage} from "../libraries/LibVaultStorage.sol";
 import {IMarginEscrow} from "../interfaces/IMarginEscrow.sol";
 import {VaultConfig} from "../../voyage/libraries/LibAppStorage.sol";
-import {DataProviderFacet} from "../../voyage/facets/DataProviderFacet.sol";
 import {PaymentsFacet} from "../../shared/facets/PaymentsFacet.sol";
+import {VaultFacet} from "../../voyage/facets/VaultFacet.sol";
 
 contract VaultMarginFacet is ReentrancyGuard, Storage {
     /// @notice Transfer some margin deposit
@@ -18,20 +18,18 @@ contract VaultMarginFacet is ReentrancyGuard, Storage {
         address _reserve,
         uint256 _amount
     ) external payable nonReentrant onlyVoyage {
-        VaultConfig memory vaultConfig = DataProviderFacet(
+        VaultConfig memory vc = VaultFacet(
             LibVaultStorage.diamondStorage().voyage
-        ).getVaultConfig(_reserve);
+        ).getVaultConfig(_reserve, address(this));
         IMarginEscrow me = _marginEscrow(_reserve);
         if (address(me) == address(0)) {
             revert VaultNotInitialised();
         }
-        uint256 maxAllowedAmount = vaultConfig.maxMargin;
         uint256 depositedAmount = me.totalMargin();
-        if (depositedAmount + _amount > maxAllowedAmount) {
+        if (depositedAmount + _amount > vc.maxMargin) {
             revert InvalidDeposit("deposit amount exceed");
         }
-        uint256 minAllowedAmount = vaultConfig.minMargin;
-        if (minAllowedAmount > _amount) {
+        if (vc.minMargin > _amount) {
             revert InvalidDeposit("deposit too small");
         }
         PaymentsFacet(address(this)).pullToken(

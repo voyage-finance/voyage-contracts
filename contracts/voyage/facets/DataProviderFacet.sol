@@ -5,10 +5,11 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
-import {AppStorage, ReserveData, Tranche, VaultConfig, LoanList, RepaymentData} from "../libraries/LibAppStorage.sol";
+import {AppStorage, ReserveData, ReserveConfigurationMap, Tranche, VaultConfig, LoanList, RepaymentData} from "../libraries/LibAppStorage.sol";
 import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {LibLoan} from "../libraries/LibLoan.sol";
 import {LibVault} from "../libraries/LibVault.sol";
+import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
 
 struct CreditLineData {
     uint256 totalDebt;
@@ -24,6 +25,7 @@ struct CreditLineData {
 
 contract DataProviderFacet {
     using WadRayMath for uint256;
+    using LibReserveConfiguration for ReserveConfigurationMap;
 
     AppStorage internal s;
 
@@ -50,12 +52,15 @@ contract DataProviderFacet {
     }
 
     struct PoolConfiguration {
+        uint256 liquidationBonus;
         uint256 marginRequirement;
         uint256 minMargin;
         uint256 maxMargin;
+        uint256 apr;
+        uint256 loanInterval;
         uint256 loanTenure;
-        uint256 optimalTrancheRatio;
-        uint256 optimalIncomeRatio;
+        uint256 incomeRatio;
+        bool isInitialized;
         bool isActive;
     }
 
@@ -70,27 +75,28 @@ contract DataProviderFacet {
         returns (PoolConfiguration memory)
     {
         PoolConfiguration memory poolConfiguration;
-        ReserveData memory reserve = LibLiquidity.getReserveData(_reserve);
-        VaultConfig memory vc = LibVault.getVaultConfig(_reserve);
-        poolConfiguration.marginRequirement = vc.marginRequirement;
-        poolConfiguration.minMargin = vc.minMargin;
-        poolConfiguration.maxMargin = vc.maxMargin;
-        poolConfiguration.optimalIncomeRatio = reserve.optimalIncomeRatio;
-        poolConfiguration.optimalTrancheRatio = reserve.optimalTrancheRatio;
-        (bool isActive, , ) = LibLiquidity.getFlags(_reserve);
-        poolConfiguration.isActive = isActive;
+        ReserveConfigurationMap memory config = LibReserveConfiguration
+            .getConfiguration(_reserve);
+        poolConfiguration.liquidationBonus = config.getLiquidationBonus();
+        poolConfiguration.incomeRatio = config.getIncomeRatio();
+        (
+            poolConfiguration.marginRequirement,
+            poolConfiguration.minMargin,
+            poolConfiguration.maxMargin
+        ) = config.getMarginParams();
+        (poolConfiguration.isActive, , ) = config.getFlags();
 
         return poolConfiguration;
     }
 
-    function getPoolData(address underlyingAsset)
+    function getPoolData(address _asset)
         external
         view
         returns (PoolData memory)
     {
         LibLiquidity.DepositAndDebt memory depositAndDebt = LibLiquidity
-            .getDepositAndDebt(underlyingAsset);
-        IERC20Metadata token = IERC20Metadata(underlyingAsset);
+            .getDepositAndDebt(_asset);
+        IERC20Metadata token = IERC20Metadata(_asset);
 
         PoolData memory poolData;
         poolData.juniorLiquidity = depositAndDebt.juniorDepositAmount;
@@ -99,11 +105,11 @@ contract DataProviderFacet {
             depositAndDebt.seniorDepositAmount +
             depositAndDebt.juniorDepositAmount;
         poolData.juniorLiquidityRate = LibLiquidity.getLiquidityRate(
-            underlyingAsset,
+            _asset,
             Tranche.JUNIOR
         );
         poolData.seniorLiquidityRate = LibLiquidity.getLiquidityRate(
-            underlyingAsset,
+            _asset,
             Tranche.SENIOR
         );
         poolData.totalDebt = depositAndDebt.totalDebt;
@@ -116,12 +122,11 @@ contract DataProviderFacet {
         }
 
         poolData.decimals = token.decimals();
-        poolData.utilizationRate = LibLiquidity.utilizationRate(
-            underlyingAsset
-        );
+        poolData.utilizationRate = LibLiquidity.utilizationRate(_asset);
         poolData.symbol = token.symbol();
-        (bool isActive, , ) = LibLiquidity.getFlags(underlyingAsset);
-        poolData.isActive = isActive;
+        (poolData.isActive, , ) = LibReserveConfiguration
+            .getConfiguration(_asset)
+            .getFlags();
 
         return poolData;
     }
@@ -283,11 +288,24 @@ contract DataProviderFacet {
         return (times, amounts);
     }
 
-    function getVaultConfig(address _reserve)
+    function getMarginConfiguration(address _asset)
         external
         view
-        returns (VaultConfig memory)
+        returns (
+            uint256,
+            uint256,
+            uint256
+        )
     {
-        return LibVault.getVaultConfig(_reserve);
+        ReserveConfigurationMap memory conf = LibReserveConfiguration
+            .getConfiguration(_asset);
+        uint256 decimals = conf.getDecimals();
+        uint256 assetUnit = 10**decimals;
+        (
+            uint256 min,
+            uint256 max,
+            uint256 marginRequirement
+        ) = LibReserveConfiguration.getConfiguration(_asset).getMarginParams();
+        return (min * assetUnit, max * assetUnit, marginRequirement);
     }
 }

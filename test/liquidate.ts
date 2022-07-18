@@ -1,26 +1,23 @@
 import { expect } from 'chai';
-import { ethers, getNamedAccounts } from 'hardhat';
+import { ethers } from 'hardhat';
+import { toWad } from '../helpers/math';
 import { setupTestSuite } from '../helpers/setupTestSuite';
-import { RAY, toWadValue, WAD } from '../helpers/math';
-import BigNumber from 'bignumber.js';
-import { lchmod } from 'fs';
+
+const liquidationBonus = ethers.BigNumber.from(10500);
+const maxMargin = 1000;
+const marginRequirement = 0.1 * 1e4;
 
 describe('Liquidate', function () {
   it('Liquidate a invalid debt should revert', async function () {
-    const { owner, juniorDepositToken, seniorDepositToken, tus, voyage } =
-      await setupTestSuite();
+    const { owner, tus, voyage } = await setupTestSuite();
     const vault = await voyage.getVault(owner);
 
-    const depositAmount = toWadValue(100);
-    const maxMargin = toWadValue(1000);
-    await voyage.setMaxMargin(tus.address, maxMargin);
+    const depositAmount = toWad(100);
     await voyage.deposit(tus.address, 0, depositAmount, owner);
     await voyage.deposit(tus.address, 1, depositAmount, owner);
-    const marginRequirement = new BigNumber(0.1).multipliedBy(RAY).toFixed();
-    await voyage.setMarginRequirement(tus.address, marginRequirement);
 
     await voyage.depositMargin(vault, tus.address, depositAmount);
-    const borrowAmount = toWadValue(10);
+    const borrowAmount = toWad(10);
     await voyage.borrow(tus.address, borrowAmount, vault);
 
     // repay the first draw down
@@ -33,20 +30,16 @@ describe('Liquidate', function () {
   });
 
   it('Invalid floor price should revert', async function () {
-    const { owner, juniorDepositToken, seniorDepositToken, tus, voyage } =
-      await setupTestSuite();
+    const { owner, tus, voyage } = await setupTestSuite();
+    await voyage.setLiquidationBonus(tus.address, liquidationBonus);
     const vault = await voyage.getVault(owner);
 
-    const depositAmount = toWadValue(100);
-    const maxMargin = toWadValue(1000);
-    await voyage.setMaxMargin(tus.address, maxMargin);
+    const depositAmount = toWad(100);
+    await voyage.setMarginParams(tus.address, 0, maxMargin, marginRequirement);
     await voyage.deposit(tus.address, 0, depositAmount, owner);
     await voyage.deposit(tus.address, 1, depositAmount, owner);
-    const marginRequirement = new BigNumber(0.1).multipliedBy(RAY).toFixed();
-    await voyage.setMarginRequirement(tus.address, marginRequirement);
-
     await voyage.depositMargin(vault, tus.address, depositAmount);
-    const borrowAmount = toWadValue(10);
+    const borrowAmount = toWad(10);
     await voyage.borrow(tus.address, borrowAmount, vault);
     // increase 51 days
     const days = 51 * 24 * 60 * 60;
@@ -59,28 +52,16 @@ describe('Liquidate', function () {
   });
 
   it('Valid liquidate with nft should return correct value', async function () {
-    const {
-      owner,
-      juniorDepositToken,
-      seniorDepositToken,
-      tus,
-      voyage,
-      priceOracle,
-      crab,
-    } = await setupTestSuite();
+    const { owner, tus, voyage, priceOracle, crab } = await setupTestSuite();
     const vault = await voyage.getVault(owner);
 
-    const depositAmount = toWadValue(120);
-    const juniorDeposit = toWadValue(50);
-    const margin = toWadValue(20);
-    const maxMargin = toWadValue(1000);
-    await voyage.setMaxMargin(tus.address, maxMargin);
+    const depositAmount = toWad(120);
+    const juniorDeposit = toWad(50);
+    const margin = toWad(20);
     await voyage.deposit(tus.address, 0, juniorDeposit, owner);
     await voyage.deposit(tus.address, 1, depositAmount, owner);
-    const marginRequirement = new BigNumber(0.1).multipliedBy(RAY).toFixed();
-    await voyage.setMarginRequirement(tus.address, marginRequirement);
     await voyage.depositMargin(vault, tus.address, margin);
-    const borrowAmount = toWadValue(120);
+    const borrowAmount = toWad(120);
     await voyage.borrow(tus.address, borrowAmount, vault);
 
     await crab.safeMint(vault, 1);

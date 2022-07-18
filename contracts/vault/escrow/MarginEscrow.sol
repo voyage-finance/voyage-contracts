@@ -10,6 +10,7 @@ import {IMarginEscrow} from "../interfaces/IMarginEscrow.sol";
 import {VaultDataFacet} from "../facets/VaultDataFacet.sol";
 import {EthAddressLib} from "../../shared/libraries/EthAddressLib.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
+import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
 import {ERC4626, IERC4626} from "../../shared/tokenization/ERC4626.sol";
 import {SafeTransferLib} from "../../shared/libraries/SafeTransferLib.sol";
 
@@ -21,6 +22,7 @@ contract MarginEscrow is
 {
     using WadRayMath for uint256;
     using SafeTransferLib for IERC20Metadata;
+    using PercentageMath for uint256;
     using Address for address payable;
 
     event Deposited(address indexed payee, address token, uint256 amount);
@@ -100,10 +102,7 @@ contract MarginEscrow is
         uint256 vaultDebt = vdf.totalDebt(_asset);
         uint256 marginRequirement = vdf.marginRequirement(_asset);
         uint256 totalMargin = totalMargin();
-        uint256 marginMin = vaultDebt
-            .wadToRay()
-            .rayMul(marginRequirement)
-            .rayToWad();
+        uint256 marginMin = vaultDebt.percentMul(marginRequirement);
         if (totalMargin >= marginMin) {
             return totalMargin - marginMin;
         }
