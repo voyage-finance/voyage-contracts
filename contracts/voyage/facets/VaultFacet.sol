@@ -42,6 +42,13 @@ contract VaultFacet is Storage, ReentrancyGuard {
         address _sponsor,
         uint256 _amount
     );
+    event VaultMarginParametersUpdated(
+        address indexed _asset,
+        address indexed _vault,
+        uint256 _min,
+        uint256 _max,
+        uint256 _marginRequirement
+    );
 
     /* ----------------------------- admin interface ---------------------------- */
     function createVault(address owner) external authorised {
@@ -146,6 +153,46 @@ contract VaultFacet is Storage, ReentrancyGuard {
         LibVault.setVaultBeacon(_impl);
     }
 
+    /// @dev overrides global reserve margin parameters. use with extreme caution.
+    /// @param _reserve address of the underlying asset
+    /// @param _vault address of the vault
+    /// @param _min min margin in whole tokens
+    /// @param _max max margin in whole tokens
+    /// @param _marginRequirement margin requirement
+    function overrideMarginConfig(
+        address _reserve,
+        address _vault,
+        uint256 _min,
+        uint256 _max,
+        uint256 _marginRequirement
+    ) external authorised {
+        if (
+            !LibReserveConfiguration.validateMarginParams(
+                _min,
+                _max,
+                _marginRequirement
+            )
+        ) {
+            revert IllegalVaultMarginParameters();
+        }
+
+        LibVault.setVaultConfig(
+            _reserve,
+            _vault,
+            _min,
+            _max,
+            _marginRequirement
+        );
+
+        emit VaultMarginParametersUpdated(
+            _reserve,
+            _vault,
+            _min,
+            _max,
+            _marginRequirement
+        );
+    }
+
     /************************************** View Functions **************************************/
     function vaultBeacon() public view returns (address) {
         return LibVault.vaultBeacon();
@@ -199,19 +246,6 @@ contract VaultFacet is Storage, ReentrancyGuard {
         return LibVault.getMarketPlaceByAsset(_asset);
     }
 
-    function getMarginConfiguration(address _asset)
-        external
-        view
-        returns (
-            uint256,
-            uint256,
-            uint256
-        )
-    {
-        return
-            LibReserveConfiguration.getConfiguration(_asset).getMarginParams();
-    }
-
     /**
      * @dev Get available credit
      * @param _vault user address
@@ -246,6 +280,14 @@ contract VaultFacet is Storage, ReentrancyGuard {
         return LibVault.getMargin(_vault, _reserve);
     }
 
+    function getVaultConfig(address _reserve, address _vault)
+        external
+        view
+        returns (VaultConfig memory)
+    {
+        return LibVault.getVaultConfig(_reserve, _vault);
+    }
+
     function getWithdrawableMargin(
         address _vault,
         address _reserve,
@@ -258,3 +300,4 @@ contract VaultFacet is Storage, ReentrancyGuard {
 /* --------------------------------- errors -------------------------------- */
 error InvalidVaultCall();
 error FailedDeployVault();
+error IllegalVaultMarginParameters();

@@ -220,10 +220,10 @@ contract LoanFacet is Storage {
 
         // 4. transfer underlying asset
         ReserveData memory reserveData = LibLiquidity.getReserveData(_asset);
-
-        uint256 seniorInterest = (params.interest *
-            reserveData.optimalTrancheRatio) / TEN_THOUSANDS;
-        uint256 juniorInterest = params.interest - seniorInterest;
+        uint256 incomeRatio = LibReserveConfiguration
+            .getConfiguration(_asset)
+            .getIncomeRatio();
+        uint256 seniorInterest = params.interest.percentMul(incomeRatio);
 
         IERC20(_asset).safeTransferFrom(
             _msgSender(),
@@ -234,7 +234,7 @@ contract LoanFacet is Storage {
         IERC20(_asset).safeTransferFrom(
             _msgSender(),
             reserveData.juniorDepositTokenAddress,
-            juniorInterest
+            params.interest - seniorInterest
         );
 
         emit Repayment(

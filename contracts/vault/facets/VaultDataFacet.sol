@@ -35,9 +35,9 @@ contract VaultDataFacet is ReentrancyGuard, Storage, IERC1271 {
     /// @notice Get margin requirement
     /// @param _reserve Address of the reserve
     function marginRequirement(address _reserve) public view returns (uint256) {
-        VaultConfig memory vc = DataProviderFacet(
+        VaultConfig memory vc = VaultFacet(
             LibVaultStorage.diamondStorage().voyage
-        ).getVaultConfig(_reserve);
+        ).getVaultConfig(_reserve, address(this));
         return vc.marginRequirement;
     }
 

@@ -76,29 +76,6 @@ describe('Borrow', function () {
     console.log('available credit: ', formatBN(availableCredit, 18));
     await voyage.borrow(tus.address, borrow, vault);
     const vaultBalance2 = await tus.balanceOf(vault);
-
-    console.log(
-      'apr: ',
-      formatBN(ethers.BigNumber.from('180000000000000000000000000'), 27)
-    );
-    console.log(
-      'eir: ',
-      formatBN(ethers.BigNumber.from('45000000000000000000000000'), 27)
-    );
-    console.log('principal: ', formatBN(vaultBalance, 18));
-    console.log(
-      'interest: ',
-      formatBN(ethers.BigNumber.from('450000000000000000'), 18)
-    );
-    console.log(
-      'apr 2: ',
-      formatBN(ethers.BigNumber.from('185555555555555555555555555'), 27)
-    );
-    console.log(
-      'averageBorrowRate: ',
-      formatBN(ethers.BigNumber.from('182777777777777777800000000'), 27)
-    );
-
     console.log('vault balance: ', vaultBalance2.toString());
     console.log('available credit: ', availableCredit.toString());
   });

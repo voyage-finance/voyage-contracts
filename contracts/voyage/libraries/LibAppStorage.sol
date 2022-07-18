@@ -123,6 +123,7 @@ struct VaultConfig {
     uint256 minMargin;
     uint256 maxMargin;
     uint256 marginRequirement;
+    bool overrideGlobal;
 }
 
 struct ProtocolFee {
@@ -200,7 +201,7 @@ struct AppStorage {
     // mapping of vault owner to vault instance address
     mapping(address => address) vaultMap;
     // mapping of underlying asset to vault configuration
-    mapping(address => VaultConfig) vaultConfigMap;
+    mapping(address => mapping(address => VaultConfig)) vaultConfigMap;
     // mapping of marketplace to erc721 address
     // for validate onNFTReceived
     mapping(address => address) marketPlaceToAsset;
