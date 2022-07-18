@@ -9,6 +9,7 @@ import {IReserveInterestRateStrategy} from "../interfaces/IReserveInterestRateSt
 import {ValidationLogic} from "./LibValidation.sol";
 import {LibAppStorage, AppStorage, ReserveData, ReserveConfigurationMap, BorrowData, BorrowState, Tranche} from "./LibAppStorage.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
+import {IWETH9} from "../../shared/facets/PaymentsFacet.sol";
 import {VToken} from "../tokenization/VToken.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 
@@ -240,6 +241,11 @@ library LibLiquidity {
                 _avgBorrowRate
             );
         }
+    }
+
+    function updateWETH9(address _weth9) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        s.WETH9 = IWETH9(_weth9);
     }
 
     /* ----------------------------- view functions ----------------------------- */

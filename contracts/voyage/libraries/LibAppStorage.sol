@@ -11,7 +11,7 @@ import {IVaultFactory} from "../interfaces/IVaultFactory.sol";
 import {IDiamondCut} from "../../shared/diamond/interfaces/IDiamondCut.sol";
 import {IDiamondLoupe} from "../../shared/diamond/interfaces/IDiamondLoupe.sol";
 import {DiamondCutFacet} from "../../shared/diamond/facets/DiamondCutFacet.sol";
-import "hardhat/console.sol";
+import {IWETH9} from "../../shared/facets/PaymentsFacet.sol";
 
 enum Tranche {
     JUNIOR,
@@ -187,6 +187,7 @@ struct AppStorage {
     // List of reserves as a map (reserveId => reserve)
     mapping(uint256 => address) _reserveList;
     uint16 _reservesCount;
+    IWETH9 WETH9;
     /* ---------------------------------- debt ---------------------------------- */
     mapping(address => mapping(address => BorrowData)) _borrowData;
     mapping(address => BorrowState) _borrowState;

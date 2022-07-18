@@ -53,6 +53,10 @@ const deployFn: DeployFunction = async (hre) => {
     from: owner,
     log: true,
   });
+  const weth9 = await deploy('WETH9', {
+    from: owner,
+    log: true,
+  });
 
   const diamondABI: any[] = [];
   const diamondProxyArtifact = await getArtifact('Diamond');
@@ -110,6 +114,11 @@ const deployFn: DeployFunction = async (hre) => {
     },
     {
       name: 'DataProviderFacet',
+      from: owner,
+      log: true,
+    },
+    {
+      name: 'PaymentsFacet',
       from: owner,
       log: true,
     },
@@ -232,6 +241,7 @@ const deployFn: DeployFunction = async (hre) => {
           diamondCutFacet: diamondCutFacet.address,
           diamondLoupeFacet: diamondLoupeFacet.address,
           ownershipFacet: ownershipFacet.address,
+          weth9: weth9.address,
         },
       ]);
 

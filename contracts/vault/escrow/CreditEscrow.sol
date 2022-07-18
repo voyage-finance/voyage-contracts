@@ -4,12 +4,12 @@ pragma solidity ^0.8.9;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ICreditEscrow} from "../interfaces/ICreditEscrow.sol";
+import {SafeTransferLib} from "../../shared/libraries/SafeTransferLib.sol";
 
 contract CreditEscrow is ReentrancyGuard, Initializable, ICreditEscrow {
-    using SafeERC20 for IERC20;
+    using SafeTransferLib for IERC20;
 
     address owner;
 

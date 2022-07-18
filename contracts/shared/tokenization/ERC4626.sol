@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ERC20PermitUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-ERC20PermitUpgradeable.sol";
 import {FixedPointMathLib} from "@rari-capital/solmate/src/utils/FixedPointMathLib.sol";
 import {IERC4626} from "../interfaces/IERC4626.sol";
+import {SafeTransferLib} from "../libraries/SafeTransferLib.sol";
 
 abstract contract ERC4626 is Initializable, ERC20PermitUpgradeable, IERC4626 {
-    using SafeERC20 for IERC20Metadata;
+    using SafeTransferLib for IERC20Metadata;
     using FixedPointMathLib for uint256;
 
     IERC20Metadata public asset;

@@ -3,7 +3,6 @@ pragma solidity ^0.8.9;
 
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
 import {JuniorDepositToken} from "../tokenization/JuniorDepositToken.sol";
 import {SeniorDepositToken} from "../tokenization/SeniorDepositToken.sol";
@@ -11,13 +10,14 @@ import {LibAppStorage, AppStorage, Storage, Tranche, ReserveData, BorrowState, R
 import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
 import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
-import {PeripheryPayments} from "../../shared/util/PeripheryPayments.sol";
+import {SafeTransferLib} from "../../shared/libraries/SafeTransferLib.sol";
+import {PaymentsFacet} from "../../shared/facets/PaymentsFacet.sol";
 
-contract LiquidityFacet is Storage, PeripheryPayments {
+contract LiquidityFacet is Storage {
     using LibLiquidity for ReserveData;
     using LibReserveConfiguration for ReserveConfigurationMap;
     using WadRayMath for uint256;
-    using SafeERC20 for IERC20;
+    using SafeTransferLib for IERC20;
 
     event ReserveInitialized(
         address indexed _asset,
@@ -95,6 +95,10 @@ contract LiquidityFacet is Storage, PeripheryPayments {
         LibLiquidity.updateProtocolFee(_treasuryAddr, _cutRatio);
     }
 
+    function updateWETH9(address _weth9) external authorised {
+        LibLiquidity.updateWETH9(_weth9);
+    }
+
     /* ----------------------------- user interface ----------------------------- */
 
     function deposit(
@@ -119,7 +123,12 @@ contract LiquidityFacet is Storage, PeripheryPayments {
             ? IVToken(reserve.juniorDepositTokenAddress)
             : IVToken(reserve.seniorDepositTokenAddress);
         // transfer the underlying tokens to liquidity manager, then do deposit.
-        pullToken(vToken.asset(), _amount, _user, address(this));
+        PaymentsFacet(address(this)).pullToken(
+            vToken.asset(),
+            _amount,
+            _user,
+            address(this)
+        );
         vToken.deposit(_amount, _user);
         emit Deposit(_asset, _user, _tranche, _amount);
     }

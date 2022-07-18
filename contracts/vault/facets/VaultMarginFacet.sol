@@ -6,9 +6,9 @@ import {CustodyData, VaultStorageV1, LibVaultStorage, Storage} from "../librarie
 import {IMarginEscrow} from "../interfaces/IMarginEscrow.sol";
 import {VaultConfig} from "../../voyage/libraries/LibAppStorage.sol";
 import {DataProviderFacet} from "../../voyage/facets/DataProviderFacet.sol";
-import {PeripheryPayments} from "../../shared/util/PeripheryPayments.sol";
+import {PaymentsFacet} from "../../shared/facets/PaymentsFacet.sol";
 
-contract VaultMarginFacet is ReentrancyGuard, PeripheryPayments, Storage {
+contract VaultMarginFacet is ReentrancyGuard, Storage {
     /// @notice Transfer some margin deposit
     /// @param _sponsor address of margin depositer
     /// @param _reserve reserve address
@@ -34,7 +34,12 @@ contract VaultMarginFacet is ReentrancyGuard, PeripheryPayments, Storage {
         if (minAllowedAmount > _amount) {
             revert InvalidDeposit("deposit too small");
         }
-        pullToken(me.asset(), _amount, _sponsor, address(this));
+        PaymentsFacet(address(this)).pullToken(
+            me.asset(),
+            _amount,
+            _sponsor,
+            address(this)
+        );
         me.deposit(_amount, _sponsor);
     }
 

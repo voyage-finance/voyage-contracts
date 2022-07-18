@@ -5,15 +5,15 @@ import {AppStorage, Storage} from "../libraries/LibAppStorage.sol";
 import {LibVault} from "../libraries/LibVault.sol";
 import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
+import {SafeTransferLib} from "../../shared/libraries/SafeTransferLib.sol";
 import {VaultDataFacet} from "../../vault/facets/VaultDataFacet.sol";
 import {VaultAssetFacet} from "../../vault/facets/VaultAssetFacet.sol";
 import {VaultExternalFacet} from "../../vault/facets/VaultExternalFacet.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract CrabadaAdapterFacet is Storage, ReentrancyGuard {
-    using SafeERC20 for IERC20;
+    using SafeTransferLib for IERC20;
     using WadRayMath for uint256;
 
     struct ExecuteBuyParam {
