@@ -9,6 +9,7 @@ const deployFn: DeployFunction = async (hre) => {
   const { deploy, execute, getOrNull, save, getArtifact } = deployments;
   const { owner } = await getNamedAccounts();
   const voyage = await deployments.get('Voyage');
+  const weth9 = await deployments.get('WETH9');
 
   const diamondABI: any[] = [];
   const diamondProxyArtifact = await getArtifact('VersionedDiamond');
@@ -61,6 +62,11 @@ const deployFn: DeployFunction = async (hre) => {
     },
     {
       name: 'VaultMarginFacet',
+      from: owner,
+      log: true,
+    },
+    {
+      name: 'PaymentsFacet',
       from: owner,
       log: true,
     }

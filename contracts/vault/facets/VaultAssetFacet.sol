@@ -2,7 +2,6 @@
 pragma solidity ^0.8.9;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
@@ -16,6 +15,7 @@ import {VaultFacet} from "../../voyage/facets/VaultFacet.sol";
 import {SecurityFacet} from "../../voyage/facets/SecurityFacet.sol";
 import {LoanFacet} from "../../voyage/facets/LoanFacet.sol";
 import {VaultAuth} from "../libraries/LibAuth.sol";
+import {SafeTransferLib} from "../../shared/libraries/SafeTransferLib.sol";
 
 contract VaultAssetFacet is
     ReentrancyGuard,
@@ -24,7 +24,7 @@ contract VaultAssetFacet is
     VaultAuth
 {
     using PriorityQueue for Heap;
-    using SafeERC20 for IERC20;
+    using SafeTransferLib for IERC20;
 
     /// @notice Withdraw NFT from vault
     /// @param _reserve The addresss of the reserve

@@ -8,6 +8,7 @@ import {IDiamondLoupe} from "../shared/diamond/interfaces/IDiamondLoupe.sol";
 import {IDiamondCut} from "../shared/diamond/interfaces/IDiamondCut.sol";
 import {IERC173} from "../shared/diamond/interfaces/IERC173.sol";
 import {IERC165} from "../shared/diamond/interfaces/IERC165.sol";
+import {IWETH9} from "../shared/facets/PaymentsFacet.sol";
 import {DSRoles} from "../voyage/auth/DSRoles.sol";
 import {DSGuard} from "../voyage/auth/DSGuard.sol";
 import {IVaultFactory} from "./interfaces/IVaultFactory.sol";
@@ -25,6 +26,7 @@ contract InitDiamond {
         address diamondCutFacet;
         address diamondLoupeFacet;
         address ownershipFacet;
+        address weth9;
     }
 
     function init(Args memory _args) external {
@@ -36,6 +38,7 @@ contract InitDiamond {
         ds.supportedInterfaces[type(IERC173).interfaceId] = true;
 
         // initialise app storage stuff
+        s.WETH9 = IWETH9(_args.weth9);
         s._paused = false;
         if (address(s.auth.rbac) == address(0)) {
             s.auth.rbac = new DSRoles();
