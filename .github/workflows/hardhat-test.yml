@@ -25,9 +25,9 @@ jobs:
           node-version: 'lts/*'
           cache: 'yarn'
       - run: yarn install
-      - run: yarn check:hh
-      - run: yarn compile
-      - run: yarn cov 
+      - run:  GEORLI_MNEMONIC=`${{ secrets.GEORLI_MNEMONIC }}` yarn check:hh
+      - run:  GEORLI_MNEMONIC=`${{ secrets.GEORLI_MNEMONIC }}` yarn compile
+      - run:  GEORLI_MNEMONIC=`${{ secrets.GEORLI_MNEMONIC }}` yarn cov 
 #      - name: Run codacy-coverage-reporter
 #        uses: codacy/codacy-coverage-reporter-action@v1
 #        with:

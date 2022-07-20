@@ -2,6 +2,7 @@
 pragma solidity ^0.8.9;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ERC4626} from "@rari-capital/solmate/src/mixins/ERC4626.sol";
 import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {LibLoan} from "../libraries/LibLoan.sol";
@@ -12,7 +13,6 @@ import {IPriceOracle} from "../interfaces/IPriceOracle.sol";
 import {LibAppStorage, AppStorage, Storage, BorrowData, BorrowState, Loan, ReserveConfigurationMap, ReserveData} from "../libraries/LibAppStorage.sol";
 import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
-import {SafeTransferLib} from "../../shared/libraries/SafeTransferLib.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
 import {VaultDataFacet} from "../../vault/facets/VaultDataFacet.sol";
 import {VaultMarginFacet} from "../../vault/facets/VaultMarginFacet.sol";
@@ -20,7 +20,7 @@ import {VaultAssetFacet} from "../../vault/facets/VaultAssetFacet.sol";
 
 contract LoanFacet is Storage {
     using WadRayMath for uint256;
-    using SafeTransferLib for IERC20;
+    using SafeERC20 for IERC20;
     using PercentageMath for uint256;
     using LibReserveConfiguration for ReserveConfigurationMap;
 

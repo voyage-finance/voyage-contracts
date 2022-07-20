@@ -16,6 +16,7 @@ import 'hardhat-watcher';
 dotenvConfig({ path: resolve(__dirname, './.env') });
 
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || '';
+
 // TODO @ian.tan these transactions should at some point be signed by a ledger in production.
 const DEPLOYER_PRIVATE_KEY =
   process.env.DEPLOYER_PRIVATE_KEY || ethers.Wallet.createRandom().privateKey;
@@ -52,17 +53,12 @@ const config: HardhatUserConfig = {
               interval: parseInt(process.env.MIN_INTERVAL || '500', 10),
             },
     },
-    avalancheMain: {
-      url: 'https://avax-c.staging.voyage.finance/rpc',
-      chainId: 43114,
-      accounts: [DEPLOYER_PRIVATE_KEY],
-    },
-    avalancheFuji: {
-      url: 'https://api.avax-test.network/ext/bc/C/rpc',
-      chainId: 43113,
-      accounts: [DEPLOYER_PRIVATE_KEY],
-      gas: 8000000,
-    },
+    goerli: {
+      url: `https://eth-goerli.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+      accounts: {
+        mnemonic: process.env.GEORLI_MNEMONIC,
+      },
+    }
   },
   watcher: {
     test: {

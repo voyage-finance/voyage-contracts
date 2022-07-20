@@ -3,6 +3,7 @@ pragma solidity ^0.8.9;
 
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
 import {JuniorDepositToken} from "../tokenization/JuniorDepositToken.sol";
 import {SeniorDepositToken} from "../tokenization/SeniorDepositToken.sol";
@@ -10,14 +11,13 @@ import {LibAppStorage, AppStorage, Storage, Tranche, ReserveData, BorrowState, R
 import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
 import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
-import {SafeTransferLib} from "../../shared/libraries/SafeTransferLib.sol";
 import {PaymentsFacet} from "../../shared/facets/PaymentsFacet.sol";
 
 contract LiquidityFacet is Storage {
     using LibLiquidity for ReserveData;
     using LibReserveConfiguration for ReserveConfigurationMap;
     using WadRayMath for uint256;
-    using SafeTransferLib for IERC20;
+    using SafeERC20 for IERC20;
 
     event ReserveInitialized(
         address indexed _asset,

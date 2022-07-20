@@ -7,9 +7,10 @@ import {SelfPermit} from "../util/SelfPermit.sol";
 import {LibAppStorage} from "../../voyage/libraries/LibAppStorage.sol";
 import {SafeTransferLib} from "../libraries/SafeTransferLib.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract PaymentsFacet is PeripheryPayments, Multicall, SelfPermit {
-    using SafeTransferLib for IERC20;
+    using SafeERC20 for IERC20;
 
     function unwrapWETH9(uint256 amountMinimum, address recipient)
         public
