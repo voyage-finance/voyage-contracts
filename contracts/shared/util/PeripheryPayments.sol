@@ -2,14 +2,14 @@
 pragma solidity ^0.8.9;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeTransferLib} from "../libraries/SafeTransferLib.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /// @title Depositor
 /// @author Voyage Finance
 /// @notice Forwards calls to ERC-4626 compliant Vaults, but with the actual depositor appended to the encoded call data.
 /// @dev This does not work if the receiving contract does not implement ERC-4626!
 abstract contract PeripheryPayments {
-    using SafeTransferLib for IERC20;
+    using SafeERC20 for IERC20;
 
     function pullToken(
         IERC20 token,

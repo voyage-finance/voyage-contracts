@@ -1,0 +1,61 @@
+{
+  "address": "0x66287287e69478dA0d0150806D6DbB30Baa67615",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "initOwner",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct VaultInitDiamond.Args",
+          "name": "_args",
+          "type": "tuple"
+        }
+      ],
+      "name": "init",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x65e9e865bd9bc437bf272f64dff28fe20bf2ad722e33e5a774240c9a5ad2fc90",
+  "receipt": {
+    "to": null,
+    "from": "0x7bB17c9401110D05ec39894334cC9d7721E90688",
+    "contractAddress": "0x66287287e69478dA0d0150806D6DbB30Baa67615",
+    "transactionIndex": 19,
+    "gasUsed": "107475",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x5a909f5862b70fcadc822c99782f808ed9524dde0b0b745af878c4a00ccd4a22",
+    "transactionHash": "0x65e9e865bd9bc437bf272f64dff28fe20bf2ad722e33e5a774240c9a5ad2fc90",
+    "logs": [],
+    "blockNumber": 7259675,
+    "cumulativeGasUsed": "1182316",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "16d6ab37bd1a3d6bdf5bed347f9371f7",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.9+commit.e5eed63a\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"initOwner\",\"type\":\"address\"}],\"internalType\":\"struct VaultInitDiamond.Args\",\"name\":\"_args\",\"type\":\"tuple\"}],\"name\":\"init\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/vault/VaultInitDiamond.sol\":\"VaultInitDiamond\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":2000},\"remappings\":[]},\"sources\":{\"contracts/vault/VaultInitDiamond.sol\":{\"content\":\"// SPDX-License-Identifier: GPL-3.0\\npragma solidity ^0.8.9;\\n\\ncontract VaultInitDiamond {\\n    struct Args {\\n        address initOwner;\\n    }\\n\\n    function init(Args memory _args) external {}\\n}\\n\",\"keccak256\":\"0xe027e20c923113f45d78b0a4b38da231f834ea1fd024566a90455826ec7cd892\",\"license\":\"GPL-3.0\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b5060fc8061001f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633cfffd3914602d575b600080fd5b603b6038366004603d565b50565b005b600060208284031215604e57600080fd5b6040516020810181811067ffffffffffffffff821117156097577f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b604052823573ffffffffffffffffffffffffffffffffffffffff8116811460bd57600080fd5b8152939250505056fea26469706673582212202caf90007daf505e3dea190231d73a7d36d6376caece00d30958c5b49530af4264736f6c63430008090033",
+  "deployedBytecode": "0x6080604052348015600f57600080fd5b506004361060285760003560e01c80633cfffd3914602d575b600080fd5b603b6038366004603d565b50565b005b600060208284031215604e57600080fd5b6040516020810181811067ffffffffffffffff821117156097577f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b604052823573ffffffffffffffffffffffffffffffffffffffff8116811460bd57600080fd5b8152939250505056fea26469706673582212202caf90007daf505e3dea190231d73a7d36d6376caece00d30958c5b49530af4264736f6c63430008090033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [],
+    "types": null
+  }
+}

@@ -4,12 +4,12 @@ pragma solidity ^0.8.9;
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ERC4626, IERC4626} from "../../shared/tokenization/ERC4626.sol";
-import {SafeTransferLib} from "../../shared/libraries/SafeTransferLib.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
 
 abstract contract VToken is Initializable, ERC4626, IVToken {
-    using SafeTransferLib for IERC20Metadata;
+    using SafeERC20 for IERC20Metadata;
 
     address internal voyage;
     // user address => timestamp => amount

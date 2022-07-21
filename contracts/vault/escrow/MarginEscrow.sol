@@ -6,13 +6,13 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IMarginEscrow} from "../interfaces/IMarginEscrow.sol";
 import {VaultDataFacet} from "../facets/VaultDataFacet.sol";
 import {EthAddressLib} from "../../shared/libraries/EthAddressLib.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
 import {ERC4626, IERC4626} from "../../shared/tokenization/ERC4626.sol";
-import {SafeTransferLib} from "../../shared/libraries/SafeTransferLib.sol";
 
 contract MarginEscrow is
     Initializable,
@@ -21,7 +21,7 @@ contract MarginEscrow is
     ReentrancyGuard
 {
     using WadRayMath for uint256;
-    using SafeTransferLib for IERC20Metadata;
+    using SafeERC20 for IERC20Metadata;
     using PercentageMath for uint256;
     using Address for address payable;
 

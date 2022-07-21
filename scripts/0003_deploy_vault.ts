@@ -7,6 +7,7 @@ async function main() {
   const tus = await ethers.getContract('Tus');
   const voyage = await ethers.getContract<Voyage>('Voyage', owner);
   let vaultAddress = await voyage.getVault(owner);
+  console.log('vault address: ', vaultAddress);
   if (ethers.BigNumber.from(vaultAddress).isZero()) {
     const tx = await voyage.createVault(owner);
     await tx.wait();
@@ -17,6 +18,7 @@ async function main() {
     vaultAddress
   );
   const marginEscrow = await vault.marginEscrow(tus.address);
+  console.log('margin escrow: ', marginEscrow);
   if (ethers.BigNumber.from(marginEscrow).isZero()) {
     const initTx = await voyage.initCreditLine(vaultAddress, tus.address);
     await initTx.wait();

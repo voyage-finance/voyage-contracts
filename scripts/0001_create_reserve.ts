@@ -26,11 +26,17 @@ async function main() {
         crab.address
       )
       .then((tx) => tx.wait());
-    await Promise.all([
-      voyage.setLiquidationBonus(tus.address, 10500),
-      voyage.setIncomeRatio(tus.address, 0.5 * 1e4),
-      voyage.setLoanParams(tus.address, 30, 90, 10),
-    ]).then((txs) => txs.map((tx) => tx.wait()));
+    await voyage
+      .setLiquidationBonus(tus.address, 10500)
+      .then((tx) => tx.wait());
+    await voyage.setIncomeRatio(tus.address, 0.5 * 1e4).then((tx) => tx.wait());
+    await voyage.setLoanParams(tus.address, 30, 90, 10).then((tx) => tx.wait());
+
+    // await Promise.all([
+    //   voyage.setLiquidationBonus(tus.address, 10500),
+    //   voyage.setIncomeRatio(tus.address, 0.5 * 1e4),
+    //   voyage.setLoanParams(tus.address, 30, 90, 10),
+    // ]).then((txs) => txs.map((tx) => tx.wait()));
   }
   if (!activated) {
     await voyage.activateReserve(tus.address).then((tx) => tx.wait());
