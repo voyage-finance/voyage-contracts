@@ -54,7 +54,13 @@ const config: HardhatUserConfig = {
             },
     },
     goerli: {
-      url: `https://eth-goerli.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+      url: `https://eth-goerli.g.alchemy.com/v2/${process.env.ALCHEMY_GOERLI_API_KEY}`,
+      accounts: {
+        mnemonic: process.env.GEORLI_MNEMONIC,
+      },
+    },
+    rinkeby: {
+      url: `https://eth-rinkeby.alchemyapi.io/v2/${process.env.ALCHEMY_RINKEBY_API_KEY}`,
       accounts: {
         mnemonic: process.env.GEORLI_MNEMONIC,
       },

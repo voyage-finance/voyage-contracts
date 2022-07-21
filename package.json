@@ -11,6 +11,7 @@
     "compile": "hardhat compile",
     "deploy:local": "hardhat --network localhost deploy",
     "deploy:goerli": "hardhat --network goerli deploy",
+    "deploy:rinkeby": "hardhat --network rinkeby deploy",
     "dev": "hardhat node --hostname 0.0.0.0 --watch --no-deploy",
     "dev:deploy": "hardhat node --hostname 0.0.0.0 --watch",
     "node": "hardhat node --hostname 0.0.0.0 --no-deploy",
