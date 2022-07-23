@@ -96,20 +96,12 @@ contract LiquidityFacet is Storage {
     function deposit(
         address _asset,
         Tranche _tranche,
-        uint256 _amount,
-        address _user
+        uint256 _amount
     ) external {
         ReserveData memory reserve = s._reserves[_asset];
         BorrowState memory borrowState = s._borrowState[_asset];
         uint256 totalDebt = borrowState.totalDebt + borrowState.totalInterest;
         uint256 avgBorrowRate = borrowState.avgBorrowRate;
-        LibLiquidity.updateStateOnDeposit(
-            _asset,
-            _tranche,
-            _amount,
-            totalDebt,
-            avgBorrowRate
-        );
 
         IVToken vToken = _tranche == Tranche.JUNIOR
             ? IVToken(reserve.juniorDepositTokenAddress)
@@ -118,24 +110,23 @@ contract LiquidityFacet is Storage {
         PaymentsFacet(address(this)).pullToken(
             vToken.asset(),
             _amount,
-            _user,
+            msg.sender,
             address(this)
         );
-        vToken.deposit(_amount, _user);
-        emit Deposit(_asset, _user, _tranche, _amount);
+        vToken.deposit(_amount, msg.sender);
+        emit Deposit(_asset, msg.sender, _tranche, _amount);
     }
 
     function withdraw(
         address _asset,
         Tranche _tranche,
-        uint256 _amount,
-        address payable _user
+        uint256 _amount
     ) external {
         ReserveData memory reserve = s._reserves[_asset];
         IVToken vToken = Tranche.JUNIOR == _tranche
             ? IVToken(reserve.juniorDepositTokenAddress)
             : IVToken(reserve.seniorDepositTokenAddress);
-        uint256 userBalance = vToken.maxWithdraw(_user);
+        uint256 userBalance = vToken.maxWithdraw(msg.sender);
         uint256 amountToWithdraw = _amount;
         if (_amount == type(uint256).max) {
             amountToWithdraw = userBalance;
@@ -143,16 +134,9 @@ contract LiquidityFacet is Storage {
         BorrowState memory borrowState = s._borrowState[_asset];
         uint256 totalDebt = borrowState.totalDebt + borrowState.totalInterest;
         uint256 avgBorrowRate = borrowState.avgBorrowRate;
-        IVToken(vToken).withdraw(_amount, _user, _user);
-        LibLiquidity.updateStateOnWithdraw(
-            _asset,
-            _tranche,
-            amountToWithdraw,
-            totalDebt,
-            avgBorrowRate
-        );
+        IVToken(vToken).withdraw(_amount, msg.sender, msg.sender);
 
-        emit Withdraw(_asset, _user, _tranche, _amount);
+        emit Withdraw(_asset, msg.sender, _tranche, _amount);
     }
 
     /* ---------------------------------- views --------------------------------- */
@@ -174,14 +158,6 @@ contract LiquidityFacet is Storage {
         Tranche _tranche
     ) public view returns (uint256) {
         return LibLiquidity.balance(_reserve, _user, _tranche);
-    }
-
-    function liquidityRate(address _asset, Tranche _tranche)
-        public
-        view
-        returns (uint256)
-    {
-        return LibLiquidity.getLiquidityRate(_asset, _tranche);
     }
 
     function unbonding(

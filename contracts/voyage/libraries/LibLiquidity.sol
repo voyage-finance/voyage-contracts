@@ -84,90 +84,6 @@ library LibLiquidity {
         return address(new BeaconProxy(_impl, _data));
     }
 
-    struct UpdateInterestRatesLocalVars {
-        uint256 availableLiquidity;
-        uint256 juniorLiquidity;
-        uint256 seniorLiquidity;
-        uint256 liquidityRatio;
-        uint256 totalDebt;
-        // total liquidity rate
-        uint256 incomeRatio;
-        uint256 newLiquidityRate;
-        uint256 effectiveJuniorLiquidityRate;
-        uint256 effectSeniorLiquidityRate;
-        uint256 newBorrowRate;
-        uint256 avgBorrowRate;
-    }
-
-    function updateInterestRates(
-        address _reserveAddress,
-        address _juniorDepositTokenAddress,
-        address _seniorDepositTokenAddress,
-        uint256 _juniorLiquidityAdded,
-        uint256 _juniorLiquidityTaken,
-        uint256 _seniorLiquidityAdded,
-        uint256 _seniorLiquidityTaken,
-        uint256 _totalDebt,
-        uint256 _avgBorrowRate
-    ) internal {
-        UpdateInterestRatesLocalVars memory vars;
-        ReserveData storage reserve = getReserveData(_reserveAddress);
-
-        (vars.totalDebt, vars.avgBorrowRate) = (_totalDebt, _avgBorrowRate);
-
-        (
-            vars.newLiquidityRate,
-            vars.newBorrowRate
-        ) = IReserveInterestRateStrategy(reserve.interestRateStrategyAddress)
-            .calculateInterestRates(
-                _reserveAddress,
-                _seniorDepositTokenAddress,
-                _seniorLiquidityAdded,
-                _seniorLiquidityTaken,
-                vars.totalDebt,
-                vars.avgBorrowRate
-            );
-        require(vars.newLiquidityRate <= type(uint128).max);
-
-        vars.incomeRatio = LibReserveConfiguration
-            .getConfiguration(_reserveAddress)
-            .getIncomeRatio();
-        vars.seniorLiquidity = IERC20Metadata(_seniorDepositTokenAddress)
-            .totalSupply();
-        vars.juniorLiquidity =
-            IERC20Metadata(_juniorDepositTokenAddress).totalSupply() +
-            _juniorLiquidityAdded -
-            _juniorLiquidityTaken;
-
-        if (vars.juniorLiquidity == 0) {
-            vars.effectiveJuniorLiquidityRate = 0;
-            vars.effectSeniorLiquidityRate = vars.newLiquidityRate;
-        } else {
-            vars.liquidityRatio = vars.seniorLiquidity.rayDiv(
-                vars.juniorLiquidity
-            );
-
-            vars.effectiveJuniorLiquidityRate = vars
-                .newLiquidityRate
-                .rayMul(1e4 - vars.incomeRatio)
-                .rayMul(vars.liquidityRatio);
-
-            vars.effectSeniorLiquidityRate = vars.newLiquidityRate.percentMul(
-                vars.incomeRatio
-            );
-        }
-
-        reserve.currentOverallLiquidityRate = vars.newLiquidityRate;
-        reserve.currentJuniorLiquidityRate = vars.effectiveJuniorLiquidityRate;
-        reserve.currentSeniorLiquidityRate = vars.effectSeniorLiquidityRate;
-
-        emit ReserveDataUpdated(
-            _reserveAddress,
-            vars.newLiquidityRate,
-            vars.newBorrowRate
-        );
-    }
-
     /* --------------------------- fee management --------------------------- */
     function updateProtocolFee(address _treasuryAddr, uint256 _cutRatio)
         internal
@@ -178,78 +94,6 @@ library LibLiquidity {
     }
 
     /* ------------------------ state mutation functions ------------------------ */
-    function updateStateOnDeposit(
-        address _asset,
-        Tranche _tranche,
-        uint256 _amount,
-        uint256 _totalDebt,
-        uint256 _avgBorrowRate
-    ) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        ReserveData storage reserve = s._reserves[_asset];
-        ValidationLogic.validateDeposit(reserve, _amount);
-        if (Tranche.JUNIOR == _tranche) {
-            updateInterestRates(
-                _asset,
-                reserve.juniorDepositTokenAddress,
-                reserve.seniorDepositTokenAddress,
-                _amount,
-                0,
-                0,
-                0,
-                _totalDebt,
-                _avgBorrowRate
-            );
-        } else {
-            updateInterestRates(
-                _asset,
-                reserve.juniorDepositTokenAddress,
-                reserve.seniorDepositTokenAddress,
-                0,
-                0,
-                _amount,
-                0,
-                _totalDebt,
-                _avgBorrowRate
-            );
-        }
-    }
-
-    function updateStateOnWithdraw(
-        address _asset,
-        Tranche _tranche,
-        uint256 _amount,
-        uint256 _totalDebt,
-        uint256 _avgBorrowRate
-    ) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        ReserveData storage reserve = s._reserves[_asset];
-        if (Tranche.JUNIOR == _tranche) {
-            updateInterestRates(
-                _asset,
-                reserve.juniorDepositTokenAddress,
-                reserve.seniorDepositTokenAddress,
-                0,
-                _amount,
-                0,
-                0,
-                _totalDebt,
-                _avgBorrowRate
-            );
-        } else {
-            updateInterestRates(
-                _asset,
-                reserve.juniorDepositTokenAddress,
-                reserve.seniorDepositTokenAddress,
-                0,
-                0,
-                0,
-                0,
-                _totalDebt,
-                _avgBorrowRate
-            );
-        }
-    }
 
     function updateWETH9(address _weth9) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -341,19 +185,6 @@ library LibLiquidity {
             borrowState.avgBorrowRate
         );
         return res;
-    }
-
-    function getLiquidityRate(address _asset, Tranche _tranche)
-        internal
-        view
-        returns (uint256)
-    {
-        ReserveData memory reserve = getReserveData(_asset);
-        if (_tranche == Tranche.JUNIOR) {
-            return reserve.currentJuniorLiquidityRate;
-        } else {
-            return reserve.currentSeniorLiquidityRate;
-        }
     }
 
     function utilizationRate(address _reserve) internal view returns (uint256) {

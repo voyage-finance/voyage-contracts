@@ -141,48 +141,6 @@ library LibLoan {
         );
     }
 
-    function updateStateOnBorrow(
-        address _asset,
-        uint256 _amount,
-        uint256 _totalDebt,
-        uint256 _avgBorrowRate
-    ) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        ReserveData storage reserve = s._reserves[_asset];
-        LibLiquidity.updateInterestRates(
-            _asset,
-            reserve.juniorDepositTokenAddress,
-            reserve.seniorDepositTokenAddress,
-            0,
-            0,
-            0,
-            _amount,
-            _totalDebt,
-            _avgBorrowRate
-        );
-    }
-
-    function updateStateOnRepayment(
-        address _asset,
-        uint256 _amount,
-        uint256 _totalDebt,
-        uint256 _avgBorrowRate
-    ) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        ReserveData storage reserve = s._reserves[_asset];
-        LibLiquidity.updateInterestRates(
-            _asset,
-            reserve.juniorDepositTokenAddress,
-            reserve.seniorDepositTokenAddress,
-            0,
-            0,
-            _amount,
-            0,
-            _totalDebt,
-            _avgBorrowRate
-        );
-    }
-
     /* ----------------------------- view functions ----------------------------- */
 
     function getBorrowState(address _underlying)

@@ -1,0 +1,42 @@
+{
+    "title": "Pool: Withdraw",
+    "description": "Test cases for the withdraw function.",
+    "stories": [
+        {
+            "description": "User deposit 10000 TUS, approve voyage, then withdraw 1000 TUS",
+            "actions": [
+              {
+                "name": "deposit",
+                "args": {
+                  "reserve": "TUS",
+                  "tranche": "1",
+                  "amount": "10000",
+                  "user": "0"
+                },
+                "expected": "success"
+              },
+              {
+                "name": "approve",
+                "args": {
+                  "reserve": "TUS",
+                  "tranche": "1",
+                  "amount": "10000",
+                  "user": "0"
+                },
+                "expected": "success"
+              },
+              {
+                "name": "withdraw",
+                "args": {
+                  "reserve": "TUS",
+                  "tranche": "1",
+                  "amount": "10000",
+                  "user": "0"
+                },
+                "expected": "success"
+              }
+            ]
+          }
+    ]
+}
+  

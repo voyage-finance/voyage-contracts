@@ -104,14 +104,6 @@ contract DataProviderFacet {
         poolData.totalLiquidity =
             depositAndDebt.seniorDepositAmount +
             depositAndDebt.juniorDepositAmount;
-        poolData.juniorLiquidityRate = LibLiquidity.getLiquidityRate(
-            _asset,
-            Tranche.JUNIOR
-        );
-        poolData.seniorLiquidityRate = LibLiquidity.getLiquidityRate(
-            _asset,
-            Tranche.SENIOR
-        );
         poolData.totalDebt = depositAndDebt.totalDebt;
         if (depositAndDebt.seniorDepositAmount == 0) {
             poolData.trancheRatio = 0;

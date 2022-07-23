@@ -23,8 +23,8 @@ describe('Repay', function () {
     // 100
     const depositAmount = '100000000000000000000';
     await voyage.setMarginParams(tus.address, 0, max, requirement);
-    await voyage.deposit(tus.address, 0, depositAmount, owner);
-    await voyage.deposit(tus.address, 1, depositAmount, owner);
+    await voyage.deposit(tus.address, 0, depositAmount);
+    await voyage.deposit(tus.address, 1, depositAmount);
     const seniorLiquidity = await tus.balanceOf(seniorDepositToken.address);
     const juniorLiquidity = await tus.balanceOf(juniorDepositToken.address);
     console.log('senior liquidity: ', seniorLiquidity.toString());
@@ -94,8 +94,8 @@ describe('Repay', function () {
     // 100
     const depositAmount = '100000000000000000000';
     await voyage.setMarginParams(tus.address, 0, max, requirement);
-    await voyage.deposit(tus.address, 0, depositAmount, owner);
-    await voyage.deposit(tus.address, 1, depositAmount, owner);
+    await voyage.deposit(tus.address, 0, depositAmount);
+    await voyage.deposit(tus.address, 1, depositAmount);
     const seniorLiquidity = await tus.balanceOf(seniorDepositToken.address);
     const juniorLiquidity = await tus.balanceOf(juniorDepositToken.address);
     console.log('senior liquidity: ', seniorLiquidity.toString());

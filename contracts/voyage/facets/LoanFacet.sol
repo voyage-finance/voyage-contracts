@@ -135,18 +135,9 @@ contract LoanFacet is Storage {
             revert InsufficientCreditLimit();
         }
 
-        BorrowState memory borrowState = LibLoan.getBorrowState(_asset);
-
         ExecuteBorrowParams memory executeBorrowParams = previewBorrowParams(
             _asset,
             _amount
-        );
-
-        LibLoan.updateStateOnBorrow(
-            _asset,
-            _amount,
-            borrowState.totalDebt + borrowState.totalInterest,
-            executeBorrowParams.borrowRate
         );
 
         (uint256 loanId, Loan memory loan) = LibLoan.insertDebt(
@@ -197,18 +188,7 @@ contract LoanFacet is Storage {
 
         params.total = params.principal + params.interest;
 
-        // 2. update liquidity index and interest rate
-        BorrowState memory borrowState = LibLoan.getBorrowState(_asset);
-        uint256 totalDebt = borrowState.totalDebt + borrowState.totalInterest;
-        uint256 avgBorrowRate = borrowState.avgBorrowRate;
-        LibLoan.updateStateOnRepayment(
-            _asset,
-            params.principal + params.interest,
-            params.totalDebt,
-            avgBorrowRate
-        );
-
-        // 3. update repay data
+        // 2. update repay data
         (uint256 repaymentId, bool isFinal) = LibLoan.repay(
             _asset,
             _vault,
@@ -218,7 +198,7 @@ contract LoanFacet is Storage {
             false
         );
 
-        // 4. transfer underlying asset
+        // 3. transfer underlying asset
         ReserveData memory reserveData = LibLiquidity.getReserveData(_asset);
         uint256 incomeRatio = LibReserveConfiguration
             .getConfiguration(_asset)
