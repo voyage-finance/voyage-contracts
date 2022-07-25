@@ -1,5 +1,5 @@
 import { SignerWithAddress, TestEnv } from './make-suite';
-import { approve, borrow, deposit, margin, withdraw } from './actions';
+import { approve, borrow, deposit, margin, repay, withdraw } from './actions';
 
 export interface Action {
   name: string;
@@ -83,6 +83,11 @@ const executeAction = async (
         throw `Invalid amount to deposit into the ${reserve} reserve`;
       }
       await approve(tranche, amount, testEnv);
+      break;
+    }
+    case 'repay': {
+      const { reserve, loan } = action.args;
+      await repay(reserve, loan, testEnv);
       break;
     }
 

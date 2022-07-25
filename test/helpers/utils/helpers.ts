@@ -1,6 +1,12 @@
 import { BigNumber } from 'ethers';
 import { DataProviderFacet } from 'typechain/DataProviderFacet';
-import { CreditLineData, ReserveData, UserReserveData } from './interfaces';
+import {
+  CreditLineData,
+  LoanDetail,
+  PoolConfiguration,
+  ReserveData,
+  UserReserveData,
+} from './interfaces';
 
 export const getReserveData = async (
   helper: DataProviderFacet,
@@ -43,6 +49,27 @@ export const getUserPoolData = async (
   );
   const decimals = userPoolData.decimals.toNumber();
   return { juniorTrancheBalance, seniorTrancheBalance, decimals };
+};
+
+export const getLoanDetail = async (
+  helper: DataProviderFacet,
+  reserve: string,
+  vault: string,
+  loanId: string
+): Promise<LoanDetail> => {
+  const loanDetail = await helper.getLoanDetail(vault, reserve, loanId);
+  const principal = loanDetail.principal;
+  const interest = loanDetail.interest;
+  const nper = loanDetail.nper;
+  return { principal, interest, nper };
+};
+
+export const getPoolConfiguration = async (
+  helper: DataProviderFacet,
+  reserve: string
+): Promise<PoolConfiguration> => {
+  const poolConfig = await helper.getPoolConfiguration(reserve);
+  return poolConfig;
 };
 
 export const getCreditLine = async (

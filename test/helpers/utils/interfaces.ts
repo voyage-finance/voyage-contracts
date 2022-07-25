@@ -36,7 +36,6 @@ export interface ReserveData {
   juniorLiquidity: BigNumber;
   seniorLiquidity: BigNumber;
   totalDebt: BigNumber;
-  utilizationRate: BigNumber;
   trancheRatio: BigNumber;
   decimals: number;
   symbol: string;
@@ -59,6 +58,25 @@ export interface CreditLineData {
 export interface LoanList {
   head: BigNumber;
   tail: BigNumber;
+}
+
+export interface LoanDetail {
+  principal: BigNumber;
+  interest: BigNumber;
+  nper: BigNumber;
+}
+
+export interface PoolConfiguration {
+  liquidationBonus: BigNumber;
+  marginRequirement: BigNumber;
+  minMargin: BigNumber;
+  maxMargin: BigNumber;
+  apr: BigNumber;
+  loanInterval: BigNumber;
+  loanTenure: BigNumber;
+  incomeRatio: BigNumber;
+  isInitialized: boolean;
+  isActive: boolean;
 }
 
 export enum Tranche {

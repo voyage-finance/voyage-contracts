@@ -4,10 +4,8 @@ import {
   Tranche,
   UserReserveData,
 } from './interfaces';
-import { ONE_YEAR, RAY, MAX_UINT_AMOUNT, PERCENTAGE_FACTOR } from './constants';
 import './wadraymath';
 import { BigNumber } from 'ethers';
-import { expect } from 'chai';
 
 export const calcExpectedUserDataAfterDeposit = (
   amountDeposit: string,
@@ -64,9 +62,6 @@ export const calcExpectedReserveDataAfterBorrow = (
   expectedReserveData.seniorLiquidity = reserveDataBeforeAction.seniorLiquidity;
   expectedReserveData.totalLiquidity = reserveDataBeforeAction.totalLiquidity;
   expectedReserveData.totalDebt = BigNumber.from(amountBorrow);
-  expectedReserveData.utilizationRate = BigNumber.from(amountBorrow)
-    .wadToRay()
-    .rayDiv(expectedReserveData.seniorLiquidity.wadToRay());
   expectedReserveData.trancheRatio = expectedReserveData.juniorLiquidity
     .wadToRay()
     .rayDiv(expectedReserveData.seniorLiquidity.wadToRay());
@@ -117,6 +112,34 @@ export const caclExpectedReserveDataAfterWithdraw = (
   }
   expectedReserveData.totalDebt = reserveDataBeforeAction.totalDebt;
   expectedReserveData.trancheRatio = reserveDataBeforeAction.trancheRatio;
+  expectedReserveData.decimals = reserveDataBeforeAction.decimals;
+  expectedReserveData.symbol = reserveDataBeforeAction.symbol;
+  expectedReserveData.isActive = reserveDataBeforeAction.isActive;
+  return expectedReserveData;
+};
+
+export const caclExpectedReserveDataAfterRepay = (
+  principal: BigNumber,
+  interest: BigNumber,
+  incomeRatio: BigNumber,
+  reserveDataBeforeAction: ReserveData
+): ReserveData => {
+  const expectedReserveData: ReserveData = <ReserveData>{};
+  const interestSenior = interest.percentMul(incomeRatio);
+  const interestJunior = interest.sub(interestSenior);
+  expectedReserveData.totalLiquidity =
+    reserveDataBeforeAction.totalLiquidity.add(interest);
+  expectedReserveData.juniorLiquidity =
+    reserveDataBeforeAction.juniorLiquidity.add(interestJunior);
+  expectedReserveData.seniorLiquidity =
+    reserveDataBeforeAction.seniorLiquidity.add(interestSenior);
+  expectedReserveData.totalDebt =
+    reserveDataBeforeAction.totalDebt.sub(principal);
+  const totalDebt = reserveDataBeforeAction.totalDebt.sub(principal);
+
+  expectedReserveData.trancheRatio = expectedReserveData.juniorLiquidity
+    .wadToRay()
+    .rayDiv(expectedReserveData.seniorLiquidity.wadToRay());
   expectedReserveData.decimals = reserveDataBeforeAction.decimals;
   expectedReserveData.symbol = reserveDataBeforeAction.symbol;
   expectedReserveData.isActive = reserveDataBeforeAction.isActive;

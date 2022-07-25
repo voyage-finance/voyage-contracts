@@ -2,6 +2,7 @@ import { BigNumber, ContractReceipt } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { TestEnv } from './make-suite';
 import {
+  caclExpectedReserveDataAfterRepay,
   caclExpectedReserveDataAfterWithdraw,
   calcExpectedCreditLineAfterBorrow,
   calcExpectedReserveDataAfterBorrow,
@@ -10,6 +11,8 @@ import {
 } from './utils/calculations';
 import {
   getCreditLine,
+  getLoanDetail,
+  getPoolConfiguration,
   getReserveData,
   getUserPoolData,
 } from './utils/helpers';
@@ -56,16 +59,6 @@ const almostEqualOrEqual = function (
       expected[key] != undefined,
       `Property ${key} is undefined in the expected data`
     );
-
-    if (expected[key] == null || actual[key] == null) {
-      console.log(
-        'Found a undefined value for Key ',
-        key,
-        ' value ',
-        expected[key],
-        actual[key]
-      );
-    }
 
     if (actual[key] instanceof BigNumber) {
       const actualValue = <BigNumber>actual[key];
@@ -232,6 +225,46 @@ export const borrow = async (
   );
   expectEqual(reserveDataAfter, expectedReserveData);
   expectEqual(creditLineAfter, expectedCreditLineData);
+};
+
+export const repay = async (asset: string, loan: string, testEnv: TestEnv) => {
+  const reserve = testEnv.reserves.get(asset);
+  const user = testEnv.users[0];
+  const vault = testEnv.vaults.get(user.address);
+
+  const {
+    reserveData: reserveDataBefore,
+    userData: userDataBefore,
+    creditLine: creditLineBefore,
+  } = await getContractsData(reserve!, user.address, testEnv);
+
+  const loanDetail = await getLoanDetail(
+    testEnv.voyage,
+    reserve!,
+    vault!,
+    loan
+  );
+
+  const poolConfg = await getPoolConfiguration(testEnv.voyage, reserve!);
+  const incomeRatio = poolConfg.incomeRatio;
+
+  const txResult = await (
+    await testEnv.voyage.repay(reserve!, '0', vault!)
+  ).wait();
+
+  const {
+    reserveData: reserveDataAfter,
+    userData: userDataAfter,
+    creditLine: creditLineAfter,
+  } = await getContractsData(reserve!, user.address, testEnv);
+
+  const expectedReserveData = await caclExpectedReserveDataAfterRepay(
+    loanDetail.principal.div(loanDetail.nper),
+    loanDetail.interest.div(loanDetail.nper),
+    incomeRatio,
+    reserveDataBefore
+  );
+  expectEqual(reserveDataAfter, expectedReserveData);
 };
 
 export const approve = async (
