@@ -24,8 +24,9 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: voyage-core-contracts
           IMAGE_TAG: ${{ github.sha }}
+          GEORLI_MNEMONIC: ${{ secrets.GEORLI_MNEMONIC }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -f ./docker/Dockerfile .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -e GEORLI_MNEMONIC=$GEORLI_MNEMONIC -f ./docker/Dockerfile .
           docker push -a $ECR_REGISTRY/$ECR_REPOSITORY
         
 
