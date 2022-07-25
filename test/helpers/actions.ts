@@ -2,6 +2,7 @@ import { BigNumber, ContractReceipt } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { TestEnv } from './make-suite';
 import {
+  caclExpectedCreditLineDataAfterRepay,
   caclExpectedReserveDataAfterRepay,
   caclExpectedReserveDataAfterWithdraw,
   calcExpectedCreditLineAfterBorrow,
@@ -264,7 +265,13 @@ export const repay = async (asset: string, loan: string, testEnv: TestEnv) => {
     incomeRatio,
     reserveDataBefore
   );
+
+  const expectedCreditLineData = await caclExpectedCreditLineDataAfterRepay(
+    loanDetail.principal.div(loanDetail.nper),
+    creditLineBefore
+  );
   expectEqual(reserveDataAfter, expectedReserveData);
+  expectEqual(creditLineAfter, expectedCreditLineData);
 };
 
 export const approve = async (

@@ -135,8 +135,6 @@ export const caclExpectedReserveDataAfterRepay = (
     reserveDataBeforeAction.seniorLiquidity.add(interestSenior);
   expectedReserveData.totalDebt =
     reserveDataBeforeAction.totalDebt.sub(principal);
-  const totalDebt = reserveDataBeforeAction.totalDebt.sub(principal);
-
   expectedReserveData.trancheRatio = expectedReserveData.juniorLiquidity
     .wadToRay()
     .rayDiv(expectedReserveData.seniorLiquidity.wadToRay());
@@ -144,4 +142,17 @@ export const caclExpectedReserveDataAfterRepay = (
   expectedReserveData.symbol = reserveDataBeforeAction.symbol;
   expectedReserveData.isActive = reserveDataBeforeAction.isActive;
   return expectedReserveData;
+};
+
+export const caclExpectedCreditLineDataAfterRepay = (
+  principal: BigNumber,
+  creditLineBefore: CreditLineData
+): CreditLineData => {
+  const expectedCreditLineData: CreditLineData = <CreditLineData>{};
+  expectedCreditLineData.loanlist = {
+    head: creditLineBefore.loanlist.head,
+    tail: creditLineBefore.loanlist.tail.add(BigNumber.from(1)),
+  };
+  expectedCreditLineData.totalDebt = creditLineBefore.totalDebt.sub(principal);
+  return expectedCreditLineData;
 };
