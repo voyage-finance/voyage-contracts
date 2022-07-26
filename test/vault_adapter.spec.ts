@@ -10,8 +10,8 @@ describe('Vault adapter', function () {
     const vault = await voyage.getVault(owner);
     const depositAmount = '100000000000000000000';
     await voyage.setMarginParams(tus.address, 0, max, requirement);
-    await voyage.deposit(tus.address, 0, depositAmount, owner);
-    await voyage.deposit(tus.address, 1, depositAmount, owner);
+    await voyage.deposit(tus.address, 0, depositAmount);
+    await voyage.deposit(tus.address, 1, depositAmount);
     await voyage.depositMargin(vault, tus.address, '100000000000000000000');
     await voyage.borrow(tus.address, '100000000000000000000', vault);
     const escrowAddr = await voyage.getVaultEscrowAddr(owner, tus.address);

@@ -13,8 +13,8 @@ describe('Liquidate', function () {
     const vault = await voyage.getVault(owner);
 
     const depositAmount = toWad(100);
-    await voyage.deposit(tus.address, 0, depositAmount, owner);
-    await voyage.deposit(tus.address, 1, depositAmount, owner);
+    await voyage.deposit(tus.address, 0, depositAmount);
+    await voyage.deposit(tus.address, 1, depositAmount);
 
     await voyage.depositMargin(vault, tus.address, depositAmount);
     const borrowAmount = toWad(10);
@@ -36,8 +36,8 @@ describe('Liquidate', function () {
 
     const depositAmount = toWad(100);
     await voyage.setMarginParams(tus.address, 0, maxMargin, marginRequirement);
-    await voyage.deposit(tus.address, 0, depositAmount, owner);
-    await voyage.deposit(tus.address, 1, depositAmount, owner);
+    await voyage.deposit(tus.address, 0, depositAmount);
+    await voyage.deposit(tus.address, 1, depositAmount);
     await voyage.depositMargin(vault, tus.address, depositAmount);
     const borrowAmount = toWad(10);
     await voyage.borrow(tus.address, borrowAmount, vault);
@@ -58,8 +58,8 @@ describe('Liquidate', function () {
     const depositAmount = toWad(120);
     const juniorDeposit = toWad(50);
     const margin = toWad(20);
-    await voyage.deposit(tus.address, 0, juniorDeposit, owner);
-    await voyage.deposit(tus.address, 1, depositAmount, owner);
+    await voyage.deposit(tus.address, 0, juniorDeposit);
+    await voyage.deposit(tus.address, 1, depositAmount);
     await voyage.depositMargin(vault, tus.address, margin);
     const borrowAmount = toWad(120);
     await voyage.borrow(tus.address, borrowAmount, vault);

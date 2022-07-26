@@ -78,7 +78,7 @@ const setupBase = async ({
     battleGame,
     juniorDepositToken,
     seniorDepositToken,
-    vault,
+    deployedVault,
     voyage,
   };
 };

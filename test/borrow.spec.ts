@@ -28,7 +28,7 @@ describe('Borrow', function () {
     // deposit sufficient reserve
     const dec = await tus.decimals();
     const deposit = BigNumber.from(10_000_000).mul(decimals(dec));
-    await voyage.deposit(tus.address, 1, deposit, owner);
+    await voyage.deposit(tus.address, 1, deposit);
     const vaultAddr = await voyage.getVault(owner);
     const margin = ethers.BigNumber.from(100).mul(decimals(dec));
     await voyage.depositMargin(vaultAddr, tus.address, margin);
@@ -44,7 +44,7 @@ describe('Borrow', function () {
     const vault = await voyage.getVault(owner);
     // deposit sufficient reserve
     const depositAmount = '100000000000000000000';
-    await voyage.deposit(tus.address, 1, depositAmount, owner);
+    await voyage.deposit(tus.address, 1, depositAmount);
     await expect(
       voyage.borrow(tus.address, '10000000000000000000', vault)
     ).to.be.revertedWith('InsufficientCreditLimit()');
@@ -55,8 +55,8 @@ describe('Borrow', function () {
     const vault = await voyage.getVault(owner);
     // 100
     const depositAmount = '100000000000000000000';
-    await voyage.deposit(tus.address, 0, depositAmount, owner);
-    await voyage.deposit(tus.address, 1, depositAmount, owner);
+    await voyage.deposit(tus.address, 0, depositAmount);
+    await voyage.deposit(tus.address, 1, depositAmount);
     // 100
     const margin = ethers.BigNumber.from('100000000000000000000');
     await voyage.depositMargin(vault, tus.address, margin);

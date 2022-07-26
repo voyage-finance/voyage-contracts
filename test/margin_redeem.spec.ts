@@ -34,8 +34,8 @@ describe('Margin Redeem', function () {
     const vault = await voyage.getVault(owner);
     // deposit some funds
     const deposit = BigNumber.from(100000).mul(decimals(18));
-    await voyage.deposit(tus.address, 0, deposit, owner);
-    await voyage.deposit(tus.address, 1, deposit, owner);
+    await voyage.deposit(tus.address, 0, deposit);
+    await voyage.deposit(tus.address, 1, deposit);
     // maximum borrow amount should be 100 / 0.1 = 1000
     const margin = BigNumber.from(100).mul(decimals(18));
     await voyage.depositMargin(vault, tus.address, margin);
@@ -64,8 +64,8 @@ describe('Margin Redeem', function () {
     const vault = await voyage.getVault(owner);
     // deposit some funds
     const deposit = BigNumber.from(100000).mul(decimals(18));
-    await voyage.deposit(tus.address, 0, deposit, owner);
-    await voyage.deposit(tus.address, 1, deposit, owner);
+    await voyage.deposit(tus.address, 0, deposit);
+    await voyage.deposit(tus.address, 1, deposit);
     // maximum borrow amount should be 100 / 0.1 = 1000
     const margin = BigNumber.from(100).mul(decimals(18));
     await voyage.depositMargin(vault, tus.address, margin);

@@ -21,11 +21,6 @@ enum Tranche {
 struct ReserveData {
     //stores the reserve configuration
     ReserveConfigurationMap configuration;
-    // for calculating overall interested accumulated
-    // then split it into two indexs base on two allocations
-    uint256 currentOverallLiquidityRate;
-    uint256 currentJuniorLiquidityRate;
-    uint256 currentSeniorLiquidityRate;
     uint256 currentBorrowRate;
     //the decimals of the reserve asset
     uint256 decimals;

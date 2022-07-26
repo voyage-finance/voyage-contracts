@@ -1,0 +1,69 @@
+{
+    "title": "Pool: Borrow",
+    "description": "Test cases for the borrow function.",
+    "stories": [
+        {
+            "description": "User deposit 10000 TUS, approve voyage, then borrow 1000 TUS",
+            "actions": [
+              {
+                "name": "deposit",
+                "args": {
+                  "reserve": "TUS",
+                  "tranche": "1",
+                  "amount": "10000",
+                  "user": "0"
+                },
+                "expected": "success"
+              },
+              {
+                "name": "deposit",
+                "args": {
+                  "reserve": "TUS",
+                  "tranche": "0",
+                  "amount": "10000",
+                  "user": "0"
+                },
+                "expected": "success"
+              },
+              {
+                "name": "approve",
+                "args": {
+                  "reserve": "TUS",
+                  "tranche": "1",
+                  "amount": "10000",
+                  "user": "0"
+                },
+                "expected": "success"
+              },
+              {
+                "name": "margin",
+                "args": {
+                  "reserve": "TUS",
+                  "amount": "100000",
+                  "user": "0"
+                },
+                "expected": "success"
+              },
+              {
+                "name": "borrow",
+                "args": {
+                  "reserve": "TUS",
+                  "amount": "10000",
+                  "user": "0"
+                },
+                "expected": "success"
+              },
+              {
+                "name": "repay",
+                "args": {
+                  "reserve": "TUS",
+                  "loan": "0",
+                  "user": "0"
+                },
+                "expected": "success"
+              }
+            ]
+          }
+    ]
+}
+  

@@ -21,7 +21,7 @@ async function main() {
     .then(() => juniorDepositToken.approve(voyage.address, MAX_UINT_256))
     .then((tx) => tx.wait());
 
-  await voyage.withdraw(tus.address, '1', '10000000000000000000', owner);
+  await voyage.withdraw(tus.address, '1', '10000000000000000000');
 }
 
 main()
