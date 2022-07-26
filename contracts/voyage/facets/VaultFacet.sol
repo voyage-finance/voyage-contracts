@@ -51,24 +51,27 @@ contract VaultFacet is Storage, ReentrancyGuard {
     );
 
     /* ----------------------------- admin interface ---------------------------- */
-    function createVault(address owner) external authorised {
-        DiamondFacet memory cutFacet = LibVault.getDiamondFacets();
-        bytes memory data = abi.encodeWithSelector(
-            IVault(address(0)).initialize.selector,
-            address(this),
-            owner,
-            cutFacet.diamondCutFacet,
-            cutFacet.diamondLoupeFacet,
-            cutFacet.ownershipFacet
+    function createVault(address _owner, bytes20 _salt) external authorised {
+        bytes memory data = getEncodedVaultInitData(_owner);
+        bytes32 newsalt = newSalt(_salt, _owner);
+        address vaultBeaconProxy;
+        bytes memory initCode = abi.encodePacked(
+            type(BeaconProxy).creationCode,
+            abi.encode(vaultBeacon(), data)
         );
-        address vaultBeaconProxy = address(
-            new BeaconProxy(address(vaultBeacon()), data)
-        );
-        if (address(vaultBeaconProxy) == address(0)) {
+        assembly {
+            vaultBeaconProxy := create2(
+                0,
+                add(initCode, 0x20),
+                mload(initCode),
+                newsalt
+            )
+        }
+        if (vaultBeaconProxy == address(0)) {
             revert FailedDeployVault();
         }
         diamondCut(vaultBeaconProxy);
-        uint256 numVaults = LibVault.recordVault(owner, vaultBeaconProxy);
+        uint256 numVaults = LibVault.recordVault(_owner, vaultBeaconProxy);
         bytes4[] memory sigs = new bytes4[](6);
         sigs[0] = VaultAssetFacet(address(0)).withdrawRewards.selector;
         sigs[1] = VaultAssetFacet(address(0)).withdrawNFT.selector;
@@ -76,8 +79,8 @@ contract VaultFacet is Storage, ReentrancyGuard {
         sigs[3] = VaultManageFacet(address(0)).updateSubvaultOwner.selector;
         sigs[4] = VaultManageFacet(address(0)).pauseSubvault.selector;
         sigs[5] = VaultManageFacet(address(0)).unpauseSubvault.selector;
-        LibSecurity.grantPermissions(s.auth, owner, vaultBeaconProxy, sigs);
-        emit VaultCreated(vaultBeaconProxy, owner, numVaults);
+        LibSecurity.grantPermissions(s.auth, _owner, vaultBeaconProxy, sigs);
+        emit VaultCreated(vaultBeaconProxy, _owner, numVaults);
     }
 
     function initCreditLine(address _vault, address _asset)
@@ -194,6 +197,38 @@ contract VaultFacet is Storage, ReentrancyGuard {
     }
 
     /************************************** View Functions **************************************/
+    function computeCounterfactualAddress(address _owner, bytes20 _salt)
+        external
+        view
+        returns (address)
+    {
+        bytes memory data = getEncodedVaultInitData(_owner);
+        bytes memory initCode = abi.encodePacked(
+            type(BeaconProxy).creationCode,
+            abi.encode(vaultBeacon(), data)
+        );
+        bytes32 hash = keccak256(
+            abi.encodePacked(
+                bytes1(0xff),
+                address(this),
+                newSalt(_salt, _owner),
+                keccak256(initCode)
+            )
+        );
+        return address(uint160(uint256(hash)));
+    }
+
+    function newSalt(bytes20 _salt, address _owner)
+        internal
+        pure
+        returns (bytes32)
+    {
+        return
+            keccak256(
+                abi.encodePacked(keccak256(abi.encodePacked(_owner)), _salt)
+            );
+    }
+
     function vaultBeacon() public view returns (address) {
         return LibVault.vaultBeacon();
     }
@@ -294,6 +329,23 @@ contract VaultFacet is Storage, ReentrancyGuard {
         address _user
     ) public view returns (uint256) {
         return LibVault.getWithdrawableMargin(_vault, _reserve, _user);
+    }
+
+    function getEncodedVaultInitData(address _owner)
+        internal
+        view
+        returns (bytes memory)
+    {
+        DiamondFacet memory cutFacet = LibVault.getDiamondFacets();
+        bytes memory data = abi.encodeWithSelector(
+            IVault(address(0)).initialize.selector,
+            address(this),
+            _owner,
+            cutFacet.diamondCutFacet,
+            cutFacet.diamondLoupeFacet,
+            cutFacet.ownershipFacet
+        );
+        return data;
     }
 }
 

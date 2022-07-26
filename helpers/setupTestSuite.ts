@@ -6,6 +6,7 @@ import { Vault } from '../typechain/Vault';
 import { Voyage } from '../typechain/Voyage';
 import { deployFacets, FacetCutAction } from './diamond';
 import { decimals, MAX_UINT_256, toRay } from './math';
+import { randomBytes } from 'crypto';
 import './wadraymath';
 
 const dec = decimals(18);
@@ -61,8 +62,12 @@ const setupBase = async ({
   /* -------------------------- vault initialisation -------------------------- */
 
   // create an empty vault
-  await voyage.createVault(owner);
+  const salt = randomBytes(20);
+  await voyage.createVault(owner, salt);
   const deployedVault = await voyage.getVault(owner);
+  console.log('deployed vault address: ', deployedVault);
+  const getVaultAddr = await voyage.computeCounterfactualAddress(owner, salt);
+  console.log('get vault address: ', getVaultAddr);
   await tus.approve(deployedVault, MAX_UINT_256);
   await voyage.initCreditLine(deployedVault, tus.address);
 
