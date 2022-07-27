@@ -71,7 +71,6 @@ export interface PoolConfiguration {
   marginRequirement: BigNumber;
   minMargin: BigNumber;
   maxMargin: BigNumber;
-  apr: BigNumber;
   loanInterval: BigNumber;
   loanTenure: BigNumber;
   incomeRatio: BigNumber;

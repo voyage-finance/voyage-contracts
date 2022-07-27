@@ -56,7 +56,6 @@ contract DataProviderFacet {
         uint256 marginRequirement;
         uint256 minMargin;
         uint256 maxMargin;
-        uint256 apr;
         uint256 loanInterval;
         uint256 loanTenure;
         uint256 incomeRatio;

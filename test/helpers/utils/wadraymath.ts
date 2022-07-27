@@ -1,5 +1,4 @@
-import { BigNumber } from 'ethers';
-import { BigNumberish } from 'ethers';
+import { BigNumber, BigNumberish } from 'ethers';
 
 import {
   RAY,
