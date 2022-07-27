@@ -51,7 +51,6 @@ library LibReserveConfiguration {
     error InvalidMaxMargin();
     error InvalidMarginRequirement();
     error InvalidIncomeRatio();
-    error InvalidAPR();
     error InvalidLoanInterval();
     error InvalidLoanTerm();
     error InvalidGracePeriod();
