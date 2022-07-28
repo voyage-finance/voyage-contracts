@@ -8,7 +8,7 @@
               {
                 "name": "deposit",
                 "args": {
-                  "reserve": "TUS",
+                  "cname": "TUS",
                   "tranche": "1",
                   "amount": "10000",
                   "user": "0"

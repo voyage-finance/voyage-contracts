@@ -35,20 +35,20 @@ const setupBase = async ({
   );
   /* ------------------------- reserve initialisation ------------------------- */
   await voyage.initReserve(
+    crab.address,
     tus.address,
     defaultReserveInterestRateStrategy.address,
-    priceOracle.address,
-    crab.address
+    priceOracle.address
   );
   // 105%
-  await voyage.setLiquidationBonus(tus.address, 10500);
-  await voyage.setIncomeRatio(tus.address, 0.5 * 1e4);
-  await voyage.setMarginParams(tus.address, 0, 10000, 0.1 * 1e4);
-  await voyage.setLoanParams(tus.address, 30, 90, 10);
-  await voyage.activateReserve(tus.address);
+  await voyage.setLiquidationBonus(crab.address, 10500);
+  await voyage.setIncomeRatio(crab.address, 0.5 * 1e4);
+  await voyage.setMarginParams(crab.address, 0, 10000, 0.1 * 1e4);
+  await voyage.setLoanParams(crab.address, 30, 90, 10);
+  await voyage.activateReserve(crab.address);
   const cutRatio = toRay(new BigNumber('0.2')).toFixed();
   await voyage.updateProtocolFee(owner, cutRatio);
-  const [senior, junior] = await voyage.getDepositTokens(tus.address);
+  const [senior, junior] = await voyage.getDepositTokens(crab.address);
   const seniorDepositToken = await ethers.getContractAt(
     'SeniorDepositToken',
     senior
@@ -65,11 +65,8 @@ const setupBase = async ({
   const salt = randomBytes(20);
   await voyage.createVault(owner, salt);
   const deployedVault = await voyage.getVault(owner);
-  console.log('deployed vault address: ', deployedVault);
-  const getVaultAddr = await voyage.computeCounterfactualAddress(owner, salt);
-  console.log('get vault address: ', getVaultAddr);
   await tus.approve(deployedVault, MAX_UINT_256);
-  await voyage.initCreditLine(deployedVault, tus.address);
+  await voyage.initCreditLine(deployedVault, tus.address, crab.address);
 
   return {
     owner,

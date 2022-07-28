@@ -33,7 +33,7 @@ async function main() {
     await voyage.setLoanParams(tus.address, 30, 90, 10).then((tx) => tx.wait());
   }
   if (!activated) {
-    await voyage.activateReserve(tus.address).then((tx) => tx.wait());
+    await voyage.activateReserve(crab.address).then((tx) => tx.wait());
   }
 }
 

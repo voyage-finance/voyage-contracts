@@ -10,6 +10,7 @@ import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {LibLoan} from "../libraries/LibLoan.sol";
 import {LibVault} from "../libraries/LibVault.sol";
 import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
+import "hardhat/console.sol";
 
 struct CreditLineData {
     uint256 totalDebt;
@@ -30,6 +31,7 @@ contract DataProviderFacet {
     AppStorage internal s;
 
     struct PoolData {
+        address currency;
         uint256 totalLiquidity;
         uint256 juniorLiquidity;
         uint256 seniorLiquidity;
@@ -68,14 +70,14 @@ contract DataProviderFacet {
         address tokenAddress;
     }
 
-    function getPoolConfiguration(address _reserve)
+    function getPoolConfiguration(address _collection)
         external
         view
         returns (PoolConfiguration memory)
     {
         PoolConfiguration memory poolConfiguration;
         ReserveConfigurationMap memory config = LibReserveConfiguration
-            .getConfiguration(_reserve);
+            .getConfiguration(_collection);
         poolConfiguration.liquidationBonus = config.getLiquidationBonus();
         poolConfiguration.incomeRatio = config.getIncomeRatio();
         (
@@ -88,16 +90,17 @@ contract DataProviderFacet {
         return poolConfiguration;
     }
 
-    function getPoolData(address _asset)
+    function getPoolData(address _collection)
         external
         view
         returns (PoolData memory)
     {
         LibLiquidity.DepositAndDebt memory depositAndDebt = LibLiquidity
-            .getDepositAndDebt(_asset);
-        IERC20Metadata token = IERC20Metadata(_asset);
+            .getDepositAndDebt(_collection);
+        IERC20Metadata token = IERC20Metadata(depositAndDebt.currency);
 
         PoolData memory poolData;
+        poolData.currency = depositAndDebt.currency;
         poolData.juniorLiquidity = depositAndDebt.juniorDepositAmount;
         poolData.seniorLiquidity = depositAndDebt.seniorDepositAmount;
         poolData.totalLiquidity =
@@ -113,21 +116,21 @@ contract DataProviderFacet {
         }
 
         poolData.decimals = token.decimals();
-        poolData.utilizationRate = LibLiquidity.utilizationRate(_asset);
+        poolData.utilizationRate = LibLiquidity.utilizationRate(_collection);
         poolData.symbol = token.symbol();
         (poolData.isActive, , ) = LibReserveConfiguration
-            .getConfiguration(_asset)
+            .getConfiguration(_collection)
             .getFlags();
 
         return poolData;
     }
 
-    function getDepositTokens(address _asset)
+    function getDepositTokens(address _collection)
         public
         view
         returns (address senior, address junior)
     {
-        ReserveData memory reserve = LibLiquidity.getReserveData(_asset);
+        ReserveData memory reserve = LibLiquidity.getReserveData(_collection);
         senior = reserve.seniorDepositTokenAddress;
         junior = reserve.juniorDepositTokenAddress;
     }
@@ -141,53 +144,56 @@ contract DataProviderFacet {
         view
         returns (FungibleTokenData[] memory tokens)
     {
-        address[] memory reserveList = LibLiquidity.getReserveList();
+        address[] memory collections = LibLiquidity.getReserveList();
 
-        FungibleTokenData[] memory reserves = new FungibleTokenData[](
-            reserveList.length
+        FungibleTokenData[] memory currencies = new FungibleTokenData[](
+            collections.length
         );
 
-        for (uint256 i = 0; i < reserveList.length; ) {
-            address reserveAddress = reserveList[i];
-            reserves[i] = FungibleTokenData({
-                symbol: IERC20Metadata(reserveAddress).symbol(),
-                tokenAddress: reserveAddress
+        for (uint256 i = 0; i < collections.length; ) {
+            ReserveData memory reserve = LibLiquidity.getReserveData(
+                collections[i]
+            );
+            currencies[i] = FungibleTokenData({
+                symbol: IERC20Metadata(reserve.currency).symbol(),
+                tokenAddress: reserve.currency
             });
             unchecked {
                 ++i;
             }
         }
 
-        return reserves;
+        return currencies;
     }
 
-    function getUserPoolData(address _reserve, address _user)
+    function getUserPoolData(address _collection, address _user)
         external
         view
         returns (UserPoolData memory)
     {
+        ReserveData memory reserve = LibLiquidity.getReserveData(_collection);
         UserPoolData memory userPoolData;
-        IERC20Metadata token = IERC20Metadata(_reserve);
+        IERC20Metadata token = IERC20Metadata(reserve.currency);
 
         uint256 seniorTrancheWithdrawable = LibLiquidity.balance(
-            _reserve,
+            _collection,
             _user,
             Tranche.SENIOR
         );
         uint256 seniorTrancheUnbonding = LibLiquidity.unbonding(
-            _reserve,
+            _collection,
             _user,
             Tranche.SENIOR
         );
         uint256 seniorTrancheTotalBalance = seniorTrancheWithdrawable +
             seniorTrancheUnbonding;
         uint256 juniorTrancheWithdrawable = LibLiquidity.balance(
-            _reserve,
+            _collection,
             _user,
             Tranche.JUNIOR
         );
         uint256 juniorTrancheUnbonding = LibLiquidity.unbonding(
-            _reserve,
+            _collection,
             _user,
             Tranche.JUNIOR
         );
@@ -201,62 +207,72 @@ contract DataProviderFacet {
         userPoolData
             .withdrawableSeniorTrancheBalance = seniorTrancheWithdrawable;
         userPoolData.decimals = token.decimals();
-
         return userPoolData;
     }
 
-    function getCreditLineData(address _vault, address _reserve)
+    function getCreditLineData(address _vault, address _collection)
         external
         view
         returns (CreditLineData memory)
     {
+        ReserveData memory reserve = LibLiquidity.getReserveData(_collection);
         CreditLineData memory creditLineData;
         uint256 principal;
         uint256 interest;
         LoanList memory loanList;
-        (loanList.head, loanList.tail) = LibLoan.getLoanList(_reserve, _vault);
-        (principal, interest) = LibVault.getVaultDebt(_reserve, _vault);
+        (loanList.head, loanList.tail) = LibLoan.getLoanList(
+            reserve.currency,
+            _vault
+        );
+        (principal, interest) = LibVault.getVaultDebt(_collection, _vault);
         creditLineData.loanList = loanList;
         creditLineData.totalDebt = principal + interest;
-        creditLineData.totalMargin = LibVault.getMargin(_vault, _reserve);
+        creditLineData.totalMargin = LibVault.getMargin(
+            _vault,
+            reserve.currency
+        );
         creditLineData.withdrawableSecurityDeposit = LibVault
-            .getTotalWithdrawableMargin(_vault, _reserve);
-        creditLineData.creditLimit = LibVault.getCreditLimit(_vault, _reserve);
+            .getTotalWithdrawableMargin(_vault, reserve.currency);
+        creditLineData.creditLimit = LibVault.getCreditLimit(
+            _vault,
+            _collection
+        );
         creditLineData.spendableBalance = LibVault.getAvailableCredit(
             _vault,
-            _reserve
+            _collection
         );
         creditLineData.ltv = creditLineData.totalDebt == 0
             ? 1
             : (creditLineData.gav + creditLineData.totalMargin).rayDiv(
                 creditLineData.totalDebt
             );
-
         return creditLineData;
     }
 
     function getLoanDetail(
         address _vault,
-        address _reserve,
+        address _collection,
         uint256 _loanId
     ) external view returns (LibLoan.LoanDetail memory) {
-        return LibLoan.getLoanDetail(_reserve, _vault, _loanId);
+        ReserveData memory reserve = LibLiquidity.getReserveData(_collection);
+        return LibLoan.getLoanDetail(reserve.currency, _vault, _loanId);
     }
 
     function getRepayment(
         address _valut,
-        address _reserve,
+        address _collection,
         uint256 _loanId
     ) external view returns (RepaymentData[] memory) {
-        return LibLoan.getRepayment(_valut, _reserve, _loanId);
+        ReserveData memory reserve = LibLiquidity.getReserveData(_collection);
+        return LibLoan.getRepayment(_valut, reserve.currency, _loanId);
     }
 
-    function pendingSeniorWithdrawals(address _user, address _reserve)
+    function pendingSeniorWithdrawals(address _user, address _collection)
         public
         view
         returns (uint256[] memory, uint256[] memory)
     {
-        ReserveData memory reserve = LibLiquidity.getReserveData(_reserve);
+        ReserveData memory reserve = LibLiquidity.getReserveData(_collection);
 
         (uint256[] memory times, uint256[] memory amounts) = IVToken(
             reserve.seniorDepositTokenAddress
@@ -265,12 +281,12 @@ contract DataProviderFacet {
         return (times, amounts);
     }
 
-    function pendingJuniorWithdrawals(address _user, address _reserve)
+    function pendingJuniorWithdrawals(address _user, address _collection)
         public
         view
         returns (uint256[] memory, uint256[] memory)
     {
-        ReserveData memory reserve = LibLiquidity.getReserveData(_reserve);
+        ReserveData memory reserve = LibLiquidity.getReserveData(_collection);
 
         (uint256[] memory times, uint256[] memory amounts) = IVToken(
             reserve.juniorDepositTokenAddress
@@ -279,7 +295,7 @@ contract DataProviderFacet {
         return (times, amounts);
     }
 
-    function getMarginConfiguration(address _asset)
+    function getMarginConfiguration(address _collection)
         external
         view
         returns (
@@ -289,14 +305,16 @@ contract DataProviderFacet {
         )
     {
         ReserveConfigurationMap memory conf = LibReserveConfiguration
-            .getConfiguration(_asset);
+            .getConfiguration(_collection);
         uint256 decimals = conf.getDecimals();
         uint256 assetUnit = 10**decimals;
         (
             uint256 min,
             uint256 max,
             uint256 marginRequirement
-        ) = LibReserveConfiguration.getConfiguration(_asset).getMarginParams();
+        ) = LibReserveConfiguration
+                .getConfiguration(_collection)
+                .getMarginParams();
         return (min * assetUnit, max * assetUnit, marginRequirement);
     }
 }

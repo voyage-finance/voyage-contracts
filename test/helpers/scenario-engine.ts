@@ -25,17 +25,17 @@ const executeAction = async (
   users: SignerWithAddress[],
   testEnv: TestEnv
 ) => {
-  const { reserve, user: userIndex } = action.args;
+  const { cname, user: userIndex } = action.args;
   const { name, expected, revertMessage } = action;
 
   if (!name || name === '') {
     throw 'Action name is missing';
   }
-  if (!reserve || reserve === '') {
-    throw 'Invalid reserve selected for deposit';
+  if (!cname || cname === '') {
+    throw 'Invalid collection selected for deposit';
   }
   if (!userIndex || userIndex === '') {
-    throw `Invalid user selected to deposit into the ${reserve} reserve`;
+    throw `Invalid user selected to deposit into the ${cname} collection`;
   }
 
   if (!expected || expected === '') {
@@ -48,46 +48,49 @@ const executeAction = async (
 
   switch (name) {
     case 'deposit':
-      const { reserve, tranche, amount } = action.args;
+      console.log('case deposit');
+      const { cname, tranche, amount } = action.args;
       if (!amount || amount === '') {
-        throw `Invalid amount to deposit into the ${reserve} reserve`;
+        throw `Invalid amount to deposit into the ${cname} collection`;
       }
-      await deposit(reserve, tranche, amount, testEnv);
+      console.log('before deposit');
+      await deposit(cname, tranche, amount, testEnv);
+      console.log('after deposit');
       break;
     case 'withdraw': {
-      const { reserve, tranche, amount } = action.args;
+      const { cname, tranche, amount } = action.args;
       if (!amount || amount === '') {
-        throw `Invalid amount to deposit into the ${reserve} reserve`;
+        throw `Invalid amount to deposit into the ${cname} collection`;
       }
-      await withdraw(reserve, tranche, amount, testEnv);
+      await withdraw(cname, tranche, amount, testEnv);
       break;
     }
     case 'borrow': {
-      const { reserve, amount } = action.args;
+      const { cname, amount } = action.args;
       if (!amount || amount === '') {
-        throw `Invalid amount to deposit into the ${reserve} reserve`;
+        throw `Invalid amount to deposit into the ${cname} collection`;
       }
-      await borrow(reserve, amount, testEnv);
+      await borrow(cname, amount, testEnv);
       break;
     }
     case 'margin': {
-      const { reserve, amount } = action.args;
+      const { cname, amount } = action.args;
       if (!amount || amount === '') {
-        throw `Invalid amount to deposit into the ${reserve} reserve`;
+        throw `Invalid amount to deposit into the ${cname} collection`;
       }
-      await margin(reserve, amount, testEnv);
+      await margin(cname, amount, testEnv);
     }
     case 'approve': {
-      const { reserve, tranche, amount } = action.args;
+      const { cname, tranche, amount } = action.args;
       if (!amount || amount === '') {
-        throw `Invalid amount to deposit into the ${reserve} reserve`;
+        throw `Invalid amount to deposit into the ${cname} collection`;
       }
       await approve(tranche, amount, testEnv);
       break;
     }
     case 'repay': {
-      const { reserve, loan } = action.args;
-      await repay(reserve, loan, testEnv);
+      const { cname, loan } = action.args;
+      await repay(cname, loan, testEnv);
       break;
     }
 

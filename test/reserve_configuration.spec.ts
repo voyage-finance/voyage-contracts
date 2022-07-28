@@ -85,7 +85,7 @@ describe('Reserve configuration', async () => {
   });
 
   it('should set valid margin parameters', async () => {
-    const { tus, voyage } = await setupTestSuite();
+    const { tus, crab, voyage } = await setupTestSuite();
     const min = 0;
     const max = 10_000;
     const marginRequirement = 1000; // 0.1 in basis points
@@ -94,7 +94,7 @@ describe('Reserve configuration', async () => {
     ).to.emit(voyage, 'MarginParametersUpdated');
 
     const [minRes, maxRes, mr] = await voyage.getMarginConfiguration(
-      tus.address
+      crab.address
     );
     expect(minRes).to.equal(0);
     expect(maxRes.div(WAD)).to.equal(max);

@@ -5,7 +5,6 @@ import {Pausable} from "@openzeppelin/contracts/security/Pausable.sol";
 import {Storage, Authorisation} from "../libraries/LibAppStorage.sol";
 import {LibSecurity} from "../libraries/LibSecurity.sol";
 import {VaultFacet} from "./VaultFacet.sol";
-import "hardhat/console.sol";
 
 contract SecurityFacet is Storage {
     using LibSecurity for Authorisation;

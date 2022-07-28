@@ -104,18 +104,19 @@ const expectEqual = (
 };
 
 export const deposit = async (
-  asset: string,
+  cname: string,
   tranche: string,
   amount: string,
   testEnv: TestEnv
 ) => {
-  const reserve = testEnv.reserves.get(asset);
+  const collection = testEnv.collections.get(cname);
+  console.log('collection: ', collection!);
   const user = testEnv.users[0];
   const { reserveData: reserveDataBefore, userData: userDataBefore } =
-    await getContractsData(reserve!, user.address, testEnv);
+    await getContractsData(collection!, user.address, testEnv);
 
   const txResult = await (
-    await testEnv.voyage.deposit(reserve!, tranche, amount)
+    await testEnv.voyage.deposit(collection!, tranche, amount)
   ).wait();
 
   const { txCost, txTimestamp } = await getTxCostAndTimestamp(txResult);
@@ -124,7 +125,7 @@ export const deposit = async (
     reserveData: reserveDataAfter,
     userData: userDataAfter,
     timestamp,
-  } = await getContractsData(reserve!, user.address, testEnv);
+  } = await getContractsData(collection!, user.address, testEnv);
 
   const expectedUserData = calcExpectedUserDataAfterDeposit(
     amount,
@@ -148,25 +149,25 @@ export const deposit = async (
 };
 
 export const withdraw = async (
-  asset: string,
+  cname: string,
   tranche: string,
   amount: string,
   testEnv: TestEnv
 ) => {
-  const reserve = testEnv.reserves.get(asset);
+  const collection = testEnv.collections.get(cname);
   const user = testEnv.users[0];
   const { reserveData: reserveDataBefore, userData: userDataBefore } =
-    await getContractsData(reserve!, user.address, testEnv);
+    await getContractsData(collection!, user.address, testEnv);
 
   const txResult = await (
-    await testEnv.voyage.withdraw(reserve!, tranche, amount)
+    await testEnv.voyage.withdraw(collection!, tranche, amount)
   ).wait();
 
   const {
     reserveData: reserveDataAfter,
     userData: userDataAfter,
     timestamp,
-  } = await getContractsData(reserve!, user.address, testEnv);
+  } = await getContractsData(collection!, user.address, testEnv);
 
   const expectedReserveData = caclExpectedReserveDataAfterWithdraw(
     amount,
@@ -177,22 +178,24 @@ export const withdraw = async (
 };
 
 export const margin = async (
-  asset: string,
+  cname: string,
   amount: string,
   testEnv: TestEnv
 ) => {
-  const reserve = testEnv.reserves.get(asset);
+  const collection = testEnv.collections.get(cname);
   const user = testEnv.users[0];
   const vault = testEnv.vaults.get(user.address);
-  await (await testEnv.voyage.depositMargin(vault!, reserve!, amount)).wait();
+  await (
+    await testEnv.voyage.depositMargin(vault!, collection!, amount)
+  ).wait();
 };
 
 export const borrow = async (
-  asset: string,
+  cname: string,
   amount: string,
   testEnv: TestEnv
 ) => {
-  const reserve = testEnv.reserves.get(asset);
+  const collection = testEnv.collections.get(cname);
   const user = testEnv.users[0];
   const vault = testEnv.vaults.get(user.address);
 
@@ -200,10 +203,12 @@ export const borrow = async (
     reserveData: reserveDataBefore,
     userData: userDataBefore,
     creditLine: creditLineBefore,
-  } = await getContractsData(reserve!, user.address, testEnv);
+  } = await getContractsData(collection!, user.address, testEnv);
 
   const txResult = await (
-    await testEnv.voyage.connect(user.signer).borrow(reserve!, amount, vault!)
+    await testEnv.voyage
+      .connect(user.signer)
+      .borrow(collection!, amount, vault!)
   ).wait();
 
   const { txCost, txTimestamp } = await getTxCostAndTimestamp(txResult);
@@ -213,7 +218,7 @@ export const borrow = async (
     userData: userDataAfter,
     creditLine: creditLineAfter,
     timestamp,
-  } = await getContractsData(reserve!, user.address, testEnv);
+  } = await getContractsData(collection!, user.address, testEnv);
 
   const expectedReserveData = calcExpectedReserveDataAfterBorrow(
     amount,
@@ -228,8 +233,8 @@ export const borrow = async (
   expectEqual(creditLineAfter, expectedCreditLineData);
 };
 
-export const repay = async (asset: string, loan: string, testEnv: TestEnv) => {
-  const reserve = testEnv.reserves.get(asset);
+export const repay = async (cname: string, loan: string, testEnv: TestEnv) => {
+  const collection = testEnv.collections.get(cname);
   const user = testEnv.users[0];
   const vault = testEnv.vaults.get(user.address);
 
@@ -237,27 +242,27 @@ export const repay = async (asset: string, loan: string, testEnv: TestEnv) => {
     reserveData: reserveDataBefore,
     userData: userDataBefore,
     creditLine: creditLineBefore,
-  } = await getContractsData(reserve!, user.address, testEnv);
+  } = await getContractsData(collection!, user.address, testEnv);
 
   const loanDetail = await getLoanDetail(
     testEnv.voyage,
-    reserve!,
+    collection!,
     vault!,
     loan
   );
 
-  const poolConfg = await getPoolConfiguration(testEnv.voyage, reserve!);
+  const poolConfg = await getPoolConfiguration(testEnv.voyage, collection!);
   const incomeRatio = poolConfg.incomeRatio;
 
   const txResult = await (
-    await testEnv.voyage.repay(reserve!, '0', vault!)
+    await testEnv.voyage.repay(collection!, '0', vault!)
   ).wait();
 
   const {
     reserveData: reserveDataAfter,
     userData: userDataAfter,
     creditLine: creditLineAfter,
-  } = await getContractsData(reserve!, user.address, testEnv);
+  } = await getContractsData(collection!, user.address, testEnv);
 
   const expectedReserveData = await caclExpectedReserveDataAfterRepay(
     loanDetail.principal.div(loanDetail.nper),
@@ -306,18 +311,19 @@ export const getTxCostAndTimestamp = async (tx: ContractReceipt) => {
 };
 
 export const getContractsData = async (
-  reserve: string,
+  collection: string,
   user: string,
   testEnv: TestEnv
 ) => {
   const dataProviderFacet = testEnv.voyage;
   const vault = testEnv.vaults.get(user)!;
   const [reserveData, userData, creditLine, timestamp] = await Promise.all([
-    getReserveData(dataProviderFacet, reserve),
-    getUserPoolData(dataProviderFacet, reserve, user),
-    getCreditLine(dataProviderFacet, reserve, vault),
+    getReserveData(dataProviderFacet, collection),
+    getUserPoolData(dataProviderFacet, collection, user),
+    getCreditLine(dataProviderFacet, collection, vault),
     timeLatest(),
   ]);
+  console.log('end get contract data');
   return { reserveData, userData, creditLine, timestamp };
 };
 

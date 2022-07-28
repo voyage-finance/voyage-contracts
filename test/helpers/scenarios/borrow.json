@@ -3,14 +3,14 @@
     "description": "Test cases for the borrow function.",
     "stories": [
         {
-            "description": "User deposit 10000 TUS, approve voyage, then borrow 1000 TUS",
+            "description": "User deposit 1**18 TUS, approve voyage, then borrow 1**17 TUS",
             "actions": [
               {
                 "name": "deposit",
                 "args": {
-                  "reserve": "TUS",
+                  "cname": "TUS",
                   "tranche": "1",
-                  "amount": "10000",
+                  "amount": "10000000000000000000",
                   "user": "0"
                 },
                 "expected": "success"
@@ -18,9 +18,9 @@
               {
                 "name": "deposit",
                 "args": {
-                  "reserve": "TUS",
+                  "cname": "TUS",
                   "tranche": "0",
-                  "amount": "10000",
+                  "amount": "10000000000000000000",
                   "user": "0"
                 },
                 "expected": "success"
@@ -28,9 +28,9 @@
               {
                 "name": "approve",
                 "args": {
-                  "reserve": "TUS",
+                  "cname": "TUS",
                   "tranche": "1",
-                  "amount": "10000",
+                  "amount": "10000000000000000000",
                   "user": "0"
                 },
                 "expected": "success"
@@ -38,8 +38,8 @@
               {
                 "name": "margin",
                 "args": {
-                  "reserve": "TUS",
-                  "amount": "1000",
+                  "cname": "TUS",
+                  "amount": "1000000000000000000",
                   "user": "0"
                 },
                 "expected": "success"
@@ -47,8 +47,8 @@
               {
                 "name": "borrow",
                 "args": {
-                  "reserve": "TUS",
-                  "amount": "10000",
+                  "cname": "TUS",
+                  "amount": "100000000000000000",
                   "user": "0"
                 },
                 "expected": "success"

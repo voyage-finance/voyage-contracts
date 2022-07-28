@@ -99,8 +99,8 @@ contract VaultManageFacet is ReentrancyGuard, Storage, VaultAuth {
 
     function callSubVault(
         address _subvault,
-        address target,
-        bytes calldata data
+        address _target,
+        bytes calldata _data
     ) external {
         SecurityFacet sf = SecurityFacet(
             LibVaultStorage.diamondStorage().voyage
@@ -115,11 +115,11 @@ contract VaultManageFacet is ReentrancyGuard, Storage, VaultAuth {
             revert UnAuthorised();
         }
 
-        ISubvault(_subvault).callExternal(target, data);
+        ISubvault(_subvault).callExternal(_target, _data);
     }
 
     function onERC721Transferred(
-        address _asset,
+        address _collection,
         uint256 _tokenId,
         address _src,
         address _dst
@@ -134,14 +134,14 @@ contract VaultManageFacet is ReentrancyGuard, Storage, VaultAuth {
         if (
             LibVaultStorage
             .diamondStorage()
-            .custodyIndex[_asset][_tokenId].owner != address(0)
+            .custodyIndex[_collection][_tokenId].owner != address(0)
         ) {
             revert InvalidTransfer("invalid token id");
         }
         LibVaultStorage
         .diamondStorage()
-        .custodyIndex[_asset][_tokenId].owner = _src;
-        LibVaultStorage.diamondStorage().tokenSet[_asset].push(_tokenId);
+        .custodyIndex[_collection][_tokenId].owner = _src;
+        LibVaultStorage.diamondStorage().tokenSet[_collection].push(_tokenId);
     }
 }
 

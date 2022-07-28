@@ -5,14 +5,14 @@ import { ethers } from 'hardhat';
 
 describe('Vault margin configuration', async () => {
   it('should always use global margin by default', async () => {
-    const { voyage, tus, owner } = await setupTestSuite();
+    const { voyage, crab, owner } = await setupTestSuite();
     const globalMargin = {
       min: 0,
       max: 10_000,
       marginRequirement: 1000,
     };
     await voyage.setMarginParams(
-      tus.address,
+      crab.address,
       globalMargin.min,
       globalMargin.max,
       globalMargin.marginRequirement
@@ -20,9 +20,9 @@ describe('Vault margin configuration', async () => {
     const vault = await voyage.getVault(owner);
 
     let [globalMin, globalMax, marginRequirement] =
-      await voyage.getMarginConfiguration(tus.address);
-    let [vaultMin, vaultMax, vaultMarginRequirement] =
-      await voyage.getVaultConfig(tus.address, vault);
+      await voyage.getMarginConfiguration(crab.address);
+    let [_, vaultMin, vaultMax, vaultMarginRequirement] =
+      await voyage.getVaultConfig(crab.address, vault);
 
     expect(globalMin).to.equal(vaultMin);
     expect(globalMax).to.equal(vaultMax);
@@ -30,14 +30,14 @@ describe('Vault margin configuration', async () => {
   });
 
   it('should use vault config if overridden', async () => {
-    const { voyage, tus, owner } = await setupTestSuite();
+    const { voyage, tus, crab, owner } = await setupTestSuite();
     const globalMargin = {
       min: 0,
       max: 10_000,
       marginRequirement: 1000,
     };
     await voyage.setMarginParams(
-      tus.address,
+      crab.address,
       globalMargin.min,
       globalMargin.max,
       globalMargin.marginRequirement
@@ -51,7 +51,7 @@ describe('Vault margin configuration', async () => {
     };
 
     const [globalMin, globalMax, marginRequirement] =
-      await voyage.getMarginConfiguration(tus.address);
+      await voyage.getMarginConfiguration(crab.address);
     expect(globalMin).to.equal(
       ethers.BigNumber.from(globalMargin.min).mul(WAD)
     );
@@ -62,7 +62,7 @@ describe('Vault margin configuration', async () => {
 
     await expect(
       voyage.overrideMarginConfig(
-        tus.address,
+        crab.address,
         vault,
         vaultMargin.min,
         vaultMargin.max,
@@ -71,14 +71,14 @@ describe('Vault margin configuration', async () => {
     )
       .to.emit(voyage, 'VaultMarginParametersUpdated')
       .withArgs(
-        tus.address,
+        crab.address,
         vault,
         vaultMargin.min,
         vaultMargin.max,
         vaultMargin.marginRequirement
       );
-    const [vaultMin, vaultMax, vaultMarginRequirement, overridden] =
-      await voyage.getVaultConfig(tus.address, vault);
+    const [_, vaultMin, vaultMax, vaultMarginRequirement, overridden] =
+      await voyage.getVaultConfig(crab.address, vault);
     expect(vaultMin).to.equal(ethers.BigNumber.from(vaultMargin.min).mul(WAD));
     expect(vaultMax).to.equal(ethers.BigNumber.from(vaultMargin.max).mul(WAD));
     expect(vaultMarginRequirement).to.equal(vaultMargin.marginRequirement);

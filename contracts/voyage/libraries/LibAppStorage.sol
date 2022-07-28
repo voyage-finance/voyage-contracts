@@ -29,7 +29,7 @@ struct ReserveData {
     address seniorDepositTokenAddress;
     uint40 juniorLastUpdateTimestamp;
     uint40 seniorLastUpdateTimestamp;
-    address nftAddress;
+    address currency;
     address priceOracle;
     bool initialized;
 }
@@ -116,6 +116,7 @@ struct BorrowState {
 }
 
 struct VaultConfig {
+    address currency;
     uint256 minMargin;
     uint256 maxMargin;
     uint256 marginRequirement;
@@ -178,7 +179,8 @@ struct AppStorage {
     /* -------------------------------- liquidity ------------------------------- */
     UpgradeableBeacon seniorDepositTokenBeacon;
     UpgradeableBeacon juniorDepositTokenBeacon;
-    mapping(address => ReserveData) _reserves;
+    // mapping of collection address to reserve data
+    mapping(address => ReserveData) _reserveData;
     // List of reserves as a map (reserveId => reserve)
     mapping(uint256 => address) _reserveList;
     uint16 _reservesCount;
@@ -296,10 +298,8 @@ contract Storage is Context {
     }
 
     function diamondCut(address vault) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
         uint256 currentVersion = s.currentVersion;
         Snapshot memory snapshot = s.snapshotMap[currentVersion];
-        bytes32 checksum = computeSnapshotChecksum(snapshot);
         IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](
             snapshot.facets.length
         );

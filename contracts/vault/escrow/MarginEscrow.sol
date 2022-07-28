@@ -30,6 +30,7 @@ contract MarginEscrow is
 
     address public voyage;
     address public vault;
+    address public collection;
 
     // reserve address => amount
     modifier onlyOwner() {
@@ -40,14 +41,16 @@ contract MarginEscrow is
     function initialize(
         address _vault,
         address _voyage,
-        address _asset
+        address _currency,
+        address _collection
     ) public initializer {
         voyage = _voyage;
         vault = _vault;
-        IERC20Metadata underlying = IERC20Metadata(_asset);
-        __ERC20_init(underlying.name(), underlying.symbol());
-        __ERC20Permit_init(underlying.name());
-        __ERC4626_init(underlying);
+        collection = _collection;
+        IERC20Metadata currency = IERC20Metadata(_currency);
+        __ERC20_init(currency.name(), currency.symbol());
+        __ERC20Permit_init(currency.name());
+        __ERC4626_init(currency);
     }
 
     function totalAssets()
@@ -98,13 +101,12 @@ contract MarginEscrow is
 
     function totalWithdrawableMargin() public view returns (uint256) {
         VaultDataFacet vdf = VaultDataFacet(vault);
-        address _asset = address(asset);
-        uint256 vaultDebt = vdf.totalDebt(_asset);
-        uint256 marginRequirement = vdf.marginRequirement(_asset);
-        uint256 totalMargin = totalMargin();
+        uint256 vaultDebt = vdf.totalDebt(collection);
+        uint256 marginRequirement = vdf.marginRequirement(collection);
+        uint256 totalmargin = totalMargin();
         uint256 marginMin = vaultDebt.percentMul(marginRequirement);
-        if (totalMargin >= marginMin) {
-            return totalMargin - marginMin;
+        if (totalmargin >= marginMin) {
+            return totalmargin - marginMin;
         }
         return 0;
     }
@@ -117,10 +119,10 @@ contract MarginEscrow is
         return totalAssets();
     }
 
-    function transferUnderlyingTo(address _target, uint256 _amount)
+    function transferUnderlyingTo(address _currency, uint256 _amount)
         public
         onlyOwner
     {
-        asset.safeTransfer(_target, _amount);
+        asset.safeTransfer(_currency, _amount);
     }
 }
