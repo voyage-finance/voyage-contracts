@@ -14,7 +14,7 @@
     "deploy:rinkeby": "hardhat --network rinkeby deploy",
     "dev": "hardhat node --hostname 0.0.0.0 --watch --no-deploy",
     "dev:deploy": "hardhat node --hostname 0.0.0.0 --watch",
-    "node": "hardhat node --hostname 0.0.0.0 --no-deploy",
+    "node": "hardhat node --hostname 0.0.0.0 --no-deploy --network hardhat",
     "node:deploy": "hardhat node --hostname 0.0.0.0",
     "node:interval": "MINING_MODE=interval yarn run node",
     "node:deploy:interval": "MINING_MODE=interval yarn node:deploy",
@@ -73,8 +73,12 @@
     "@openzeppelin/contracts": "^4.3.2",
     "@openzeppelin/contracts-upgradeable": "^4.6.0",
     "@rari-capital/solmate": "^6.4.0",
+    "@tenderly/hardhat-tenderly": "^1.1.4",
     "hardhat-prettier": "^0.0.1",
     "lodash": "^4.17.21",
     "openzeppelin-solidity": "^4.4.1"
+  },
+  "resolutions": {
+    "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.3.0-beta.13"
   }
 }

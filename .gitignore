@@ -69,6 +69,7 @@ artifacts
 # check in test and mainnet deployments
 /deployments/local
 /deployments/localhost
+/deployments/localhost_31337
 /deployments/hardhat
 
 # yarn zero-install
