@@ -221,10 +221,15 @@ contract DataProviderFacet {
         uint256 interest;
         LoanList memory loanList;
         (loanList.head, loanList.tail) = LibLoan.getLoanList(
+            _collection,
             reserve.currency,
             _vault
         );
-        (principal, interest) = LibVault.getVaultDebt(_collection, _vault);
+        (principal, interest) = LibVault.getVaultDebt(
+            _collection,
+            reserve.currency,
+            _vault
+        );
         creditLineData.loanList = loanList;
         creditLineData.totalDebt = principal + interest;
         creditLineData.totalMargin = LibVault.getMargin(
@@ -255,7 +260,13 @@ contract DataProviderFacet {
         uint256 _loanId
     ) external view returns (LibLoan.LoanDetail memory) {
         ReserveData memory reserve = LibLiquidity.getReserveData(_collection);
-        return LibLoan.getLoanDetail(reserve.currency, _vault, _loanId);
+        return
+            LibLoan.getLoanDetail(
+                _collection,
+                reserve.currency,
+                _vault,
+                _loanId
+            );
     }
 
     function getRepayment(
@@ -264,7 +275,13 @@ contract DataProviderFacet {
         uint256 _loanId
     ) external view returns (RepaymentData[] memory) {
         ReserveData memory reserve = LibLiquidity.getReserveData(_collection);
-        return LibLoan.getRepayment(_valut, reserve.currency, _loanId);
+        return
+            LibLoan.getRepayment(
+                _collection,
+                _valut,
+                reserve.currency,
+                _loanId
+            );
     }
 
     function pendingSeniorWithdrawals(address _user, address _collection)

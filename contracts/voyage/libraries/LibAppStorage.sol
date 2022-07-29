@@ -186,7 +186,8 @@ struct AppStorage {
     uint16 _reservesCount;
     IWETH9 WETH9;
     /* ---------------------------------- debt ---------------------------------- */
-    mapping(address => mapping(address => BorrowData)) _borrowData;
+    // collection => currency => vault => data
+    mapping(address => mapping(address => mapping(address => BorrowData))) _borrowData;
     mapping(address => BorrowState) _borrowState;
     bool _paused;
     /* ---------------------------------- vault --------------------------------- */

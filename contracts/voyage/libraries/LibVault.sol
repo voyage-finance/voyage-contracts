@@ -122,13 +122,15 @@ library LibVault {
         return (creditEscrow, marginEscrow);
     }
 
-    function getVaultDebt(address _currency, address _vault)
-        internal
-        view
-        returns (uint256, uint256)
-    {
+    function getVaultDebt(
+        address _collection,
+        address _currency,
+        address _vault
+    ) internal view returns (uint256, uint256) {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        BorrowData storage borrowData = s._borrowData[_currency][_vault];
+        BorrowData storage borrowData = s._borrowData[_collection][_currency][
+            _vault
+        ];
         return (borrowData.totalPrincipal, borrowData.totalInterest);
     }
 
@@ -137,23 +139,28 @@ library LibVault {
         return s.diamondFacet;
     }
 
-    function getTotalPaidAndRedeemed(address _currency, address _vault)
-        internal
-        view
-        returns (uint256, uint256)
-    {
+    function getTotalPaidAndRedeemed(
+        address _collection,
+        address _currency,
+        address _vault
+    ) internal view returns (uint256, uint256) {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        BorrowData storage borrowData = s._borrowData[_currency][_vault];
+        BorrowData storage borrowData = s._borrowData[_collection][_currency][
+            _vault
+        ];
         return (borrowData.totalPaid, borrowData.totalRedeemed);
     }
 
     function increaseTotalRedeemed(
+        address _collection,
         address _currency,
         address _vault,
         uint256 _amount
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        BorrowData storage borrowData = s._borrowData[_currency][_vault];
+        BorrowData storage borrowData = s._borrowData[_collection][_currency][
+            _vault
+        ];
         borrowData.totalRedeemed = borrowData.totalRedeemed + _amount;
     }
 
@@ -221,11 +228,6 @@ library LibVault {
         return s.nftInfo[_collection][_tokenId];
     }
 
-    /**
-     * @dev Get available credit
-     * @param _vault user address
-     * @param _collection collection address
-     **/
     function getAvailableCredit(address _vault, address _collection)
         internal
         view
@@ -236,7 +238,11 @@ library LibVault {
             .diamondStorage()
             ._reserveData[_collection]
             .currency;
-        (uint256 principal, uint256 interest) = getVaultDebt(currency, _vault);
+        (uint256 principal, uint256 interest) = getVaultDebt(
+            _collection,
+            currency,
+            _vault
+        );
         uint256 accumulatedDebt = principal + interest;
         if (creditLimit < accumulatedDebt) {
             return 0;

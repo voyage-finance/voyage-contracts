@@ -145,6 +145,7 @@ contract LoanFacet is Storage {
         );
 
         (uint256 loanId, Loan memory loan) = LibLoan.insertDebt(
+            _collection,
             reserveData.currency,
             _vault,
             _amount,
@@ -186,6 +187,7 @@ contract LoanFacet is Storage {
 
         // 1. check draw down to get principal and interest
         (params.principal, params.interest) = LibLoan.getPMT(
+            _collection,
             reserveData.currency,
             _vault,
             _loan
@@ -198,6 +200,7 @@ contract LoanFacet is Storage {
 
         // 2. update repay data
         (uint256 repaymentId, bool isFinal) = LibLoan.repay(
+            _collection,
             reserveData.currency,
             _vault,
             _loan,
@@ -263,6 +266,7 @@ contract LoanFacet is Storage {
         );
 
         LibLoan.LoanDetail memory loanDetail = LibLoan.getLoanDetail(
+            _collection,
             param.currency,
             param.vault,
             param.loanId
@@ -279,6 +283,7 @@ contract LoanFacet is Storage {
 
         // 3.1 if it is, get debt info
         (param.principal, param.interest) = LibLoan.getPMT(
+            _collection,
             param.currency,
             param.vault,
             param.loanId
@@ -371,6 +376,7 @@ contract LoanFacet is Storage {
         }
 
         (param.repaymentId, param.isFinal) = LibLoan.repay(
+            _collection,
             param.currency,
             param.vault,
             param.loanId,
@@ -416,7 +422,7 @@ contract LoanFacet is Storage {
         ReserveData memory reserveData = LibLiquidity.getReserveData(
             _collection
         );
-        return LibVault.getVaultDebt(reserveData.currency, _vault);
+        return LibVault.getVaultDebt(_collection, reserveData.currency, _vault);
     }
 
     function previewBorrowParams(address _collection, uint256 _amount)
@@ -465,7 +471,12 @@ contract LoanFacet is Storage {
         ReserveData memory reserveData = LibLiquidity.getReserveData(
             _collection
         );
-        return LibVault.getTotalPaidAndRedeemed(reserveData.currency, _vault);
+        return
+            LibVault.getTotalPaidAndRedeemed(
+                _collection,
+                reserveData.currency,
+                _vault
+            );
     }
 
     function increaseTotalRedeemed(
@@ -479,6 +490,7 @@ contract LoanFacet is Storage {
         );
         return
             LibVault.increaseTotalRedeemed(
+                _collection,
                 reserveData.currency,
                 _vault,
                 _amount
