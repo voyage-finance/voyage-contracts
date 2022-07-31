@@ -12,14 +12,13 @@ import 'hardhat-gas-reporter';
 import 'hardhat-prettier';
 import 'hardhat-deploy';
 import 'hardhat-watcher';
+import * as tdly from '@tenderly/hardhat-tenderly';
+
+tdly.setup({ automaticVerifications: false });
 
 dotenvConfig({ path: resolve(__dirname, './.env') });
 
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || '';
-
-// TODO @ian.tan these transactions should at some point be signed by a ledger in production.
-const DEPLOYER_PRIVATE_KEY =
-  process.env.DEPLOYER_PRIVATE_KEY || ethers.Wallet.createRandom().privateKey;
 
 const cov = process.env.COVERAGE === 'true';
 if (cov) {
@@ -44,6 +43,11 @@ task('accounts', 'Prints the list of accounts', async (_, hre) => {
 const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat',
   networks: {
+    // configuration is for tenderly.
+    localhost: {
+      chainId: 31337,
+      url: 'http://127.0.0.1:8545',
+    },
     hardhat: {
       allowUnlimitedContractSize: false,
       mining:
@@ -64,7 +68,7 @@ const config: HardhatUserConfig = {
       accounts: {
         mnemonic: process.env.GOERLI_MNEMONIC,
       },
-    }
+    },
   },
   watcher: {
     test: {
@@ -104,6 +108,11 @@ const config: HardhatUserConfig = {
       },
     ],
   },
+  tenderly: {
+    project: 'protocol-v1',
+    username: 'voyage-finance',
+    privateVerification: true,
+  },
   etherscan: {
     apiKey: ETHERSCAN_API_KEY,
   },
@@ -112,7 +121,7 @@ const config: HardhatUserConfig = {
     currency: 'USD',
     token: 'ETH',
     // gasPriceApi:
-      // 'https://api.snowtrace.io/api?module=proxy&action=eth_gasPrice',
+    // 'https://api.snowtrace.io/api?module=proxy&action=eth_gasPrice',
     // TODO: regenerate key before going to prd
     coinmarketcap: '49d8a069-b7bf-4a9e-8cb4-dc9c19bff806',
   },
