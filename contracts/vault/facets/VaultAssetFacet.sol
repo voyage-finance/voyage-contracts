@@ -35,11 +35,11 @@ contract VaultAssetFacet is
         address _collection,
         uint256 _tokenId
     ) external authorised {
-        VaultFacet vf = VaultFacet(LibVaultStorage.diamondStorage().voyage);
+        VaultFacet vf = VaultFacet(LibVaultStorage.ds().voyage);
         NFTInfo memory nftInfo = vf.getCollectionInfo(_collection, _tokenId);
 
         // 1. check if paid amount >= purchased price
-        LoanFacet lf = LoanFacet(LibVaultStorage.diamondStorage().voyage);
+        LoanFacet lf = LoanFacet(LibVaultStorage.ds().voyage);
         (uint256 totalPaid, uint256 totalRedeemed) = lf.getTotalPaidAndRedeemed(
             _currency,
             address(this)
@@ -54,10 +54,7 @@ contract VaultAssetFacet is
         lf.increaseTotalRedeemed(_currency, address(this), nftInfo.price);
 
         // 2. remove from heap
-        LibVaultStorage.diamondStorage().nfts[_collection].del(
-            _tokenId,
-            nftInfo.timestamp
-        );
+        LibVaultStorage.ds().nfts[_collection].del(_tokenId, nftInfo.timestamp);
 
         // 3. transfer nft out
         IERC721(_collection).transferFrom(address(this), msg.sender, _tokenId);
@@ -77,7 +74,7 @@ contract VaultAssetFacet is
             uint256 tokenId;
             uint256 timestamp;
             (tokenId, timestamp) = LibVaultStorage
-                .diamondStorage()
+                .ds()
                 .nfts[_collection]
                 .delMin();
             IERC721(_collection).transferFrom(address(this), _to, tokenId);
@@ -104,25 +101,23 @@ contract VaultAssetFacet is
         uint256 tokenId,
         bytes calldata data
     ) external returns (bytes4 ret) {
-        VaultFacet vf = VaultFacet(LibVaultStorage.diamondStorage().voyage);
-        bool maybeSubVault = LibVaultStorage
-            .diamondStorage()
-            .subvaultOwnerIndex[msg.sender] != address(0);
+        VaultFacet vf = VaultFacet(LibVaultStorage.ds().voyage);
+        bool maybeSubVault = LibVaultStorage.ds().subvaultOwnerIndex[
+            msg.sender
+        ] != address(0);
         if (
             vf.getMarketPlaceByAsset(msg.sender) == address(0) && !maybeSubVault
         ) {
             revert InvalidSender(msg.sender);
         }
         if (vf.getMarketPlaceByAsset(msg.sender) != address(0)) {
-            LibVaultStorage.diamondStorage().nfts[msg.sender].insert(
+            LibVaultStorage.ds().nfts[msg.sender].insert(
                 tokenId,
                 block.timestamp
             );
         }
         // delete anyway
-        delete LibVaultStorage.diamondStorage().custodyIndex[msg.sender][
-            tokenId
-        ];
+        delete LibVaultStorage.ds().custodyIndex[msg.sender][tokenId];
         return this.onERC721Received.selector;
     }
 
@@ -153,14 +148,13 @@ contract VaultAssetFacet is
         if (_currency == address(0)) {
             revert InvalidAssetAddress();
         }
-        VaultStorageV1 storage s = LibVaultStorage.diamondStorage();
+        VaultStorageV1 storage s = LibVaultStorage.ds();
         if (address(s.escrow[_currency]) != address(0)) {
             revert AssetInitialized();
         }
         BeaconProxy creditEscrowProxy = new BeaconProxy(
             address(
-                VaultFacet(LibVaultStorage.diamondStorage().voyage)
-                    .creditEscrowBeacon()
+                VaultFacet(LibVaultStorage.ds().voyage).creditEscrowBeacon()
             ),
             abi.encodeWithSelector(
                 ICreditEscrow(address(0)).initialize.selector,
@@ -170,8 +164,7 @@ contract VaultAssetFacet is
 
         BeaconProxy marginEscrowProxy = new BeaconProxy(
             address(
-                VaultFacet(LibVaultStorage.diamondStorage().voyage)
-                    .marginEscrowBeacon()
+                VaultFacet(LibVaultStorage.ds().voyage).marginEscrowBeacon()
             ),
             abi.encodeWithSelector(
                 IMarginEscrow(address(0)).initialize.selector,

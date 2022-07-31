@@ -7,7 +7,6 @@ import {IMarginEscrow} from "../interfaces/IMarginEscrow.sol";
 import {VaultConfig} from "../../voyage/libraries/LibAppStorage.sol";
 import {PaymentsFacet} from "../../shared/facets/PaymentsFacet.sol";
 import {VaultFacet} from "../../voyage/facets/VaultFacet.sol";
-import "hardhat/console.sol";
 
 contract VaultMarginFacet is ReentrancyGuard, Storage {
     /// @notice Transfer some margin deposit
@@ -19,21 +18,17 @@ contract VaultMarginFacet is ReentrancyGuard, Storage {
         address _collection,
         uint256 _amount
     ) external payable nonReentrant onlyVoyage {
-        VaultConfig memory vc = VaultFacet(
-            LibVaultStorage.diamondStorage().voyage
-        ).getVaultConfig(_collection, address(this));
+        VaultConfig memory vc = VaultFacet(LibVaultStorage.ds().voyage)
+            .getVaultConfig(_collection, address(this));
         IMarginEscrow me = _marginEscrow(vc.currency);
         if (address(me) == address(0)) {
             revert VaultNotInitialised();
         }
         uint256 depositedAmount = me.totalMargin();
         if (depositedAmount + _amount > vc.maxMargin) {
-            console.log("max margin: ", vc.maxMargin);
-            console.log("amount: ", _amount);
             revert InvalidDeposit("deposit amount exceed");
         }
         if (vc.minMargin > _amount) {
-            console.log("min margin: ", vc.minMargin);
             revert InvalidDeposit("deposit too small");
         }
         PaymentsFacet(address(this)).pullToken(
@@ -54,9 +49,8 @@ contract VaultMarginFacet is ReentrancyGuard, Storage {
         address _collection,
         uint256 _amount
     ) external payable nonReentrant onlyVoyage {
-        VaultConfig memory vc = VaultFacet(
-            LibVaultStorage.diamondStorage().voyage
-        ).getVaultConfig(_collection, address(this));
+        VaultConfig memory vc = VaultFacet(LibVaultStorage.ds().voyage)
+            .getVaultConfig(_collection, address(this));
         IMarginEscrow me = _marginEscrow(vc.currency);
         if (address(me) == address(0)) {
             revert VaultNotInitialised();

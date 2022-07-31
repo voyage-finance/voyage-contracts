@@ -188,7 +188,7 @@ struct AppStorage {
     /* ---------------------------------- debt ---------------------------------- */
     // collection => currency => vault => data
     mapping(address => mapping(address => mapping(address => BorrowData))) _borrowData;
-    mapping(address => BorrowState) _borrowState;
+    mapping(address => mapping(address => BorrowState)) _borrowState;
     bool _paused;
     /* ---------------------------------- vault --------------------------------- */
     UpgradeableBeacon marginEscrowBeacon;
@@ -220,14 +220,15 @@ struct AppStorage {
 }
 
 library LibAppStorage {
-    function diamondStorage() internal pure returns (AppStorage storage ds) {
+    function ds() internal pure returns (AppStorage storage ds) {
+        bytes32 storagePosition = keccak256("diamond.storage.voyage");
         assembly {
-            ds.slot := 0
+            ds.slot := storagePosition
         }
     }
 
     function cleanUpgradeParam() internal {
-        UpgradeParam storage s = diamondStorage().upgradeParam;
+        UpgradeParam storage s = ds().upgradeParam;
         for (uint256 i = 0; i < s.existingSelectors[msg.sender].length; ) {
             delete s.existingSelectorFacetMap[msg.sender][
                 s.existingSelectors[msg.sender][i]
@@ -252,15 +253,13 @@ library LibAppStorage {
 }
 
 contract Storage is Context {
-    AppStorage internal s;
-
     modifier whenPaused() {
-        require(s._paused, "Pausable: not paused");
+        require(LibAppStorage.ds()._paused, "Pausable: not paused");
         _;
     }
 
     modifier whenNotPaused() {
-        require(!s._paused, "Pausable: paused");
+        require(!LibAppStorage.ds()._paused, "Pausable: paused");
         _;
     }
 
@@ -270,7 +269,12 @@ contract Storage is Context {
     }
 
     function auth() internal view returns (bool) {
-        return LibSecurity.isAuthorisedInbound(s.auth, msg.sender, msg.sig);
+        return
+            LibSecurity.isAuthorisedInbound(
+                LibAppStorage.ds().auth,
+                msg.sender,
+                msg.sig
+            );
     }
 
     function computeSnapshotChecksum(Snapshot memory snapshot)
@@ -299,8 +303,10 @@ contract Storage is Context {
     }
 
     function diamondCut(address vault) internal {
-        uint256 currentVersion = s.currentVersion;
-        Snapshot memory snapshot = s.snapshotMap[currentVersion];
+        uint256 currentVersion = LibAppStorage.ds().currentVersion;
+        Snapshot memory snapshot = LibAppStorage.ds().snapshotMap[
+            currentVersion
+        ];
         IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](
             snapshot.facets.length
         );

@@ -41,7 +41,10 @@ library LibLoan {
         uint256 _epoch,
         uint256 _apr
     ) internal returns (uint256 loanId, Loan storage) {
-        BorrowState storage borrowState = getBorrowState(_currency);
+        BorrowState storage borrowState = getBorrowState(
+            _collection,
+            _currency
+        );
         BorrowData storage borrowData = getBorrowData(
             _collection,
             _currency,
@@ -107,7 +110,10 @@ library LibLoan {
             _currency,
             _vault
         );
-        BorrowState storage borrowState = getBorrowState(_currency);
+        BorrowState storage borrowState = getBorrowState(
+            _collection,
+            _currency
+        );
         Loan storage loan = debtData.loans[_loanNumber];
         loan.paidTimes += 1;
         if (loan.paidTimes == loan.nper) {
@@ -152,13 +158,13 @@ library LibLoan {
 
     /* ----------------------------- view functions ----------------------------- */
 
-    function getBorrowState(address _currency)
+    function getBorrowState(address _collection, address _currency)
         internal
         view
         returns (BorrowState storage)
     {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        return s._borrowState[_currency];
+        AppStorage storage s = LibAppStorage.ds();
+        return s._borrowState[_collection][_currency];
     }
 
     function getBorrowData(
@@ -166,7 +172,7 @@ library LibLoan {
         address _currency,
         address _vault
     ) internal view returns (BorrowData storage) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         return s._borrowData[_collection][_currency][_vault];
     }
 
@@ -176,7 +182,7 @@ library LibLoan {
         address _vault,
         uint256 _loanId
     ) internal view returns (LoanDetail memory) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         BorrowData storage borrowData = s._borrowData[_collection][_currency][
             _vault
         ];
@@ -204,7 +210,7 @@ library LibLoan {
         address _vault,
         uint256 _loanId
     ) internal view returns (RepaymentData[] memory) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         BorrowData storage borrowData = s._borrowData[_collection][_currency][
             _vault
         ];
@@ -217,7 +223,7 @@ library LibLoan {
         address _currency,
         address _vault
     ) internal view returns (uint256, uint256) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         BorrowData storage borrowData = s._borrowData[_collection][_currency][
             _vault
         ];
@@ -230,7 +236,7 @@ library LibLoan {
         address _vault,
         uint256 _loan
     ) internal view returns (uint256, uint256) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         Loan storage loan = s._borrowData[_collection][_currency][_vault].loans[
             _loan
         ];

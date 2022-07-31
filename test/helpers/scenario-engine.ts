@@ -48,14 +48,12 @@ const executeAction = async (
 
   switch (name) {
     case 'deposit':
-      console.log('case deposit');
       const { cname, tranche, amount } = action.args;
       if (!amount || amount === '') {
         throw `Invalid amount to deposit into the ${cname} collection`;
       }
       console.log('before deposit');
       await deposit(cname, tranche, amount, testEnv);
-      console.log('after deposit');
       break;
     case 'withdraw': {
       const { cname, tranche, amount } = action.args;

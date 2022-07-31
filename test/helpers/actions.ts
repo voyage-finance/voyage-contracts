@@ -323,7 +323,6 @@ export const getContractsData = async (
     getCreditLine(dataProviderFacet, collection, vault),
     timeLatest(),
   ]);
-  console.log('end get contract data');
   return { reserveData, userData, creditLine, timestamp };
 };
 

@@ -443,6 +443,7 @@ contract LoanFacet is Storage {
 
         // 5. update liquidity index and interest rate
         BorrowState memory borrowState = LibLoan.getBorrowState(
+            _collection,
             reserveData.currency
         );
 
@@ -509,6 +510,7 @@ contract LoanFacet is Storage {
             _collection
         );
         BorrowState memory borrowState = LibLoan.getBorrowState(
+            _collection,
             reserveData.currency
         );
         return borrowState.totalDebt;
@@ -526,6 +528,7 @@ contract LoanFacet is Storage {
             _collection
         );
         BorrowState memory borrowState = LibLoan.getBorrowState(
+            _collection,
             reserveData.currency
         );
         return borrowState.totalInterest;

@@ -15,14 +15,12 @@ contract DiamondVersionFacet is Storage {
         bytes memory initArgs,
         IDiamondLoupe.Facet[] memory facets
     ) public authorised {
-        LibAppStorage.diamondStorage().currentVersion += 1;
-        uint256 version = LibAppStorage.diamondStorage().currentVersion;
-        LibAppStorage.diamondStorage().snapshotMap[version].init = init;
-        LibAppStorage.diamondStorage().snapshotMap[version].initArgs = initArgs;
+        LibAppStorage.ds().currentVersion += 1;
+        uint256 version = LibAppStorage.ds().currentVersion;
+        LibAppStorage.ds().snapshotMap[version].init = init;
+        LibAppStorage.ds().snapshotMap[version].initArgs = initArgs;
         for (uint256 i = 0; i < facets.length; ) {
-            LibAppStorage.diamondStorage().snapshotMap[version].facets.push(
-                facets[i]
-            );
+            LibAppStorage.ds().snapshotMap[version].facets.push(facets[i]);
             unchecked {
                 i++;
             }
@@ -33,24 +31,34 @@ contract DiamondVersionFacet is Storage {
         public
         returns (IDiamondCut.FacetCut[] memory)
     {
-        IDiamondCut.FacetCut[] storage facetCuts = s.upgradeParam.facetCuts[
-            msg.sender
+        IDiamondCut.FacetCut[] storage facetCuts = LibAppStorage
+            .ds()
+            .upgradeParam
+            .facetCuts[msg.sender];
+        Snapshot memory snapshot = LibAppStorage.ds().snapshotMap[
+            LibAppStorage.ds().currentVersion
         ];
-        Snapshot memory snapshot = s.snapshotMap[s.currentVersion];
         IDiamondLoupe loupe = IDiamondLoupe(_vault);
         IDiamondLoupe.Facet[] memory currentFacets = loupe.facets();
 
-        mapping(bytes4 => address) storage existingSelectorFacetMap = s
+        mapping(bytes4 => address)
+            storage existingSelectorFacetMap = LibAppStorage
+                .ds()
+                .upgradeParam
+                .existingSelectorFacetMap[msg.sender];
+        bytes4[] storage existingSelectors = LibAppStorage
+            .ds()
             .upgradeParam
-            .existingSelectorFacetMap[msg.sender];
-        bytes4[] storage existingSelectors = s.upgradeParam.existingSelectors[
-            msg.sender
-        ];
+            .existingSelectors[msg.sender];
 
-        mapping(bytes4 => bool) storage newSelectorSet = s
+        mapping(bytes4 => bool) storage newSelectorSet = LibAppStorage
+            .ds()
             .upgradeParam
             .newSelectorSet[msg.sender];
-        bytes4[] storage newSelectors = s.upgradeParam.newSelectors[msg.sender];
+        bytes4[] storage newSelectors = LibAppStorage
+            .ds()
+            .upgradeParam
+            .newSelectors[msg.sender];
 
         for (uint256 i = 0; i < currentFacets.length; ) {
             IDiamondLoupe.Facet memory facet = currentFacets[i];
@@ -83,42 +91,58 @@ contract DiamondVersionFacet is Storage {
                     if (
                         currentHostFacetAddress != candidateFacet.facetAddress
                     ) {
-                        s.upgradeParam.selectorsReplaced[i].push(selector);
+                        LibAppStorage
+                            .ds()
+                            .upgradeParam
+                            .selectorsReplaced[i]
+                            .push(selector);
                     }
                 } else {
-                    s.upgradeParam.selectorsAdded[i].push(selector);
+                    LibAppStorage.ds().upgradeParam.selectorsAdded[i].push(
+                        selector
+                    );
                 }
                 unchecked {
                     ++j;
                 }
             }
 
-            if (s.upgradeParam.selectorsAdded[i].length > 0) {
+            if (LibAppStorage.ds().upgradeParam.selectorsAdded[i].length > 0) {
                 IDiamondCut.FacetCut memory facetCut;
-                facetCut.functionSelectors = s.upgradeParam.selectorsAdded[i];
+                facetCut.functionSelectors = LibAppStorage
+                    .ds()
+                    .upgradeParam
+                    .selectorsAdded[i];
                 facetCut.facetAddress = candidateFacet.facetAddress;
                 facetCut.action = IDiamondCut.FacetCutAction.Add;
 
-                facetCuts[s.upgradeParam.facetCutSize[msg.sender]] = facetCut;
-                s.upgradeParam.facetCutSize[msg.sender]++;
+                facetCuts[
+                    LibAppStorage.ds().upgradeParam.facetCutSize[msg.sender]
+                ] = facetCut;
+                LibAppStorage.ds().upgradeParam.facetCutSize[msg.sender]++;
 
                 // clean storage right away
-                delete s.upgradeParam.selectorsAdded[i];
+                delete LibAppStorage.ds().upgradeParam.selectorsAdded[i];
             }
 
-            if (s.upgradeParam.selectorsReplaced[i].length > 0) {
+            if (
+                LibAppStorage.ds().upgradeParam.selectorsReplaced[i].length > 0
+            ) {
                 IDiamondCut.FacetCut memory facetCut;
-                facetCut.functionSelectors = s.upgradeParam.selectorsReplaced[
-                    i
-                ];
+                facetCut.functionSelectors = LibAppStorage
+                    .ds()
+                    .upgradeParam
+                    .selectorsReplaced[i];
                 facetCut.facetAddress = candidateFacet.facetAddress;
                 facetCut.action = IDiamondCut.FacetCutAction.Replace;
 
-                facetCuts[s.upgradeParam.facetCutSize[msg.sender]] = facetCut;
-                s.upgradeParam.facetCutSize[msg.sender]++;
+                facetCuts[
+                    LibAppStorage.ds().upgradeParam.facetCutSize[msg.sender]
+                ] = facetCut;
+                LibAppStorage.ds().upgradeParam.facetCutSize[msg.sender]++;
 
                 // clean storage right away
-                delete s.upgradeParam.selectorsReplaced[i];
+                delete LibAppStorage.ds().upgradeParam.selectorsReplaced[i];
             }
             unchecked {
                 ++i;
@@ -128,20 +152,29 @@ contract DiamondVersionFacet is Storage {
         // now just get the XOR of existing and new selectors to find the removed set
         for (uint256 i = 0; i < existingSelectors.length; ) {
             if (!newSelectorSet[existingSelectors[i]]) {
-                s.upgradeParam.selectorsRemoved[i].push(existingSelectors[i]);
+                LibAppStorage.ds().upgradeParam.selectorsRemoved[i].push(
+                    existingSelectors[i]
+                );
             }
 
-            if (s.upgradeParam.selectorsRemoved[i].length > 0) {
+            if (
+                LibAppStorage.ds().upgradeParam.selectorsRemoved[i].length > 0
+            ) {
                 IDiamondCut.FacetCut memory facetCut;
-                facetCut.functionSelectors = s.upgradeParam.selectorsRemoved[i];
+                facetCut.functionSelectors = LibAppStorage
+                    .ds()
+                    .upgradeParam
+                    .selectorsRemoved[i];
                 facetCut.facetAddress = address(0);
                 facetCut.action = IDiamondCut.FacetCutAction.Remove;
 
-                facetCuts[s.upgradeParam.facetCutSize[msg.sender]] = facetCut;
-                s.upgradeParam.facetCutSize[msg.sender]++;
+                facetCuts[
+                    LibAppStorage.ds().upgradeParam.facetCutSize[msg.sender]
+                ] = facetCut;
+                LibAppStorage.ds().upgradeParam.facetCutSize[msg.sender]++;
 
                 // clean storage right away
-                delete s.upgradeParam.selectorsRemoved[i];
+                delete LibAppStorage.ds().upgradeParam.selectorsRemoved[i];
             }
 
             unchecked {
@@ -150,9 +183,13 @@ contract DiamondVersionFacet is Storage {
         }
 
         IDiamondCut.FacetCut[] memory ret = new IDiamondCut.FacetCut[](
-            s.upgradeParam.facetCutSize[msg.sender]
+            LibAppStorage.ds().upgradeParam.facetCutSize[msg.sender]
         );
-        for (uint256 i = 0; i < s.upgradeParam.facetCutSize[msg.sender]; ) {
+        for (
+            uint256 i = 0;
+            i < LibAppStorage.ds().upgradeParam.facetCutSize[msg.sender];
+
+        ) {
             ret[i] = facetCuts[i];
             unchecked {
                 ++i;
@@ -165,14 +202,12 @@ contract DiamondVersionFacet is Storage {
     }
 
     function currentVersion() public view returns (uint256, bytes32) {
-        uint256 version = LibAppStorage.diamondStorage().currentVersion;
-        Snapshot memory snapshot = LibAppStorage.diamondStorage().snapshotMap[
-            version
-        ];
+        uint256 version = LibAppStorage.ds().currentVersion;
+        Snapshot memory snapshot = LibAppStorage.ds().snapshotMap[version];
         return (version, computeSnapshotChecksum(snapshot));
     }
 
     function isUpToDate(uint256 _version) public view returns (bool) {
-        return _version == LibAppStorage.diamondStorage().currentVersion;
+        return _version == LibAppStorage.ds().currentVersion;
     }
 }

@@ -327,7 +327,7 @@ library LibReserveConfiguration {
         view
         returns (ReserveConfigurationMap memory)
     {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         return s._reserveData[_collection].configuration;
     }
 
@@ -335,7 +335,7 @@ library LibReserveConfiguration {
         address _collection,
         ReserveConfigurationMap memory _conf
     ) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         s._reserveData[_collection].configuration = _conf;
     }
 }

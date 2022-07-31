@@ -2,7 +2,7 @@
 pragma solidity ^0.8.9;
 
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
-import {AppStorage} from "./libraries/LibAppStorage.sol";
+import {AppStorage, LibAppStorage} from "./libraries/LibAppStorage.sol";
 import {LibDiamond} from "../shared/diamond/libraries/LibDiamond.sol";
 import {IDiamondLoupe} from "../shared/diamond/interfaces/IDiamondLoupe.sol";
 import {IDiamondCut} from "../shared/diamond/interfaces/IDiamondCut.sol";
@@ -14,8 +14,6 @@ import {DSGuard} from "../voyage/auth/DSGuard.sol";
 import {IVaultFactory} from "./interfaces/IVaultFactory.sol";
 
 contract InitDiamond {
-    AppStorage internal s;
-
     struct Args {
         address initOwner;
         address marginEscrowImpl;
@@ -38,56 +36,67 @@ contract InitDiamond {
         ds.supportedInterfaces[type(IERC173).interfaceId] = true;
 
         // initialise app storage stuff
-        s.WETH9 = IWETH9(_args.weth9);
-        s._paused = false;
-        if (address(s.auth.rbac) == address(0)) {
-            s.auth.rbac = new DSRoles();
+        LibAppStorage.ds().WETH9 = IWETH9(_args.weth9);
+        LibAppStorage.ds()._paused = false;
+        if (address(LibAppStorage.ds().auth.rbac) == address(0)) {
+            LibAppStorage.ds().auth.rbac = new DSRoles();
         }
-        if (address(s.auth.acl) == address(0)) {
-            s.auth.acl = new DSGuard();
-            s.auth.rbac.setRootUser(_args.initOwner, true);
+        if (address(LibAppStorage.ds().auth.acl) == address(0)) {
+            LibAppStorage.ds().auth.acl = new DSGuard();
+            LibAppStorage.ds().auth.rbac.setRootUser(_args.initOwner, true);
             bytes32 ANY = bytes32(type(uint256).max);
-            s.auth.acl.permit(bytes32(bytes20(_args.initOwner)), ANY, ANY);
+            LibAppStorage.ds().auth.acl.permit(
+                bytes32(bytes20(_args.initOwner)),
+                ANY,
+                ANY
+            );
         }
 
-        if (address(s.marginEscrowBeacon) == address(0)) {
-            s.marginEscrowBeacon = new UpgradeableBeacon(
+        if (address(LibAppStorage.ds().marginEscrowBeacon) == address(0)) {
+            LibAppStorage.ds().marginEscrowBeacon = new UpgradeableBeacon(
                 _args.marginEscrowImpl
             );
         }
 
-        if (address(s.creditEscrowBeacon) == address(0)) {
-            s.creditEscrowBeacon = new UpgradeableBeacon(
+        if (address(LibAppStorage.ds().creditEscrowBeacon) == address(0)) {
+            LibAppStorage.ds().creditEscrowBeacon = new UpgradeableBeacon(
                 _args.creditEscrowImpl
             );
         }
 
-        if (address(s.seniorDepositTokenBeacon) == address(0)) {
-            s.seniorDepositTokenBeacon = new UpgradeableBeacon(
+        if (
+            address(LibAppStorage.ds().seniorDepositTokenBeacon) == address(0)
+        ) {
+            LibAppStorage.ds().seniorDepositTokenBeacon = new UpgradeableBeacon(
                 _args.seniorDepositTokenImpl
             );
         }
 
-        if (address(s.juniorDepositTokenBeacon) == address(0)) {
-            s.juniorDepositTokenBeacon = new UpgradeableBeacon(
+        if (
+            address(LibAppStorage.ds().juniorDepositTokenBeacon) == address(0)
+        ) {
+            LibAppStorage.ds().juniorDepositTokenBeacon = new UpgradeableBeacon(
                 _args.juniorDepositTokenImpl
             );
         }
 
-        if (address(s.vaultFactory) == address(0)) {
-            s.vaultFactory = IVaultFactory(_args.vaultFactory);
+        if (address(LibAppStorage.ds().vaultFactory) == address(0)) {
+            LibAppStorage.ds().vaultFactory = IVaultFactory(_args.vaultFactory);
         }
 
-        if (s.diamondFacet.diamondCutFacet == address(0)) {
-            s.diamondFacet.diamondCutFacet = _args.diamondCutFacet;
+        if (LibAppStorage.ds().diamondFacet.diamondCutFacet == address(0)) {
+            LibAppStorage.ds().diamondFacet.diamondCutFacet = _args
+                .diamondCutFacet;
         }
 
-        if (s.diamondFacet.diamondLoupeFacet == address(0)) {
-            s.diamondFacet.diamondLoupeFacet = _args.diamondLoupeFacet;
+        if (LibAppStorage.ds().diamondFacet.diamondLoupeFacet == address(0)) {
+            LibAppStorage.ds().diamondFacet.diamondLoupeFacet = _args
+                .diamondLoupeFacet;
         }
 
-        if (s.diamondFacet.ownershipFacet == address(0)) {
-            s.diamondFacet.ownershipFacet = _args.ownershipFacet;
+        if (LibAppStorage.ds().diamondFacet.ownershipFacet == address(0)) {
+            LibAppStorage.ds().diamondFacet.ownershipFacet = _args
+                .ownershipFacet;
         }
     }
 }

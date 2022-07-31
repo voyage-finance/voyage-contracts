@@ -21,10 +21,10 @@ library LibVault {
         internal
         returns (uint256)
     {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         require(s.vaultMap[_owner] == address(0), "one vault per owner");
         s.vaults.push(_vault);
-        LibAppStorage.diamondStorage().vaultMap[_owner] = _vault;
+        LibAppStorage.ds().vaultMap[_owner] = _vault;
         return (s.vaults.length);
     }
 
@@ -41,7 +41,7 @@ library LibVault {
     }
 
     function setVaultBeacon(address _impl) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         s.vaultBeacon = new UpgradeableBeacon(_impl);
     }
 
@@ -52,7 +52,7 @@ library LibVault {
         uint256 _max,
         uint256 _marginRequirement
     ) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         address currency = s._reserveData[_collection].currency;
         VaultConfig memory config = VaultConfig({
             minMargin: _min,
@@ -69,7 +69,7 @@ library LibVault {
         uint256 _cardId,
         uint256 _cardPrice
     ) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         s.nftInfo[_collection][_cardId].price = _cardPrice;
         s.nftInfo[_collection][_cardId].timestamp = block.timestamp;
     }
@@ -79,7 +79,7 @@ library LibVault {
         address _currency,
         address _marketPlace
     ) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         s.marketPlaceToAsset[_marketPlace] = _collection;
         s.erc721AssetInfo[_collection].marketplace = _marketPlace;
         s.erc721AssetInfo[_collection].erc20Addr = _currency;
@@ -87,27 +87,27 @@ library LibVault {
 
     /* ----------------------------- view functions ----------------------------- */
     function vaultBeacon() internal view returns (address) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         return address(s.vaultBeacon);
     }
 
     function marginEscrowBeacon() internal view returns (address) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         return address(s.marginEscrowBeacon);
     }
 
     function creditEscrowBeacon() internal view returns (address) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         return address(s.creditEscrowBeacon);
     }
 
     function subVaultBeacon() internal view returns (address) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         return address(s.subVaultBeacon);
     }
 
     function getVaultAddress(address _owner) internal view returns (address) {
-        return LibAppStorage.diamondStorage().vaultMap[_owner];
+        return LibAppStorage.ds().vaultMap[_owner];
     }
 
     function getVaultEscrowAddress(address _owner, address _currency)
@@ -127,7 +127,7 @@ library LibVault {
         address _currency,
         address _vault
     ) internal view returns (uint256, uint256) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         BorrowData storage borrowData = s._borrowData[_collection][_currency][
             _vault
         ];
@@ -135,7 +135,7 @@ library LibVault {
     }
 
     function getDiamondFacets() internal view returns (DiamondFacet memory) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         return s.diamondFacet;
     }
 
@@ -144,7 +144,7 @@ library LibVault {
         address _currency,
         address _vault
     ) internal view returns (uint256, uint256) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         BorrowData storage borrowData = s._borrowData[_collection][_currency][
             _vault
         ];
@@ -157,7 +157,7 @@ library LibVault {
         address _vault,
         uint256 _amount
     ) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         BorrowData storage borrowData = s._borrowData[_collection][_currency][
             _vault
         ];
@@ -169,7 +169,7 @@ library LibVault {
         view
         returns (VaultConfig memory)
     {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         address currency = s._reserveData[_collection].currency;
         ReserveConfigurationMap memory conf = LibReserveConfiguration
             .getConfiguration(_collection);
@@ -197,7 +197,7 @@ library LibVault {
         view
         returns (address)
     {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         return s.marketPlaceToAsset[_marketplace];
     }
 
@@ -206,7 +206,7 @@ library LibVault {
         view
         returns (address)
     {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         return s.erc721AssetInfo[_currency].marketplace;
     }
 
@@ -215,7 +215,7 @@ library LibVault {
         view
         returns (address)
     {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         return s.erc721AssetInfo[_currency].erc20Addr;
     }
 
@@ -224,7 +224,7 @@ library LibVault {
         view
         returns (NFTInfo memory)
     {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         return s.nftInfo[_collection][_tokenId];
     }
 
@@ -235,7 +235,7 @@ library LibVault {
     {
         uint256 creditLimit = getCreditLimit(_vault, _collection);
         address currency = LibAppStorage
-            .diamondStorage()
+            .ds()
             ._reserveData[_collection]
             .currency;
         (uint256 principal, uint256 interest) = getVaultDebt(

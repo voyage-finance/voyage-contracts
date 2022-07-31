@@ -2,7 +2,7 @@
 pragma solidity ^0.8.9;
 
 import {Pausable} from "@openzeppelin/contracts/security/Pausable.sol";
-import {Storage, Authorisation} from "../libraries/LibAppStorage.sol";
+import {Storage, Authorisation, LibAppStorage} from "../libraries/LibAppStorage.sol";
 import {LibSecurity} from "../libraries/LibSecurity.sol";
 import {VaultFacet} from "./VaultFacet.sol";
 
@@ -13,16 +13,16 @@ contract SecurityFacet is Storage {
     event Unpaused(address account);
 
     function paused() public view returns (bool) {
-        return s._paused;
+        return LibAppStorage.ds()._paused;
     }
 
     function pause() public authorised {
-        s._paused = true;
+        LibAppStorage.ds()._paused = true;
         emit Paused(_msgSender());
     }
 
     function unpause() public authorised {
-        s._paused = false;
+        LibAppStorage.ds()._paused = false;
         emit Unpaused(_msgSender());
     }
 
@@ -31,7 +31,7 @@ contract SecurityFacet is Storage {
         uint8 role,
         bool enabled
     ) public authorised {
-        LibSecurity.grantRole(s.auth, user, role, enabled);
+        LibSecurity.grantRole(LibAppStorage.ds().auth, user, role, enabled);
     }
 
     function grantRolePermission(
@@ -39,7 +39,12 @@ contract SecurityFacet is Storage {
         address target,
         bytes4 sig
     ) public authorised {
-        LibSecurity.grantRolePermission(s.auth, role, target, sig);
+        LibSecurity.grantRolePermission(
+            LibAppStorage.ds().auth,
+            role,
+            target,
+            sig
+        );
     }
 
     function revokeRolePermission(
@@ -47,7 +52,12 @@ contract SecurityFacet is Storage {
         address target,
         bytes4 sig
     ) public authorised {
-        LibSecurity.revokeRolePermission(s.auth, role, target, sig);
+        LibSecurity.revokeRolePermission(
+            LibAppStorage.ds().auth,
+            role,
+            target,
+            sig
+        );
     }
 
     function grantPermission(
@@ -55,7 +65,7 @@ contract SecurityFacet is Storage {
         address dst,
         bytes4 sig
     ) public authorised {
-        LibSecurity.grantPermission(s.auth, src, dst, sig);
+        LibSecurity.grantPermission(LibAppStorage.ds().auth, src, dst, sig);
     }
 
     function revokePermission(
@@ -63,21 +73,23 @@ contract SecurityFacet is Storage {
         address dst,
         bytes4 sig
     ) public authorised {
-        LibSecurity.revokePermission(s.auth, src, dst, sig);
+        LibSecurity.revokePermission(LibAppStorage.ds().auth, src, dst, sig);
     }
 
     function isAuthorisedInbound(address src, bytes4 sig)
         public
         returns (bool)
     {
-        return LibSecurity.isAuthorisedInbound(s.auth, src, sig);
+        return
+            LibSecurity.isAuthorisedInbound(LibAppStorage.ds().auth, src, sig);
     }
 
     function isAuthorisedOutbound(address dst, bytes4 sig)
         public
         returns (bool)
     {
-        return LibSecurity.isAuthorisedOutbound(s.auth, dst, sig);
+        return
+            LibSecurity.isAuthorisedOutbound(LibAppStorage.ds().auth, dst, sig);
     }
 
     function isAuthorised(
@@ -85,6 +97,6 @@ contract SecurityFacet is Storage {
         address dst,
         bytes4 sig
     ) public returns (bool) {
-        return LibSecurity.isAuthorised(s.auth, src, dst, sig);
+        return LibSecurity.isAuthorised(LibAppStorage.ds().auth, src, dst, sig);
     }
 }

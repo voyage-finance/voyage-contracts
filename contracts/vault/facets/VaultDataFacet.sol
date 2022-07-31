@@ -18,7 +18,7 @@ contract VaultDataFacet is ReentrancyGuard, Storage, IERC1271 {
         view
         returns (uint256)
     {
-        return LibVaultStorage.diamondStorage().nfts[_collection].currentSize;
+        return LibVaultStorage.ds().nfts[_collection].currentSize;
     }
 
     /// @notice Get total debt of this vault
@@ -30,9 +30,8 @@ contract VaultDataFacet is ReentrancyGuard, Storage, IERC1271 {
     {
         uint256 principal;
         uint256 interest;
-        (principal, interest) = LoanFacet(
-            LibVaultStorage.diamondStorage().voyage
-        ).getVaultDebt(_collection, address(this));
+        (principal, interest) = LoanFacet(LibVaultStorage.ds().voyage)
+            .getVaultDebt(_collection, address(this));
         total = principal + interest;
     }
 
@@ -43,9 +42,8 @@ contract VaultDataFacet is ReentrancyGuard, Storage, IERC1271 {
         view
         returns (uint256)
     {
-        VaultConfig memory vc = VaultFacet(
-            LibVaultStorage.diamondStorage().voyage
-        ).getVaultConfig(_collection, address(this));
+        VaultConfig memory vc = VaultFacet(LibVaultStorage.ds().voyage)
+            .getVaultConfig(_collection, address(this));
         return vc.marginRequirement;
     }
 
@@ -57,10 +55,7 @@ contract VaultDataFacet is ReentrancyGuard, Storage, IERC1271 {
         view
         returns (CustodyData memory)
     {
-        return
-            LibVaultStorage.diamondStorage().custodyIndex[_collection][
-                _tokenId
-            ];
+        return LibVaultStorage.ds().custodyIndex[_collection][_tokenId];
     }
 
     /// @notice Get token list owned by this vault
@@ -70,19 +65,19 @@ contract VaultDataFacet is ReentrancyGuard, Storage, IERC1271 {
         view
         returns (uint256[] memory)
     {
-        return LibVaultStorage.diamondStorage().tokenSet[_collection];
+        return LibVaultStorage.ds().tokenSet[_collection];
     }
 
     /// @notice Get sub vault address of a specific user
     /// @param _owner The address of the user
     function getSubvaultOf(address _owner) public view returns (address) {
-        return LibVaultStorage.diamondStorage().ownerSubvaultIndex[_owner];
+        return LibVaultStorage.ds().ownerSubvaultIndex[_owner];
     }
 
     /// @notice Get sub vault's address
     /// @param _subvault The address of the subvault
     function getSubvaultStatus(address _subvault) public view returns (bool) {
-        return LibVaultStorage.diamondStorage().subvaultStatusIndex[_subvault];
+        return LibVaultStorage.ds().subvaultStatusIndex[_subvault];
     }
 
     /// @notice Get current margin
@@ -129,7 +124,7 @@ contract VaultDataFacet is ReentrancyGuard, Storage, IERC1271 {
     /// @notice Get address of credit escrow
     /// @param _currency The address of the currency
     function creditEscrow(address _currency) public view returns (address) {
-        return address(LibVaultStorage.diamondStorage().cescrow[_currency]);
+        return address(LibVaultStorage.ds().cescrow[_currency]);
     }
 
     /// @notice Get address of margin escrow
@@ -139,7 +134,7 @@ contract VaultDataFacet is ReentrancyGuard, Storage, IERC1271 {
     }
 
     function isValidERC721(address _currency) public view returns (bool) {
-        VaultFacet vf = VaultFacet(LibVaultStorage.diamondStorage().voyage);
+        VaultFacet vf = VaultFacet(LibVaultStorage.ds().voyage);
         return vf.getMarketPlaceByAsset(_currency) != address(0);
     }
 
@@ -152,7 +147,7 @@ contract VaultDataFacet is ReentrancyGuard, Storage, IERC1271 {
         returns (bytes4 magicValue)
     {
         address sender = recoverSigner(hash, signature);
-        if (LibVaultStorage.diamondStorage().user == sender) {
+        if (LibVaultStorage.ds().user == sender) {
             return 0x1626ba7e;
         }
         return 0xffffffff;

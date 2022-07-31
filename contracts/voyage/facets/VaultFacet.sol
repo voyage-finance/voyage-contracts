@@ -79,7 +79,12 @@ contract VaultFacet is Storage, ReentrancyGuard {
         sigs[3] = VaultManageFacet(address(0)).updateSubvaultOwner.selector;
         sigs[4] = VaultManageFacet(address(0)).pauseSubvault.selector;
         sigs[5] = VaultManageFacet(address(0)).unpauseSubvault.selector;
-        LibSecurity.grantPermissions(s.auth, _owner, vaultBeaconProxy, sigs);
+        LibSecurity.grantPermissions(
+            LibAppStorage.ds().auth,
+            _owner,
+            vaultBeaconProxy,
+            sigs
+        );
         emit VaultCreated(vaultBeaconProxy, _owner, numVaults);
     }
 

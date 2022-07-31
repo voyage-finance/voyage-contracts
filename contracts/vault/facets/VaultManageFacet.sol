@@ -21,10 +21,7 @@ contract VaultManageFacet is ReentrancyGuard, Storage, VaultAuth {
         returns (address)
     {
         BeaconProxy proxy = new BeaconProxy(
-            address(
-                VaultFacet(LibVaultStorage.diamondStorage().voyage)
-                    .subVaultBeacon()
-            ),
+            address(VaultFacet(LibVaultStorage.ds().voyage).subVaultBeacon()),
             abi.encodeWithSelector(
                 ISubvault(address(0)).initialize.selector,
                 _owner,
@@ -35,13 +32,11 @@ contract VaultManageFacet is ReentrancyGuard, Storage, VaultAuth {
         if (subvault == address(0)) {
             revert FailedDeploySubvaultBeacon();
         }
-        LibVaultStorage.diamondStorage().subvaults.push(subvault);
-        LibVaultStorage.diamondStorage().subvaultOwnerIndex[subvault] = _owner;
-        LibVaultStorage.diamondStorage().ownerSubvaultIndex[_owner] = subvault;
-        LibVaultStorage.diamondStorage().subvaultStatusIndex[subvault] = false;
-        SecurityFacet sf = SecurityFacet(
-            LibVaultStorage.diamondStorage().voyage
-        );
+        LibVaultStorage.ds().subvaults.push(subvault);
+        LibVaultStorage.ds().subvaultOwnerIndex[subvault] = _owner;
+        LibVaultStorage.ds().ownerSubvaultIndex[_owner] = subvault;
+        LibVaultStorage.ds().subvaultStatusIndex[subvault] = false;
+        SecurityFacet sf = SecurityFacet(LibVaultStorage.ds().voyage);
         sf.grantPermission(
             _owner,
             subvault,
@@ -57,44 +52,32 @@ contract VaultManageFacet is ReentrancyGuard, Storage, VaultAuth {
         external
         authorised
     {
-        address oldOwner = LibVaultStorage.diamondStorage().subvaultOwnerIndex[
-            _subvault
-        ];
+        address oldOwner = LibVaultStorage.ds().subvaultOwnerIndex[_subvault];
         if (oldOwner == address(0)) {
             revert InvalidSubvaultAddress(_subvault);
         }
         ISubvault(_subvault).updateOwner(_newOwner);
-        LibVaultStorage.diamondStorage().subvaultOwnerIndex[
-            _subvault
-        ] = _newOwner;
-        LibVaultStorage.diamondStorage().ownerSubvaultIndex[
-            _newOwner
-        ] = _subvault;
-        delete LibVaultStorage.diamondStorage().ownerSubvaultIndex[oldOwner];
+        LibVaultStorage.ds().subvaultOwnerIndex[_subvault] = _newOwner;
+        LibVaultStorage.ds().ownerSubvaultIndex[_newOwner] = _subvault;
+        delete LibVaultStorage.ds().ownerSubvaultIndex[oldOwner];
     }
 
     /// @notice Pause sub vault
     /// @param _subvault The address of the subvault
     function pauseSubvault(address _subvault) external authorised {
-        if (
-            LibVaultStorage.diamondStorage().subvaultOwnerIndex[_subvault] ==
-            address(0)
-        ) {
+        if (LibVaultStorage.ds().subvaultOwnerIndex[_subvault] == address(0)) {
             revert InvalidSubvaultAddress(_subvault);
         }
-        LibVaultStorage.diamondStorage().subvaultStatusIndex[_subvault] = true;
+        LibVaultStorage.ds().subvaultStatusIndex[_subvault] = true;
     }
 
     /// @notice Uppause the sub vault
     /// @param _subvault The address of the subvault
     function unpauseSubvault(address _subvault) external authorised {
-        if (
-            LibVaultStorage.diamondStorage().subvaultOwnerIndex[_subvault] ==
-            address(0)
-        ) {
+        if (LibVaultStorage.ds().subvaultOwnerIndex[_subvault] == address(0)) {
             revert InvalidSubvaultAddress(_subvault);
         }
-        LibVaultStorage.diamondStorage().subvaultStatusIndex[_subvault] = false;
+        LibVaultStorage.ds().subvaultStatusIndex[_subvault] = false;
     }
 
     function callSubVault(
@@ -102,9 +85,7 @@ contract VaultManageFacet is ReentrancyGuard, Storage, VaultAuth {
         address _target,
         bytes calldata _data
     ) external {
-        SecurityFacet sf = SecurityFacet(
-            LibVaultStorage.diamondStorage().voyage
-        );
+        SecurityFacet sf = SecurityFacet(LibVaultStorage.ds().voyage);
         if (
             !sf.isAuthorised(
                 msg.sender,
@@ -126,22 +107,18 @@ contract VaultManageFacet is ReentrancyGuard, Storage, VaultAuth {
     ) external {
         if (
             msg.sender != address(this) &&
-            LibVaultStorage.diamondStorage().subvaultOwnerIndex[msg.sender] ==
-            address(0)
+            LibVaultStorage.ds().subvaultOwnerIndex[msg.sender] == address(0)
         ) {
             revert InvalidTransfer("invalid sender");
         }
         if (
-            LibVaultStorage
-            .diamondStorage()
-            .custodyIndex[_collection][_tokenId].owner != address(0)
+            LibVaultStorage.ds().custodyIndex[_collection][_tokenId].owner !=
+            address(0)
         ) {
             revert InvalidTransfer("invalid token id");
         }
-        LibVaultStorage
-        .diamondStorage()
-        .custodyIndex[_collection][_tokenId].owner = _src;
-        LibVaultStorage.diamondStorage().tokenSet[_collection].push(_tokenId);
+        LibVaultStorage.ds().custodyIndex[_collection][_tokenId].owner = _src;
+        LibVaultStorage.ds().tokenSet[_collection].push(_tokenId);
     }
 }
 

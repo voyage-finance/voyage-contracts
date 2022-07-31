@@ -61,8 +61,10 @@ contract LiquidityFacet is Storage {
             revert InvalidInitialize();
         }
         reserveData.init(_currency, _interestRateStrategyAddress, _priceOracle);
-        s._reserveList[s._reservesCount] = _collection;
-        s._reservesCount++;
+        LibAppStorage.ds()._reserveList[
+            LibAppStorage.ds()._reservesCount
+        ] = _collection;
+        LibAppStorage.ds()._reservesCount++;
         emit ReserveInitialized(
             _collection,
             _currency,
@@ -101,8 +103,12 @@ contract LiquidityFacet is Storage {
         Tranche _tranche,
         uint256 _amount
     ) external {
-        ReserveData memory reserve = s._reserveData[_collection];
-        BorrowState memory borrowState = s._borrowState[reserve.currency];
+        ReserveData memory reserve = LibAppStorage.ds()._reserveData[
+            _collection
+        ];
+        BorrowState memory borrowState = LibAppStorage.ds()._borrowState[
+            _collection
+        ][reserve.currency];
         uint256 totalDebt = borrowState.totalDebt + borrowState.totalInterest;
         uint256 avgBorrowRate = borrowState.avgBorrowRate;
 
@@ -131,7 +137,9 @@ contract LiquidityFacet is Storage {
         Tranche _tranche,
         uint256 _amount
     ) external {
-        ReserveData memory reserve = s._reserveData[_collection];
+        ReserveData memory reserve = LibAppStorage.ds()._reserveData[
+            _collection
+        ];
         IVToken vToken = Tranche.JUNIOR == _tranche
             ? IVToken(reserve.juniorDepositTokenAddress)
             : IVToken(reserve.seniorDepositTokenAddress);
@@ -140,7 +148,9 @@ contract LiquidityFacet is Storage {
         if (_amount == type(uint256).max) {
             amountToWithdraw = userBalance;
         }
-        BorrowState memory borrowState = s._borrowState[reserve.currency];
+        BorrowState memory borrowState = LibAppStorage.ds()._borrowState[
+            _collection
+        ][reserve.currency];
         uint256 totalDebt = borrowState.totalDebt + borrowState.totalInterest;
         uint256 avgBorrowRate = borrowState.avgBorrowRate;
         IVToken(vToken).withdraw(_amount, msg.sender, msg.sender);
@@ -183,9 +193,15 @@ contract LiquidityFacet is Storage {
         return LibLiquidity.unbonding(_collection, _user, _tranche);
     }
 
-    function utilizationRate(address _reserve) external view returns (uint256) {
+    function utilizationRate(address _collection, address _reserve)
+        external
+        view
+        returns (uint256)
+    {
         ReserveData memory reserve = LibLiquidity.getReserveData(_reserve);
-        BorrowState storage borrowState = s._borrowState[_reserve];
+        BorrowState storage borrowState = LibAppStorage.ds()._borrowState[
+            _collection
+        ][_reserve];
         uint256 totalDebt = borrowState.totalDebt + borrowState.totalInterest;
 
         uint256 totalPendingWithdrawal = IVToken(

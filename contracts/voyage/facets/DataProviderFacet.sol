@@ -10,7 +10,6 @@ import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {LibLoan} from "../libraries/LibLoan.sol";
 import {LibVault} from "../libraries/LibVault.sol";
 import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
-import "hardhat/console.sol";
 
 struct CreditLineData {
     uint256 totalDebt;
@@ -27,8 +26,6 @@ struct CreditLineData {
 contract DataProviderFacet {
     using WadRayMath for uint256;
     using LibReserveConfiguration for ReserveConfigurationMap;
-
-    AppStorage internal s;
 
     struct PoolData {
         address currency;
