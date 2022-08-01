@@ -53,7 +53,6 @@ library LibLiquidity {
         ReserveConfigurationMap memory config = reserve.configuration;
         config.setDecimals(token.decimals());
         reserve.configuration = config;
-        // LibReserveConfiguration.saveConfiguration(_currency, config);
         bytes memory data = abi.encodeWithSelector(
             VToken.initialize.selector,
             address(this),
