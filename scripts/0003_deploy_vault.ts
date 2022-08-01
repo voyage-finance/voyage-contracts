@@ -5,6 +5,7 @@ import { Voyage } from '../typechain/Voyage';
 async function main() {
   const { owner } = await getNamedAccounts();
   const tus = await ethers.getContract('Tus');
+  const crab = await ethers.getContract('Crab');
   const voyage = await ethers.getContract<Voyage>('Voyage', owner);
   let vaultAddress = await voyage.getVault(owner);
   console.log('vault address: ', vaultAddress);
@@ -19,14 +20,18 @@ async function main() {
     'hardhat-diamond-abi/HardhatDiamondABI.sol:Vault',
     vaultAddress
   );
-  await tenderly.persistArtifacts({
-    name: 'hardhat-diamond-abi/HardhatDiamondABI.sol:Vault',
-    address: vaultAddress,
-  });
+  // await tenderly.persistArtifacts({
+  //   name: 'hardhat-diamond-abi/HardhatDiamondABI.sol:Vault',
+  //   address: vaultAddress,
+  // });
   const marginEscrow = await vault.marginEscrow(tus.address);
   console.log('margin escrow: ', marginEscrow);
   if (ethers.BigNumber.from(marginEscrow).isZero()) {
-    const initTx = await voyage.initCreditLine(vaultAddress, tus.address);
+    const initTx = await voyage.initCreditLine(
+      vaultAddress,
+      tus.address,
+      crab.address
+    );
     await initTx.wait();
   }
 }

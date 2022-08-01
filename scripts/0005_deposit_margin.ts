@@ -5,6 +5,7 @@ import { ethers, getNamedAccounts } from 'hardhat';
 async function main() {
   const { owner } = await getNamedAccounts();
   const voyage = await ethers.getContract<Voyage>('Voyage');
+  const crab = await ethers.getContract('Crab');
   const vaultAddress = await voyage.getVault(owner);
   if (vaultAddress === ethers.constants.AddressZero) {
     throw new Error('Owner has no vault');
@@ -21,7 +22,7 @@ async function main() {
 
   tx = await voyage.depositMargin(
     vault.address,
-    tus.address,
+    crab.address,
     '100000000000000000000'
   );
   await tx.wait();

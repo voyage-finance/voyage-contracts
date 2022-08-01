@@ -3,10 +3,9 @@ import { MAX_UINT_256 } from '../helpers/math';
 import { JuniorDepositToken, SeniorDepositToken, Voyage } from '@contracts';
 
 async function main() {
-  const { owner } = await getNamedAccounts();
   const voyage = await ethers.getContract<Voyage>('Voyage');
-  const tus = await deployments.get('Tus');
-  const [senior, junior] = await voyage.getDepositTokens(tus.address);
+  const crab = await ethers.getContract('Crab');
+  const [senior, junior] = await voyage.getDepositTokens(crab.address);
   const seniorDepositToken = await ethers.getContractAt<SeniorDepositToken>(
     'SeniorDepositToken',
     senior
@@ -21,7 +20,7 @@ async function main() {
     .then(() => juniorDepositToken.approve(voyage.address, MAX_UINT_256))
     .then((tx) => tx.wait());
 
-  await voyage.withdraw(tus.address, '1', '10000000000000000000');
+  await voyage.withdraw(crab.address, '1', '10000000000000000000');
 }
 
 main()
