@@ -3,9 +3,9 @@ import { Voyage } from '../typechain/Voyage';
 
 async function main() {
   const voyage = await ethers.getContract<Voyage>('Voyage');
-  const tus = await ethers.getContract('Tus');
+  const crab = await ethers.getContract('Crab');
   const tx = await voyage.setMarginParams(
-    tus.address,
+    crab.address,
     0,
     68719476735, // max margin
     0.1 * 1e4 // 0.1 in BPs

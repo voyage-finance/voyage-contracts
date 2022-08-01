@@ -7,6 +7,7 @@ async function main() {
   const vaultAddress = await voyage.getVault(owner);
   console.log('vault address: ', vaultAddress);
   const tus = await deployments.get('Tus');
+  const crab = await ethers.getContract('Crab');
   const { execute } = deployments;
   // let tx = await voyage.borrow(
   //   tus.address,
@@ -21,7 +22,7 @@ async function main() {
       gasLimit: 12450000,
     },
     'borrow',
-    tus.address,
+    crab.address,
     '100000000000000000000',
     vaultAddress
   );

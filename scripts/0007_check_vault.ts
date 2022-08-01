@@ -8,6 +8,7 @@ async function main() {
   const vaultAddress = await voyage.getVault(owner);
 
   const tus = await ethers.getContract('Tus', owner);
+  const crab = await ethers.getContract('Crab');
   const balance = await tus.balanceOf(vaultAddress);
   logger.info('balance: %s', balance.toString());
   const currentSecurityDeposit = await voyage.getMargin(
@@ -16,11 +17,11 @@ async function main() {
   );
   console.log('current security deposit: ', currentSecurityDeposit.toString());
 
-  const creditLimit = await voyage.getCreditLimit(vaultAddress, tus.address);
+  const creditLimit = await voyage.getCreditLimit(vaultAddress, crab.address);
   console.log('credit limit: ', creditLimit.toString());
   const availableCreditLimit = await voyage.getAvailableCredit(
     vaultAddress,
-    tus.address
+    crab.address
   );
   console.log('available credit limit: ', availableCreditLimit.toString());
 }
