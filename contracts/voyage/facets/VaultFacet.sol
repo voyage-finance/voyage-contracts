@@ -130,35 +130,35 @@ contract VaultFacet is Storage, ReentrancyGuard {
     /**
      * @dev  Delegate call to Vault's redeemSecurity
      * @param _vault vault address
-     * @param _reserve reserve address
+     * @param _currency currency address
      * @param _amount redeem amount
      **/
     function redeemMargin(
         address payable _vault,
-        address _reserve,
+        address _currency,
         uint256 _amount
     ) external {
         (bool success, bytes memory ret) = _vault.call(
             abi.encodeWithSignature(
                 "redeemMargin(address,address,uint256)",
                 _msgSender(),
-                _reserve,
+                _currency,
                 _amount
             )
         );
         if (!success) {
             revert InvalidVaultCall();
         }
-        emit VaultMarginRedeemed(_vault, _reserve, msg.sender, _amount);
+        emit VaultMarginRedeemed(_vault, _currency, msg.sender, _amount);
     }
 
     /* ---------------------- vault configuration interface --------------------- */
     function setNFTInfo(
-        address _erc721,
-        address _erc20,
+        address _collection,
+        address _currency,
         address _marketplace
     ) external authorised {
-        LibVault.setNFTInfo(_erc721, _erc20, _marketplace);
+        LibVault.setNFTInfo(_collection, _currency, _marketplace);
     }
 
     function setVaultBeacon(address _impl) external authorised {
@@ -316,12 +316,12 @@ contract VaultFacet is Storage, ReentrancyGuard {
         return LibVault.getCreditLimit(_vault, _collection);
     }
 
-    function getMargin(address _vault, address _reserve)
+    function getMargin(address _vault, address _currency)
         external
         view
         returns (uint256)
     {
-        return LibVault.getMargin(_vault, _reserve);
+        return LibVault.getMargin(_vault, _currency);
     }
 
     function getVaultConfig(address _collection, address _vault)
@@ -334,10 +334,10 @@ contract VaultFacet is Storage, ReentrancyGuard {
 
     function getWithdrawableMargin(
         address _vault,
-        address _reserve,
+        address _currency,
         address _user
     ) public view returns (uint256) {
-        return LibVault.getWithdrawableMargin(_vault, _reserve, _user);
+        return LibVault.getWithdrawableMargin(_vault, _currency, _user);
     }
 
     function getEncodedVaultInitData(address _owner)

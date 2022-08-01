@@ -67,14 +67,7 @@ describe('Liquidate', function () {
     await crab.safeMint(vault, 1);
 
     // update oracle price
-    await priceOracle.updateCumulative(crab.address, '10000000000000000000');
-    await ethers.provider.send('evm_increaseTime', [10]);
-    await ethers.provider.send('evm_mine', []);
-    await priceOracle.updateCumulative(crab.address, '10000000000000000000');
-    await ethers.provider.send('evm_increaseTime', [10]);
-    await ethers.provider.send('evm_mine', []);
-    await priceOracle.updateCumulative(crab.address, '10000000000000000000');
-    await priceOracle.updateTwap(crab.address);
+    await priceOracle.updateTwap(crab.address, '10000000000000000000');
 
     // increase 51 days
     await increase(51);

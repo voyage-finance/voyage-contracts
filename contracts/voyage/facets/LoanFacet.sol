@@ -54,6 +54,7 @@ contract LoanFacet is Storage {
         uint256 receivedAmount;
         address liquidator;
         uint256 floorPrice;
+        uint256 floorPriceTime;
         uint256 totalNFTNums;
         uint256 numNFTsToLiquidate;
         uint256 gracePeriod;
@@ -302,7 +303,9 @@ contract LoanFacet is Storage {
 
         // 3.2 get floor price from oracle contract
         IPriceOracle priceOracle = IPriceOracle(reserveData.priceOracle);
-        param.floorPrice = priceOracle.getTwap(param.collection);
+        (param.floorPrice, param.floorPriceTime) = priceOracle.getTwap(
+            param.collection
+        );
 
         if (param.floorPrice == 0) {
             revert InvalidFloorPrice();

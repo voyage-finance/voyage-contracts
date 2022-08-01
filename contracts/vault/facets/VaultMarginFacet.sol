@@ -60,11 +60,11 @@ contract VaultMarginFacet is ReentrancyGuard, Storage {
 
     /// @return Returns the actual value that has been transferred
     function slash(
-        address _reserve,
+        address _currency,
         address payable _to,
         uint256 _amount
     ) external nonReentrant onlyVoyage returns (uint256) {
-        IMarginEscrow me = _marginEscrow(_reserve);
+        IMarginEscrow me = _marginEscrow(_currency);
         return me.slash(_amount, _to);
     }
 }

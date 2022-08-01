@@ -193,22 +193,22 @@ contract LiquidityFacet is Storage {
         return LibLiquidity.unbonding(_collection, _user, _tranche);
     }
 
-    function utilizationRate(address _collection, address _reserve)
+    function utilizationRate(address _collection, address _currency)
         external
         view
         returns (uint256)
     {
-        ReserveData memory reserve = LibLiquidity.getReserveData(_reserve);
+        ReserveData memory reserve = LibLiquidity.getReserveData(_currency);
         BorrowState storage borrowState = LibAppStorage.ds()._borrowState[
             _collection
-        ][_reserve];
+        ][_currency];
         uint256 totalDebt = borrowState.totalDebt + borrowState.totalInterest;
 
         uint256 totalPendingWithdrawal = IVToken(
             reserve.seniorDepositTokenAddress
         ).totalUnbonding();
 
-        uint256 availableLiquidity = IERC20(_reserve).balanceOf(
+        uint256 availableLiquidity = IERC20(_currency).balanceOf(
             reserve.seniorDepositTokenAddress
         ) - totalPendingWithdrawal;
 
@@ -218,7 +218,7 @@ contract LiquidityFacet is Storage {
                 : totalDebt.rayDiv(availableLiquidity + totalDebt);
     }
 
-    function getReserveFlags(address _reserve)
+    function getReserveFlags(address _currency)
         external
         view
         returns (
@@ -227,7 +227,7 @@ contract LiquidityFacet is Storage {
             bool
         )
     {
-        return LibReserveConfiguration.getConfiguration(_reserve).getFlags();
+        return LibReserveConfiguration.getConfiguration(_currency).getFlags();
     }
 }
 

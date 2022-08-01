@@ -30,14 +30,14 @@ contract MockLoanFacet is TestStorage {
     }
 
     function liquidate(
-        address _reserve,
+        address _currency,
         address _vault,
         uint256 _loanId
     ) external {
         revert("not implemented");
     }
 
-    function getVaultDebt(address _reserve, address _vault)
+    function getVaultDebt(address _currency, address _vault)
         public
         view
         returns (uint256, uint256)
