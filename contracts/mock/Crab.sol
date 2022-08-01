@@ -4,7 +4,6 @@ pragma solidity ^0.8.9;
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {IERC721Token} from "./IERC721Token.sol";
-import "hardhat/console.sol";
 
 contract Crab is ERC721, IERC721Token {
     constructor(string memory name_, string memory symbol_)

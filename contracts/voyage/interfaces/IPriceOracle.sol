@@ -2,16 +2,7 @@
 pragma solidity ^0.8.9;
 
 interface IPriceOracle {
-    function getTwap(address _asset) external view returns (uint256);
+    function getTwap(address _asset) external view returns (uint256, uint256);
 
-    function updateTwap(address _asset) external;
-
-    function updateAssetPrices(address[] calldata _assets) external;
-
-    function updateCumulative(address _asset, uint256 _price) external;
-
-    function updateCumulativeBatch(
-        address[] calldata _assets,
-        uint256[] calldata _prices
-    ) external;
+    function updateTwap(address _asset, uint256 _priceAverage) external;
 }

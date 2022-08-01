@@ -6,7 +6,6 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import {LibReserveConfiguration} from "./LibReserveConfiguration.sol";
 import {IReserveInterestRateStrategy} from "../interfaces/IReserveInterestRateStrategy.sol";
-import {ValidationLogic} from "./LibValidation.sol";
 import {LibAppStorage, AppStorage, ReserveData, ReserveConfigurationMap, BorrowData, BorrowState, Tranche} from "./LibAppStorage.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
 import {IWETH9} from "../../shared/facets/PaymentsFacet.sol";
@@ -26,6 +25,7 @@ library LibLiquidity {
     );
 
     struct DepositAndDebt {
+        address currency;
         uint256 juniorDepositAmount;
         uint256 seniorDepositAmount;
         uint256 totalDebt;
@@ -39,27 +39,24 @@ library LibLiquidity {
     /* --------------------------- reserve management --------------------------- */
     function init(
         ReserveData storage reserve,
-        address _asset,
+        address _currency,
         address _interestRateStrategyAddress,
-        address _priceOracle,
-        address _nftAddr
+        address _priceOracle
     ) internal {
         require(
             reserve.seniorDepositTokenAddress == address(0) &&
                 reserve.juniorDepositTokenAddress == address(0),
             "deposit tokens already deployed"
         );
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        IERC20Metadata token = IERC20Metadata(_asset);
-        ReserveConfigurationMap memory config = s
-            ._reserves[_asset]
-            .configuration;
+        AppStorage storage s = LibAppStorage.ds();
+        IERC20Metadata token = IERC20Metadata(_currency);
+        ReserveConfigurationMap memory config = reserve.configuration;
         config.setDecimals(token.decimals());
-        LibReserveConfiguration.saveConfiguration(_asset, config);
+        reserve.configuration = config;
         bytes memory data = abi.encodeWithSelector(
             VToken.initialize.selector,
             address(this),
-            _asset
+            _currency
         );
         reserve.seniorDepositTokenAddress = deployBeaconProxy(
             address(s.seniorDepositTokenBeacon),
@@ -74,7 +71,7 @@ library LibLiquidity {
         reserve.interestRateStrategyAddress = _interestRateStrategyAddress;
         reserve.initialized = true;
         reserve.priceOracle = _priceOracle;
-        reserve.nftAddress = _nftAddr;
+        reserve.currency = _currency;
     }
 
     function deployBeaconProxy(address _impl, bytes memory _data)
@@ -88,7 +85,7 @@ library LibLiquidity {
     function updateProtocolFee(address _treasuryAddr, uint256 _cutRatio)
         internal
     {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         s.protocolFee.treasuryAddress = _treasuryAddr;
         s.protocolFee.cutRatio = _cutRatio;
     }
@@ -96,27 +93,27 @@ library LibLiquidity {
     /* ------------------------ state mutation functions ------------------------ */
 
     function updateWETH9(address _weth9) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         s.WETH9 = IWETH9(_weth9);
     }
 
     /* ----------------------------- view functions ----------------------------- */
     function getProtocolFee() internal view returns (address, uint256) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         return (s.protocolFee.treasuryAddress, s.protocolFee.cutRatio);
     }
 
-    function getReserveData(address _asset)
+    function getReserveData(address _collection)
         internal
         view
         returns (ReserveData storage)
     {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        return s._reserves[_asset];
+        AppStorage storage s = LibAppStorage.ds();
+        return s._reserveData[_collection];
     }
 
     function getReserveList() internal view returns (address[] memory) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        AppStorage storage s = LibAppStorage.ds();
         address[] memory reserveList = new address[](s._reservesCount);
         for (uint256 i = 0; i < s._reservesCount; ) {
             reserveList[i] = s._reserveList[i];
@@ -128,11 +125,11 @@ library LibLiquidity {
     }
 
     function balance(
-        address _reserve,
+        address _collection,
         address _user,
         Tranche _tranche
     ) internal view returns (uint256) {
-        ReserveData memory reserve = getReserveData(_reserve);
+        ReserveData memory reserve = getReserveData(_collection);
         address vToken;
         if (Tranche.JUNIOR == _tranche) {
             vToken = reserve.juniorDepositTokenAddress;
@@ -143,11 +140,11 @@ library LibLiquidity {
     }
 
     function unbonding(
-        address _reserve,
+        address _collection,
         address _user,
         Tranche _tranche
     ) internal view returns (uint256) {
-        ReserveData memory reserve = getReserveData(_reserve);
+        ReserveData memory reserve = getReserveData(_collection);
         address vToken;
         if (Tranche.JUNIOR == _tranche) {
             vToken = reserve.juniorDepositTokenAddress;
@@ -165,16 +162,19 @@ library LibLiquidity {
         return unbondingBalance;
     }
 
-    function getDepositAndDebt(address _reserve)
+    function getDepositAndDebt(address _collection)
         internal
         view
         returns (DepositAndDebt memory)
     {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        ReserveData storage reserve = s._reserves[_reserve];
-        BorrowState storage borrowState = s._borrowState[_reserve];
+        AppStorage storage s = LibAppStorage.ds();
+        ReserveData storage reserve = s._reserveData[_collection];
+        BorrowState storage borrowState = s._borrowState[_collection][
+            reserve.currency
+        ];
 
         DepositAndDebt memory res;
+        res.currency = reserve.currency;
         res.juniorDepositAmount = IVToken(reserve.juniorDepositTokenAddress)
             .totalAssets();
         res.seniorDepositAmount = IVToken(reserve.seniorDepositTokenAddress)
@@ -187,17 +187,23 @@ library LibLiquidity {
         return res;
     }
 
-    function utilizationRate(address _reserve) internal view returns (uint256) {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        ReserveData memory reserve = getReserveData(_reserve);
-        BorrowState memory borrowState = s._borrowState[_reserve];
+    function utilizationRate(address _collection)
+        internal
+        view
+        returns (uint256)
+    {
+        AppStorage storage s = LibAppStorage.ds();
+        ReserveData memory reserve = getReserveData(_collection);
+        BorrowState memory borrowState = s._borrowState[_collection][
+            reserve.currency
+        ];
         uint256 totalDebt = borrowState.totalDebt + borrowState.totalInterest;
 
         uint256 totalPendingWithdrawal = IVToken(
             reserve.seniorDepositTokenAddress
         ).totalUnbonding();
 
-        uint256 availableLiquidity = IERC20Metadata(_reserve).balanceOf(
+        uint256 availableLiquidity = IERC20Metadata(reserve.currency).balanceOf(
             reserve.seniorDepositTokenAddress
         ) - totalPendingWithdrawal;
 

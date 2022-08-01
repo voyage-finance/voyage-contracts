@@ -14,8 +14,8 @@ contract Vault is VersionedDiamond, IVault {
         address _loupeFacet,
         address _ownershipFacet
     ) public initializer {
-        LibVaultStorage.diamondStorage().voyage = _owner;
-        LibVaultStorage.diamondStorage().user = _user;
+        LibVaultStorage.ds().voyage = _owner;
+        LibVaultStorage.ds().user = _user;
         _initialize(_owner, _cutFacet, _loupeFacet, _ownershipFacet);
     }
 }

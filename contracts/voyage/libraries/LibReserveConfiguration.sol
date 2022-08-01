@@ -322,20 +322,20 @@ library LibReserveConfiguration {
         );
     }
 
-    function getConfiguration(address _reserve)
+    function getConfiguration(address _collection)
         internal
         view
         returns (ReserveConfigurationMap memory)
     {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        return s._reserves[_reserve].configuration;
+        AppStorage storage s = LibAppStorage.ds();
+        return s._reserveData[_collection].configuration;
     }
 
     function saveConfiguration(
-        address _asset,
+        address _collection,
         ReserveConfigurationMap memory _conf
     ) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
-        s._reserves[_asset].configuration = _conf;
+        AppStorage storage s = LibAppStorage.ds();
+        s._reserveData[_collection].configuration = _conf;
     }
 }

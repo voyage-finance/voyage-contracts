@@ -7,7 +7,8 @@ interface IMarginEscrow is IERC4626 {
     function initialize(
         address _vault,
         address _voyage,
-        address _asset
+        address _currency,
+        address _collection
     ) external;
 
     function slash(uint256 _amount, address payable _to)

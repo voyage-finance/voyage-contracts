@@ -16,22 +16,20 @@ contract PaymentsFacet is PeripheryPayments, Multicall, SelfPermit {
         public
         payable
     {
-        uint256 balanceWETH9 = LibAppStorage.diamondStorage().WETH9.balanceOf(
+        uint256 balanceWETH9 = LibAppStorage.ds().WETH9.balanceOf(
             address(this)
         );
         require(balanceWETH9 >= amountMinimum, "Insufficient WETH9");
 
         if (balanceWETH9 > 0) {
-            LibAppStorage.diamondStorage().WETH9.withdraw(balanceWETH9);
+            LibAppStorage.ds().WETH9.withdraw(balanceWETH9);
             SafeTransferLib.safeTransferETH(recipient, balanceWETH9);
         }
     }
 
     function wrapWETH9() public payable {
         if (address(this).balance > 0)
-            LibAppStorage.diamondStorage().WETH9.deposit{
-                value: address(this).balance
-            }(); // wrap everything
+            LibAppStorage.ds().WETH9.deposit{value: address(this).balance}(); // wrap everything
     }
 
     function sweepToken(

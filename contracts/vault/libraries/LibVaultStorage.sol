@@ -41,24 +41,18 @@ struct VaultStorageV1 {
 library LibVaultStorage {
     // Returns the struct from a specified position in contract storage
     // ds is short for DiamondStorage
-    function diamondStorage()
-        internal
-        pure
-        returns (VaultStorageV1 storage ds)
-    {
+    function ds() internal pure returns (VaultStorageV1 storage ds) {
         // Set the position of our struct in contract storage
+        bytes32 storagePosition = keccak256("diamond.storage.vault.voyage");
         assembly {
-            ds.slot := 0
+            ds.slot := storagePosition
         }
     }
 }
 
 contract Storage {
     modifier onlyVoyage() {
-        require(
-            msg.sender == LibVaultStorage.diamondStorage().voyage,
-            "Not Voyage"
-        );
+        require(msg.sender == LibVaultStorage.ds().voyage, "Not Voyage");
         _;
     }
 
@@ -67,6 +61,6 @@ contract Storage {
         view
         returns (IMarginEscrow)
     {
-        return IMarginEscrow(LibVaultStorage.diamondStorage().escrow[_asset]);
+        return IMarginEscrow(LibVaultStorage.ds().escrow[_asset]);
     }
 }

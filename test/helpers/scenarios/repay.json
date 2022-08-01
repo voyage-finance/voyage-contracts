@@ -8,7 +8,7 @@
               {
                 "name": "deposit",
                 "args": {
-                  "reserve": "TUS",
+                  "cname": "TUS",
                   "tranche": "1",
                   "amount": "10000",
                   "user": "0"
@@ -18,7 +18,7 @@
               {
                 "name": "deposit",
                 "args": {
-                  "reserve": "TUS",
+                  "cname": "TUS",
                   "tranche": "0",
                   "amount": "10000",
                   "user": "0"
@@ -28,7 +28,7 @@
               {
                 "name": "approve",
                 "args": {
-                  "reserve": "TUS",
+                  "cname": "TUS",
                   "tranche": "1",
                   "amount": "10000",
                   "user": "0"
@@ -38,7 +38,7 @@
               {
                 "name": "margin",
                 "args": {
-                  "reserve": "TUS",
+                  "cname": "TUS",
                   "amount": "100000",
                   "user": "0"
                 },
@@ -47,7 +47,7 @@
               {
                 "name": "borrow",
                 "args": {
-                  "reserve": "TUS",
+                  "cname": "TUS",
                   "amount": "10000",
                   "user": "0"
                 },
@@ -56,7 +56,7 @@
               {
                 "name": "repay",
                 "args": {
-                  "reserve": "TUS",
+                  "cname": "TUS",
                   "loan": "0",
                   "user": "0"
                 },

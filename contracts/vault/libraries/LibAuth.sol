@@ -6,9 +6,7 @@ import {LibVaultStorage} from "./LibVaultStorage.sol";
 
 contract VaultAuth {
     modifier authorised() {
-        SecurityFacet sf = SecurityFacet(
-            LibVaultStorage.diamondStorage().voyage
-        );
+        SecurityFacet sf = SecurityFacet(LibVaultStorage.ds().voyage);
         require(
             sf.isAuthorised(msg.sender, address(this), msg.sig),
             "unauthorised"

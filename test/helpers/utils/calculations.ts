@@ -50,6 +50,7 @@ export const calcExpectedReserveDataAfterDeposit = (
   expectedReserveData.decimals = reserveDataBeforeAction.decimals;
   expectedReserveData.symbol = reserveDataBeforeAction.symbol;
   expectedReserveData.isActive = reserveDataBeforeAction.isActive;
+  expectedReserveData.currency = reserveDataBeforeAction.currency;
   return expectedReserveData;
 };
 
@@ -68,6 +69,7 @@ export const calcExpectedReserveDataAfterBorrow = (
   expectedReserveData.decimals = reserveDataBeforeAction.decimals;
   expectedReserveData.symbol = reserveDataBeforeAction.symbol;
   expectedReserveData.isActive = reserveDataBeforeAction.isActive;
+  expectedReserveData.currency = reserveDataBeforeAction.currency;
   return expectedReserveData;
 };
 
@@ -115,6 +117,7 @@ export const caclExpectedReserveDataAfterWithdraw = (
   expectedReserveData.decimals = reserveDataBeforeAction.decimals;
   expectedReserveData.symbol = reserveDataBeforeAction.symbol;
   expectedReserveData.isActive = reserveDataBeforeAction.isActive;
+  expectedReserveData.currency = reserveDataBeforeAction.currency;
   return expectedReserveData;
 };
 
@@ -141,6 +144,7 @@ export const caclExpectedReserveDataAfterRepay = (
   expectedReserveData.decimals = reserveDataBeforeAction.decimals;
   expectedReserveData.symbol = reserveDataBeforeAction.symbol;
   expectedReserveData.isActive = reserveDataBeforeAction.isActive;
+  expectedReserveData.currency = reserveDataBeforeAction.currency;
   return expectedReserveData;
 };
 

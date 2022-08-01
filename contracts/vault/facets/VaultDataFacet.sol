@@ -12,125 +12,130 @@ import {DataProviderFacet} from "../../voyage/facets/DataProviderFacet.sol";
 
 contract VaultDataFacet is ReentrancyGuard, Storage, IERC1271 {
     /// @notice Get the number of NFT owned by this vault
-    /// @param _erc721Addr Address of NFT
-    function getTotalNFTNumbers(address _erc721Addr)
+    /// @param _collection The address of collection
+    function getTotalNFTNumbers(address _collection)
         public
         view
         returns (uint256)
     {
-        return LibVaultStorage.diamondStorage().nfts[_erc721Addr].currentSize;
+        return LibVaultStorage.ds().nfts[_collection].currentSize;
     }
 
     /// @notice Get total debt of this vault
-    /// @param _reserve Address of the reserve
-    function totalDebt(address _reserve) public view returns (uint256 total) {
+    /// @param _collection Address of the collection
+    function totalDebt(address _collection)
+        public
+        view
+        returns (uint256 total)
+    {
         uint256 principal;
         uint256 interest;
-        (principal, interest) = LoanFacet(
-            LibVaultStorage.diamondStorage().voyage
-        ).getVaultDebt(_reserve, address(this));
+        (principal, interest) = LoanFacet(LibVaultStorage.ds().voyage)
+            .getVaultDebt(_collection, address(this));
         total = principal + interest;
     }
 
     /// @notice Get margin requirement
-    /// @param _reserve Address of the reserve
-    function marginRequirement(address _reserve) public view returns (uint256) {
-        VaultConfig memory vc = VaultFacet(
-            LibVaultStorage.diamondStorage().voyage
-        ).getVaultConfig(_reserve, address(this));
+    /// @param _collection Address of the nft collection
+    function marginRequirement(address _collection)
+        public
+        view
+        returns (uint256)
+    {
+        VaultConfig memory vc = VaultFacet(LibVaultStorage.ds().voyage)
+            .getVaultConfig(_collection, address(this));
         return vc.marginRequirement;
     }
 
     /// @notice Get token status
-    /// @param _erc721Asset The address of the ERC721 contract
+    /// @param _collection The address of the ERC721 contract
     /// @param _tokenId Token id
-    function getTokenStatus(address _erc721Asset, uint256 _tokenId)
+    function getTokenStatus(address _collection, uint256 _tokenId)
         public
+        view
         returns (CustodyData memory)
     {
-        return
-            LibVaultStorage.diamondStorage().custodyIndex[_erc721Asset][
-                _tokenId
-            ];
+        return LibVaultStorage.ds().custodyIndex[_collection][_tokenId];
     }
 
     /// @notice Get token list owned by this vault
-    /// @param _erc721Asset The address of the ERC721 contract
-    function getTokensOwned(address _erc721Asset)
+    /// @param _collection The address of the ERC721 contract
+    function getTokensOwned(address _collection)
         public
+        view
         returns (uint256[] memory)
     {
-        return LibVaultStorage.diamondStorage().tokenSet[_erc721Asset];
+        return LibVaultStorage.ds().tokenSet[_collection];
     }
 
     /// @notice Get sub vault address of a specific user
     /// @param _owner The address of the user
     function getSubvaultOf(address _owner) public view returns (address) {
-        return LibVaultStorage.diamondStorage().ownerSubvaultIndex[_owner];
+        return LibVaultStorage.ds().ownerSubvaultIndex[_owner];
     }
 
     /// @notice Get sub vault's address
     /// @param _subvault The address of the subvault
     function getSubvaultStatus(address _subvault) public view returns (bool) {
-        return LibVaultStorage.diamondStorage().subvaultStatusIndex[_subvault];
+        return LibVaultStorage.ds().subvaultStatusIndex[_subvault];
     }
 
     /// @notice Get current margin
-    /// @param _reserve The address of the reserve
-    function getCurrentMargin(address _reserve)
+    /// @param _currency The address of the currency
+    function getCurrentMargin(address _currency)
         external
         view
         returns (uint256)
     {
-        return _marginEscrow(_reserve).totalMargin();
+        return _marginEscrow(_currency).totalMargin();
     }
 
     /// @notice Get actual security deposit amount
-    /// @param _reserve The address of the reserve
-    function getActualSecurityDeposit(address _reserve)
+    /// @param _currency The address of the currency
+    function getActualSecurityDeposit(address _currency)
         public
         view
         returns (uint256)
     {
-        return IERC20(_reserve).balanceOf(address(_marginEscrow(_reserve)));
+        return IERC20(_currency).balanceOf(address(_marginEscrow(_currency)));
     }
 
     /// @notice Get withdrawable margin
-    /// @param _reserve The address of the reserve
+    /// @param _currency The address of the currency
     /// @param _user The address of the user
-    function withdrawableMargin(address _reserve, address _user)
+    function withdrawableMargin(address _currency, address _user)
         public
         view
         returns (uint256)
     {
-        return _marginEscrow(_reserve).withdrawableMargin(_user);
+        return _marginEscrow(_currency).withdrawableMargin(_user);
     }
 
     /// @notice Get total withdrawable margin
-    /// @param _reserve The address of the reserve
-    function totalWithdrawableMargin(address _reserve)
+    /// @param _currency The address of the currency
+    function totalWithdrawableMargin(address _currency)
         public
         view
         returns (uint256)
     {
-        return _marginEscrow(_reserve).totalWithdrawableMargin();
+        return _marginEscrow(_currency).totalWithdrawableMargin();
     }
 
     /// @notice Get address of credit escrow
-    /// @param _asset The address of the asset
-    function creditEscrow(address _asset) public view returns (address) {
-        return address(LibVaultStorage.diamondStorage().cescrow[_asset]);
+    /// @param _currency The address of the currency
+    function creditEscrow(address _currency) public view returns (address) {
+        return address(LibVaultStorage.ds().cescrow[_currency]);
     }
 
     /// @notice Get address of margin escrow
-    /// @param _asset The address of the asset
-    function marginEscrow(address _asset) public view returns (address) {
-        return address(_marginEscrow(_asset));
+    /// @param _currency The address of the currency
+    function marginEscrow(address _currency) public view returns (address) {
+        return address(_marginEscrow(_currency));
     }
 
-    function isValidERC721(address _asset) public view returns (bool) {
-        VaultFacet vf = VaultFacet(LibVaultStorage.diamondStorage().voyage);
-        return vf.getMarketPlaceByAsset(_asset) != address(0);
+    function isValidERC721(address _currency) public view returns (bool) {
+        VaultFacet vf = VaultFacet(LibVaultStorage.ds().voyage);
+        return vf.getMarketPlaceByAsset(_currency) != address(0);
     }
 
     /// @notice Should return whether the signature provided is valid for the provided data
@@ -142,7 +147,7 @@ contract VaultDataFacet is ReentrancyGuard, Storage, IERC1271 {
         returns (bytes4 magicValue)
     {
         address sender = recoverSigner(hash, signature);
-        if (LibVaultStorage.diamondStorage().user == sender) {
+        if (LibVaultStorage.ds().user == sender) {
             return 0x1626ba7e;
         }
         return 0xffffffff;

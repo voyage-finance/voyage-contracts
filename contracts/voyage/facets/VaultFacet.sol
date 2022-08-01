@@ -43,7 +43,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         uint256 _amount
     );
     event VaultMarginParametersUpdated(
-        address indexed _asset,
+        address indexed _collection,
         address indexed _vault,
         uint256 _min,
         uint256 _max,
@@ -79,16 +79,25 @@ contract VaultFacet is Storage, ReentrancyGuard {
         sigs[3] = VaultManageFacet(address(0)).updateSubvaultOwner.selector;
         sigs[4] = VaultManageFacet(address(0)).pauseSubvault.selector;
         sigs[5] = VaultManageFacet(address(0)).unpauseSubvault.selector;
-        LibSecurity.grantPermissions(s.auth, _owner, vaultBeaconProxy, sigs);
+        LibSecurity.grantPermissions(
+            LibAppStorage.ds().auth,
+            _owner,
+            vaultBeaconProxy,
+            sigs
+        );
         emit VaultCreated(vaultBeaconProxy, _owner, numVaults);
     }
 
-    function initCreditLine(address _vault, address _asset)
-        external
-        authorised
-        returns (address, address)
-    {
-        (address _me, address _ce) = LibVault.initCreditLine(_vault, _asset);
+    function initCreditLine(
+        address _vault,
+        address _asset,
+        address _collection
+    ) external authorised returns (address, address) {
+        (address _me, address _ce) = LibVault.initCreditLine(
+            _vault,
+            _asset,
+            _collection
+        );
         emit VaultCreditLineInitialized(_vault, _asset, _me, _ce);
         return (_me, _ce);
     }
@@ -96,60 +105,60 @@ contract VaultFacet is Storage, ReentrancyGuard {
     /* ----------------------------- user interface ----------------------------- */
     /**
      * @param _vault vault admin address
-     * @param _reserve reserve address
+     * @param _collection collection address
      * @param _amount amount user is willing to deposit
      */
     function depositMargin(
         address _vault,
-        address _reserve,
+        address _collection,
         uint256 _amount
     ) external {
         (bool success, bytes memory ret) = _vault.call(
             abi.encodeWithSignature(
                 "depositMargin(address,address,uint256)",
                 _msgSender(),
-                _reserve,
+                _collection,
                 _amount
             )
         );
         if (!success) {
             revert InvalidVaultCall();
         }
-        emit VaultMarginCredited(_vault, _reserve, msg.sender, _amount);
+        emit VaultMarginCredited(_vault, _collection, msg.sender, _amount);
     }
 
     /**
      * @dev  Delegate call to Vault's redeemSecurity
      * @param _vault vault address
-     * @param _reserve reserve address
+     * @param _currency currency address
      * @param _amount redeem amount
      **/
     function redeemMargin(
         address payable _vault,
-        address _reserve,
+        address _currency,
         uint256 _amount
     ) external {
         (bool success, bytes memory ret) = _vault.call(
             abi.encodeWithSignature(
                 "redeemMargin(address,address,uint256)",
                 _msgSender(),
-                _reserve,
+                _currency,
                 _amount
             )
         );
         if (!success) {
             revert InvalidVaultCall();
         }
-        emit VaultMarginRedeemed(_vault, _reserve, msg.sender, _amount);
+        emit VaultMarginRedeemed(_vault, _currency, msg.sender, _amount);
     }
 
     /* ---------------------- vault configuration interface --------------------- */
     function setNFTInfo(
-        address _erc721,
-        address _erc20,
+        address _collection,
+        address _currency,
         address _marketplace
     ) external authorised {
-        LibVault.setNFTInfo(_erc721, _erc20, _marketplace);
+        LibVault.setNFTInfo(_collection, _currency, _marketplace);
     }
 
     function setVaultBeacon(address _impl) external authorised {
@@ -157,13 +166,13 @@ contract VaultFacet is Storage, ReentrancyGuard {
     }
 
     /// @dev overrides global reserve margin parameters. use with extreme caution.
-    /// @param _reserve address of the underlying asset
+    /// @param _collection address of the underlying nft address
     /// @param _vault address of the vault
     /// @param _min min margin in whole tokens
     /// @param _max max margin in whole tokens
     /// @param _marginRequirement margin requirement
     function overrideMarginConfig(
-        address _reserve,
+        address _collection,
         address _vault,
         uint256 _min,
         uint256 _max,
@@ -180,7 +189,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         }
 
         LibVault.setVaultConfig(
-            _reserve,
+            _collection,
             _vault,
             _min,
             _max,
@@ -188,7 +197,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         );
 
         emit VaultMarginParametersUpdated(
-            _reserve,
+            _collection,
             _vault,
             _min,
             _max,
@@ -245,12 +254,12 @@ contract VaultFacet is Storage, ReentrancyGuard {
         return LibVault.subVaultBeacon();
     }
 
-    function getNFTInfo(address _erc721Addr, uint256 _tokenId)
+    function getCollectionInfo(address _collection, uint256 _tokenId)
         external
         view
         returns (NFTInfo memory)
     {
-        return LibVault.getNFTInfo(_erc721Addr, _tokenId);
+        return LibVault.getCollectionInfo(_collection, _tokenId);
     }
 
     function getVaultAddr(address _user) external view returns (address) {
@@ -284,51 +293,51 @@ contract VaultFacet is Storage, ReentrancyGuard {
     /**
      * @dev Get available credit
      * @param _vault user address
-     * @param _reserve reserve address
+     * @param _collection collection address
      **/
-    function getAvailableCredit(address _vault, address _reserve)
+    function getAvailableCredit(address _vault, address _collection)
         external
         view
         returns (uint256)
     {
-        return LibVault.getAvailableCredit(_vault, _reserve);
+        return LibVault.getAvailableCredit(_vault, _collection);
     }
 
     /**
      * @dev Get credit limit for a specific reserve
      * @param _vault vault address
-     * @return _reserve reserve address
+     * @return _collection collection address
      **/
-    function getCreditLimit(address _vault, address _reserve)
+    function getCreditLimit(address _vault, address _collection)
         public
         view
         returns (uint256)
     {
-        return LibVault.getCreditLimit(_vault, _reserve);
+        return LibVault.getCreditLimit(_vault, _collection);
     }
 
-    function getMargin(address _vault, address _reserve)
+    function getMargin(address _vault, address _currency)
         external
         view
         returns (uint256)
     {
-        return LibVault.getMargin(_vault, _reserve);
+        return LibVault.getMargin(_vault, _currency);
     }
 
-    function getVaultConfig(address _reserve, address _vault)
+    function getVaultConfig(address _collection, address _vault)
         external
         view
         returns (VaultConfig memory)
     {
-        return LibVault.getVaultConfig(_reserve, _vault);
+        return LibVault.getVaultConfig(_collection, _vault);
     }
 
     function getWithdrawableMargin(
         address _vault,
-        address _reserve,
+        address _currency,
         address _user
     ) public view returns (uint256) {
-        return LibVault.getWithdrawableMargin(_vault, _reserve, _user);
+        return LibVault.getWithdrawableMargin(_vault, _currency, _user);
     }
 
     function getEncodedVaultInitData(address _owner)

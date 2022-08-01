@@ -32,6 +32,7 @@ export interface Loan {
 }
 
 export interface ReserveData {
+  currency: string;
   totalLiquidity: BigNumber;
   juniorLiquidity: BigNumber;
   seniorLiquidity: BigNumber;

@@ -8,81 +8,29 @@ import {IPriceOracle} from "../interfaces/IPriceOracle.sol";
 contract PriceOracle is IPriceOracle, Ownable {
     using WadRayMath for uint256;
 
-    struct CumulativePrice {
-        uint256 priceCumulativeLast;
-        uint256 blockTimestampLast;
+    struct AveragePrice {
+        uint256 blockTimestamp;
         uint256 priceAverage;
     }
 
-    struct PriceData {
-        uint256 priceCumulative;
-        uint256 blockTimestamp;
-    }
+    mapping(address => AveragePrice) prices;
 
-    mapping(address => CumulativePrice) prices;
-    mapping(address => PriceData) ticket;
-
-    function getTwap(address _asset) external view returns (uint256) {
-        return prices[_asset].priceAverage;
-    }
-
-    function updateTwap(address _asset) external onlyOwner {
-        _updateAssetPrice(_asset);
-    }
-
-    function updateAssetPrices(address[] calldata _assets) external onlyOwner {
-        for (uint256 i = 0; i < _assets.length; ) {
-            _updateAssetPrice(_assets[i]);
-            unchecked {
-                ++i;
-            }
-        }
-    }
-
-    function updateCumulative(address _asset, uint256 _price)
+    function getTwap(address _currency)
         external
-        onlyOwner
-    {
-        _updateCumulative(_asset, _price);
-    }
-
-    function updateCumulativeBatch(
-        address[] calldata _assets,
-        uint256[] calldata _prices
-    ) external onlyOwner {
-        for (uint256 i = 0; i < _assets.length; i++) {
-            _updateCumulative(_assets[i], _prices[i]);
-        }
-    }
-
-    function currentCumulativePrice(address _asset)
-        public
         view
         returns (uint256, uint256)
     {
-        PriceData storage pd = ticket[_asset];
-        return (pd.priceCumulative, pd.blockTimestamp);
+        return (
+            prices[_currency].priceAverage,
+            prices[_currency].blockTimestamp
+        );
     }
 
-    function _updateAssetPrice(address _asset) internal {
-        CumulativePrice storage cp = prices[_asset];
-        // period check
-        (
-            uint256 priceCumulative,
-            uint256 blockTimeStamp
-        ) = currentCumulativePrice(_asset);
-        uint256 timeElapsed = blockTimeStamp - cp.blockTimestampLast;
-        cp.priceAverage =
-            (priceCumulative - cp.priceCumulativeLast) /
-            timeElapsed;
-        cp.priceCumulativeLast = priceCumulative;
-        cp.blockTimestampLast = blockTimeStamp;
-    }
-
-    function _updateCumulative(address _asset, uint256 _price) internal {
-        PriceData storage pd = ticket[_asset];
-        uint256 timeElapsed = block.timestamp - pd.blockTimestamp;
-        pd.priceCumulative = pd.priceCumulative + _price * timeElapsed;
-        pd.blockTimestamp = block.timestamp;
+    function updateTwap(address _currency, uint256 _priceAverage)
+        external
+        onlyOwner
+    {
+        prices[_currency].priceAverage = _priceAverage;
+        prices[_currency].blockTimestamp = block.timestamp;
     }
 }

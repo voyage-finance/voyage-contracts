@@ -10,9 +10,10 @@ import {
 
 export const getReserveData = async (
   helper: DataProviderFacet,
-  reserve: string
+  collection: string
 ): Promise<ReserveData> => {
-  const poolData = await helper.getPoolData(reserve);
+  const poolData = await helper.getPoolData(collection);
+  const currency = poolData.currency;
   const totalLiquidity = BigNumber.from(poolData.totalLiquidity);
   const juniorLiquidity = BigNumber.from(poolData.juniorLiquidity);
   const seniorLiquidity = BigNumber.from(poolData.seniorLiquidity);
@@ -23,6 +24,7 @@ export const getReserveData = async (
   const symbol = poolData.symbol;
   const isActive = poolData.isActive;
   return {
+    currency,
     totalLiquidity,
     juniorLiquidity,
     seniorLiquidity,
@@ -37,10 +39,10 @@ export const getReserveData = async (
 
 export const getUserPoolData = async (
   helper: DataProviderFacet,
-  reserve: string,
+  collection: string,
   user: string
 ): Promise<UserReserveData> => {
-  const userPoolData = await helper.getUserPoolData(reserve, user);
+  const userPoolData = await helper.getUserPoolData(collection, user);
   const juniorTrancheBalance = BigNumber.from(
     userPoolData.juniorTrancheBalance
   );
@@ -53,11 +55,11 @@ export const getUserPoolData = async (
 
 export const getLoanDetail = async (
   helper: DataProviderFacet,
-  reserve: string,
+  collection: string,
   vault: string,
   loanId: string
 ): Promise<LoanDetail> => {
-  const loanDetail = await helper.getLoanDetail(vault, reserve, loanId);
+  const loanDetail = await helper.getLoanDetail(vault, collection, loanId);
   const principal = loanDetail.principal;
   const interest = loanDetail.interest;
   const nper = loanDetail.nper;
@@ -66,18 +68,18 @@ export const getLoanDetail = async (
 
 export const getPoolConfiguration = async (
   helper: DataProviderFacet,
-  reserve: string
+  collection: string
 ): Promise<PoolConfiguration> => {
-  const poolConfig = await helper.getPoolConfiguration(reserve);
+  const poolConfig = await helper.getPoolConfiguration(collection);
   return poolConfig;
 };
 
 export const getCreditLine = async (
   helper: DataProviderFacet,
-  reserve: string,
+  collection: string,
   vault: string
 ): Promise<CreditLineData> => {
-  const creditLineData = await helper.getCreditLineData(vault, reserve);
+  const creditLineData = await helper.getCreditLineData(vault, collection);
   const head = creditLineData.loanList.head;
   const tail = creditLineData.loanList.tail;
   const totalDebt = BigNumber.from(creditLineData.totalDebt);

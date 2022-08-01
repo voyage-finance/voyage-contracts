@@ -19,7 +19,8 @@ export interface TestEnv {
   juniorDepositToken: Contract;
   seniorDepositToken: Contract;
   vault: string;
-  reserves: Map<string, string>;
+
+  collections: Map<string, string>;
   // user address => Vault
   // in case we need more vault in the furute
   vaults: Map<string, string>;
@@ -27,7 +28,7 @@ export interface TestEnv {
 
 const testEnv: TestEnv = {
   users: [] as SignerWithAddress[],
-  reserves: new Map<string, string>(),
+  collections: new Map<string, string>(),
   vaults: new Map<string, string>(),
 } as TestEnv;
 
@@ -43,8 +44,14 @@ export async function initializeMakeSuite() {
   const { getNamedAccounts } = hre;
   const { owner } = await getNamedAccounts();
   const signer = await ethers.getSigner(owner);
-  const { voyage, juniorDepositToken, seniorDepositToken, tus, deployedVault } =
-    await setupTestSuite();
+  const {
+    voyage,
+    juniorDepositToken,
+    seniorDepositToken,
+    tus,
+    crab,
+    deployedVault,
+  } = await setupTestSuite();
   testEnv.users.push({
     signer,
     address: owner,
@@ -53,7 +60,6 @@ export async function initializeMakeSuite() {
   testEnv.juniorDepositToken = juniorDepositToken;
   testEnv.seniorDepositToken = seniorDepositToken;
   testEnv.vault = deployedVault;
-  testEnv.reserves.set('TUS', tus.address);
+  testEnv.collections.set('TUS', crab.address);
   testEnv.vaults.set(owner, deployedVault);
-  console.log('owner address: ', owner);
 }

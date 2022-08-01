@@ -10,18 +10,18 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
     using LibReserveConfiguration for ReserveConfigurationMap;
     /* --------------------------------- events --------------------------------- */
     event LiquidationConfigurationUpdated(
-        address indexed _asset,
+        address indexed _collection,
         uint256 _liquidationBonus
     );
-    event IncomeRatioUpdated(address indexed _asset, uint256 _incomeRatio);
+    event IncomeRatioUpdated(address indexed _collection, uint256 _incomeRatio);
     event MarginParametersUpdated(
-        address indexed _asset,
+        address indexed _collection,
         uint256 _min,
         uint256 _max,
         uint256 _marginRequirement
     );
     event LoanParametersUpdated(
-        address indexed _asset,
+        address indexed _collection,
         uint256 _epoch,
         uint256 _term,
         uint256 _gracePeriod
@@ -32,32 +32,32 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
     error IllegalMarginParameters();
 
     /// @dev maximum size of _liquidationBonus is 2^16, ~600%
-    /// @param _asset address of the underlying ERC20
+    /// @param _collection address of the underlying NFT collection
     /// @param _liquidationBonus liquidation bonus, percentage expressed as basis points
-    function setLiquidationBonus(address _asset, uint256 _liquidationBonus)
+    function setLiquidationBonus(address _collection, uint256 _liquidationBonus)
         external
         authorised
     {
         ReserveConfigurationMap memory conf = LibReserveConfiguration
-            .getConfiguration(_asset);
+            .getConfiguration(_collection);
         conf.setLiquidationBonus(_liquidationBonus);
-        LibReserveConfiguration.saveConfiguration(_asset, conf);
-        emit LiquidationConfigurationUpdated(_asset, _liquidationBonus);
+        LibReserveConfiguration.saveConfiguration(_collection, conf);
+        emit LiquidationConfigurationUpdated(_collection, _liquidationBonus);
     }
 
-    function setIncomeRatio(address _asset, uint256 _ratio)
+    function setIncomeRatio(address _collection, uint256 _ratio)
         external
         authorised
     {
         ReserveConfigurationMap memory conf = LibReserveConfiguration
-            .getConfiguration(_asset);
+            .getConfiguration(_collection);
         conf.setIncomeRatio(_ratio);
-        LibReserveConfiguration.saveConfiguration(_asset, conf);
-        emit IncomeRatioUpdated(_asset, _ratio);
+        LibReserveConfiguration.saveConfiguration(_collection, conf);
+        emit IncomeRatioUpdated(_collection, _ratio);
     }
 
     function setLoanParams(
-        address _asset,
+        address _collection,
         uint256 _epoch,
         uint256 _term,
         uint256 _gracePeriod
@@ -66,16 +66,16 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
             revert IllegalLoanParameters();
         }
         ReserveConfigurationMap memory conf = LibReserveConfiguration
-            .getConfiguration(_asset);
+            .getConfiguration(_collection);
         conf.setLoanInterval(_epoch);
         conf.setLoanTerm(_term);
         conf.setGracePeriod(_gracePeriod);
-        LibReserveConfiguration.saveConfiguration(_asset, conf);
-        emit LoanParametersUpdated(_asset, _epoch, _term, _gracePeriod);
+        LibReserveConfiguration.saveConfiguration(_collection, conf);
+        emit LoanParametersUpdated(_collection, _epoch, _term, _gracePeriod);
     }
 
     function setMarginParams(
-        address _asset,
+        address _collection,
         uint256 _min,
         uint256 _max,
         uint256 _marginRequirement
@@ -90,11 +90,16 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
             revert IllegalMarginParameters();
         }
         ReserveConfigurationMap memory conf = LibReserveConfiguration
-            .getConfiguration(_asset);
+            .getConfiguration(_collection);
         conf.setMinMargin(_min);
         conf.setMaxMargin(_max);
         conf.setMarginRequirement(_marginRequirement);
-        LibReserveConfiguration.saveConfiguration(_asset, conf);
-        emit MarginParametersUpdated(_asset, _min, _max, _marginRequirement);
+        LibReserveConfiguration.saveConfiguration(_collection, conf);
+        emit MarginParametersUpdated(
+            _collection,
+            _min,
+            _max,
+            _marginRequirement
+        );
     }
 }
