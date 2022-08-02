@@ -11,8 +11,6 @@ import {IVault} from "../../vault/interfaces/IVault.sol";
 import {IExternalAdapter} from "../interfaces/IExternalAdapter.sol";
 import {IDiamondVersionFacet, Snapshot} from "../interfaces/IDiamondVersionFacet.sol";
 import {Vault} from "../../vault/Vault.sol";
-import {MarginEscrow} from "../../vault/escrow/MarginEscrow.sol";
-import {VaultMarginFacet} from "../../vault/facets/VaultMarginFacet.sol";
 import {IDiamondCut} from "../../shared/diamond/interfaces/IDiamondCut.sol";
 import {DiamondCutFacet} from "../../shared/diamond/facets/DiamondCutFacet.sol";
 import {DiamondVersionFacet} from "./DiamondVersionFacet.sol";
@@ -24,12 +22,6 @@ contract VaultFacet is Storage, ReentrancyGuard {
     using LibReserveConfiguration for ReserveConfigurationMap;
     /* --------------------------------- events --------------------------------- */
     event VaultCreated(address _vault, address _owner, uint256 _numVaults);
-    event VaultCreditLineInitialized(
-        address indexed _vault,
-        address indexed _asset,
-        address _me,
-        address _ce
-    );
     event VaultMarginCredited(
         address indexed _vault,
         address indexed _asset,
@@ -86,20 +78,6 @@ contract VaultFacet is Storage, ReentrancyGuard {
             sigs
         );
         emit VaultCreated(vaultBeaconProxy, _owner, numVaults);
-    }
-
-    function initCreditLine(
-        address _vault,
-        address _asset,
-        address _collection
-    ) external authorised returns (address, address) {
-        (address _me, address _ce) = LibVault.initCreditLine(
-            _vault,
-            _asset,
-            _collection
-        );
-        emit VaultCreditLineInitialized(_vault, _asset, _me, _ce);
-        return (_me, _ce);
     }
 
     /* ----------------------------- user interface ----------------------------- */
@@ -242,10 +220,6 @@ contract VaultFacet is Storage, ReentrancyGuard {
         return LibVault.vaultBeacon();
     }
 
-    function marginEscrowBeacon() public view returns (address) {
-        return LibVault.marginEscrowBeacon();
-    }
-
     function creditEscrowBeacon() public view returns (address) {
         return LibVault.creditEscrowBeacon();
     }
@@ -266,14 +240,6 @@ contract VaultFacet is Storage, ReentrancyGuard {
         return LibVault.getVaultAddress(_user);
     }
 
-    function getVaultEscrowAddr(address _user, address _asset)
-        external
-        view
-        returns (address, address)
-    {
-        return LibVault.getVaultEscrowAddress(_user, _asset);
-    }
-
     function getTokenAddrByMarketPlace(address _marketplace)
         external
         view
@@ -290,54 +256,12 @@ contract VaultFacet is Storage, ReentrancyGuard {
         return LibVault.getMarketPlaceByAsset(_asset);
     }
 
-    /**
-     * @dev Get available credit
-     * @param _vault user address
-     * @param _collection collection address
-     **/
-    function getAvailableCredit(address _vault, address _collection)
-        external
-        view
-        returns (uint256)
-    {
-        return LibVault.getAvailableCredit(_vault, _collection);
-    }
-
-    /**
-     * @dev Get credit limit for a specific reserve
-     * @param _vault vault address
-     * @return _collection collection address
-     **/
-    function getCreditLimit(address _vault, address _collection)
-        public
-        view
-        returns (uint256)
-    {
-        return LibVault.getCreditLimit(_vault, _collection);
-    }
-
-    function getMargin(address _vault, address _currency)
-        external
-        view
-        returns (uint256)
-    {
-        return LibVault.getMargin(_vault, _currency);
-    }
-
     function getVaultConfig(address _collection, address _vault)
         external
         view
         returns (VaultConfig memory)
     {
         return LibVault.getVaultConfig(_collection, _vault);
-    }
-
-    function getWithdrawableMargin(
-        address _vault,
-        address _currency,
-        address _user
-    ) public view returns (uint256) {
-        return LibVault.getWithdrawableMargin(_vault, _currency, _user);
     }
 
     function getEncodedVaultInitData(address _owner)

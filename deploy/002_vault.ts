@@ -46,17 +46,7 @@ const deployFn: DeployFunction = async (hre) => {
       log: true,
     },
     {
-      name: 'VaultExternalFacet',
-      from: owner,
-      log: true,
-    },
-    {
       name: 'VaultManageFacet',
-      from: owner,
-      log: true,
-    },
-    {
-      name: 'VaultMarginFacet',
       from: owner,
       log: true,
     },

@@ -15,7 +15,6 @@ import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol"
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
 import {VaultDataFacet} from "../../vault/facets/VaultDataFacet.sol";
-import {VaultMarginFacet} from "../../vault/facets/VaultMarginFacet.sol";
 import {VaultAssetFacet} from "../../vault/facets/VaultAssetFacet.sol";
 
 contract LoanFacet is Storage {
@@ -39,6 +38,7 @@ contract LoanFacet is Storage {
     struct ExecuteLiquidateParams {
         address collection;
         address currency;
+        uint256 tokenId;
         address vault;
         uint256 loanId;
         uint256 repaymentId;
@@ -48,19 +48,15 @@ contract LoanFacet is Storage {
         uint256 totalFromMargin;
         uint256 totalToLiquidate;
         uint256 discount;
-        uint256 totalSlash;
         uint256 amountNeedExtra;
         uint256 juniorTrancheAmount;
         uint256 receivedAmount;
         address liquidator;
         uint256 floorPrice;
         uint256 floorPriceTime;
-        uint256 totalNFTNums;
-        uint256 numNFTsToLiquidate;
         uint256 gracePeriod;
         uint256 liquidationBonus;
         uint256 marginRequirement;
-        uint256 slashedMargin;
         uint256 writeDownAmount;
         uint256 totalAssetFromJuniorTranche;
         bool isFinal;
@@ -101,13 +97,12 @@ contract LoanFacet is Storage {
         uint256 _drowDownId,
         uint256 _repaymentId,
         uint256 _debt,
-        uint256 _margin,
         uint256 _collateral,
         uint256 _fromJuniorTranche,
         uint256 _amountToWriteDown
     );
 
-    event CollateralTransferred(address from, address to, uint256[] tokenIds);
+    event CollateralTransferred(address from, address to);
 
     function borrow(
         address _collection,
@@ -124,16 +119,27 @@ contract LoanFacet is Storage {
             _collection
         );
 
-        uint256 availableSeniorLiquidity = IERC20(reserveData.currency)
-            .balanceOf(reserveData.seniorDepositTokenAddress);
+        uint256 availableSeniorLiquidity = 0;
+        uint256 totalPendingWithdrawal = IVToken(
+            reserveData.seniorDepositTokenAddress
+        ).totalUnbonding();
+        uint256 totalBalance = IERC20(reserveData.currency).balanceOf(
+            reserveData.seniorDepositTokenAddress
+        );
+        if (totalBalance > totalPendingWithdrawal) {
+            availableSeniorLiquidity = totalBalance - totalPendingWithdrawal;
+        }
         if (availableSeniorLiquidity < _amount) {
             revert InsufficientLiquidity();
         }
 
+        uint256 fv = 0;
         // 3. check credit limit
-        uint256 availableCreditLimit = LibVault.getAvailableCredit(
+        uint256 availableCreditLimit = LibVault.getCreditLimit(
             _vault,
-            _collection
+            _collection,
+            reserveData.currency,
+            fv
         );
 
         if (availableCreditLimit < _amount) {
@@ -156,7 +162,7 @@ contract LoanFacet is Storage {
         );
 
         IVToken(reserveData.seniorDepositTokenAddress).transferUnderlyingTo(
-            VaultDataFacet(_vault).creditEscrow(reserveData.currency),
+            _vault,
             _amount
         );
 
@@ -262,9 +268,6 @@ contract LoanFacet is Storage {
             param.marginRequirement,
             param.gracePeriod
         ) = reserveConf.getLiquidationParams();
-        param.totalNFTNums = VaultDataFacet(param.vault).getTotalNFTNumbers(
-            param.collection
-        );
 
         LibLoan.LoanDetail memory loanDetail = LibLoan.getLoanDetail(
             _collection,
@@ -310,20 +313,8 @@ contract LoanFacet is Storage {
         if (param.floorPrice == 0) {
             revert InvalidFloorPrice();
         }
-        param.numNFTsToLiquidate =
-            (param.totalToLiquidate - param.discount) /
-            param.floorPrice;
-        param.totalSlash = param.totalFromMargin + param.discount;
 
         // 4.1 slash margin account
-        param.slashedMargin = VaultMarginFacet(param.vault).slash(
-            param.currency,
-            payable(address(this)),
-            param.totalSlash
-        );
-        param.receivedAmount = param.receivedAmount + param.slashedMargin;
-
-        param.amountNeedExtra = param.totalSlash - param.slashedMargin;
 
         // 4.2 transfer from liquidator
         IERC20(param.currency).safeTransferFrom(
@@ -333,23 +324,13 @@ contract LoanFacet is Storage {
         );
         param.receivedAmount = param.receivedAmount + param.totalToLiquidate;
 
-        if (param.totalNFTNums < param.numNFTsToLiquidate) {
-            uint256 missingNFTNums = param.numNFTsToLiquidate -
-                param.totalNFTNums;
-            param.amountNeedExtra =
-                missingNFTNums *
-                param.floorPrice +
-                param.amountNeedExtra;
-            param.numNFTsToLiquidate = param.totalNFTNums;
-        }
-
         // 4.3 sell nft
-        uint256[] memory ids = VaultAssetFacet(param.vault).transferNFT(
+        VaultAssetFacet(param.vault).transferNFT(
             param.collection,
             param.liquidator,
-            param.numNFTsToLiquidate
+            param.tokenId
         );
-        emit CollateralTransferred(param.vault, param.liquidator, ids);
+        emit CollateralTransferred(param.vault, param.liquidator);
 
         // 4.4 transfer from junior tranche
         param.totalAssetFromJuniorTranche = ERC4626(
@@ -410,7 +391,6 @@ contract LoanFacet is Storage {
             param.loanId,
             param.repaymentId,
             param.totalDebt,
-            param.slashedMargin,
             param.totalToLiquidate,
             param.juniorTrancheAmount,
             param.writeDownAmount
@@ -445,7 +425,7 @@ contract LoanFacet is Storage {
             .getBorrowParams();
 
         // 5. update liquidity index and interest rate
-        BorrowState memory borrowState = LibLoan.getBorrowState(
+        BorrowState storage borrowState = LibLoan.getBorrowState(
             _collection,
             reserveData.currency
         );
@@ -512,7 +492,7 @@ contract LoanFacet is Storage {
         ReserveData memory reserveData = LibLiquidity.getReserveData(
             _collection
         );
-        BorrowState memory borrowState = LibLoan.getBorrowState(
+        BorrowState storage borrowState = LibLoan.getBorrowState(
             _collection,
             reserveData.currency
         );
@@ -530,7 +510,7 @@ contract LoanFacet is Storage {
         ReserveData memory reserveData = LibLiquidity.getReserveData(
             _collection
         );
-        BorrowState memory borrowState = LibLoan.getBorrowState(
+        BorrowState storage borrowState = LibLoan.getBorrowState(
             _collection,
             reserveData.currency
         );

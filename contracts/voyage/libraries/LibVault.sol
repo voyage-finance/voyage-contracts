@@ -11,6 +11,7 @@ import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
 import {VaultDataFacet} from "../../vault/facets/VaultDataFacet.sol";
 import {VaultAssetFacet} from "../../vault/facets/VaultAssetFacet.sol";
+import {LogarithmMath} from "../../shared/libraries/LogarithmMath.sol";
 
 library LibVault {
     using WadRayMath for uint256;
@@ -26,18 +27,6 @@ library LibVault {
         s.vaults.push(_vault);
         LibAppStorage.ds().vaultMap[_owner] = _vault;
         return (s.vaults.length);
-    }
-
-    function initCreditLine(
-        address _vault,
-        address _currency,
-        address _collection
-    ) internal returns (address, address) {
-        (address me, address ce) = VaultAssetFacet(_vault).initCreditLine(
-            _currency,
-            _collection
-        );
-        return (me, ce);
     }
 
     function setVaultBeacon(address _impl) internal {
@@ -108,18 +97,6 @@ library LibVault {
 
     function getVaultAddress(address _owner) internal view returns (address) {
         return LibAppStorage.ds().vaultMap[_owner];
-    }
-
-    function getVaultEscrowAddress(address _owner, address _currency)
-        internal
-        view
-        returns (address, address)
-    {
-        address creditEscrow = VaultDataFacet(getVaultAddress(_owner))
-            .creditEscrow(_currency);
-        address marginEscrow = VaultDataFacet(getVaultAddress(_owner))
-            .marginEscrow(_currency);
-        return (creditEscrow, marginEscrow);
     }
 
     function getVaultDebt(
@@ -228,67 +205,23 @@ library LibVault {
         return s.nftInfo[_collection][_tokenId];
     }
 
-    function getAvailableCredit(address _vault, address _collection)
-        internal
-        view
-        returns (uint256)
-    {
-        uint256 creditLimit = getCreditLimit(_vault, _collection);
-        address currency = LibAppStorage
-            .ds()
-            ._reserveData[_collection]
-            .currency;
-        (uint256 principal, uint256 interest) = getVaultDebt(
-            _collection,
-            currency,
-            _vault
-        );
-        uint256 accumulatedDebt = principal + interest;
-        if (creditLimit < accumulatedDebt) {
-            return 0;
-        }
-
-        return creditLimit - accumulatedDebt;
-    }
-
     /**
      * @dev Get credit limit for a specific reserve
      * @param _vault vault address
      * @return _collection collection address
      **/
-    function getCreditLimit(address _vault, address _collection)
-        internal
-        view
-        returns (uint256)
-    {
-        VaultConfig memory vc = getVaultConfig(_collection, _vault);
-        uint256 currentMargin = getMargin(_vault, vc.currency);
-
-        require(vc.marginRequirement != 0, "margin requirement cannot be 0");
-        return currentMargin.percentDiv(vc.marginRequirement);
-    }
-
-    function getMargin(address _vault, address _currency)
-        internal
-        view
-        returns (uint256)
-    {
-        return VaultDataFacet(_vault).getCurrentMargin(_currency);
-    }
-
-    function getWithdrawableMargin(
+    function getCreditLimit(
         address _vault,
+        address _collection,
         address _currency,
-        address _user
+        uint256 _fv
     ) internal view returns (uint256) {
-        return VaultDataFacet(_vault).withdrawableMargin(_currency, _user);
-    }
-
-    function getTotalWithdrawableMargin(address _vault, address _currency)
-        internal
-        view
-        returns (uint256)
-    {
-        return VaultDataFacet(_vault).totalWithdrawableMargin(_currency);
+        AppStorage storage s = LibAppStorage.ds();
+        int128 rep = s
+        ._borrowState[_collection][_currency]
+            .numRepaidLoans[_vault]
+            .repaidTimes;
+        uint256 multiplier = uint256(int256(LogarithmMath.log_2(rep + 1) + 1));
+        return _fv * multiplier;
     }
 }

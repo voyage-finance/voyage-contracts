@@ -14,10 +14,6 @@ import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol"
 struct CreditLineData {
     uint256 totalDebt;
     LoanList loanList;
-    uint256 totalMargin;
-    uint256 withdrawableSecurityDeposit;
-    uint256 creditLimit;
-    uint256 spendableBalance;
     uint256 gav;
     uint256 ltv;
     uint256 healthFactor;
@@ -229,25 +225,9 @@ contract DataProviderFacet {
         );
         creditLineData.loanList = loanList;
         creditLineData.totalDebt = principal + interest;
-        creditLineData.totalMargin = LibVault.getMargin(
-            _vault,
-            reserve.currency
-        );
-        creditLineData.withdrawableSecurityDeposit = LibVault
-            .getTotalWithdrawableMargin(_vault, reserve.currency);
-        creditLineData.creditLimit = LibVault.getCreditLimit(
-            _vault,
-            _collection
-        );
-        creditLineData.spendableBalance = LibVault.getAvailableCredit(
-            _vault,
-            _collection
-        );
         creditLineData.ltv = creditLineData.totalDebt == 0
             ? 1
-            : (creditLineData.gav + creditLineData.totalMargin).rayDiv(
-                creditLineData.totalDebt
-            );
+            : (creditLineData.gav).rayDiv(creditLineData.totalDebt);
         return creditLineData;
     }
 

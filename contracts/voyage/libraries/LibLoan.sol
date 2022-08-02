@@ -119,6 +119,9 @@ library LibLoan {
         if (loan.paidTimes == loan.nper) {
             delete debtData.loans[_loanNumber];
             isFinal = true;
+            borrowState.numRepaidLoans[_vault].repaidTimes =
+                borrowState.numRepaidLoans[_vault].repaidTimes +
+                1;
         } else {
             loan.totalPrincipalPaid = loan.totalPrincipalPaid + _principal;
             loan.totalInterestPaid = loan.totalInterestPaid + _interest;

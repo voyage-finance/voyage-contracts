@@ -66,7 +66,6 @@ const setupBase = async ({
   await voyage.createVault(owner, salt);
   const deployedVault = await voyage.getVault(owner);
   await tus.approve(deployedVault, MAX_UINT_256);
-  await voyage.initCreditLine(deployedVault, tus.address, crab.address);
 
   return {
     owner,

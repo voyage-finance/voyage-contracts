@@ -84,10 +84,6 @@ export const getCreditLine = async (
   const tail = creditLineData.loanList.tail;
   const totalDebt = BigNumber.from(creditLineData.totalDebt);
   const loanlist = { head, tail };
-  const totalMargin = BigNumber.from(creditLineData.totalMargin);
-  const withdrawableSecurityDeposit = BigNumber.from(
-    creditLineData.withdrawableSecurityDeposit
-  );
   const creditLimit = BigNumber.from(creditLineData.creditLimit);
   const spendableBalance = BigNumber.from(creditLineData.spendableBalance);
   const gav = BigNumber.from(creditLineData.gav);

@@ -63,9 +63,6 @@ describe('Borrow', function () {
     // 10
     const borrow = ethers.BigNumber.from('10000000000000000000');
     await voyage.borrow(crab.address, borrow, vault);
-    const escrowAddr = await voyage.getVaultEscrowAddr(owner, tus.address);
-    const vaultBalance = await tus.balanceOf(escrowAddr[0]);
-    expect(vaultBalance).to.equal(borrow);
     const pool = await voyage.getPoolData(crab.address);
     console.log('totalDebt: ', formatBN(pool.totalDebt, 18));
     expect(pool.totalDebt).to.equal(borrow);
