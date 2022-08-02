@@ -9,7 +9,6 @@ const deployFn: DeployFunction = async (hre) => {
   const { deploy, execute, getOrNull, save, getArtifact } = deployments;
   const { owner } = await getNamedAccounts();
   const voyage = await deployments.get('Voyage');
-  const weth9 = await deployments.get('WETH9');
 
   const diamondABI: any[] = [];
   const diamondProxyArtifact = await getArtifact('VersionedDiamond');
@@ -25,10 +24,6 @@ const deployFn: DeployFunction = async (hre) => {
       'existing vault diamond proxy %s: ',
       existingProxyDeployment?.address
     );
-    // this returns the diamond with merged ABI.
-    const diamond = await ethers.getContract('Vault');
-    existingFacets = await diamond.facets();
-    log.debug('existing facets: %o', existingFacets);
   }
 
   let changesDetected = !existingProxyDeployment;

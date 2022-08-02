@@ -20,10 +20,6 @@ async function main() {
     'hardhat-diamond-abi/HardhatDiamondABI.sol:Vault',
     vaultAddress
   );
-  // await tenderly.persistArtifacts({
-  //   name: 'hardhat-diamond-abi/HardhatDiamondABI.sol:Vault',
-  //   address: vaultAddress,
-  // });
   const marginEscrow = await vault.marginEscrow(tus.address);
   console.log('margin escrow: ', marginEscrow);
   if (ethers.BigNumber.from(marginEscrow).isZero()) {

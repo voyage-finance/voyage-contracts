@@ -12,7 +12,7 @@ async function main() {
   await tx.wait();
   const depositAmount = ethers.BigNumber.from(500_000).mul(WAD);
 
-  tx = await voyage.deposit(crab.address, '1', depositAmount);
+  tx = await voyage.deposit(crab.address, 1, depositAmount);
   await tx.wait();
 }
 
