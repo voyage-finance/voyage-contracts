@@ -49,7 +49,7 @@ export interface CreditLineData {
   loanlist: LoanList;
   // totalMargin: BigNumber;
   // withdrawableSecurityDeposit: BigNumber;
-  creditLimit: BigNumber;
+  // creditLimit: BigNumber;
   // spendableBalance: BigNumber;
   // gav: BigNumber;
   // ltv: BigNumber;

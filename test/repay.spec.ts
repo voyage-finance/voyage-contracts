@@ -30,7 +30,6 @@ describe('Repay', function () {
     console.log('senior liquidity: ', seniorLiquidity.toString());
     console.log('junior liquidity: ', juniorLiquidity.toString());
 
-    await voyage.depositMargin(vault, crab.address, '100000000000000000000');
     await voyage.borrow(crab.address, '10000000000000000000', vault);
 
     // increase seven days
@@ -100,7 +99,6 @@ describe('Repay', function () {
     const juniorLiquidity = await tus.balanceOf(juniorDepositToken.address);
     console.log('senior liquidity: ', seniorLiquidity.toString());
     console.log('junior liquidity: ', juniorLiquidity.toString());
-    await voyage.depositMargin(vault, crab.address, '100000000000000000000');
     await voyage.borrow(crab.address, '10000000000000000000', vault);
 
     // increase seven days

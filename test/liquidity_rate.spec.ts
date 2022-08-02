@@ -30,7 +30,6 @@ describe('Liquidity Rate', function () {
     const juniorDepositAmount = '100000000000000000000';
     await voyage.deposit(crab.address, 0, juniorDepositAmount);
     await voyage.deposit(crab.address, 1, seniorDepositAmount);
-    await voyage.depositMargin(vault, crab.address, '100000000000000000000');
 
     await voyage.borrow(crab.address, '400000000000000000000', vault);
     const poolData = await voyage.getPoolData(crab.address);
@@ -59,7 +58,6 @@ describe('Liquidity Rate', function () {
 
     await voyage.deposit(crab.address, 0, juniorDepositAmount);
     await voyage.deposit(crab.address, 1, seniorDepositAmount);
-    await voyage.depositMargin(vault, crab.address, '100000000000000000000');
 
     await voyage.borrow(crab.address, '25000000000000000000', vault);
     const poolData = await voyage.getPoolData(crab.address);
@@ -95,7 +93,6 @@ describe('Liquidity Rate', function () {
     console.log('senior liquidity: ', seniorLiquidity.toString());
     console.log('junior liquidity: ', juniorLiquidity.toString());
 
-    await voyage.depositMargin(vault, crab.address, '100000000000000000000');
     await voyage.borrow(crab.address, '100000000000000000000', vault);
 
     const poolData = await voyage.getPoolData(crab.address);

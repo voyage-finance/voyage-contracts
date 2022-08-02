@@ -177,19 +177,6 @@ export const withdraw = async (
   expectEqual(reserveDataAfter, expectedReserveData);
 };
 
-export const margin = async (
-  cname: string,
-  amount: string,
-  testEnv: TestEnv
-) => {
-  const collection = testEnv.collections.get(cname);
-  const user = testEnv.users[0];
-  const vault = testEnv.vaults.get(user.address);
-  await (
-    await testEnv.voyage.depositMargin(vault!, collection!, amount)
-  ).wait();
-};
-
 export const borrow = async (
   cname: string,
   amount: string,

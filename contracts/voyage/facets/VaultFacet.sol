@@ -80,56 +80,6 @@ contract VaultFacet is Storage, ReentrancyGuard {
         emit VaultCreated(vaultBeaconProxy, _owner, numVaults);
     }
 
-    /* ----------------------------- user interface ----------------------------- */
-    /**
-     * @param _vault vault admin address
-     * @param _collection collection address
-     * @param _amount amount user is willing to deposit
-     */
-    function depositMargin(
-        address _vault,
-        address _collection,
-        uint256 _amount
-    ) external {
-        (bool success, bytes memory ret) = _vault.call(
-            abi.encodeWithSignature(
-                "depositMargin(address,address,uint256)",
-                _msgSender(),
-                _collection,
-                _amount
-            )
-        );
-        if (!success) {
-            revert InvalidVaultCall();
-        }
-        emit VaultMarginCredited(_vault, _collection, msg.sender, _amount);
-    }
-
-    /**
-     * @dev  Delegate call to Vault's redeemSecurity
-     * @param _vault vault address
-     * @param _currency currency address
-     * @param _amount redeem amount
-     **/
-    function redeemMargin(
-        address payable _vault,
-        address _currency,
-        uint256 _amount
-    ) external {
-        (bool success, bytes memory ret) = _vault.call(
-            abi.encodeWithSignature(
-                "redeemMargin(address,address,uint256)",
-                _msgSender(),
-                _currency,
-                _amount
-            )
-        );
-        if (!success) {
-            revert InvalidVaultCall();
-        }
-        emit VaultMarginRedeemed(_vault, _currency, msg.sender, _amount);
-    }
-
     /* ---------------------- vault configuration interface --------------------- */
     function setNFTInfo(
         address _collection,

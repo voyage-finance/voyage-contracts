@@ -35,7 +35,6 @@ describe('Withdraw', function () {
     const amount = ethers.BigNumber.from(100).mul(decimals(18));
     await voyage.deposit(crab.address, 1, amount);
     const vault = await voyage.getVaultAddr(owner);
-    await voyage.depositMargin(vault, crab.address, '100000000000000000000');
     await voyage.borrow(crab.address, '10000000000000000000', vault);
     await voyage.borrow(crab.address, '10000000000000000000', vault);
     const tenDay = 10 * 24 * 60 * 60;

@@ -16,7 +16,6 @@ describe('Liquidate', function () {
     await voyage.deposit(crab.address, 0, depositAmount);
     await voyage.deposit(crab.address, 1, depositAmount);
 
-    await voyage.depositMargin(vault, crab.address, depositAmount);
     const borrowAmount = toWad(10);
     await voyage.borrow(crab.address, borrowAmount, vault);
 
@@ -38,7 +37,6 @@ describe('Liquidate', function () {
     await voyage.setMarginParams(crab.address, 0, maxMargin, marginRequirement);
     await voyage.deposit(crab.address, 0, depositAmount);
     await voyage.deposit(crab.address, 1, depositAmount);
-    await voyage.depositMargin(vault, crab.address, depositAmount);
     const borrowAmount = toWad(10);
     await voyage.borrow(crab.address, borrowAmount, vault);
     // increase 51 days
@@ -60,7 +58,6 @@ describe('Liquidate', function () {
     const margin = toWad(20);
     await voyage.deposit(crab.address, 0, juniorDeposit);
     await voyage.deposit(crab.address, 1, depositAmount);
-    await voyage.depositMargin(vault, crab.address, margin);
     const borrowAmount = toWad(120);
     await voyage.borrow(crab.address, borrowAmount, vault);
 

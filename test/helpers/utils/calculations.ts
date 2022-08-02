@@ -85,7 +85,6 @@ export const calcExpectedCreditLineAfterBorrow = (
     head: creditLineBeforeAction.loanlist.head,
     tail: creditLineBeforeAction.loanlist.tail.add(BigNumber.from(1)),
   };
-  expectedCreditLineData.creditLimit = creditLineBeforeAction.creditLimit;
   return expectedCreditLineData;
 };
 

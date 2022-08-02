@@ -31,7 +31,6 @@ describe('Borrow', function () {
     await voyage.deposit(crab.address, 1, deposit);
     const vaultAddr = await voyage.getVault(owner);
     const margin = ethers.BigNumber.from(100).mul(decimals(dec));
-    await voyage.depositMargin(vaultAddr, crab.address, margin);
     const borrowAmount = margin.mul(10);
     await voyage.borrow(crab.address, borrowAmount, vaultAddr);
     await expect(
@@ -59,24 +58,14 @@ describe('Borrow', function () {
     await voyage.deposit(crab.address, 1, depositAmount);
     // 100
     const margin = ethers.BigNumber.from('100000000000000000000');
-    await voyage.depositMargin(vault, crab.address, margin);
     // 10
     const borrow = ethers.BigNumber.from('10000000000000000000');
     await voyage.borrow(crab.address, borrow, vault);
     const pool = await voyage.getPoolData(crab.address);
     console.log('totalDebt: ', formatBN(pool.totalDebt, 18));
     expect(pool.totalDebt).to.equal(borrow);
-    const creditLimit = await voyage.getCreditLimit(vault, crab.address);
-    console.log('credit limit: ', formatBN(creditLimit, 18));
-    expect(creditLimit).to.equal(margin.mul(10));
-    const availableCredit = await voyage.getAvailableCredit(
-      vault,
-      crab.address
-    );
-    console.log('available credit: ', formatBN(availableCredit, 18));
     await voyage.borrow(crab.address, borrow, vault);
     const vaultBalance2 = await tus.balanceOf(vault);
     console.log('vault balance: ', vaultBalance2.toString());
-    console.log('available credit: ', availableCredit.toString());
   });
 });
