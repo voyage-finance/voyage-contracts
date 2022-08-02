@@ -1,3 +1,4 @@
+import { ContractTransaction, Transaction } from 'ethers';
 import hre, { ethers } from 'hardhat';
 import { MAX_UINT_256 } from './math';
 
@@ -14,4 +15,8 @@ export async function grantAllowance() {
 
   // grant max uint256, avoid overflow
   await tus.increaseAllowance(lm.address, max.sub(currentAllowance));
+}
+
+export async function confirm(tx: ContractTransaction) {
+  return tx.wait();
 }
