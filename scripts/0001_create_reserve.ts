@@ -1,6 +1,7 @@
 import { Voyage } from '@contracts';
 import { ContractTransaction } from 'ethers';
 import { ethers, deployments } from 'hardhat';
+import { log } from '../helpers/logger';
 
 const getAddress = (contract: string) =>
   deployments.get(contract).then(({ address }) => address);
@@ -14,7 +15,9 @@ async function main() {
   const crab = await ethers.getContract('Crab');
   const priceOracle = await ethers.getContract('PriceOracle');
 
-  const [initialized, activated] = await voyage.getReserveStatus(tus.address);
+  const [initialized, activated] = await voyage.getReserveStatus(crab.address);
+  log.info('initialized: %s', initialized);
+  log.info('activated: %s', activated);
   let tx: ContractTransaction;
   if (!initialized) {
     await voyage
@@ -25,18 +28,17 @@ async function main() {
         priceOracle.address
       )
       .then((tx) => tx.wait());
-    await voyage
-      .setLiquidationBonus(crab.address, 10500)
-      .then((tx) => tx.wait());
-    await voyage
-      .setIncomeRatio(crab.address, 0.5 * 1e4)
-      .then((tx) => tx.wait());
-    await voyage
-      .setLoanParams(crab.address, 30, 90, 10)
-      .then((tx) => tx.wait());
+    log.info('initialised reserve');
   }
+  await voyage.setLiquidationBonus(crab.address, 10500).then((tx) => tx.wait());
+  log.info('setLiquidationBonus');
+  await voyage.setIncomeRatio(crab.address, 0.5 * 1e4).then((tx) => tx.wait());
+  log.info('setIncomeRatio');
+  await voyage.setLoanParams(crab.address, 30, 90, 10).then((tx) => tx.wait());
+  log.info('setLoanParams');
   if (!activated) {
     await voyage.activateReserve(crab.address).then((tx) => tx.wait());
+    log.info('activateReserve');
   }
 }
 

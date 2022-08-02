@@ -3,6 +3,20 @@ import { DeployFunction, Facet, FacetCut } from 'hardhat-deploy/types';
 import { deployFacets, FacetCutAction, mergeABIs } from '../helpers/diamond';
 import { log } from '../helpers/logger';
 
+// These selectors are for DiamondCutFacet, DiamondLoupeFacet, and OwnershipFacet.
+// When deciding which facets to remove, these should be excluded as they are part of the diamond standard.
+// They are hardcoded in the constructor of the base Diamond contract.
+const DEFAULT_SELECTORS = [
+  '0x1f931c1c', // diamondCut((address,uint8,bytes4[])[],address,bytes)
+  '0x7a0ed627', // facets()
+  '0xadfca15e', // facetFunctionSelectors(address)
+  '0x52ef6b2c', // facetAddresses()
+  '0xcdffacc6', // facetAddress(bytes4)
+  '0x01ffc9a7', // supportsInterface(bytes4)
+  '0xf2fde38b', // transferOwnership(address)
+  '0x8da5cb5b', // owner()
+];
+
 const deployFn: DeployFunction = async (hre) => {
   const { deployments, getNamedAccounts } = hre;
   const { deploy, execute, getOrNull, save, getArtifact } = deployments;
@@ -65,6 +79,7 @@ const deployFn: DeployFunction = async (hre) => {
     );
     // this returns the diamond with merged ABI.
     const diamond = await ethers.getContract('Voyage');
+    log.debug('diamond address: ', diamond.address);
     existingFacets = await diamond.facets();
     log.debug('existing facets: %o', existingFacets);
   }
@@ -162,6 +177,12 @@ const deployFn: DeployFunction = async (hre) => {
 
   const del: string[] = [];
   for (const sel of existingSelectors) {
+    log.debug('existing selector: %s', sel);
+    // never delete default functions
+    if (DEFAULT_SELECTORS.indexOf(sel) >= 0) {
+      log.debug('not deleting default diamond function: %s', sel);
+      continue;
+    }
     if (newSelectors.indexOf(sel) === -1) {
       del.push(sel);
     }
@@ -179,7 +200,7 @@ const deployFn: DeployFunction = async (hre) => {
   if (changesDetected) {
     if (!existingProxyDeployment) {
       log.debug('No existing diamond proxy found. Deploying a fresh diamond.');
-      log.debug('Initialising with diamond cuts: %s', cuts);
+      log.debug('Initialising with diamond cuts: %o', cuts);
       // TODO: check if there is already a diamond at this address, e.g., in case `deployments` folder was wiped.
       // if there is one, it can actually be re-used
       try {

@@ -1,22 +1,21 @@
-import { resolve } from 'path';
-import { config as dotenvConfig } from 'dotenv';
-import { ethers } from 'ethers';
-import { task } from 'hardhat/config';
-import { HardhatUserConfig } from 'hardhat/types';
-import 'hardhat-diamond-abi';
-import '@typechain/hardhat';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
 import '@nomiclabs/hardhat-waffle';
+import * as tdly from '@tenderly/hardhat-tenderly';
+import 'hardhat-diamond-abi';
+import '@typechain/hardhat';
+import { config as dotenvConfig } from 'dotenv';
+import 'hardhat-deploy';
 import 'hardhat-gas-reporter';
 import 'hardhat-prettier';
-import 'hardhat-deploy';
 import 'hardhat-watcher';
-import * as tdly from '@tenderly/hardhat-tenderly';
-
-tdly.setup({ automaticVerifications: false });
+import { task } from 'hardhat/config';
+import { HardhatUserConfig } from 'hardhat/types';
+import { resolve } from 'path';
 
 dotenvConfig({ path: resolve(__dirname, './.env') });
+
+tdly.setup({ automaticVerifications: process.env.TENDERLY === 'true' });
 
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || '';
 
@@ -88,11 +87,11 @@ const config: HardhatUserConfig = {
   diamondAbi: [
     {
       name: 'Voyage',
-      include: ['contracts/voyage/facets'],
+      include: ['contracts/voyage/facets', 'contracts/shared/diamond/facets'],
     },
     {
       name: 'Vault',
-      include: ['contracts/vault/facets'],
+      include: ['contracts/vault/facets', 'contracts/shared/diamond/facets'],
     },
   ],
   solidity: {
