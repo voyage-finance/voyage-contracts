@@ -21,4 +21,15 @@ describe('Price Oracle', function () {
     const price = await priceOracle.getTwap(tus.address);
     await expect(price[0].toString()).to.equal('100');
   });
+
+  it('InValid operator should able to update price', async function () {
+    const { priceOracle, tus, alice } = await setupTestSuite();
+    await priceOracle.setOperator(alice, true);
+    await priceOracle.setOperator(alice, false);
+    await expect(
+      priceOracle
+        .connect(await ethers.getSigner(alice))
+        .updateTwap(tus.address, '100')
+    ).to.be.revertedWith('InvalidOperator');
+  });
 });
