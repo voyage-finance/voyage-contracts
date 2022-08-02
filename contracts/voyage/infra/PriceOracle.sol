@@ -6,6 +6,15 @@ import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {IPriceOracle} from "../interfaces/IPriceOracle.sol";
 
 contract PriceOracle is IPriceOracle, Ownable {
+    mapping(address => bool) _operators;
+
+    modifier auth() {
+        if (!_operators[msg.sender] && msg.sender != owner()) {
+            revert InvalidOperator();
+        }
+        _;
+    }
+
     using WadRayMath for uint256;
 
     struct AveragePrice {
@@ -28,9 +37,19 @@ contract PriceOracle is IPriceOracle, Ownable {
 
     function updateTwap(address _currency, uint256 _priceAverage)
         external
-        onlyOwner
+        auth
     {
         prices[_currency].priceAverage = _priceAverage;
         prices[_currency].blockTimestamp = block.timestamp;
     }
+
+    function setOperator(address _operator, bool enabled) external onlyOwner {
+        if (enabled) {
+            _operators[_operator] = true;
+        } else {
+            delete _operators[_operator];
+        }
+    }
 }
+
+error InvalidOperator();
