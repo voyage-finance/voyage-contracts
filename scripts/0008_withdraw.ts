@@ -1,6 +1,6 @@
-import { deployments, ethers, getNamedAccounts } from 'hardhat';
-import { MAX_UINT_256 } from '../helpers/math';
 import { JuniorDepositToken, SeniorDepositToken, Voyage } from '@contracts';
+import { ethers } from 'hardhat';
+import { MAX_UINT_256 } from '../helpers/math';
 
 async function main() {
   const voyage = await ethers.getContract<Voyage>('Voyage');
