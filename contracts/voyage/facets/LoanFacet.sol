@@ -26,13 +26,23 @@ contract LoanFacet is Storage {
     uint256 public immutable TEN_THOUSANDS = 10000;
 
     struct ExecuteBorrowParams {
-        address asset;
-        address user;
-        uint256 amount;
+        address collection;
+        uint256 tokenId;
+        address vault;
+        uint256 totalLoan;
         uint256 term;
         uint256 epoch;
+        uint256 nper;
+        uint256 initialPay;
+        uint256 borrowedVaule;
         uint256 liquidityRate;
         uint256 borrowRate;
+        uint256 availableLiquidity;
+        uint256 totalBalance;
+        uint256 totalPending;
+        uint256 loanId;
+        uint256 principal;
+        uint256 interest;
     }
 
     struct ExecuteLiquidateParams {
@@ -106,69 +116,127 @@ contract LoanFacet is Storage {
 
     function borrow(
         address _collection,
-        uint256 _amount,
+        uint256 _tokenId,
         address payable _vault
-    ) external whenNotPaused {
+    ) external payable whenNotPaused {
+        ExecuteBorrowParams memory params;
+        params.collection = _collection;
+        params.tokenId = _tokenId;
+        params.vault = _vault;
+
         // 0. check if the user owns the vault
-        if (LibVault.getVaultAddress(_msgSender()) != _vault) {
+        if (LibVault.getVaultAddress(_msgSender()) != params.vault) {
             revert Unauthorised();
         }
 
-        // 1. check if pool liquidity is sufficient
+        // 1. get price for params.tokenId  and floor price pv
+        params.totalLoan = getAssetPrice(params.collection, params.tokenId);
+        uint256 fv = getFloorPrice(params.collection);
+
+        // 2. calculate money to pay for the first time, and money to borrow
+        ReserveConfigurationMap memory reserveConf = LibReserveConfiguration
+            .getConfiguration(params.collection);
+        (params.epoch, params.term) = reserveConf.getBorrowParams();
+        params.nper = params.term / params.epoch;
+        params.initialPay = params.totalLoan / params.nper;
+        params.borrowedVaule = params.totalLoan - params.initialPay;
+
+        // 3. check if pool liquidity is sufficient
         ReserveData memory reserveData = LibLiquidity.getReserveData(
-            _collection
+            params.collection
         );
 
-        uint256 availableSeniorLiquidity = 0;
-        uint256 totalPendingWithdrawal = IVToken(
-            reserveData.seniorDepositTokenAddress
-        ).totalUnbonding();
-        uint256 totalBalance = IERC20(reserveData.currency).balanceOf(
+        params.totalPending = IVToken(reserveData.seniorDepositTokenAddress)
+            .totalUnbonding();
+        params.totalBalance = IERC20(reserveData.currency).balanceOf(
             reserveData.seniorDepositTokenAddress
         );
-        if (totalBalance > totalPendingWithdrawal) {
-            availableSeniorLiquidity = totalBalance - totalPendingWithdrawal;
+        if (params.totalBalance > params.totalPending) {
+            params.availableLiquidity =
+                params.totalBalance -
+                params.totalPending;
         }
-        if (availableSeniorLiquidity < _amount) {
+
+        if (params.availableLiquidity < params.borrowedVaule) {
             revert InsufficientLiquidity();
         }
 
-        uint256 fv = 0;
-        // 3. check credit limit
+        // 4. check credit limit
         uint256 availableCreditLimit = LibVault.getCreditLimit(
-            _vault,
-            _collection,
+            params.vault,
+            params.collection,
             reserveData.currency,
             fv
         );
 
-        if (availableCreditLimit < _amount) {
+        if (availableCreditLimit < params.borrowedVaule) {
             revert InsufficientCreditLimit();
         }
 
-        ExecuteBorrowParams memory executeBorrowParams = previewBorrowParams(
-            _collection,
-            _amount
+        BorrowState storage borrowState = LibLoan.getBorrowState(
+            params.collection,
+            reserveData.currency
         );
 
+        (
+            params.liquidityRate,
+            params.borrowRate
+        ) = IReserveInterestRateStrategy(
+            reserveData.interestRateStrategyAddress
+        ).calculateInterestRates(
+                reserveData.currency,
+                reserveData.seniorDepositTokenAddress,
+                0,
+                params.totalLoan,
+                borrowState.totalDebt,
+                borrowState.avgBorrowRate
+            );
+
+        // 5. record debt info
         (uint256 loanId, Loan memory loan) = LibLoan.insertDebt(
-            _collection,
+            params.collection,
             reserveData.currency,
-            _vault,
-            _amount,
-            executeBorrowParams.term,
-            executeBorrowParams.epoch,
-            executeBorrowParams.borrowRate
+            params.vault,
+            params.totalLoan,
+            params.term,
+            params.epoch,
+            params.borrowRate
         );
 
-        IVToken(reserveData.seniorDepositTokenAddress).transferUnderlyingTo(
-            _vault,
-            _amount
+        // 6. receive first payment
+        if (params.initialPay > msg.value) {
+            IERC20(reserveData.currency).safeTransferFrom(
+                msg.sender,
+                address(this),
+                (params.initialPay - msg.value)
+            );
+        } else {
+            if (params.initialPay != msg.value) {
+                revert InvalidValueTransfered();
+            }
+        }
+
+        // 7. todo purchase nft
+        (params.principal, params.interest) = LibLoan.getPMT(
+            params.collection,
+            reserveData.currency,
+            params.vault,
+            params.loanId
+        );
+
+        // 8. first payment
+        LibLoan.repay(
+            params.collection,
+            reserveData.currency,
+            params.vault,
+            loanId,
+            params.principal,
+            params.interest
         );
 
         emit Borrow(
-            _vault,
-            _collection,
+            params.vault,
+            params.collection,
             reserveData.currency,
             loanId,
             loan.principal,
@@ -408,45 +476,6 @@ contract LoanFacet is Storage {
         return LibVault.getVaultDebt(_collection, reserveData.currency, _vault);
     }
 
-    function previewBorrowParams(address _collection, uint256 _amount)
-        public
-        view
-        returns (ExecuteBorrowParams memory)
-    {
-        ExecuteBorrowParams memory executeBorrowParams;
-        ReserveData memory reserveData = LibLiquidity.getReserveData(
-            _collection
-        );
-        ReserveConfigurationMap memory reserveConf = LibReserveConfiguration
-            .getConfiguration(_collection);
-
-        // 4. update debt logic
-        (executeBorrowParams.epoch, executeBorrowParams.term) = reserveConf
-            .getBorrowParams();
-
-        // 5. update liquidity index and interest rate
-        BorrowState storage borrowState = LibLoan.getBorrowState(
-            _collection,
-            reserveData.currency
-        );
-
-        (
-            executeBorrowParams.liquidityRate,
-            executeBorrowParams.borrowRate
-        ) = IReserveInterestRateStrategy(
-            reserveData.interestRateStrategyAddress
-        ).calculateInterestRates(
-                reserveData.currency,
-                reserveData.seniorDepositTokenAddress,
-                0,
-                _amount,
-                borrowState.totalDebt,
-                borrowState.avgBorrowRate
-            );
-
-        return executeBorrowParams;
-    }
-
     function getTotalPaidAndRedeemed(address _collection, address _vault)
         public
         view
@@ -525,6 +554,19 @@ contract LoanFacet is Storage {
         uint256 withBonus = _value.percentMul(_liquidationBonus);
         return withBonus - _value;
     }
+
+    function getAssetPrice(address _collection, uint256 _tokenId)
+        private
+        returns (uint256)
+    {
+        // todo get from market place
+        return 0;
+    }
+
+    function getFloorPrice(address _collection) private returns (uint256) {
+        // todo get floor price from oracle
+        return 0;
+    }
 }
 
 /* --------------------------------- errors -------------------------------- */
@@ -534,3 +576,4 @@ error InsufficientCreditLimit();
 error InvalidDebt();
 error InvalidLiquidate();
 error InvalidFloorPrice();
+error InvalidValueTransfered();
