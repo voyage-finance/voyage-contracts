@@ -55,8 +55,6 @@ contract LoanFacet is Storage {
         uint256 principal;
         uint256 interest;
         uint256 totalDebt;
-        uint256 totalFromMargin;
-        uint256 totalToLiquidate;
         uint256 discount;
         uint256 amountNeedExtra;
         uint256 juniorTrancheAmount;
@@ -107,7 +105,6 @@ contract LoanFacet is Storage {
         uint256 _drowDownId,
         uint256 _repaymentId,
         uint256 _debt,
-        uint256 _collateral,
         uint256 _fromJuniorTranche,
         uint256 _amountToWriteDown
     );
@@ -338,7 +335,7 @@ contract LoanFacet is Storage {
         ) = reserveConf.getLiquidationParams();
 
         LibLoan.LoanDetail memory loanDetail = LibLoan.getLoanDetail(
-            _collection,
+            param.collection,
             param.currency,
             param.vault,
             param.loanId
@@ -355,22 +352,13 @@ contract LoanFacet is Storage {
 
         // 3.1 if it is, get debt info
         (param.principal, param.interest) = LibLoan.getPMT(
-            _collection,
+            param.collection,
             param.currency,
             param.vault,
             param.loanId
         );
         param.totalDebt = param.principal + param.interest;
-        param.totalFromMargin = param
-            .totalDebt
-            .wadToRay()
-            .rayMul(param.marginRequirement)
-            .rayToWad();
-        param.totalToLiquidate = param.totalDebt - param.totalFromMargin;
-        param.discount = getDiscount(
-            param.totalToLiquidate,
-            param.liquidationBonus
-        );
+        param.discount = getDiscount(param.totalDebt, param.liquidationBonus);
 
         // 3.2 get floor price from oracle contract
         IPriceOracle priceOracle = IPriceOracle(reserveData.priceOracle);
@@ -382,15 +370,14 @@ contract LoanFacet is Storage {
             revert InvalidFloorPrice();
         }
 
-        // 4.1 slash margin account
-
         // 4.2 transfer from liquidator
         IERC20(param.currency).safeTransferFrom(
             param.liquidator,
             address(this),
-            param.totalToLiquidate
+            param.totalDebt - param.discount
         );
-        param.receivedAmount = param.receivedAmount + param.totalToLiquidate;
+
+        param.receivedAmount += param.totalDebt - param.discount;
 
         // 4.3 sell nft
         VaultAssetFacet(param.vault).transferNFT(
@@ -405,30 +392,27 @@ contract LoanFacet is Storage {
             reserveData.juniorDepositTokenAddress
         ).totalAssets();
 
-        if (param.totalAssetFromJuniorTranche >= param.amountNeedExtra) {
+        if (param.totalAssetFromJuniorTranche >= param.discount) {
             IVToken(reserveData.juniorDepositTokenAddress).transferUnderlyingTo(
                     address(this),
-                    param.amountNeedExtra
+                    param.discount
                 );
-            param.receivedAmount = param.receivedAmount + param.amountNeedExtra;
-            param.juniorTrancheAmount = param.amountNeedExtra;
+            param.juniorTrancheAmount = param.discount;
+            param.receivedAmount += param.discount;
         } else {
             IVToken(reserveData.juniorDepositTokenAddress).transferUnderlyingTo(
                     address(this),
                     param.totalAssetFromJuniorTranche
                 );
             param.juniorTrancheAmount = param.totalAssetFromJuniorTranche;
-
+            param.receivedAmount += param.totalAssetFromJuniorTranche;
             param.writeDownAmount =
-                param.amountNeedExtra -
-                param.totalAssetFromJuniorTranche;
-            param.receivedAmount =
-                param.receivedAmount +
+                param.discount -
                 param.totalAssetFromJuniorTranche;
         }
 
         (param.repaymentId, param.isFinal) = LibLoan.repay(
-            _collection,
+            param.collection,
             param.currency,
             param.vault,
             param.loanId,
@@ -439,7 +423,7 @@ contract LoanFacet is Storage {
         emit Repayment(
             _msgSender(),
             param.vault,
-            _collection,
+            param.collection,
             param.currency,
             param.loanId,
             param.repaymentId,
@@ -459,7 +443,6 @@ contract LoanFacet is Storage {
             param.loanId,
             param.repaymentId,
             param.totalDebt,
-            param.totalToLiquidate,
             param.juniorTrancheAmount,
             param.writeDownAmount
         );
