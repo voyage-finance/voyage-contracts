@@ -116,31 +116,6 @@ library LibVault {
         return s.diamondFacet;
     }
 
-    function getTotalPaidAndRedeemed(
-        address _collection,
-        address _currency,
-        address _vault
-    ) internal view returns (uint256, uint256) {
-        AppStorage storage s = LibAppStorage.ds();
-        BorrowData storage borrowData = s._borrowData[_collection][_currency][
-            _vault
-        ];
-        return (borrowData.totalPaid, borrowData.totalRedeemed);
-    }
-
-    function increaseTotalRedeemed(
-        address _collection,
-        address _currency,
-        address _vault,
-        uint256 _amount
-    ) internal {
-        AppStorage storage s = LibAppStorage.ds();
-        BorrowData storage borrowData = s._borrowData[_collection][_currency][
-            _vault
-        ];
-        borrowData.totalRedeemed = borrowData.totalRedeemed + _amount;
-    }
-
     function getVaultConfig(address _collection, address _vault)
         internal
         view

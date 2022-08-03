@@ -5,6 +5,7 @@ import {LibAppStorage, AppStorage, BorrowData, BorrowState, Loan, PMT, Repayment
 import {LibLiquidity} from "./LibLiquidity.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
+import {VaultAssetFacet} from "../../vault/facets/VaultAssetFacet.sol";
 
 library LibLoan {
     using WadRayMath for uint256;
@@ -32,9 +33,42 @@ library LibLoan {
 
     /* ----------------------------- state mutations ---------------------------- */
 
+    function removeCollateral(
+        address _collection,
+        address _currency,
+        address _vault,
+        uint256 _loanId
+    ) internal returns (bool success, uint256 tokenId) {
+        BorrowData storage borrowData = getBorrowData(
+            _collection,
+            _currency,
+            _vault
+        );
+
+        Loan storage loan = borrowData.loans[_loanId];
+        uint256[] storage collaterals = loan.collateral;
+        if (collaterals.length == 0) {
+            success = false;
+        }
+
+        if (collaterals.length == 1) {
+            success = true;
+            tokenId = collaterals[0];
+            collaterals.pop();
+        }
+
+        (collaterals[0], collaterals[collaterals.length - 1]) = (
+            collaterals[collaterals.length - 1],
+            collaterals[0]
+        );
+        tokenId = collaterals[collaterals.length - 1];
+        collaterals.pop();
+    }
+
     function insertDebt(
         address _collection,
         address _currency,
+        uint256 _collateral,
         address _vault,
         uint256 _principal,
         uint256 _term,
@@ -69,6 +103,7 @@ library LibLoan {
         pmt.interest = loan.interest / loan.nper;
         pmt.pmt = pmt.principal + pmt.interest;
         loan.pmt = pmt;
+        loan.collateral.push(_collateral);
 
         loan.nextPaymentDue =
             loan.borrowAt +
@@ -117,6 +152,13 @@ library LibLoan {
         Loan storage loan = debtData.loans[_loanNumber];
         loan.paidTimes += 1;
         if (loan.paidTimes == loan.nper) {
+            uint256[] storage collaterals = loan.collateral;
+            for (uint256 i = 0; i < collaterals.length; i++) {
+                VaultAssetFacet(_vault).recordWithdrawableAsset(
+                    _collection,
+                    collaterals[i]
+                );
+            }
             delete debtData.loans[_loanNumber];
             isFinal = true;
             borrowState.numRepaidLoans[_vault].repaidTimes =
@@ -140,7 +182,6 @@ library LibLoan {
 
         debtData.totalPrincipal = debtData.totalPrincipal - _principal;
         debtData.totalInterest = debtData.totalInterest - _interest;
-        debtData.totalPaid = debtData.totalPaid + _principal;
         if (borrowState.totalDebt == _principal) {
             borrowState.avgBorrowRate = 0;
         } else {

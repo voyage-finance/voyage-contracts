@@ -23,34 +23,18 @@ contract VaultAssetFacet is
     using SafeERC20 for IERC20;
 
     /// @notice Withdraw NFT from vault
-    /// @param _currency The addresss of the reserve
     /// @param _collection The address of collection
     /// @param _tokenId Token id that being withdrawal
     function withdrawNFT(
-        address _currency,
         address _collection,
         uint256 _tokenId
     ) external authorised {
-        VaultFacet vf = VaultFacet(LibVaultStorage.ds().voyage);
-        NFTInfo memory nftInfo = vf.getCollectionInfo(_collection, _tokenId);
-
-        // 1. check if paid amount >= purchased price
-        LoanFacet lf = LoanFacet(LibVaultStorage.ds().voyage);
-        (uint256 totalPaid, uint256 totalRedeemed) = lf.getTotalPaidAndRedeemed(
-            _currency,
-            address(this)
-        );
-        if (totalPaid < totalRedeemed) {
-            revert InvalidTotalPaidAndRedeemed(totalPaid, totalRedeemed);
+        if (!LibVaultStorage.ds().withdrawableAssets[_collection][_tokenId]) {
+            revert InvalidWithdraw();
         }
-        uint256 availableAmount = totalPaid - totalRedeemed;
-        if (availableAmount < nftInfo.price) {
-            revert InvalidWithdrawal(availableAmount, nftInfo.price);
-        }
-        lf.increaseTotalRedeemed(_currency, address(this), nftInfo.price);
 
-        // 3. transfer nft out
         IERC721(_collection).transferFrom(address(this), msg.sender, _tokenId);
+        delete LibVaultStorage.ds().withdrawableAssets[_collection][_tokenId];
     }
 
     /// @notice Transfer nft out
@@ -109,11 +93,17 @@ contract VaultAssetFacet is
         }
         IERC20(_currency).safeTransfer(_receiver, _amount);
     }
+
+    function recordWithdrawableAsset(address _collection, uint256 _tokenId)
+        external
+        authorised
+    {
+        LibVaultStorage.ds().withdrawableAssets[_collection][_tokenId] = true;
+    }
 }
 
 /* --------------------------------- errors -------------------------------- */
-error InvalidTotalPaidAndRedeemed(uint256 totalPaid, uint256 totalRedeemed);
-error InvalidWithdrawal(uint256 availableAmount, uint256 nftPrice);
+error InvalidWithdraw();
 error InvalidSender(address sender);
 error InsufficientFund(uint256 reserveBalance);
 error InvalidAssetAddress();

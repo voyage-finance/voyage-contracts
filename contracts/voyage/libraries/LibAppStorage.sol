@@ -90,6 +90,7 @@ struct Loan {
     RepaymentData[] repayments;
     // size pf repayments
     uint256 paidTimes;
+    uint256[] collateral;
 }
 
 struct LoanList {
@@ -105,8 +106,6 @@ struct BorrowData {
     uint256 totalInterest;
     uint256 mapSize;
     mapping(uint256 => Loan) loans;
-    uint256 totalPaid;
-    uint256 totalRedeemed;
 }
 
 struct RepaidRecord {
