@@ -188,6 +188,8 @@ contract VaultFacet is Storage, ReentrancyGuard {
             IVault(address(0)).initialize.selector,
             address(this),
             _owner,
+            LibAppStorage.ds().paymaster,
+            LibAppStorage.ds().WETH9,
             cutFacet.diamondCutFacet,
             cutFacet.diamondLoupeFacet,
             cutFacet.ownershipFacet

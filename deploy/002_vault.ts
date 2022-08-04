@@ -146,20 +146,6 @@ const deployFn: DeployFunction = async (hre) => {
     });
 
     if (cuts.length > 0) {
-      await deploy('VaultInitDiamond', {
-        from: owner,
-        log: true,
-        args: [],
-        gasLimit: ethers.BigNumber.from('8000000'),
-      });
-      const initDiamond = await ethers.getContract('VaultInitDiamond');
-      log.debug('Preparing InitDiamond call data');
-      const initArgs = initDiamond.interface.encodeFunctionData('init', [
-        {
-          initOwner: owner,
-        },
-      ]);
-
       log.info('Executing registerUpgrade');
       await execute(
         'Voyage',
@@ -168,8 +154,8 @@ const deployFn: DeployFunction = async (hre) => {
           log: true,
         },
         'registerUpgrade',
-        initDiamond.address,
-        initArgs,
+        ethers.constants.AddressZero,
+        '0x',
         cuts
       );
 

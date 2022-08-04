@@ -213,6 +213,8 @@ struct AppStorage {
     mapping(uint256 => Snapshot) snapshotMap;
     /* ---------------------------------- security --------------------------------- */
     Authorisation auth;
+    address trustedForwarder; // GSN IERC2771 receiver
+    address paymaster; // VoyagePaymaster address
     /* --------------------------------- protocol fee ------------------------------ */
     ProtocolFee protocolFee;
     /* ---------------------------------- helper --------------------------------- */

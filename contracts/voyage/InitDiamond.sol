@@ -23,6 +23,8 @@ contract InitDiamond {
         address diamondLoupeFacet;
         address ownershipFacet;
         address weth9;
+        address trustedForwarder;
+        address paymaster;
     }
 
     function init(Args memory _args) external {
@@ -34,6 +36,7 @@ contract InitDiamond {
         ds.supportedInterfaces[type(IERC173).interfaceId] = true;
 
         // initialise app storage stuff
+        AppStorage storage s = LibAppStorage.ds();
         LibAppStorage.ds().WETH9 = IWETH9(_args.weth9);
         LibAppStorage.ds()._paused = false;
         if (address(LibAppStorage.ds().auth.rbac) == address(0)) {
@@ -83,6 +86,14 @@ contract InitDiamond {
         if (LibAppStorage.ds().diamondFacet.ownershipFacet == address(0)) {
             LibAppStorage.ds().diamondFacet.ownershipFacet = _args
                 .ownershipFacet;
+        }
+
+        if (s.trustedForwarder == address(0)) {
+            s.trustedForwarder = _args.trustedForwarder;
+        }
+
+        if (s.paymaster == address(0)) {
+            s.paymaster = _args.paymaster;
         }
     }
 }

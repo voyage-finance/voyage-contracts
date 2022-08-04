@@ -1,11 +1,12 @@
-import BigNumber from 'bignumber.js';
+import { randomBytes } from 'crypto';
 import { deployments as d } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { VoyagePaymaster } from 'typechain/VoyagePaymaster';
+import { WETH9 } from 'typechain/WETH9';
 import { ERC20 } from '../typechain/ERC20';
 import { Voyage } from '../typechain/Voyage';
 import { deployFacets, FacetCutAction } from './diamond';
-import { decimals, MAX_UINT_256, toRay, toWad } from './math';
-import { randomBytes } from 'crypto';
+import { decimals, MAX_UINT_256, toWad } from './math';
 import './wadraymath';
 
 const dec = decimals(18);
@@ -16,11 +17,15 @@ const setupBase = async ({
   ethers,
 }: HardhatRuntimeEnvironment) => {
   await deployments.fixture(['Voyage', 'Vault', 'Tokenization']);
-  const { owner, alice, bob } = await getNamedAccounts();
+  const { owner, alice, bob, treasury, forwarder } = await getNamedAccounts();
 
   /* --------------------------------- voyage -------------------------------- */
   const voyage = await ethers.getContract<Voyage>('Voyage');
   /* ---------------------------------- infra --------------------------------- */
+  const paymaster = await ethers.getContract<VoyagePaymaster>(
+    'VoyagePaymaster'
+  );
+  await paymaster.setTrustedForwarder(forwarder);
   const priceOracle = await ethers.getContract('PriceOracle');
   /* ---------------------------------- adapter --------------------------------- */
   const looksRareAdapter = await ethers.getContract('LooksRareAdapter');
@@ -59,7 +64,6 @@ const setupBase = async ({
     junior
   );
   await tus.approve(voyage.address, MAX_UINT_256);
-
   /* -------------------------- vault initialisation -------------------------- */
 
   // create an empty vault
@@ -134,12 +138,30 @@ const setupBase = async ({
     [marketPlace.address, selector, makerOrderData, takerOrderData]
   );
 
+  // send the vault some ETH
+  const weth9 = await ethers.getContract<WETH9>('WETH9');
+  const signer = await ethers.getSigner(owner);
+  await signer.sendTransaction({
+    to: deployedVault,
+    value: ethers.BigNumber.from('100000000000000000'),
+  });
+  await weth9.deposit({
+    value: ethers.BigNumber.from('100000000000000000'),
+  });
+  await weth9.transfer(
+    deployedVault,
+    ethers.BigNumber.from('100000000000000000')
+  );
+
   return {
     owner,
     alice,
     bob,
+    forwarder,
+    treasury,
     defaultReserveInterestRateStrategy,
     priceOracle,
+    paymaster,
     tus,
     crab,
     marketPlace,

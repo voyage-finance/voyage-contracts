@@ -97,4 +97,12 @@ library LibSecurity {
     ) internal {
         auth.acl.forbid(src, dst, sig);
     }
+
+    function isTrustedForwarder(address _forwarder)
+        internal
+        view
+        returns (bool)
+    {
+        return LibAppStorage.ds().trustedForwarder == _forwarder;
+    }
 }

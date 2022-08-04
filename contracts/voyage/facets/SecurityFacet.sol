@@ -99,4 +99,8 @@ contract SecurityFacet is Storage {
     ) public returns (bool) {
         return LibSecurity.isAuthorised(LibAppStorage.ds().auth, src, dst, sig);
     }
+
+    function isTrustedForwarder(address _forwarder) public view returns (bool) {
+        return LibSecurity.isTrustedForwarder(_forwarder);
+    }
 }

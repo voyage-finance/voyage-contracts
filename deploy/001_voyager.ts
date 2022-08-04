@@ -20,7 +20,7 @@ const DEFAULT_SELECTORS = [
 const deployFn: DeployFunction = async (hre) => {
   const { deployments, getNamedAccounts } = hre;
   const { deploy, execute, getOrNull, save, getArtifact } = deployments;
-  const { owner } = await getNamedAccounts();
+  const { owner, treasury, forwarder } = await getNamedAccounts();
 
   const seniorDepositImpl = await deploy('SeniorDepositToken', {
     from: owner,
@@ -38,6 +38,7 @@ const deployFn: DeployFunction = async (hre) => {
     from: owner,
     log: true,
   });
+
   const vaultFactory = await deploy('VaultFactory', {
     from: owner,
     log: true,
@@ -233,6 +234,12 @@ const deployFn: DeployFunction = async (hre) => {
       facets,
     });
 
+    const paymaster = await deploy('VoyagePaymaster', {
+      from: owner,
+      log: true,
+      args: [existingProxyDeployment.address, weth9.address, treasury],
+    });
+
     if (cuts.length > 0) {
       log.debug('Deploying InitDiamond');
       await deploy('InitDiamond', {
@@ -253,6 +260,9 @@ const deployFn: DeployFunction = async (hre) => {
           diamondLoupeFacet: diamondLoupeFacet.address,
           ownershipFacet: ownershipFacet.address,
           weth9: weth9.address,
+          // TODO: this should be the GSN forwarder
+          trustedForwarder: forwarder,
+          paymaster: paymaster.address,
         },
       ]);
 

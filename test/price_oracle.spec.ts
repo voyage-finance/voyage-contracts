@@ -1,8 +1,6 @@
 import { expect } from 'chai';
-import { ethers, getNamedAccounts } from 'hardhat';
-import { decimals, formatBN } from '../helpers/math';
+import { ethers } from 'hardhat';
 import { setupTestSuite } from '../helpers/setupTestSuite';
-const { BigNumber } = ethers;
 
 describe('Price Oracle', function () {
   it('Owner should able to update price', async function () {
@@ -30,6 +28,6 @@ describe('Price Oracle', function () {
       priceOracle
         .connect(await ethers.getSigner(alice))
         .updateTwap(tus.address, '100')
-    ).to.be.revertedWith('InvalidOperator');
+    ).to.be.revertedWithCustomError(priceOracle, 'InvalidOperator');
   });
 });

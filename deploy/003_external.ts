@@ -1,7 +1,6 @@
-import { DeployFunction } from 'hardhat-deploy/types';
-import { MockMarketPlace, Tus, Vault } from '@contracts';
-import { Crab } from '@contracts';
+import { Crab, MockMarketPlace, Tus } from '@contracts';
 import BigNumber from 'bignumber.js';
+import { DeployFunction } from 'hardhat-deploy/types';
 
 const WRM_NAME = 'WadRayMath';
 const INTEREST_STRATEGY_NAME = 'DefaultReserveInterestRateStrategy';
@@ -28,7 +27,7 @@ const deployFn: DeployFunction = async (hre) => {
       args: ['Mocked Crab', 'MC'],
     });
   }
-  const voyage = await deployments.get('Voyage');
+
   const tus = await ethers.getContract<Tus>('Tus');
   const crab = await ethers.getContract<Crab>('Crab');
   await deploy('MockMarketPlace', {
