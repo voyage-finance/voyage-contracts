@@ -109,7 +109,7 @@ struct BorrowData {
 }
 
 struct RepaidRecord {
-    int128 repaidTimes;
+    uint256 repaidTimes;
 }
 
 struct BorrowState {
@@ -195,8 +195,6 @@ struct AppStorage {
     mapping(address => mapping(address => BorrowState)) _borrowState;
     bool _paused;
     /* ---------------------------------- vault --------------------------------- */
-    UpgradeableBeacon marginEscrowBeacon;
-    UpgradeableBeacon creditEscrowBeacon;
     UpgradeableBeacon subVaultBeacon;
     UpgradeableBeacon vaultBeacon;
     DiamondFacet diamondFacet;
@@ -210,8 +208,6 @@ struct AppStorage {
     // for validate onNFTReceived
     mapping(address => address) marketPlaceToAsset;
     mapping(address => ERC721AssetInfo) erc721AssetInfo;
-    // erc721 address => token id => nft info
-    mapping(address => mapping(uint256 => NFTInfo)) nftInfo;
     uint256 currentVersion;
     mapping(uint256 => Snapshot) snapshotMap;
     /* ---------------------------------- security --------------------------------- */

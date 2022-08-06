@@ -3,13 +3,10 @@ import { ethers } from 'hardhat';
 import { toWad } from '../helpers/math';
 import { setupTestSuite } from '../helpers/setupTestSuite';
 
-const liquidationBonus = ethers.BigNumber.from(10500);
-const maxMargin = 1000;
-const marginRequirement = 0.1 * 1e4;
-
 describe('Liquidate', function () {
   it('Liquidate a invalid debt should revert', async function () {
-    const { owner, tus, crab, voyage } = await setupTestSuite();
+    const { owner, priceOracle, crab, voyage, purchaseData } =
+      await setupTestSuite();
     const vault = await voyage.getVault(owner);
 
     const depositAmount = toWad(100);
@@ -17,7 +14,8 @@ describe('Liquidate', function () {
     await voyage.deposit(crab.address, 1, depositAmount);
 
     const borrowAmount = toWad(10);
-    await voyage.borrow(crab.address, borrowAmount, vault);
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    await voyage.buyNow(crab.address, borrowAmount, vault, purchaseData);
 
     // repay the first draw down
     await voyage.repay(crab.address, 0, vault);
@@ -28,65 +26,38 @@ describe('Liquidate', function () {
     );
   });
 
-  it('Invalid floor price should revert', async function () {
-    const { owner, tus, crab, voyage } = await setupTestSuite();
-    await voyage.setLiquidationBonus(crab.address, liquidationBonus);
-    const vault = await voyage.getVault(owner);
-
-    const depositAmount = toWad(100);
-    await voyage.setMarginParams(crab.address, 0, maxMargin, marginRequirement);
-    await voyage.deposit(crab.address, 0, depositAmount);
-    await voyage.deposit(crab.address, 1, depositAmount);
-    const borrowAmount = toWad(10);
-    await voyage.borrow(crab.address, borrowAmount, vault);
-    // increase 51 days
-    const days = 51 * 24 * 60 * 60;
-    await ethers.provider.send('evm_increaseTime', [days]);
-    await ethers.provider.send('evm_mine', []);
-
-    await expect(voyage.liquidate(crab.address, vault, 0)).to.be.revertedWith(
-      'InvalidFloorPrice()'
-    );
-  });
-
   it('Valid liquidate with nft should return correct value', async function () {
-    const { owner, voyage, priceOracle, crab } = await setupTestSuite();
+    const { owner, voyage, priceOracle, crab, purchaseData } =
+      await setupTestSuite();
     const vault = await voyage.getVault(owner);
 
     const depositAmount = toWad(120);
     const juniorDeposit = toWad(50);
-    const margin = toWad(20);
     await voyage.deposit(crab.address, 0, juniorDeposit);
     await voyage.deposit(crab.address, 1, depositAmount);
-    const borrowAmount = toWad(120);
-    await voyage.borrow(crab.address, borrowAmount, vault);
-
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    await voyage.buyNow(crab.address, 1, vault, purchaseData);
     await crab.safeMint(vault, 1);
-
-    // update oracle price
-    await priceOracle.updateTwap(crab.address, '10000000000000000000');
 
     // increase 51 days
     await increase(51);
-    const tx = await voyage.liquidate(crab.address, vault, 0);
-
+    const tx = await voyage.liquidate(crab.address, vault, 1);
     const receipt = await tx.wait();
+    // await expect(await crab.ownerOf(1)).to.equal(owner);
 
-    await expect(await crab.ownerOf(1)).to.equal(owner);
+    // // increase 51 days again
+    // await increase(51);
+    // const tx2 = await voyage.liquidate(crab.address, vault, 1);
 
-    // increase 51 days again
-    await increase(51);
-    const tx2 = await voyage.liquidate(crab.address, vault, 0);
+    // const receipt2 = await tx2.wait();
+    // log(receipt2);
 
-    const receipt2 = await tx2.wait();
-    log(receipt2);
+    // // increase 51 days again
+    // await increase(51);
+    // const tx3 = await voyage.liquidate(crab.address, vault, 1);
 
-    // increase 51 days again
-    await increase(51);
-    const tx3 = await voyage.liquidate(crab.address, vault, 0);
-
-    const receipt3 = await tx3.wait();
-    log(receipt3);
+    // const receipt3 = await tx3.wait();
+    // log(receipt3);
   });
 
   async function increase(n: number) {

@@ -49,12 +49,14 @@ library LibLoan {
         uint256[] storage collaterals = loan.collateral;
         if (collaterals.length == 0) {
             success = false;
+            return (success, tokenId);
         }
 
         if (collaterals.length == 1) {
             success = true;
             tokenId = collaterals[0];
             collaterals.pop();
+            return (success, tokenId);
         }
 
         (collaterals[0], collaterals[collaterals.length - 1]) = (
@@ -63,6 +65,7 @@ library LibLoan {
         );
         tokenId = collaterals[collaterals.length - 1];
         collaterals.pop();
+        return (success, tokenId);
     }
 
     function insertDebt(

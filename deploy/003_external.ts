@@ -27,10 +27,6 @@ const deployFn: DeployFunction = async (hre) => {
       log: true,
       args: ['Mocked Crab', 'MC'],
     });
-    await deploy('MockCrabadaBattleGame', {
-      from: owner,
-      log: true,
-    });
   }
   const voyage = await deployments.get('Voyage');
   const tus = await ethers.getContract<Tus>('Tus');
@@ -38,10 +34,9 @@ const deployFn: DeployFunction = async (hre) => {
   await deploy('MockMarketPlace', {
     from: owner,
     log: true,
-    args: [tus.address, crab.address, 0, owner],
+    args: [],
   });
   const mp = await ethers.getContract<MockMarketPlace>('MockMarketPlace');
-  const battle_game = await ethers.getContract('MockCrabadaBattleGame');
 
   await execute(
     'Voyage',

@@ -25,10 +25,10 @@ contract VaultAssetFacet is
     /// @notice Withdraw NFT from vault
     /// @param _collection The address of collection
     /// @param _tokenId Token id that being withdrawal
-    function withdrawNFT(
-        address _collection,
-        uint256 _tokenId
-    ) external authorised {
+    function withdrawNFT(address _collection, uint256 _tokenId)
+        external
+        authorised
+    {
         if (!LibVaultStorage.ds().withdrawableAssets[_collection][_tokenId]) {
             revert InvalidWithdraw();
         }
@@ -69,7 +69,8 @@ contract VaultAssetFacet is
             msg.sender
         ] != address(0);
         if (
-            vf.getMarketPlaceByAsset(msg.sender) == address(0) && !maybeSubVault
+            vf.getMarketPlaceByCollection(msg.sender) == address(0) &&
+            !maybeSubVault
         ) {
             revert InvalidSender(msg.sender);
         }

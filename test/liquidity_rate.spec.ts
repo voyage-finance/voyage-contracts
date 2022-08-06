@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { setupTestSuite } from '../helpers/setupTestSuite';
+import { toWad } from '../helpers/math';
 
 const RAY = ethers.BigNumber.from('1000000000000000000000000000');
 
@@ -23,15 +24,16 @@ describe('Liquidity Rate', function () {
   });
 
   it('Junior deposit should return correct interest rate', async function () {
-    const { owner, crab, voyage } = await setupTestSuite();
+    const { owner, crab, priceOracle, voyage, purchaseData } =
+      await setupTestSuite();
     const vault = await voyage.getVault(owner);
 
     const seniorDepositAmount = '500000000000000000000';
     const juniorDepositAmount = '100000000000000000000';
     await voyage.deposit(crab.address, 0, juniorDepositAmount);
     await voyage.deposit(crab.address, 1, seniorDepositAmount);
-
-    await voyage.borrow(crab.address, '400000000000000000000', vault);
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    await voyage.buyNow(crab.address, 1, vault, purchaseData);
     const poolData = await voyage.getPoolData(crab.address);
 
     const juniorLiquidityRate = poolData.juniorLiquidityRate.div(RAY);
@@ -50,7 +52,8 @@ describe('Liquidity Rate', function () {
   });
 
   it('Senior deposit should return correct interest rate', async function () {
-    const { owner, crab, voyage } = await setupTestSuite();
+    const { owner, crab, voyage, priceOracle, purchaseData } =
+      await setupTestSuite();
     const vault = await voyage.getVault(owner);
 
     const seniorDepositAmount = '50000000000000000000';
@@ -59,7 +62,13 @@ describe('Liquidity Rate', function () {
     await voyage.deposit(crab.address, 0, juniorDepositAmount);
     await voyage.deposit(crab.address, 1, seniorDepositAmount);
 
-    await voyage.borrow(crab.address, '25000000000000000000', vault);
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    await voyage.buyNow(
+      crab.address,
+      '25000000000000000000',
+      vault,
+      purchaseData
+    );
     const poolData = await voyage.getPoolData(crab.address);
 
     const juniorLiquidityRate = poolData.juniorLiquidityRate.div(RAY);
@@ -79,8 +88,16 @@ describe('Liquidity Rate', function () {
   });
 
   it('Borrow should return correct interest rate', async function () {
-    const { owner, tus, crab, seniorDepositToken, juniorDepositToken, voyage } =
-      await setupTestSuite();
+    const {
+      owner,
+      tus,
+      crab,
+      seniorDepositToken,
+      juniorDepositToken,
+      voyage,
+      priceOracle,
+      purchaseData,
+    } = await setupTestSuite();
     const vault = await voyage.getVault(owner);
 
     const seniorDepositAmount = '500000000000000000000';
@@ -92,8 +109,13 @@ describe('Liquidity Rate', function () {
     const juniorLiquidity = await tus.balanceOf(juniorDepositToken.address);
     console.log('senior liquidity: ', seniorLiquidity.toString());
     console.log('junior liquidity: ', juniorLiquidity.toString());
-
-    await voyage.borrow(crab.address, '100000000000000000000', vault);
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    await voyage.buyNow(
+      crab.address,
+      '100000000000000000000',
+      vault,
+      purchaseData
+    );
 
     const poolData = await voyage.getPoolData(crab.address);
     console.log('total liquidity: ', poolData.totalLiquidity.toString());

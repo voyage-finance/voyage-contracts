@@ -19,7 +19,8 @@ export interface TestEnv {
   juniorDepositToken: Contract;
   seniorDepositToken: Contract;
   vault: string;
-
+  priceOracle: Contract;
+  purchaseData: string;
   collections: Map<string, string>;
   // user address => Vault
   // in case we need more vault in the furute
@@ -51,6 +52,8 @@ export async function initializeMakeSuite() {
     tus,
     crab,
     deployedVault,
+    priceOracle,
+    purchaseData,
   } = await setupTestSuite();
   testEnv.users.push({
     signer,
@@ -60,6 +63,8 @@ export async function initializeMakeSuite() {
   testEnv.juniorDepositToken = juniorDepositToken;
   testEnv.seniorDepositToken = seniorDepositToken;
   testEnv.vault = deployedVault;
+  testEnv.purchaseData = purchaseData;
+  testEnv.priceOracle = priceOracle;
   testEnv.collections.set('TUS', crab.address);
   testEnv.vaults.set(owner, deployedVault);
 }

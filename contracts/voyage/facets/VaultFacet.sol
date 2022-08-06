@@ -3,6 +3,7 @@ pragma solidity ^0.8.9;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
+import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import {LibAppStorage, AppStorage, Storage, VaultConfig, NFTInfo, DiamondFacet, ReserveConfigurationMap} from "../libraries/LibAppStorage.sol";
 import {LibVault} from "../libraries/LibVault.sol";
 import {LibSecurity} from "../libraries/LibSecurity.sol";
@@ -16,7 +17,7 @@ import {DiamondCutFacet} from "../../shared/diamond/facets/DiamondCutFacet.sol";
 import {DiamondVersionFacet} from "./DiamondVersionFacet.sol";
 import {VaultAssetFacet} from "../../vault/facets/VaultAssetFacet.sol";
 import {VaultManageFacet} from "../../vault/facets/VaultManageFacet.sol";
-import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
+import {MarketplaceAdapterFacet} from "../../vault/facets/MarketplaceAdapterFacet.sol";
 
 contract VaultFacet is Storage, ReentrancyGuard {
     using LibReserveConfiguration for ReserveConfigurationMap;
@@ -74,6 +75,15 @@ contract VaultFacet is Storage, ReentrancyGuard {
         LibSecurity.grantPermissions(
             LibAppStorage.ds().auth,
             _owner,
+            vaultBeaconProxy,
+            sigs
+        );
+        sigs = new bytes4[](2);
+        sigs[0] = VaultAssetFacet(address(0)).recordWithdrawableAsset.selector;
+        sigs[1] = MarketplaceAdapterFacet(address(0)).purchase.selector;
+        LibSecurity.grantPermissions(
+            LibAppStorage.ds().auth,
+            address(this),
             vaultBeaconProxy,
             sigs
         );
@@ -170,20 +180,8 @@ contract VaultFacet is Storage, ReentrancyGuard {
         return LibVault.vaultBeacon();
     }
 
-    function creditEscrowBeacon() public view returns (address) {
-        return LibVault.creditEscrowBeacon();
-    }
-
     function subVaultBeacon() public view returns (address) {
         return LibVault.subVaultBeacon();
-    }
-
-    function getCollectionInfo(address _collection, uint256 _tokenId)
-        external
-        view
-        returns (NFTInfo memory)
-    {
-        return LibVault.getCollectionInfo(_collection, _tokenId);
     }
 
     function getVaultAddr(address _user) external view returns (address) {
@@ -198,12 +196,20 @@ contract VaultFacet is Storage, ReentrancyGuard {
         return LibVault.getTokenAddrByMarketPlace(_marketplace);
     }
 
-    function getMarketPlaceByAsset(address _asset)
+    function getCurrencyByCollection(address _collection)
         external
         view
         returns (address)
     {
-        return LibVault.getMarketPlaceByAsset(_asset);
+        return LibVault.getCurrencyByCollection(_collection);
+    }
+
+    function getMarketPlaceByCollection(address _collection)
+        external
+        view
+        returns (address)
+    {
+        return LibVault.getMarketPlaceByCollection(_collection);
     }
 
     function getVaultConfig(address _collection, address _vault)

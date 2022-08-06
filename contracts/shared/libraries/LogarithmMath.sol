@@ -1,55 +1,102 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
+/// import from https://github.com/paulrberg/prb-math
 library LogarithmMath {
-    /**
-     * Calculate binary logarithm of x.  Revert if x <= 0.
-     *
-     * @param x signed 64.64-bit fixed point number
-     * @return signed 64.64-bit fixed point number
-     */
-    function log_2(int128 x) internal pure returns (int128) {
+    /// @dev How many trailing decimals can be represented.
+    uint256 internal constant SCALE = 1e18;
+
+    /// @dev Half the SCALE number.
+    uint256 internal constant HALF_SCALE = 5e17;
+
+    /// @notice Calculates the binary logarithm of x.
+    ///
+    /// @dev Based on the iterative approximation algorithm.
+    /// https://en.wikipedia.org/wiki/Binary_logarithm#Iterative_approximation
+    ///
+    /// Requirements:
+    /// - x must be greater than or equal to SCALE, otherwise the result would be negative.
+    ///
+    /// Caveats:
+    /// - The results are nor perfectly accurate to the last decimal, due to the lossy precision of the iterative approximation.
+    ///
+    /// @param x The unsigned 60.18-decimal fixed-point number for which to calculate the binary logarithm.
+    /// @return result The binary logarithm as an unsigned 60.18-decimal fixed-point number.
+    function log2(uint256 x) internal pure returns (uint256 result) {
+        if (x < SCALE) {
+            revert PRBMathUD60x18__LogInputTooSmall(x);
+        }
         unchecked {
-            require(x > 0);
+            // Calculate the integer part of the logarithm and add it to the result and finally calculate y = x * 2^(-n).
+            uint256 n = mostSignificantBit(x / SCALE);
 
-            int256 msb = 0;
-            int256 xc = x;
-            if (xc >= 0x10000000000000000) {
-                xc >>= 64;
-                msb += 64;
-            }
-            if (xc >= 0x100000000) {
-                xc >>= 32;
-                msb += 32;
-            }
-            if (xc >= 0x10000) {
-                xc >>= 16;
-                msb += 16;
-            }
-            if (xc >= 0x100) {
-                xc >>= 8;
-                msb += 8;
-            }
-            if (xc >= 0x10) {
-                xc >>= 4;
-                msb += 4;
-            }
-            if (xc >= 0x4) {
-                xc >>= 2;
-                msb += 2;
-            }
-            if (xc >= 0x2) msb += 1; // No need to shift xc anymore
+            // The integer part of the logarithm as an unsigned 60.18-decimal fixed-point number. The operation can't overflow
+            // because n is maximum 255 and SCALE is 1e18.
+            result = n * SCALE;
 
-            int256 result = (msb - 64) << 64;
-            uint256 ux = uint256(int256(x)) << uint256(127 - msb);
-            for (int256 bit = 0x8000000000000000; bit > 0; bit >>= 1) {
-                ux *= ux;
-                uint256 b = ux >> 255;
-                ux >>= 127 + b;
-                result += bit * int256(b);
+            // This is y = x * 2^(-n).
+            uint256 y = x >> n;
+
+            // If y = 1, the fractional part is zero.
+            if (y == SCALE) {
+                return result;
             }
 
-            return int128(result);
+            // Calculate the fractional part via the iterative approximation.
+            // The "delta >>= 1" part is equivalent to "delta /= 2", but shifting bits is faster.
+            for (uint256 delta = HALF_SCALE; delta > 0; delta >>= 1) {
+                y = (y * y) / SCALE;
+
+                // Is y^2 > 2 and so in the range [2,4)?
+                if (y >= 2 * SCALE) {
+                    // Add the 2^(-m) factor to the logarithm.
+                    result += delta;
+
+                    // Corresponds to z/2 on Wikipedia.
+                    y >>= 1;
+                }
+            }
         }
     }
+
+    /// @notice Finds the zero-based index of the first one in the binary representation of x.
+    /// @dev See the note on msb in the "Find First Set" Wikipedia article https://en.wikipedia.org/wiki/Find_first_set
+    /// @param x The uint256 number for which to find the index of the most significant bit.
+    /// @return msb The index of the most significant bit as an uint256.
+    function mostSignificantBit(uint256 x) internal pure returns (uint256 msb) {
+        if (x >= 2**128) {
+            x >>= 128;
+            msb += 128;
+        }
+        if (x >= 2**64) {
+            x >>= 64;
+            msb += 64;
+        }
+        if (x >= 2**32) {
+            x >>= 32;
+            msb += 32;
+        }
+        if (x >= 2**16) {
+            x >>= 16;
+            msb += 16;
+        }
+        if (x >= 2**8) {
+            x >>= 8;
+            msb += 8;
+        }
+        if (x >= 2**4) {
+            x >>= 4;
+            msb += 4;
+        }
+        if (x >= 2**2) {
+            x >>= 2;
+            msb += 2;
+        }
+        if (x >= 2**1) {
+            // No need to shift x any more.
+            msb += 1;
+        }
+    }
+
+    error PRBMathUD60x18__LogInputTooSmall(uint256);
 }

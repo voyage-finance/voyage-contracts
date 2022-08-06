@@ -5,7 +5,7 @@ import { ERC20 } from '../typechain/ERC20';
 import { Vault } from '../typechain/Vault';
 import { Voyage } from '../typechain/Voyage';
 import { deployFacets, FacetCutAction } from './diamond';
-import { decimals, MAX_UINT_256, toRay } from './math';
+import { decimals, MAX_UINT_256, toRay, toWad } from './math';
 import { randomBytes } from 'crypto';
 import './wadraymath';
 
@@ -21,15 +21,12 @@ const setupBase = async ({
 
   /* --------------------------------- voyage -------------------------------- */
   const voyage = await ethers.getContract<Voyage>('Voyage');
-  const vault = await ethers.getContract<Vault>('Vault');
-
   /* ---------------------------------- infra --------------------------------- */
   const priceOracle = await ethers.getContract('PriceOracle');
   /* ------------------------------ tokenization ------------------------------ */
   const tus = await ethers.getContract('Tus');
   const crab = await ethers.getContract('Crab');
   const marketPlace = await ethers.getContract('MockMarketPlace');
-  const battleGame = await ethers.getContract('MockCrabadaBattleGame');
   const defaultReserveInterestRateStrategy = await ethers.getContract(
     'DefaultReserveInterestRateStrategy'
   );
@@ -48,6 +45,7 @@ const setupBase = async ({
   await voyage.activateReserve(crab.address);
   const cutRatio = toRay(new BigNumber('0.2')).toFixed();
   await voyage.updateProtocolFee(owner, cutRatio);
+  await voyage.setNFTInfo(crab.address, tus.address, marketPlace.address);
   const [senior, junior] = await voyage.getDepositTokens(crab.address);
   const seniorDepositToken = await ethers.getContractAt(
     'SeniorDepositToken',
@@ -66,6 +64,72 @@ const setupBase = async ({
   await voyage.createVault(owner, salt);
   const deployedVault = await voyage.getVault(owner);
   await tus.approve(deployedVault, MAX_UINT_256);
+  const abiCoder = ethers.utils.defaultAbiCoder;
+  const makerOrderData = abiCoder.encode(
+    [
+      'bool',
+      'address',
+      'address',
+      'uint256',
+      'uint256',
+      'uint256',
+      'address',
+      'address',
+      'uint256',
+      'uint256',
+      'uint256',
+      'uint256',
+      'bytes',
+      'uint8',
+      'bytes32',
+      'bytes32',
+    ],
+    [
+      true,
+      owner,
+      crab.address,
+      1000,
+      1,
+      1,
+      alice,
+      tus.address,
+      1,
+      1,
+      1,
+      1,
+      ethers.utils.arrayify('0x1234'),
+      1,
+      ethers.utils.arrayify(
+        '0x66fdd5e25ef9ddb305ba3c2aae1856ab9c6f2979000000000000000000000000'
+      ),
+      ethers.utils.arrayify(
+        '0x66fdd5e25ef9ddb305ba3c2aae1856ab9c6f2979000000000000000000000000'
+      ),
+    ]
+  );
+  const floorPrice = toWad(10);
+  const takerOrderData = abiCoder.encode(
+    ['bool', 'address', 'uint256', 'uint256', 'uint256', 'bytes'],
+    [
+      true,
+      deployedVault,
+      floorPrice,
+      1,
+      1,
+      ethers.utils.arrayify(
+        '0x66fdd5e25ef9ddb305ba3c2aae1856ab9c6f2979000000000000000000000000'
+      ),
+    ]
+  );
+  var abi = [
+    'function matchAskWithTakerBidUsingETHAndWETH((bool,address,uint256,uint256,uint256,bytes),(bool,address,address,uint256,uint256,uint256,address,address,uint256,uint256,uint256,uint256,bytes,uint8,bytes32,bytes32))',
+  ];
+  var iface = new ethers.utils.Interface(abi);
+  var selector = iface.getSighash('matchAskWithTakerBidUsingETHAndWETH');
+  const purchaseData = abiCoder.encode(
+    ['address', 'bytes4', 'bytes', 'bytes'],
+    [marketPlace.address, selector, makerOrderData, takerOrderData]
+  );
 
   return {
     owner,
@@ -76,11 +140,11 @@ const setupBase = async ({
     tus,
     crab,
     marketPlace,
-    battleGame,
     juniorDepositToken,
     seniorDepositToken,
     deployedVault,
     voyage,
+    purchaseData,
   };
 };
 

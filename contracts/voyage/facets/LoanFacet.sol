@@ -16,6 +16,10 @@ import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
 import {VaultDataFacet} from "../../vault/facets/VaultDataFacet.sol";
 import {VaultAssetFacet} from "../../vault/facets/VaultAssetFacet.sol";
+import {VaultAssetFacet} from "../../vault/facets/VaultAssetFacet.sol";
+import {MarketplaceAdapterFacet} from "../../vault/facets/MarketplaceAdapterFacet.sol";
+import {VaultFacet} from "./VaultFacet.sol";
+import {OrderTypes} from "../../shared/libraries/OrderTypes.sol";
 
 contract LoanFacet is Storage {
     using WadRayMath for uint256;
@@ -27,9 +31,16 @@ contract LoanFacet is Storage {
 
     struct ExecuteBorrowParams {
         address collection;
+        address marketplace;
+        OrderTypes.MakerOrder makeOrder;
+        uint256 price;
+        uint256 minPercentageToAsk;
+        bytes params;
         uint256 tokenId;
         address vault;
         uint256 totalLoan;
+        uint256 fv;
+        uint256 timestamp;
         uint256 term;
         uint256 epoch;
         uint256 nper;
@@ -115,7 +126,8 @@ contract LoanFacet is Storage {
     function buyNow(
         address _collection,
         uint256 _tokenId,
-        address payable _vault
+        address payable _vault,
+        bytes calldata _data
     ) external payable whenNotPaused {
         ExecuteBorrowParams memory params;
         params.collection = _collection;
@@ -132,8 +144,14 @@ contract LoanFacet is Storage {
         );
 
         // 1. get price for params.tokenId  and floor price pv
-        params.totalLoan = getAssetPrice(params.collection, params.tokenId);
-        uint256 fv = getFloorPrice(params.collection);
+        params.totalLoan = MarketplaceAdapterFacet(params.vault)
+            .extractAssetPrice(_data);
+        (params.fv, params.timestamp) = IPriceOracle(reserveData.priceOracle)
+            .getTwap(params.collection);
+
+        if (params.fv == 0) {
+            revert InvalidFloorPrice();
+        }
 
         // 2. calculate money to pay for the first time, and money to borrow
         ReserveConfigurationMap memory reserveConf = LibReserveConfiguration
@@ -148,9 +166,8 @@ contract LoanFacet is Storage {
             params.vault,
             params.collection,
             reserveData.currency,
-            fv
+            params.fv
         );
-
         if (availableCreditLimit < params.borrowedVaule) {
             revert InsufficientCreditLimit();
         }
@@ -215,13 +232,16 @@ contract LoanFacet is Storage {
             }
         }
 
-        // 7. todo purchase nft
+        // 7. purchase nft
         (params.principal, params.interest) = LibLoan.getPMT(
             params.collection,
             reserveData.currency,
             params.vault,
             params.loanId
         );
+        params.marketplace = VaultFacet(address(this))
+            .getMarketPlaceByCollection(params.collection);
+        MarketplaceAdapterFacet(params.vault).purchase(_data);
 
         // 8. first payment
         LibLoan.repay(
@@ -530,19 +550,6 @@ contract LoanFacet is Storage {
     {
         uint256 withBonus = _value.percentMul(_liquidationBonus);
         return withBonus - _value;
-    }
-
-    function getAssetPrice(address _collection, uint256 _tokenId)
-        private
-        returns (uint256)
-    {
-        // todo get from market place
-        return 0;
-    }
-
-    function getFloorPrice(address _collection) private returns (uint256) {
-        // todo get floor price from oracle
-        return 0;
     }
 }
 

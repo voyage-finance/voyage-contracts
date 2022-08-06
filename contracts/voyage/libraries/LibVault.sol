@@ -12,6 +12,7 @@ import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
 import {VaultDataFacet} from "../../vault/facets/VaultDataFacet.sol";
 import {VaultAssetFacet} from "../../vault/facets/VaultAssetFacet.sol";
 import {LogarithmMath} from "../../shared/libraries/LogarithmMath.sol";
+import "hardhat/console.sol";
 
 library LibVault {
     using WadRayMath for uint256;
@@ -53,16 +54,6 @@ library LibVault {
         s.vaultConfigMap[currency][_vault] = config;
     }
 
-    function updateNFTPrice(
-        address _collection,
-        uint256 _cardId,
-        uint256 _cardPrice
-    ) internal {
-        AppStorage storage s = LibAppStorage.ds();
-        s.nftInfo[_collection][_cardId].price = _cardPrice;
-        s.nftInfo[_collection][_cardId].timestamp = block.timestamp;
-    }
-
     function setNFTInfo(
         address _collection,
         address _currency,
@@ -78,16 +69,6 @@ library LibVault {
     function vaultBeacon() internal view returns (address) {
         AppStorage storage s = LibAppStorage.ds();
         return address(s.vaultBeacon);
-    }
-
-    function marginEscrowBeacon() internal view returns (address) {
-        AppStorage storage s = LibAppStorage.ds();
-        return address(s.marginEscrowBeacon);
-    }
-
-    function creditEscrowBeacon() internal view returns (address) {
-        AppStorage storage s = LibAppStorage.ds();
-        return address(s.creditEscrowBeacon);
     }
 
     function subVaultBeacon() internal view returns (address) {
@@ -153,31 +134,22 @@ library LibVault {
         return s.marketPlaceToAsset[_marketplace];
     }
 
-    function getMarketPlaceByAsset(address _currency)
+    function getMarketPlaceByCollection(address _collection)
         internal
         view
         returns (address)
     {
         AppStorage storage s = LibAppStorage.ds();
-        return s.erc721AssetInfo[_currency].marketplace;
+        return s.erc721AssetInfo[_collection].marketplace;
     }
 
-    function getERC20ByAsset(address _currency)
+    function getCurrencyByCollection(address _collection)
         internal
         view
         returns (address)
     {
         AppStorage storage s = LibAppStorage.ds();
-        return s.erc721AssetInfo[_currency].erc20Addr;
-    }
-
-    function getCollectionInfo(address _collection, uint256 _tokenId)
-        internal
-        view
-        returns (NFTInfo memory)
-    {
-        AppStorage storage s = LibAppStorage.ds();
-        return s.nftInfo[_collection][_tokenId];
+        return s.erc721AssetInfo[_collection].erc20Addr;
     }
 
     /**
@@ -192,11 +164,12 @@ library LibVault {
         uint256 _fv
     ) internal view returns (uint256) {
         AppStorage storage s = LibAppStorage.ds();
-        int128 rep = s
+        uint256 rep = s
         ._borrowState[_collection][_currency]
             .numRepaidLoans[_vault]
             .repaidTimes;
-        uint256 multiplier = uint256(int256(LogarithmMath.log_2(rep + 1) + 1));
+        uint256 scaledRep = (rep + 1) * 1e18;
+        uint256 multiplier = LogarithmMath.log2(scaledRep) + 1;
         return _fv * multiplier;
     }
 }

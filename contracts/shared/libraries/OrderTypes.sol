@@ -1,9 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import "hardhat/console.sol";
+/**
+ * @title OrderTypes
+ * @notice This library contains order types for the LooksRare exchange.
+ */
+library OrderTypes {
+    // keccak256("MakerOrder(bool isOrderAsk,address signer,address collection,uint256 price,uint256 tokenId,uint256 amount,address strategy,address currency,uint256 nonce,uint256 startTime,uint256 endTime,uint256 minPercentageToAsk,bytes params)")
+    bytes32 internal constant MAKER_ORDER_HASH =
+        0x40261ade532fa1d2c7293df30aaadb9b3c616fae525a0b56d3d411c841a85028;
 
-contract MockMarketPlace {
     struct MakerOrder {
         bool isOrderAsk; // true --> ask / false --> bid
         address signer; // signer of the maker order
@@ -32,10 +38,29 @@ contract MockMarketPlace {
         bytes params; // other params (e.g., tokenId)
     }
 
-    function matchAskWithTakerBidUsingETHAndWETH(
-        TakerOrder calldata takerBid,
-        MakerOrder calldata makerAsk
-    ) external {
-        console.log("in matchAskWithTakerBid");
+    function hash(MakerOrder memory makerOrder)
+        internal
+        pure
+        returns (bytes32)
+    {
+        return
+            keccak256(
+                abi.encode(
+                    MAKER_ORDER_HASH,
+                    makerOrder.isOrderAsk,
+                    makerOrder.signer,
+                    makerOrder.collection,
+                    makerOrder.price,
+                    makerOrder.tokenId,
+                    makerOrder.amount,
+                    makerOrder.strategy,
+                    makerOrder.currency,
+                    makerOrder.nonce,
+                    makerOrder.startTime,
+                    makerOrder.endTime,
+                    makerOrder.minPercentageToAsk,
+                    keccak256(makerOrder.params)
+                )
+            );
     }
 }

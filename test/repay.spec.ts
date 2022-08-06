@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { setupTestSuite } from '../helpers/setupTestSuite';
+import { toWad } from '../helpers/math';
 
 const max = 1000;
 const requirement = 0.1 * 1e4;
@@ -15,8 +16,16 @@ describe('Repay', function () {
   }
 
   it('Repay should return correct value', async function () {
-    const { owner, juniorDepositToken, seniorDepositToken, tus, crab, voyage } =
-      await setupTestSuite();
+    const {
+      owner,
+      juniorDepositToken,
+      seniorDepositToken,
+      tus,
+      crab,
+      voyage,
+      priceOracle,
+      purchaseData,
+    } = await setupTestSuite();
 
     const vault = await voyage.getVault(owner);
 
@@ -29,8 +38,8 @@ describe('Repay', function () {
     const juniorLiquidity = await tus.balanceOf(juniorDepositToken.address);
     console.log('senior liquidity: ', seniorLiquidity.toString());
     console.log('junior liquidity: ', juniorLiquidity.toString());
-
-    await voyage.borrow(crab.address, '10000000000000000000', vault);
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    await voyage.buyNow(crab.address, '1', vault, purchaseData);
 
     // increase seven days
     const sevenDays = 7 * 24 * 60 * 60;
@@ -48,11 +57,12 @@ describe('Repay', function () {
       ']'
     );
 
-    const loanDetail = await voyage.getLoanDetail(vault, crab.address, 0);
-    console.log('draw down 0: ');
-    showLoan(loanDetail);
-
-    await voyage.borrow(crab.address, '10000000000000000000', vault);
+    await voyage.buyNow(
+      crab.address,
+      '10000000000000000000',
+      vault,
+      purchaseData
+    );
 
     const vaultData2 = await voyage.getCreditLineData(vault, crab.address);
 
@@ -64,58 +74,19 @@ describe('Repay', function () {
       vaultData2.loanList.tail.toString(),
       ']'
     );
-    const loanDetail2 = await voyage.getLoanDetail(vault, crab.address, 1);
+
+    const loanDetail = await voyage.getLoanDetail(vault, crab.address, 0);
+    console.log('draw down 0: ');
+    showLoan(loanDetail);
+
+    const loanDetail1 = await voyage.getLoanDetail(vault, crab.address, 1);
     console.log('draw down 1: ');
-    showLoan(loanDetail2);
+    showLoan(loanDetail1);
 
-    // repay the first draw down
+    // repay the second draw down
     await voyage.repay(crab.address, 0, vault);
-    const loanDetail3 = await voyage.getLoanDetail(vault, crab.address, 0);
-    console.log('draw down 0: ');
-    showLoan(loanDetail3);
-
-    await voyage.repay(crab.address, 0, vault);
-    const loanDetail4 = await voyage.getLoanDetail(vault, crab.address, 0);
-    console.log('draw down 0: ');
-    showLoan(loanDetail4);
-
-    await voyage.repay(crab.address, 0, vault);
-    const loanDetail5 = await voyage.getLoanDetail(vault, crab.address, 0);
-    console.log('draw down 0: ');
-    showLoan(loanDetail5);
-  });
-
-  it('Repay a non-debt should revert', async function () {
-    const { juniorDepositToken, seniorDepositToken, tus, crab, voyage, owner } =
-      await setupTestSuite();
-    const vault = await voyage.getVault(owner);
-
-    // 100
-    const depositAmount = '100000000000000000000';
-    await voyage.setMarginParams(crab.address, 0, max, requirement);
-    await voyage.deposit(crab.address, 0, depositAmount);
-    await voyage.deposit(crab.address, 1, depositAmount);
-    const seniorLiquidity = await tus.balanceOf(seniorDepositToken.address);
-    const juniorLiquidity = await tus.balanceOf(juniorDepositToken.address);
-    console.log('senior liquidity: ', seniorLiquidity.toString());
-    console.log('junior liquidity: ', juniorLiquidity.toString());
-    await voyage.borrow(crab.address, '10000000000000000000', vault);
-
-    // increase seven days
-    const sevenDays = 7 * 24 * 60 * 60;
-    await ethers.provider.send('evm_increaseTime', [sevenDays]);
-    await ethers.provider.send('evm_mine', []);
-
-    const loanDetail = await voyage.getLoanDetail(vault, tus.address, 0);
-
-    await voyage.borrow(crab.address, '10000000000000000000', vault);
-
-    // repay the first draw down
-    await voyage.repay(crab.address, 0, vault);
-    await voyage.repay(crab.address, 0, vault);
-    await voyage.repay(crab.address, 0, vault);
-    await expect(voyage.repay(crab.address, 0, vault)).to.be.revertedWith(
-      'InvalidDebt()'
-    );
+    const loanDetailAfter = await voyage.getLoanDetail(vault, crab.address, 0);
+    console.log('draw down after 0: ');
+    showLoan(loanDetailAfter);
   });
 });

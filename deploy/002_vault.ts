@@ -51,6 +51,11 @@ const deployFn: DeployFunction = async (hre) => {
       log: true,
     },
     {
+      name: 'MarketplaceAdapterFacet',
+      from: owner,
+      log: true,
+    },
+    {
       name: 'PaymentsFacet',
       from: owner,
       log: true,

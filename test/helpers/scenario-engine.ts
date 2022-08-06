@@ -64,11 +64,8 @@ const executeAction = async (
       break;
     }
     case 'borrow': {
-      const { cname, amount } = action.args;
-      if (!amount || amount === '') {
-        throw `Invalid amount to deposit into the ${cname} collection`;
-      }
-      await borrow(cname, amount, testEnv);
+      const { cname, tokenId } = action.args;
+      await borrow(cname, tokenId, testEnv);
       break;
     }
     case 'approve': {

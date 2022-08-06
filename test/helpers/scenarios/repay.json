@@ -36,19 +36,10 @@
                 "expected": "success"
               },
               {
-                "name": "margin",
-                "args": {
-                  "cname": "TUS",
-                  "amount": "100000",
-                  "user": "0"
-                },
-                "expected": "success"
-              },
-              {
                 "name": "borrow",
                 "args": {
                   "cname": "TUS",
-                  "amount": "10000",
+                  "tokenId": "1",
                   "user": "0"
                 },
                 "expected": "success"
