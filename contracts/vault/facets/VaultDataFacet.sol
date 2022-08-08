@@ -11,16 +11,6 @@ import {VaultFacet} from "../../voyage/facets/VaultFacet.sol";
 import {DataProviderFacet} from "../../voyage/facets/DataProviderFacet.sol";
 
 contract VaultDataFacet is ReentrancyGuard, Storage, IERC1271 {
-    /// @notice Get the number of NFT owned by this vault
-    /// @param _collection The address of collection
-    function getTotalNFTNumbers(address _collection)
-        public
-        view
-        returns (uint256)
-    {
-        return LibVaultStorage.ds().nfts[_collection].currentSize;
-    }
-
     /// @notice Get total debt of this vault
     /// @param _collection Address of the collection
     function totalDebt(address _collection)
@@ -33,18 +23,6 @@ contract VaultDataFacet is ReentrancyGuard, Storage, IERC1271 {
         (principal, interest) = LoanFacet(LibVaultStorage.ds().voyage)
             .getVaultDebt(_collection, address(this));
         total = principal + interest;
-    }
-
-    /// @notice Get margin requirement
-    /// @param _collection Address of the nft collection
-    function marginRequirement(address _collection)
-        public
-        view
-        returns (uint256)
-    {
-        VaultConfig memory vc = VaultFacet(LibVaultStorage.ds().voyage)
-            .getVaultConfig(_collection, address(this));
-        return vc.marginRequirement;
     }
 
     /// @notice Get token status
@@ -80,62 +58,13 @@ contract VaultDataFacet is ReentrancyGuard, Storage, IERC1271 {
         return LibVaultStorage.ds().subvaultStatusIndex[_subvault];
     }
 
-    /// @notice Get current margin
-    /// @param _currency The address of the currency
-    function getCurrentMargin(address _currency)
-        external
-        view
-        returns (uint256)
-    {
-        return _marginEscrow(_currency).totalMargin();
-    }
-
-    /// @notice Get actual security deposit amount
-    /// @param _currency The address of the currency
-    function getActualSecurityDeposit(address _currency)
+    function collectionInitialized(address _collection)
         public
         view
-        returns (uint256)
+        returns (bool)
     {
-        return IERC20(_currency).balanceOf(address(_marginEscrow(_currency)));
-    }
-
-    /// @notice Get withdrawable margin
-    /// @param _currency The address of the currency
-    /// @param _user The address of the user
-    function withdrawableMargin(address _currency, address _user)
-        public
-        view
-        returns (uint256)
-    {
-        return _marginEscrow(_currency).withdrawableMargin(_user);
-    }
-
-    /// @notice Get total withdrawable margin
-    /// @param _currency The address of the currency
-    function totalWithdrawableMargin(address _currency)
-        public
-        view
-        returns (uint256)
-    {
-        return _marginEscrow(_currency).totalWithdrawableMargin();
-    }
-
-    /// @notice Get address of credit escrow
-    /// @param _currency The address of the currency
-    function creditEscrow(address _currency) public view returns (address) {
-        return address(LibVaultStorage.ds().cescrow[_currency]);
-    }
-
-    /// @notice Get address of margin escrow
-    /// @param _currency The address of the currency
-    function marginEscrow(address _currency) public view returns (address) {
-        return address(_marginEscrow(_currency));
-    }
-
-    function isValidERC721(address _currency) public view returns (bool) {
         VaultFacet vf = VaultFacet(LibVaultStorage.ds().voyage);
-        return vf.getMarketPlaceByAsset(_currency) != address(0);
+        return vf.collectionInitialized(_collection);
     }
 
     /// @notice Should return whether the signature provided is valid for the provided data

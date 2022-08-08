@@ -24,6 +24,7 @@ import {
   UserReserveData,
 } from './utils/interfaces';
 import chai from 'chai';
+import { toWad } from '../../helpers/math';
 
 declare var hre: HardhatRuntimeEnvironment;
 
@@ -177,22 +178,9 @@ export const withdraw = async (
   expectEqual(reserveDataAfter, expectedReserveData);
 };
 
-export const margin = async (
-  cname: string,
-  amount: string,
-  testEnv: TestEnv
-) => {
-  const collection = testEnv.collections.get(cname);
-  const user = testEnv.users[0];
-  const vault = testEnv.vaults.get(user.address);
-  await (
-    await testEnv.voyage.depositMargin(vault!, collection!, amount)
-  ).wait();
-};
-
 export const borrow = async (
   cname: string,
-  amount: string,
+  tokenId: string,
   testEnv: TestEnv
 ) => {
   const collection = testEnv.collections.get(cname);
@@ -205,10 +193,18 @@ export const borrow = async (
     creditLine: creditLineBefore,
   } = await getContractsData(collection!, user.address, testEnv);
 
+  const assetPrice = toWad(10);
+  await testEnv.priceOracle.updateTwap(collection!, assetPrice);
   const txResult = await (
     await testEnv.voyage
       .connect(user.signer)
-      .borrow(collection!, amount, vault!)
+      .buyNow(
+        collection!,
+        tokenId,
+        vault!,
+        testEnv.marketplace.address,
+        testEnv.purchaseData
+      )
   ).wait();
 
   const { txCost, txTimestamp } = await getTxCostAndTimestamp(txResult);
@@ -221,12 +217,12 @@ export const borrow = async (
   } = await getContractsData(collection!, user.address, testEnv);
 
   const expectedReserveData = calcExpectedReserveDataAfterBorrow(
-    amount,
+    assetPrice.toString(),
     reserveDataBefore
   );
 
   const expectedCreditLineData = calcExpectedCreditLineAfterBorrow(
-    amount,
+    assetPrice.toString(),
     creditLineBefore
   );
   expectEqual(reserveDataAfter, expectedReserveData);

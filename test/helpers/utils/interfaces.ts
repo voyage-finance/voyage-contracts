@@ -49,7 +49,7 @@ export interface CreditLineData {
   loanlist: LoanList;
   // totalMargin: BigNumber;
   // withdrawableSecurityDeposit: BigNumber;
-  creditLimit: BigNumber;
+  // creditLimit: BigNumber;
   // spendableBalance: BigNumber;
   // gav: BigNumber;
   // ltv: BigNumber;
@@ -69,9 +69,6 @@ export interface LoanDetail {
 
 export interface PoolConfiguration {
   liquidationBonus: BigNumber;
-  marginRequirement: BigNumber;
-  minMargin: BigNumber;
-  maxMargin: BigNumber;
   loanInterval: BigNumber;
   loanTenure: BigNumber;
   incomeRatio: BigNumber;

@@ -22,14 +22,6 @@ const deployFn: DeployFunction = async (hre) => {
   const { deploy, execute, getOrNull, save, getArtifact } = deployments;
   const { owner } = await getNamedAccounts();
 
-  const marginEscrowImpl = await deploy('MarginEscrow', {
-    from: owner,
-    log: true,
-  });
-  const creditEscrowImpl = await deploy('CreditEscrow', {
-    from: owner,
-    log: true,
-  });
   const seniorDepositImpl = await deploy('SeniorDepositToken', {
     from: owner,
     log: true,
@@ -130,6 +122,11 @@ const deployFn: DeployFunction = async (hre) => {
     },
     {
       name: 'PaymentsFacet',
+      from: owner,
+      log: true,
+    },
+    {
+      name: 'MarketplaceAdapterFacet',
       from: owner,
       log: true,
     }
@@ -245,8 +242,6 @@ const deployFn: DeployFunction = async (hre) => {
       const initArgs = initDiamond.interface.encodeFunctionData('init', [
         {
           initOwner: owner,
-          marginEscrowImpl: marginEscrowImpl.address,
-          creditEscrowImpl: creditEscrowImpl.address,
           seniorDepositTokenImpl: seniorDepositImpl.address,
           juniorDepositTokenImpl: juniorDepositImpl.address,
           vaultFactory: vaultFactory.address,

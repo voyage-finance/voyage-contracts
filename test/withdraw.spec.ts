@@ -2,10 +2,11 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { decimals, MAX_UINT_256 } from '../helpers/math';
 import { setupTestSuite } from '../helpers/setupTestSuite';
+import { toWad } from '../helpers/math';
 
 describe('Withdraw', function () {
   it('Withdraw with no interest should return correct value', async function () {
-    const { voyage, seniorDepositToken, juniorDepositToken, tus, crab, owner } =
+    const { voyage, seniorDepositToken, juniorDepositToken, crab, owner } =
       await setupTestSuite();
     await seniorDepositToken.approve(voyage.address, MAX_UINT_256);
     await juniorDepositToken.approve(voyage.address, MAX_UINT_256);
@@ -30,14 +31,35 @@ describe('Withdraw', function () {
   });
 
   it('Withdraw with interest should return correct value', async function () {
-    const { voyage, seniorDepositToken, juniorDepositToken, tus, crab, owner } =
-      await setupTestSuite();
+    const {
+      voyage,
+      seniorDepositToken,
+      juniorDepositToken,
+      tus,
+      crab,
+      owner,
+      priceOracle,
+      purchaseData,
+      marketPlace,
+    } = await setupTestSuite();
     const amount = ethers.BigNumber.from(100).mul(decimals(18));
     await voyage.deposit(crab.address, 1, amount);
     const vault = await voyage.getVaultAddr(owner);
-    await voyage.depositMargin(vault, crab.address, '100000000000000000000');
-    await voyage.borrow(crab.address, '10000000000000000000', vault);
-    await voyage.borrow(crab.address, '10000000000000000000', vault);
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    await voyage.buyNow(
+      crab.address,
+      1,
+      vault,
+      marketPlace.address,
+      purchaseData
+    );
+    await voyage.buyNow(
+      crab.address,
+      1,
+      vault,
+      marketPlace.address,
+      purchaseData
+    );
     const tenDay = 10 * 24 * 60 * 60;
 
     await ethers.provider.send('evm_increaseTime', [tenDay]);

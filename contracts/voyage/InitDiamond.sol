@@ -16,8 +16,6 @@ import {IVaultFactory} from "./interfaces/IVaultFactory.sol";
 contract InitDiamond {
     struct Args {
         address initOwner;
-        address marginEscrowImpl;
-        address creditEscrowImpl;
         address seniorDepositTokenImpl;
         address juniorDepositTokenImpl;
         address vaultFactory;
@@ -49,18 +47,6 @@ contract InitDiamond {
                 bytes32(bytes20(_args.initOwner)),
                 ANY,
                 ANY
-            );
-        }
-
-        if (address(LibAppStorage.ds().marginEscrowBeacon) == address(0)) {
-            LibAppStorage.ds().marginEscrowBeacon = new UpgradeableBeacon(
-                _args.marginEscrowImpl
-            );
-        }
-
-        if (address(LibAppStorage.ds().creditEscrowBeacon) == address(0)) {
-            LibAppStorage.ds().creditEscrowBeacon = new UpgradeableBeacon(
-                _args.creditEscrowImpl
             );
         }
 

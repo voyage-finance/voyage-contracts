@@ -18,6 +18,12 @@ enum Tranche {
     SENIOR
 }
 
+enum MarketPlaceType {
+    Unknown,
+    LooksRare,
+    OpenSea
+}
+
 struct ReserveData {
     //stores the reserve configuration
     ReserveConfigurationMap configuration;
@@ -90,6 +96,7 @@ struct Loan {
     RepaymentData[] repayments;
     // size pf repayments
     uint256 paidTimes;
+    uint256[] collateral;
 }
 
 struct LoanList {
@@ -105,14 +112,17 @@ struct BorrowData {
     uint256 totalInterest;
     uint256 mapSize;
     mapping(uint256 => Loan) loans;
-    uint256 totalPaid;
-    uint256 totalRedeemed;
+}
+
+struct RepaidRecord {
+    uint256 repaidTimes;
 }
 
 struct BorrowState {
     uint256 totalDebt;
     uint256 totalInterest;
     uint256 avgBorrowRate;
+    mapping(address => RepaidRecord) numRepaidLoans;
 }
 
 struct VaultConfig {
@@ -191,8 +201,6 @@ struct AppStorage {
     mapping(address => mapping(address => BorrowState)) _borrowState;
     bool _paused;
     /* ---------------------------------- vault --------------------------------- */
-    UpgradeableBeacon marginEscrowBeacon;
-    UpgradeableBeacon creditEscrowBeacon;
     UpgradeableBeacon subVaultBeacon;
     UpgradeableBeacon vaultBeacon;
     DiamondFacet diamondFacet;
@@ -200,14 +208,8 @@ struct AppStorage {
     address[] vaults;
     // mapping of vault owner to vault instance address
     mapping(address => address) vaultMap;
-    // mapping of underlying asset to vault configuration
-    mapping(address => mapping(address => VaultConfig)) vaultConfigMap;
-    // mapping of marketplace to erc721 address
-    // for validate onNFTReceived
-    mapping(address => address) marketPlaceToAsset;
-    mapping(address => ERC721AssetInfo) erc721AssetInfo;
-    // erc721 address => token id => nft info
-    mapping(address => mapping(uint256 => NFTInfo)) nftInfo;
+    // marketplace address => marketplace type
+    mapping(address => MarketPlaceType) marketplace;
     uint256 currentVersion;
     mapping(uint256 => Snapshot) snapshotMap;
     /* ---------------------------------- security --------------------------------- */
@@ -325,5 +327,11 @@ contract Storage is Context {
             snapshot.init,
             snapshot.initArgs
         );
+    }
+
+    function saveMarketPlace(address _marketplace, MarketPlaceType _type)
+        internal
+    {
+        LibAppStorage.ds().marketplace[_marketplace] = _type;
     }
 }

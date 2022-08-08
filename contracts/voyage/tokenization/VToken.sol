@@ -12,7 +12,7 @@ abstract contract VToken is Initializable, ERC4626, IVToken {
     using SafeERC20 for IERC20Metadata;
 
     address internal voyage;
-    // user address => timestamp => amount
+    // user address => timestamp => shares
     mapping(address => mapping(uint256 => uint256)) private withdrawals;
 
     // user address => timestamp array
@@ -50,7 +50,7 @@ abstract contract VToken is Initializable, ERC4626, IVToken {
         beforeWithdraw(_amount, shares);
 
         _burn(_owner, shares);
-        pushWithdraw(_owner, _amount);
+        pushWithdraw(_owner, shares);
 
         emit Withdraw(msg.sender, _receiver, _owner, _amount, shares);
     }
@@ -70,13 +70,17 @@ abstract contract VToken is Initializable, ERC4626, IVToken {
         asset.safeTransfer(_target, _amount);
     }
 
-    function pushWithdraw(address _user, uint256 _amount) internal {
+    function totalUnbondingAsset() public view returns (uint256) {
+        return convertToAssets(totalUnbonding);
+    }
+
+    function pushWithdraw(address _user, uint256 _shares) internal {
         if (withdrawals[_user][block.timestamp] != 0) {
             revert InvalidWithdrawal();
         }
-        withdrawals[_user][block.timestamp] = _amount;
+        withdrawals[_user][block.timestamp] = _shares;
         pendingTimestamp[_user].push(block.timestamp);
-        totalUnbonding += _amount;
+        totalUnbonding += _shares;
     }
 
     function popWithdraw(address _user, uint256 _index)

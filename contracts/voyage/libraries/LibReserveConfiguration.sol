@@ -151,46 +151,6 @@ library LibReserveConfiguration {
         return (self.data & ~ACTIVE_MASK) != 0;
     }
 
-    function setMinMargin(ReserveConfigurationMap memory self, uint256 num)
-        internal
-        pure
-    {
-        if (num > MAX_VALID_MIN_MARGIN) {
-            revert InvalidMinMargin();
-        }
-        self.data =
-            (self.data & MIN_MARGIN_MASK) |
-            (num << MIN_MARGIN_MASK_BIT_POSITION);
-    }
-
-    function getMinMargin(ReserveConfigurationMap memory self)
-        internal
-        pure
-        returns (uint256)
-    {
-        return (self.data & ~MIN_MARGIN_MASK) >> MIN_MARGIN_MASK_BIT_POSITION;
-    }
-
-    function setMaxMargin(ReserveConfigurationMap memory self, uint256 num)
-        internal
-        pure
-    {
-        if (num > MAX_VALID_MAX_MARGIN) {
-            revert InvalidMaxMargin();
-        }
-        self.data =
-            (self.data & MAX_MARGIN_MASK) |
-            (num << MAX_MARGIN_MASK_BIT_POSITION);
-    }
-
-    function getMaxMargin(ReserveConfigurationMap memory self)
-        internal
-        pure
-        returns (uint256)
-    {
-        return (self.data & ~MAX_MARGIN_MASK) >> MAX_MARGIN_MASK_BIT_POSITION;
-    }
-
     function setIncomeRatio(ReserveConfigurationMap memory self, uint256 ratio)
         internal
         pure
@@ -260,35 +220,6 @@ library LibReserveConfiguration {
         self.data =
             (self.data & GRACE_PERIOD_MASK) |
             (numDays << GRACE_PERIOD_MASK_BIT_POSITION);
-    }
-
-    function getMarginParams(ReserveConfigurationMap memory self)
-        internal
-        pure
-        returns (
-            uint256,
-            uint256,
-            uint256
-        )
-    {
-        uint256 localData = self.data;
-        return (
-            (localData & ~MIN_MARGIN_MASK) >> MIN_MARGIN_MASK_BIT_POSITION,
-            (localData & ~MAX_MARGIN_MASK) >> MAX_MARGIN_MASK_BIT_POSITION,
-            (localData & ~MARGIN_REQUIREMENT_MASK) >>
-                MARGIN_REQUIREMENT_MASK_BIT_POSITION
-        );
-    }
-
-    function validateMarginParams(
-        uint256 _min,
-        uint256 _max,
-        uint256 _marginRequirement
-    ) internal pure returns (bool) {
-        if (_min > _max || _marginRequirement == 0) {
-            return false;
-        }
-        return true;
     }
 
     function getBorrowParams(ReserveConfigurationMap memory self)

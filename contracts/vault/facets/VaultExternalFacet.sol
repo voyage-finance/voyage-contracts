@@ -1,17 +1,19 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import {CustodyData, VaultStorageV1, LibVaultStorage, Storage} from "../libraries/LibVaultStorage.sol";
-import {VaultFacet} from "../../voyage/facets/VaultFacet.sol";
+import {VaultAuth} from "../libraries/LibAuth.sol";
 
-contract VaultExternalFacet is Storage {
-    function callExternal(address target, bytes calldata data)
-        external
-        onlyVoyage
-        returns (bytes memory)
-    {
+contract VaultExternalFacet is VaultAuth {
+    function exec(bytes calldata _data) public authorised {
+        (address target, bytes memory data) = abi.decode(
+            _data,
+            (address, bytes)
+        );
         (bool success, bytes memory ret) = target.call(data);
-        require(success);
-        return ret;
+        if (!success) {
+            revert InvalidCall();
+        }
     }
+
+    error InvalidCall();
 }

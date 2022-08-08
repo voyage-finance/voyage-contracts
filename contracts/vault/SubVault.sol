@@ -43,7 +43,9 @@ contract SubVault is Initializable, ISubvault, IERC721Receiver {
         bytes calldata data
     ) external returns (bytes4 ret) {
         if (
-            !VaultDataFacet(diamondStorage().parent).isValidERC721(msg.sender)
+            !VaultDataFacet(diamondStorage().parent).collectionInitialized(
+                msg.sender
+            )
         ) {
             revert InvalidSender();
         }
