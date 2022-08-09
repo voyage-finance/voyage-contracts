@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
+import {IMarketPlaceAdapter} from "../interfaces/IMarketPlaceAdapter.sol";
+
 struct MakerOrder {
     bool isOrderAsk; // true --> ask / false --> bid
     address signer; // signer of the maker order
@@ -46,7 +48,7 @@ interface ILooksRareExchange {
     ) external;
 }
 
-library LibLooksRare {
+contract LooksRareAdapter is IMarketPlaceAdapter {
     // keccak256("MakerOrder(bool isOrderAsk,address signer,address collection,uint256 price,uint256 tokenId,uint256 amount,address strategy,address currency,uint256 nonce,uint256 startTime,uint256 endTime,uint256 minPercentageToAsk,bytes params)")
     bytes32 internal constant MAKER_ORDER_HASH =
         0x40261ade532fa1d2c7293df30aaadb9b3c616fae525a0b56d3d411c841a85028;
@@ -85,7 +87,7 @@ library LibLooksRare {
     }
 
     function extractAssetPrice(bytes calldata _data)
-        internal
+        external
         pure
         returns (uint256)
     {
@@ -113,7 +115,32 @@ library LibLooksRare {
         return takerOrder.price;
     }
 
-    function validate(bytes calldata _data) internal pure returns (bool) {
+    function validate(bytes calldata _data) external pure returns (bool) {
+        return _validate(_data);
+    }
+
+    function execute(bytes calldata _data)
+        external
+        pure
+        returns (bytes memory)
+    {
+        if (_validate(_data)) {
+            PurchaseParam memory param;
+            (
+                param.marketplace,
+                param.selector,
+                param.makerOrder,
+                param.takerOrder
+            ) = abi.decode(_data, (address, bytes4, bytes, bytes));
+            bytes memory data = abi.encode(param.takerOrder, param.makerOrder);
+            data = abi.encodePacked(param.selector, data);
+            return data;
+        }
+        // use native error type here cause an ABI issue
+        revert("invalid data");
+    }
+
+    function _validate(bytes calldata _data) private pure returns (bool) {
         PurchaseParam memory param;
         (
             param.marketplace,
@@ -133,26 +160,5 @@ library LibLooksRare {
             return false;
         }
         return true;
-    }
-
-    function asmExecuteData(bytes calldata _data)
-        internal
-        pure
-        returns (bytes memory)
-    {
-        if (validate(_data)) {
-            PurchaseParam memory param;
-            (
-                param.marketplace,
-                param.selector,
-                param.makerOrder,
-                param.takerOrder
-            ) = abi.decode(_data, (address, bytes4, bytes, bytes));
-            bytes memory data = abi.encode(param.takerOrder, param.makerOrder);
-            data = abi.encodePacked(param.selector, data);
-            return data;
-        }
-        // use native error type here cause an ABI issue
-        revert("invalid data");
     }
 }

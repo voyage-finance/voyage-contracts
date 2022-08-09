@@ -18,12 +18,6 @@ enum Tranche {
     SENIOR
 }
 
-enum MarketPlaceType {
-    Unknown,
-    LooksRare,
-    OpenSea
-}
-
 struct ReserveData {
     //stores the reserve configuration
     ReserveConfigurationMap configuration;
@@ -183,6 +177,10 @@ struct DiamondFacet {
     address ownershipFacet;
 }
 
+struct MarketPlaceData {
+    address adapterAddr;
+}
+
 struct AppStorage {
     /* -------------------------------- plumbing -------------------------------- */
     mapping(bytes32 => address) _addresses;
@@ -209,7 +207,7 @@ struct AppStorage {
     // mapping of vault owner to vault instance address
     mapping(address => address) vaultMap;
     // marketplace address => marketplace type
-    mapping(address => MarketPlaceType) marketplace;
+    mapping(address => MarketPlaceData) marketPlaceData;
     uint256 currentVersion;
     mapping(uint256 => Snapshot) snapshotMap;
     /* ---------------------------------- security --------------------------------- */
@@ -327,11 +325,5 @@ contract Storage is Context {
             snapshot.init,
             snapshot.initArgs
         );
-    }
-
-    function saveMarketPlace(address _marketplace, MarketPlaceType _type)
-        internal
-    {
-        LibAppStorage.ds().marketplace[_marketplace] = _type;
     }
 }

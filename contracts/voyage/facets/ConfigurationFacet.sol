@@ -2,7 +2,7 @@
 pragma solidity ^0.8.9;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import {LibAppStorage, Storage, ReserveConfigurationMap, MarketPlaceType} from "../libraries/LibAppStorage.sol";
+import {LibAppStorage, Storage, ReserveConfigurationMap} from "../libraries/LibAppStorage.sol";
 import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
 import {LibVault} from "../libraries/LibVault.sol";
 
@@ -72,12 +72,5 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
         conf.setGracePeriod(_gracePeriod);
         LibReserveConfiguration.saveConfiguration(_collection, conf);
         emit LoanParametersUpdated(_collection, _epoch, _term, _gracePeriod);
-    }
-
-    function setMarketPlace(address _marketplace, MarketPlaceType _type)
-        external
-        authorised
-    {
-        saveMarketPlace(_marketplace, _type);
     }
 }

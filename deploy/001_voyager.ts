@@ -34,6 +34,10 @@ const deployFn: DeployFunction = async (hre) => {
     from: owner,
     log: true,
   });
+  await deploy('LooksRareAdapter', {
+    from: owner,
+    log: true,
+  });
   const vaultFactory = await deploy('VaultFactory', {
     from: owner,
     log: true,

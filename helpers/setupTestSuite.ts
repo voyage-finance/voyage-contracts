@@ -22,6 +22,8 @@ const setupBase = async ({
   const voyage = await ethers.getContract<Voyage>('Voyage');
   /* ---------------------------------- infra --------------------------------- */
   const priceOracle = await ethers.getContract('PriceOracle');
+  /* ---------------------------------- adapter --------------------------------- */
+  const looksRareAdapter = await ethers.getContract('LooksRareAdapter');
   /* ------------------------------ tokenization ------------------------------ */
   const tus = await ethers.getContract('Tus');
   const crab = await ethers.getContract('Crab');
@@ -43,7 +45,10 @@ const setupBase = async ({
   await voyage.activateReserve(crab.address);
   const cutRatio = toRay(new BigNumber('0.2')).toFixed();
   await voyage.updateProtocolFee(owner, cutRatio);
-  await voyage.setMarketPlace(marketPlace.address, 1);
+  await voyage.updateMarketPlaceData(
+    marketPlace.address,
+    looksRareAdapter.address
+  );
   const [senior, junior] = await voyage.getDepositTokens(crab.address);
   const seniorDepositToken = await ethers.getContractAt(
     'SeniorDepositToken',
