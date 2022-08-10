@@ -153,7 +153,7 @@ contract VaultManageFacet {
         );
         (bool success, bytes memory ret) = target.call(data);
         if (!success) {
-            revert CallExternalError();
+            revert UnsuccessfulCall();
         }
     }
 }
@@ -164,4 +164,4 @@ error InvalidTransfer(string reason);
 error InvalidSubvaultAddress(address subvault);
 error UnAuthorised();
 error InvalidSender(address sender);
-error CallExternalError();
+error UnsuccessfulCall();
