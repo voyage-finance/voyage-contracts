@@ -75,7 +75,14 @@ library LibLoan {
         uint256 _term,
         uint256 _epoch,
         uint256 _apr
-    ) internal returns (uint256 loanId, Loan storage) {
+    )
+        internal
+        returns (
+            uint256 loanId,
+            PMT memory pmt,
+            uint256 totalInterest
+        )
+    {
         ExecuteDebtParam memory param;
         param.collection = _collection;
         param.currency = _currency;
@@ -143,7 +150,7 @@ library LibLoan {
         borrowState.totalDebt = borrowState.totalDebt + loan.principal;
         borrowState.totalInterest = borrowState.totalInterest + loan.interest;
 
-        return (currentLoanNumber, loan);
+        return (currentLoanNumber, pmt, loan.interest);
     }
 
     function repay(
