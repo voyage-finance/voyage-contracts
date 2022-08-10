@@ -264,7 +264,7 @@ contract LoanFacet is Storage {
             revert InsufficientLiquidity();
         }
 
-        // 7. receive downpayment
+        // 7.1 receive downpayment
         if (params.downpayment > msg.value) {
             IERC20(reserveData.currency).safeTransferFrom(
                 msg.sender,
@@ -276,6 +276,15 @@ contract LoanFacet is Storage {
                 revert InvalidValueTransfered();
             }
         }
+
+        //7.2 treasury fee
+        uint256 protocolFee = (params.totalPrincipal *
+            LibAppStorage.ds().protocolFee.cutRatio) / 10000;
+        IERC20(reserveData.currency).safeTransferFrom(
+            msg.sender,
+            LibAppStorage.ds().protocolFee.treasuryAddress,
+            protocolFee
+        );
 
         // 8. transfer money to this then forward to vault
         IVToken(reserveData.seniorDepositTokenAddress).transferUnderlyingTo(

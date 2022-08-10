@@ -43,7 +43,7 @@ const setupBase = async ({
   await voyage.setIncomeRatio(crab.address, 0.5 * 1e4);
   await voyage.setLoanParams(crab.address, 30, 90, 10);
   await voyage.activateReserve(crab.address);
-  const cutRatio = toRay(new BigNumber('0.2')).toFixed();
+  const cutRatio = '200'; //2%
   await voyage.updateProtocolFee(owner, cutRatio);
   await voyage.updateMarketPlaceData(
     marketPlace.address,
