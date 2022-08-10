@@ -473,7 +473,7 @@ contract LoanFacet is Storage {
             param.vault,
             param.loanId
         );
-        param.totalDebt = param.principal + param.interest;
+        param.totalDebt = param.principal;
         param.remaningDebt = param.totalDebt;
         param.discount = getDiscount(param.floorPrice, param.liquidationBonus);
         param.discountedFloorPrice = param.floorPrice - param.discount;

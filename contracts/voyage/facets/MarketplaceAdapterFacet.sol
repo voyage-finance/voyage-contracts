@@ -6,6 +6,11 @@ import {IMarketPlaceAdapter} from "../interfaces/IMarketPlaceAdapter.sol";
 import {Storage, LibAppStorage} from "../libraries/LibAppStorage.sol";
 
 contract MarketplaceAdapterFacet is Storage {
+    event MarketplaceAdapterUpdated(
+        address indexed _marketplace,
+        address _strategy
+    );
+
     function purchase(
         address _marketplace,
         address _vault,
@@ -42,5 +47,6 @@ contract MarketplaceAdapterFacet is Storage {
             .ds()
             .marketPlaceData[_marketplace]
             .adapterAddr = _strategy;
+        emit MarketplaceAdapterUpdated(_marketplace, _strategy);
     }
 }
