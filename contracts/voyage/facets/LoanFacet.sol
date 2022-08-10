@@ -405,71 +405,63 @@ contract LoanFacet is Storage {
         param.discountedFloorPrice = param.floorPrice - param.discount;
 
         // 4.3 sell nft
-        while (param.remaningDebt > 0) {
-            (bool success, uint256 tokenId) = LibLoan.releaseLien(
-                param.collection,
-                param.currency,
-                param.vault,
-                param.loanId
+        uint256[] memory collaterals = LibLoan.releaseLien(
+            param.collection,
+            param.currency,
+            param.vault,
+            param.loanId
+        );
+        uint256 discountedFloorPriceInTotal = param.discountedFloorPrice *
+            collaterals.length;
+        IERC20(param.currency).safeTransferFrom(
+            param.liquidator,
+            address(this),
+            discountedFloorPriceInTotal
+        );
+        param.receivedAmount += discountedFloorPriceInTotal;
+
+        for (uint256 i = 0; i < collaterals.length; i++) {
+            bytes4 selector = IERC721(param.collection).transferFrom.selector;
+            bytes memory data = abi.encodePacked(
+                selector,
+                abi.encode(param.vault, param.liquidator, collaterals[i])
             );
-            if (success) {
-                IERC20(param.currency).safeTransferFrom(
-                    param.liquidator,
-                    address(this),
-                    param.discountedFloorPrice
-                );
-                bytes4 selector = IERC721(param.collection)
-                    .transferFrom
-                    .selector;
-                bytes memory data = abi.encodePacked(
-                    selector,
-                    abi.encode(param.vault, param.liquidator, tokenId)
-                );
-                bytes memory encodedData = abi.encode(param.collection, data);
-                VaultManageFacet(_vault).exec(encodedData);
-                emit CollateralTransferred(param.vault, param.liquidator);
-                if (param.remaningDebt > param.discountedFloorPrice) {
-                    param.remaningDebt =
-                        param.remaningDebt -
-                        param.discountedFloorPrice;
-                    param.receivedAmount += param.discountedFloorPrice;
-                } else {
-                    // refund to vault
-                    uint256 refundAmount = param.discountedFloorPrice -
-                        param.remaningDebt;
-                    IERC20(param.currency).transfer(param.vault, refundAmount);
-                    param.receivedAmount += param.remaningDebt;
-                    param.remaningDebt = 0;
-                }
-            } else {
-                break;
-            }
+            bytes memory encodedData = abi.encode(param.collection, data);
+            VaultManageFacet(_vault).exec(encodedData);
         }
 
-        // 4.4 transfer from junior tranche
-        param.totalAssetFromJuniorTranche = ERC4626(
-            reserveData.juniorDepositTokenAddress
-        ).totalAssets();
-
-        uint256 remaningDebt = param.discount + param.remaningDebt;
-
-        if (param.totalAssetFromJuniorTranche >= remaningDebt) {
-            IVToken(reserveData.juniorDepositTokenAddress).transferUnderlyingTo(
-                    address(this),
-                    remaningDebt
-                );
-            param.juniorTrancheAmount = remaningDebt;
-            param.receivedAmount += remaningDebt;
+        if (param.totalDebt > discountedFloorPriceInTotal) {
+            param.remaningDebt = param.totalDebt - discountedFloorPriceInTotal;
         } else {
-            IVToken(reserveData.juniorDepositTokenAddress).transferUnderlyingTo(
-                    address(this),
-                    param.totalAssetFromJuniorTranche
-                );
-            param.juniorTrancheAmount = param.totalAssetFromJuniorTranche;
-            param.receivedAmount += param.totalAssetFromJuniorTranche;
-            param.writeDownAmount =
-                remaningDebt -
-                param.totalAssetFromJuniorTranche;
+            uint256 refundAmount = discountedFloorPriceInTotal -
+                param.totalDebt;
+            IERC20(param.currency).transfer(param.vault, refundAmount);
+            param.receivedAmount -= refundAmount;
+        }
+
+        if (param.remaningDebt > 0) {
+            // 4.4 transfer from junior tranche
+            param.totalAssetFromJuniorTranche = ERC4626(
+                reserveData.juniorDepositTokenAddress
+            ).totalAssets();
+
+            if (param.totalAssetFromJuniorTranche >= param.remaningDebt) {
+                IVToken(reserveData.juniorDepositTokenAddress)
+                    .transferUnderlyingTo(address(this), param.remaningDebt);
+                param.juniorTrancheAmount = param.remaningDebt;
+                param.receivedAmount += param.remaningDebt;
+            } else {
+                IVToken(reserveData.juniorDepositTokenAddress)
+                    .transferUnderlyingTo(
+                        address(this),
+                        param.totalAssetFromJuniorTranche
+                    );
+                param.juniorTrancheAmount = param.totalAssetFromJuniorTranche;
+                param.receivedAmount += param.totalAssetFromJuniorTranche;
+                param.writeDownAmount =
+                    param.remaningDebt -
+                    param.totalAssetFromJuniorTranche;
+            }
         }
 
         (param.repaymentId, param.isFinal) = LibLoan.repay(

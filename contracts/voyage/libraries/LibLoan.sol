@@ -49,7 +49,7 @@ library LibLoan {
         address _currency,
         address _vault,
         uint256 _loanId
-    ) internal returns (bool success, uint256 tokenId) {
+    ) internal returns (uint256[] memory ret) {
         BorrowData storage borrowData = getBorrowData(
             _collection,
             _currency,
@@ -58,27 +58,12 @@ library LibLoan {
 
         Loan storage loan = borrowData.loans[_loanId];
         uint256[] storage collaterals = loan.collateral;
-        if (collaterals.length == 0) {
-            success = false;
-            return (success, tokenId);
+        ret = collaterals;
+        for (uint256 i = 0; i < collaterals.length; i++) {
+            delete LibAppStorage.ds().nftIndex[_collection][collaterals[i]];
         }
-
-        if (collaterals.length == 1) {
-            success = true;
-            tokenId = collaterals[0];
-            collaterals.pop();
-            delete LibAppStorage.ds().nftIndex[_collection][tokenId];
-            return (success, tokenId);
-        }
-
-        (collaterals[0], collaterals[collaterals.length - 1]) = (
-            collaterals[collaterals.length - 1],
-            collaterals[0]
-        );
-        tokenId = collaterals[collaterals.length - 1];
-        collaterals.pop();
-        delete LibAppStorage.ds().nftIndex[_collection][tokenId];
-        return (success, tokenId);
+        delete borrowData.loans[_loanId];
+        return ret;
     }
 
     function insertDebt(
