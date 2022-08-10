@@ -32,7 +32,6 @@ contract LoanFacet is Storage {
         address collection;
         address marketplace;
         uint256 price;
-        uint256 minPercentageToAsk;
         bytes params;
         uint256 tokenId;
         address vault;
@@ -120,6 +119,43 @@ contract LoanFacet is Storage {
     );
 
     event CollateralTransferred(address from, address to);
+
+    function previewBuyNowParams(address _collection, uint256 _amount)
+        public
+        view
+        returns (ExecuteBorrowParams memory)
+    {
+        ExecuteBorrowParams memory executeBorrowParams;
+        ReserveData memory reserveData = LibLiquidity.getReserveData(
+            _collection
+        );
+        ReserveConfigurationMap memory reserveConf = LibReserveConfiguration
+            .getConfiguration(_collection);
+
+        (executeBorrowParams.epoch, executeBorrowParams.term) = reserveConf
+            .getBorrowParams();
+
+        BorrowState storage borrowState = LibLoan.getBorrowState(
+            _collection,
+            reserveData.currency
+        );
+
+        (
+            executeBorrowParams.liquidityRate,
+            executeBorrowParams.borrowRate
+        ) = IReserveInterestRateStrategy(
+            reserveData.interestRateStrategyAddress
+        ).calculateInterestRates(
+                reserveData.currency,
+                reserveData.seniorDepositTokenAddress,
+                0,
+                _amount,
+                borrowState.totalDebt,
+                borrowState.avgBorrowRate
+            );
+
+        return executeBorrowParams;
+    }
 
     function buyNow(
         address _collection,
