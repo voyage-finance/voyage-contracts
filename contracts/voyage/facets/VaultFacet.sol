@@ -3,6 +3,10 @@ pragma solidity ^0.8.9;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import {LibAppStorage, AppStorage, Storage, VaultConfig, NFTInfo, DiamondFacet, ReserveConfigurationMap} from "../libraries/LibAppStorage.sol";
 import {LibVault} from "../libraries/LibVault.sol";
@@ -15,11 +19,10 @@ import {Vault} from "../../vault/Vault.sol";
 import {IDiamondCut} from "../../shared/diamond/interfaces/IDiamondCut.sol";
 import {DiamondCutFacet} from "../../shared/diamond/facets/DiamondCutFacet.sol";
 import {DiamondVersionFacet} from "./DiamondVersionFacet.sol";
-import {VaultAssetFacet} from "../../vault/facets/VaultAssetFacet.sol";
 import {VaultManageFacet} from "../../vault/facets/VaultManageFacet.sol";
-import {VaultExternalFacet} from "../../vault/facets/VaultExternalFacet.sol";
 
 contract VaultFacet is Storage, ReentrancyGuard {
+    using SafeERC20 for IERC20;
     using LibReserveConfiguration for ReserveConfigurationMap;
     /* --------------------------------- events --------------------------------- */
     event VaultCreated(address _vault, address _owner, uint256 _numVaults);
@@ -58,22 +61,19 @@ contract VaultFacet is Storage, ReentrancyGuard {
         }
         diamondCut(vaultBeaconProxy);
         uint256 numVaults = LibVault.recordVault(_owner, vaultBeaconProxy);
-        bytes4[] memory sigs = new bytes4[](6);
-        sigs[0] = VaultAssetFacet(address(0)).withdrawRewards.selector;
-        sigs[1] = VaultAssetFacet(address(0)).withdrawNFT.selector;
-        sigs[2] = VaultManageFacet(address(0)).createSubvault.selector;
-        sigs[3] = VaultManageFacet(address(0)).updateSubvaultOwner.selector;
-        sigs[4] = VaultManageFacet(address(0)).pauseSubvault.selector;
-        sigs[5] = VaultManageFacet(address(0)).unpauseSubvault.selector;
+        bytes4[] memory sigs = new bytes4[](4);
+        sigs[0] = VaultManageFacet(address(0)).createSubvault.selector;
+        sigs[1] = VaultManageFacet(address(0)).updateSubvaultOwner.selector;
+        sigs[2] = VaultManageFacet(address(0)).pauseSubvault.selector;
+        sigs[3] = VaultManageFacet(address(0)).unpauseSubvault.selector;
         LibSecurity.grantPermissions(
             LibAppStorage.ds().auth,
             _owner,
             vaultBeaconProxy,
             sigs
         );
-        sigs = new bytes4[](2);
-        sigs[0] = VaultAssetFacet(address(0)).grantLienOnAsset.selector;
-        sigs[1] = VaultExternalFacet(address(0)).exec.selector;
+        sigs = new bytes4[](1);
+        sigs[0] = VaultManageFacet(address(0)).exec.selector;
         LibSecurity.grantPermissions(
             LibAppStorage.ds().auth,
             address(this),
@@ -89,7 +89,43 @@ contract VaultFacet is Storage, ReentrancyGuard {
         LibVault.setVaultBeacon(_impl);
     }
 
-    /************************************** View Functions **************************************/
+    /* ---------------------- user interface --------------------- */
+    function withdrawNFT(
+        address _vault,
+        address _collection,
+        uint256 _tokenId
+    ) external nonReentrant {
+        if (LibVault.getVaultAddress(_msgSender()) != _vault) {
+            revert InvalidVaultCall();
+        }
+        if (LibAppStorage.ds().nftIndex[_collection][_tokenId].isCollateral) {
+            revert InvalidWithdrawal();
+        }
+        delete LibAppStorage.ds().nftIndex[_collection][_tokenId];
+        bytes4 selector = IERC721(_collection).transferFrom.selector;
+        bytes memory param = abi.encode(_vault, _msgSender(), _tokenId);
+        bytes memory data = abi.encodePacked(selector, param);
+        bytes memory encodedData = abi.encode(_collection, data);
+        VaultManageFacet(_vault).exec(encodedData);
+    }
+
+    function transferReserve(
+        address _vault,
+        address _currency,
+        address _to,
+        uint256 _amount
+    ) external nonReentrant {
+        if (LibVault.getVaultAddress(_msgSender()) != _vault) {
+            revert InvalidVaultCall();
+        }
+        bytes4 selector = IERC20(_currency).transferFrom.selector;
+        bytes memory param = abi.encode(_vault, _to, _amount);
+        bytes memory data = abi.encodePacked(selector, param);
+        bytes memory encodedData = abi.encode(_currency, data);
+        VaultManageFacet(_vault).exec(encodedData);
+    }
+
+    /* ---------------------- view functions --------------------- */
     function computeCounterfactualAddress(address _owner, bytes20 _salt)
         external
         view
@@ -163,4 +199,4 @@ contract VaultFacet is Storage, ReentrancyGuard {
 /* --------------------------------- errors -------------------------------- */
 error InvalidVaultCall();
 error FailedDeployVault();
-error IllegalVaultMarginParameters();
+error InvalidWithdrawal();

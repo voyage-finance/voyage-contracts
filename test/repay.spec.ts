@@ -2,11 +2,7 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { setupTestSuite } from '../helpers/setupTestSuite';
 import { toWad } from '../helpers/math';
-import { Vault } from 'typechain/Vault';
-import { VaultAssetFacet } from 'typechain/VaultAssetFacet';
 
-const max = 1000;
-const requirement = 0.1 * 1e4;
 describe('Repay', function () {
   function showLoan(loan: any) {
     console.log('principal: ', loan.principal.toString());
@@ -47,6 +43,7 @@ describe('Repay', function () {
       marketPlace.address,
       purchaseData
     );
+    await crab.safeMint(vault, 1);
 
     // increase seven days
     const sevenDays = 7 * 24 * 60 * 60;
@@ -71,6 +68,7 @@ describe('Repay', function () {
       marketPlace.address,
       purchaseData
     );
+    await crab.safeMint(vault, 2);
 
     const vaultData2 = await voyage.getCreditLineData(vault, crab.address);
 
@@ -99,14 +97,6 @@ describe('Repay', function () {
     expect(loanDetail01.totalPrincipalPaid).to.equal('6666666666666666666');
     expect(loanDetail01.totalInterestPaid).to.equal('300000000000000000');
 
-    const VaultAssetFacet = await ethers.getContractFactory('VaultAssetFacet');
-    const vaultAssetFacet = await VaultAssetFacet.attach(vault);
-    const withdrawableAssets = await vaultAssetFacet.withdrawableAsset(
-      crab.address
-    );
-    console.log(withdrawableAssets.toString());
-    expect(withdrawableAssets.length).to.equal(0);
-
     // repay draw down 0 again
     await voyage.repay(crab.address, 0, vault);
     const loanDetail02 = await voyage.getLoanDetail(vault, crab.address, 0);
@@ -115,10 +105,8 @@ describe('Repay', function () {
     expect(loanDetail02.totalPrincipalPaid).to.equal(ethers.constants.Zero);
     expect(loanDetail02.totalPrincipalPaid).to.equal(ethers.constants.Zero);
 
-    const withdrawableAssetsAfter = await vaultAssetFacet.withdrawableAsset(
-      crab.address
-    );
-    expect(withdrawableAssetsAfter.length).to.equal(1);
-    expect(withdrawableAssetsAfter[0]).to.equal(1);
+    // withdraw nft
+    await voyage.withdrawNFT(vault, crab.address, '1');
+    await expect(await crab.ownerOf(1)).to.equal(owner);
   });
 });

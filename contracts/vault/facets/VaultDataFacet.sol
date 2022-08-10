@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
-import {CustodyData, LibVaultStorage, Storage} from "../libraries/LibVaultStorage.sol";
+import {CustodyData, LibVaultStorage} from "../libraries/LibVaultStorage.sol";
 import {VaultConfig} from "../../voyage/libraries/LibAppStorage.sol";
 import {LoanFacet} from "../../voyage/facets/LoanFacet.sol";
 import {VaultFacet} from "../../voyage/facets/VaultFacet.sol";
 import {DataProviderFacet} from "../../voyage/facets/DataProviderFacet.sol";
 
-contract VaultDataFacet is ReentrancyGuard, Storage, IERC1271 {
+contract VaultDataFacet is IERC1271 {
     /// @notice Get total debt of this vault
     /// @param _collection Address of the collection
     function totalDebt(address _collection)

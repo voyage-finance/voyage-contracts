@@ -28,7 +28,6 @@ struct VaultStorageV1 {
     // mapping of erc721 address to mapping of tokenId to custody information
     // to save storage space, only store this data if the token is transferred out of the Vault (i.e., to a Subvault or external contract)
     mapping(address => mapping(uint256 => CustodyData)) custodyIndex;
-    mapping(address => uint256[]) withdrawableAssets;
 }
 
 library LibVaultStorage {
@@ -40,12 +39,5 @@ library LibVaultStorage {
         assembly {
             ds.slot := storagePosition
         }
-    }
-}
-
-contract Storage {
-    modifier onlyVoyage() {
-        require(msg.sender == LibVaultStorage.ds().voyage, "Not Voyage");
-        _;
     }
 }

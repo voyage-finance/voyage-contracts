@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import {VaultExternalFacet} from "../../vault/facets/VaultExternalFacet.sol";
+import {VaultManageFacet} from "../../vault/facets/VaultManageFacet.sol";
 import {IMarketPlaceAdapter} from "../interfaces/IMarketPlaceAdapter.sol";
 import {Storage, LibAppStorage} from "../libraries/LibAppStorage.sol";
 
@@ -18,7 +18,7 @@ contract MarketplaceAdapterFacet is Storage {
             .adapterAddr;
         bytes memory data = IMarketPlaceAdapter(adapterAddr).execute(_data);
         bytes memory encodedData = abi.encode(_marketplace, data);
-        VaultExternalFacet(_vault).exec(encodedData);
+        VaultManageFacet(_vault).exec(encodedData);
     }
 
     function extractAssetPrice(address _marketplace, bytes calldata _data)

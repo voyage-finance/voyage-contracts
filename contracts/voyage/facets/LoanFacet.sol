@@ -3,6 +3,7 @@ pragma solidity ^0.8.9;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {ERC4626} from "@rari-capital/solmate/src/mixins/ERC4626.sol";
 import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {LibLoan} from "../libraries/LibLoan.sol";
@@ -15,8 +16,7 @@ import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol"
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
 import {VaultDataFacet} from "../../vault/facets/VaultDataFacet.sol";
-import {VaultAssetFacet} from "../../vault/facets/VaultAssetFacet.sol";
-import {VaultAssetFacet} from "../../vault/facets/VaultAssetFacet.sol";
+import {VaultManageFacet} from "../../vault/facets/VaultManageFacet.sol";
 import {VaultFacet} from "./VaultFacet.sol";
 import {MarketplaceAdapterFacet} from "./MarketplaceAdapterFacet.sol";
 
@@ -418,11 +418,15 @@ contract LoanFacet is Storage {
                     address(this),
                     param.discountedFloorPrice
                 );
-                VaultAssetFacet(param.vault).transferNFT(
-                    param.collection,
-                    param.liquidator,
-                    tokenId
+                bytes4 selector = IERC721(param.collection)
+                    .transferFrom
+                    .selector;
+                bytes memory data = abi.encodePacked(
+                    selector,
+                    abi.encode(param.vault, param.liquidator, tokenId)
                 );
+                bytes memory encodedData = abi.encode(param.collection, data);
+                VaultManageFacet(_vault).exec(encodedData);
                 emit CollateralTransferred(param.vault, param.liquidator);
                 if (param.remaningDebt > param.discountedFloorPrice) {
                     param.remaningDebt =

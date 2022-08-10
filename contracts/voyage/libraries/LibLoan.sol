@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import {LibAppStorage, AppStorage, BorrowData, BorrowState, Loan, PMT, RepaymentData, ReserveData, RepaymentData} from "./LibAppStorage.sol";
+import {LibAppStorage, AppStorage, BorrowData, BorrowState, Loan, PMT, RepaymentData, ReserveData, RepaymentData, NFTInfo} from "./LibAppStorage.sol";
 import {LibLiquidity} from "./LibLiquidity.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
-import {VaultAssetFacet} from "../../vault/facets/VaultAssetFacet.sol";
 
 library LibLoan {
     using WadRayMath for uint256;
@@ -29,6 +28,18 @@ library LibLoan {
         uint256 totalPrincipalPaid;
         uint256 totalInterestPaid;
         uint256 paidTimes;
+    }
+
+    struct ExecuteDebtParam {
+        address collection;
+        address currency;
+        uint256 tokenId;
+        address vault;
+        uint256 principal;
+        uint256 interest;
+        uint256 term;
+        uint256 epoch;
+        uint256 apr;
     }
 
     /* ----------------------------- state mutations ---------------------------- */
@@ -56,6 +67,7 @@ library LibLoan {
             success = true;
             tokenId = collaterals[0];
             collaterals.pop();
+            delete LibAppStorage.ds().nftIndex[_collection][tokenId];
             return (success, tokenId);
         }
 
@@ -65,6 +77,7 @@ library LibLoan {
         );
         tokenId = collaterals[collaterals.length - 1];
         collaterals.pop();
+        delete LibAppStorage.ds().nftIndex[_collection][tokenId];
         return (success, tokenId);
     }
 
@@ -78,26 +91,34 @@ library LibLoan {
         uint256 _epoch,
         uint256 _apr
     ) internal returns (uint256 loanId, Loan storage) {
+        ExecuteDebtParam memory param;
+        param.collection = _collection;
+        param.currency = _currency;
+        param.tokenId = _collateral;
+        param.vault = _vault;
+        param.principal = _principal;
+        param.term = _term;
+        param.epoch = _epoch;
+        param.apr = _apr;
         BorrowState storage borrowState = getBorrowState(
-            _collection,
-            _currency
+            param.collection,
+            param.currency
         );
         BorrowData storage borrowData = getBorrowData(
-            _collection,
-            _currency,
-            _vault
+            param.collection,
+            param.currency,
+            param.vault
         );
         uint256 currentLoanNumber = borrowData.nextLoanNumber;
         Loan storage loan = borrowData.loans[currentLoanNumber];
-        loan.principal = _principal;
-        loan.term = _term;
-        loan.epoch = _epoch;
-        loan.apr = _apr;
+        loan.principal = param.principal;
+        loan.term = param.term;
+        loan.epoch = param.epoch;
+        loan.apr = param.apr;
         loan.nper = (_term * SECOND_PER_DAY) / (_epoch * SECOND_PER_DAY);
         loan.borrowAt = block.timestamp;
         uint256 periodsPerYear = SECONDS_PER_YEAR /
             (loan.epoch * SECOND_PER_DAY);
-        // eir = (apr * nper ) / periods_per_year
         uint256 effectiveInterestRate = (loan.apr * loan.nper) / periodsPerYear;
         loan.interest = loan.principal.rayMul(effectiveInterestRate);
 
@@ -106,8 +127,14 @@ library LibLoan {
         pmt.interest = loan.interest / loan.nper;
         pmt.pmt = pmt.principal + pmt.interest;
         loan.pmt = pmt;
-        loan.collateral.push(_collateral);
-
+        loan.collateral.push(param.tokenId);
+        NFTInfo memory nftInfo;
+        nftInfo.collection = param.collection;
+        nftInfo.tokenId = param.tokenId;
+        nftInfo.currency = param.currency;
+        nftInfo.price = param.principal;
+        nftInfo.isCollateral = true;
+        LibAppStorage.ds().nftIndex[param.collection][param.tokenId] = nftInfo;
         loan.nextPaymentDue =
             loan.borrowAt +
             (loan.paidTimes + 1) *
@@ -142,38 +169,44 @@ library LibLoan {
         uint256 _principal,
         uint256 _interest
     ) internal returns (uint256, bool) {
+        ExecuteDebtParam memory param;
+        param.collection = _collection;
+        param.currency = _currency;
+        param.vault = _vault;
+        param.principal = _principal;
+        param.interest = _interest;
         bool isFinal = false;
         BorrowData storage debtData = getBorrowData(
-            _collection,
-            _currency,
-            _vault
+            param.collection,
+            param.currency,
+            param.vault
         );
         BorrowState storage borrowState = getBorrowState(
-            _collection,
-            _currency
+            param.collection,
+            param.currency
         );
         Loan storage loan = debtData.loans[_loanNumber];
         loan.paidTimes += 1;
         if (loan.paidTimes == loan.nper) {
             uint256[] storage collaterals = loan.collateral;
             for (uint256 i = 0; i < collaterals.length; i++) {
-                VaultAssetFacet(_vault).grantLienOnAsset(
-                    _collection,
-                    collaterals[i]
-                );
+                LibAppStorage
+                .ds()
+                .nftIndex[param.collection][collaterals[i]]
+                    .isCollateral = false;
             }
             delete debtData.loans[_loanNumber];
             isFinal = true;
-            borrowState.numRepaidLoans[_vault].repaidTimes =
-                borrowState.numRepaidLoans[_vault].repaidTimes +
+            borrowState.numRepaidLoans[param.vault].repaidTimes =
+                borrowState.numRepaidLoans[param.vault].repaidTimes +
                 1;
         } else {
-            loan.totalPrincipalPaid = loan.totalPrincipalPaid + _principal;
-            loan.totalInterestPaid = loan.totalInterestPaid + _interest;
+            loan.totalPrincipalPaid = loan.totalPrincipalPaid + param.principal;
+            loan.totalInterestPaid = loan.totalInterestPaid + param.interest;
             RepaymentData memory repayment;
-            repayment.interest = _interest;
-            repayment.principal = _principal;
-            repayment.total = _principal + _interest;
+            repayment.interest = param.interest;
+            repayment.principal = param.principal;
+            repayment.total = param.principal + param.interest;
             repayment.paidAt = uint40(block.timestamp);
             loan.repayments.push(repayment);
             // t, t+1, t+2
@@ -184,19 +217,19 @@ library LibLoan {
                 SECOND_PER_DAY;
         }
 
-        debtData.totalPrincipal = debtData.totalPrincipal - _principal;
-        debtData.totalInterest = debtData.totalInterest - _interest;
-        if (borrowState.totalDebt == _principal) {
+        debtData.totalPrincipal = debtData.totalPrincipal - param.principal;
+        debtData.totalInterest = debtData.totalInterest - param.interest;
+        if (borrowState.totalDebt == param.principal) {
             borrowState.avgBorrowRate = 0;
         } else {
             uint256 numer = borrowState.totalDebt.rayMul(
                 borrowState.avgBorrowRate
-            ) - _principal.rayMul(loan.apr);
-            uint256 denom = borrowState.totalDebt - _principal;
+            ) - param.principal.rayMul(loan.apr);
+            uint256 denom = borrowState.totalDebt - param.principal;
             borrowState.avgBorrowRate = numer.rayDiv(denom);
         }
-        borrowState.totalDebt = borrowState.totalDebt - _principal;
-        borrowState.totalInterest = borrowState.totalInterest - _interest;
+        borrowState.totalDebt = borrowState.totalDebt - param.principal;
+        borrowState.totalInterest = borrowState.totalInterest - param.interest;
 
         return (
             loan.repayments.length == 0 ? 0 : loan.repayments.length - 1,

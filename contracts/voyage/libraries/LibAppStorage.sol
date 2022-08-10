@@ -150,8 +150,11 @@ struct Authorisation {
 }
 
 struct NFTInfo {
-    uint256 price;
-    uint256 timestamp;
+    bool isCollateral; // this determines whether the NFT can be transferred out of the Vault.
+    address collection;
+    uint256 tokenId;
+    address currency; // record what currency was used to pay
+    uint256 price; // price in ETH
 }
 
 struct ERC721AssetInfo {
@@ -208,6 +211,8 @@ struct AppStorage {
     mapping(address => address) vaultMap;
     // marketplace address => marketplace type
     mapping(address => MarketPlaceData) marketPlaceData;
+    // collection => tokenId => info
+    mapping(address => mapping(uint256 => NFTInfo)) nftIndex;
     uint256 currentVersion;
     mapping(uint256 => Snapshot) snapshotMap;
     /* ---------------------------------- security --------------------------------- */
