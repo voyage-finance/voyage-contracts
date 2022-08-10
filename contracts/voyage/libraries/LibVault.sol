@@ -78,10 +78,9 @@ library LibVault {
         uint256 _fv
     ) internal view returns (uint256) {
         AppStorage storage s = LibAppStorage.ds();
-        uint256 rep = s
-        ._borrowState[_collection][_currency]
-            .numRepaidLoans[_vault]
-            .repaidTimes;
+        uint256 rep = s._borrowState[_collection][_currency].repaidTimes[
+            _vault
+        ];
         uint256 scaledRep = (rep + 1) * 1e18;
         uint256 multiplier = LogarithmMath.log2(scaledRep) + 1;
         return _fv * multiplier;

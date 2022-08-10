@@ -182,8 +182,8 @@ library LibLoan {
             }
             delete debtData.loans[_loanNumber];
             isFinal = true;
-            borrowState.numRepaidLoans[param.vault].repaidTimes =
-                borrowState.numRepaidLoans[param.vault].repaidTimes +
+            borrowState.repaidTimes[param.vault] =
+                borrowState.repaidTimes[param.vault] +
                 1;
         } else {
             loan.totalPrincipalPaid = loan.totalPrincipalPaid + param.principal;

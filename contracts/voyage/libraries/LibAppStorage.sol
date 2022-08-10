@@ -108,15 +108,11 @@ struct BorrowData {
     mapping(uint256 => Loan) loans;
 }
 
-struct RepaidRecord {
-    uint256 repaidTimes;
-}
-
 struct BorrowState {
     uint256 totalDebt;
     uint256 totalInterest;
     uint256 avgBorrowRate;
-    mapping(address => RepaidRecord) numRepaidLoans;
+    mapping(address => uint256) repaidTimes;
 }
 
 struct VaultConfig {
