@@ -22,7 +22,7 @@ describe('Repay', function () {
       crab,
       voyage,
       priceOracle,
-      purchaseData,
+      purchaseDataFromLooksRare,
       marketPlace,
     } = await setupTestSuite();
 
@@ -41,7 +41,7 @@ describe('Repay', function () {
       '1',
       vault,
       marketPlace.address,
-      purchaseData
+      purchaseDataFromLooksRare
     );
     await crab.safeMint(vault, 1);
 
@@ -66,7 +66,7 @@ describe('Repay', function () {
       '2',
       vault,
       marketPlace.address,
-      purchaseData
+      purchaseDataFromLooksRare
     );
     await crab.safeMint(vault, 2);
 

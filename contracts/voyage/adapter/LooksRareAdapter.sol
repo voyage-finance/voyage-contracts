@@ -121,7 +121,7 @@ contract LooksRareAdapter is IMarketPlaceAdapter {
 
     function execute(bytes calldata _data)
         external
-        pure
+        view
         returns (bytes memory)
     {
         if (_validate(_data)) {

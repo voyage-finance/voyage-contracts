@@ -22,12 +22,15 @@ const setupBase = async ({
   const voyage = await ethers.getContract<Voyage>('Voyage');
   /* ---------------------------------- infra --------------------------------- */
   const priceOracle = await ethers.getContract('PriceOracle');
+  const weth = await ethers.getContract('WETH9');
   /* ---------------------------------- adapter --------------------------------- */
   const looksRareAdapter = await ethers.getContract('LooksRareAdapter');
+  const seaportAdapter = await ethers.getContract('SeaportAdapter');
   /* ------------------------------ tokenization ------------------------------ */
   const tus = await ethers.getContract('Tus');
   const crab = await ethers.getContract('Crab');
   const marketPlace = await ethers.getContract('MockMarketPlace');
+  const seaport = await ethers.getContract('SeaportAdapter');
   const defaultReserveInterestRateStrategy = await ethers.getContract(
     'DefaultReserveInterestRateStrategy'
   );
@@ -49,6 +52,7 @@ const setupBase = async ({
     marketPlace.address,
     looksRareAdapter.address
   );
+  await voyage.updateMarketPlaceData(seaport.address, seaportAdapter.address);
   const [senior, junior] = await voyage.getDepositTokens(crab.address);
   const seniorDepositToken = await ethers.getContractAt(
     'SeniorDepositToken',
@@ -68,7 +72,7 @@ const setupBase = async ({
   const deployedVault = await voyage.getVault(owner);
   await tus.approve(deployedVault, MAX_UINT_256);
   const abiCoder = ethers.utils.defaultAbiCoder;
-  const makerOrderData = abiCoder.encode(
+  const looksRareMakerOrderData = abiCoder.encode(
     [
       'bool',
       'address',
@@ -129,11 +133,63 @@ const setupBase = async ({
   ];
   var iface = new ethers.utils.Interface(abi);
   var selector = iface.getSighash('matchAskWithTakerBidUsingETHAndWETH');
-  const purchaseData = abiCoder.encode(
+  const purchaseDataFromLooksRare = abiCoder.encode(
     ['address', 'bytes4', 'bytes', 'bytes'],
-    [marketPlace.address, selector, makerOrderData, takerOrderData]
+    [marketPlace.address, selector, looksRareMakerOrderData, takerOrderData]
   );
 
+  const basicOrderParameters = abiCoder.encode(
+    [
+      'address',
+      'uint256',
+      'uint256',
+      'address',
+      'address',
+      'address',
+      'uint256',
+      'uint256',
+      'uint8',
+      'uint256',
+      'uint256',
+      'bytes32',
+      'uint256',
+      'bytes32',
+      'bytes32',
+      'uint256',
+      'tuple(uint256 amount,address recipient)[]',
+      'bytes',
+    ],
+    [
+      '0x0000000000000000000000000000000000000000',
+      1,
+      1,
+      owner,
+      owner,
+      tus.address,
+      1,
+      1,
+      1,
+      1,
+      1,
+      ethers.utils.arrayify(
+        '0x66fdd5e25ef9ddb305ba3c2aae1856ab9c6f2979000000000000000000000000'
+      ),
+      1,
+      ethers.utils.arrayify(
+        '0x66fdd5e25ef9ddb305ba3c2aae1856ab9c6f2979000000000000000000000000'
+      ),
+      ethers.utils.arrayify(
+        '0x66fdd5e25ef9ddb305ba3c2aae1856ab9c6f2979000000000000000000000000'
+      ),
+      1,
+      [{ amount: toWad(1), recipient: owner }],
+      ethers.utils.arrayify('0x1234'),
+    ]
+  );
+  const purchaseDataFromOpensea = abiCoder.encode(
+    ['bytes4', 'bytes'],
+    [selector, basicOrderParameters]
+  );
   return {
     owner,
     alice,
@@ -143,11 +199,13 @@ const setupBase = async ({
     tus,
     crab,
     marketPlace,
+    seaport,
     juniorDepositToken,
     seniorDepositToken,
     deployedVault,
     voyage,
-    purchaseData,
+    purchaseDataFromLooksRare,
+    purchaseDataFromOpensea,
   };
 };
 

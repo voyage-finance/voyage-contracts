@@ -39,7 +39,7 @@ describe('Withdraw', function () {
       crab,
       owner,
       priceOracle,
-      purchaseData,
+      purchaseDataFromLooksRare,
       marketPlace,
     } = await setupTestSuite();
     const amount = ethers.BigNumber.from(100).mul(decimals(18));
@@ -51,14 +51,14 @@ describe('Withdraw', function () {
       1,
       vault,
       marketPlace.address,
-      purchaseData
+      purchaseDataFromLooksRare
     );
     await voyage.buyNow(
       crab.address,
       1,
       vault,
       marketPlace.address,
-      purchaseData
+      purchaseDataFromLooksRare
     );
     const tenDay = 10 * 24 * 60 * 60;
 

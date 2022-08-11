@@ -24,8 +24,14 @@ describe('Liquidity Rate', function () {
   });
 
   it('Junior deposit should return correct interest rate', async function () {
-    const { owner, crab, priceOracle, voyage, purchaseData, marketPlace } =
-      await setupTestSuite();
+    const {
+      owner,
+      crab,
+      priceOracle,
+      voyage,
+      purchaseDataFromLooksRare,
+      marketPlace,
+    } = await setupTestSuite();
     const vault = await voyage.getVault(owner);
 
     const seniorDepositAmount = '500000000000000000000';
@@ -38,7 +44,7 @@ describe('Liquidity Rate', function () {
       1,
       vault,
       marketPlace.address,
-      purchaseData
+      purchaseDataFromLooksRare
     );
     const poolData = await voyage.getPoolData(crab.address);
 
@@ -58,8 +64,14 @@ describe('Liquidity Rate', function () {
   });
 
   it('Senior deposit should return correct interest rate', async function () {
-    const { owner, crab, voyage, priceOracle, marketPlace, purchaseData } =
-      await setupTestSuite();
+    const {
+      owner,
+      crab,
+      voyage,
+      priceOracle,
+      marketPlace,
+      purchaseDataFromLooksRare,
+    } = await setupTestSuite();
     const vault = await voyage.getVault(owner);
 
     const seniorDepositAmount = '50000000000000000000';
@@ -74,7 +86,7 @@ describe('Liquidity Rate', function () {
       '25000000000000000000',
       vault,
       marketPlace.address,
-      purchaseData
+      purchaseDataFromLooksRare
     );
     const poolData = await voyage.getPoolData(crab.address);
 
@@ -104,7 +116,7 @@ describe('Liquidity Rate', function () {
       voyage,
       priceOracle,
       marketPlace,
-      purchaseData,
+      purchaseDataFromLooksRare,
     } = await setupTestSuite();
     const vault = await voyage.getVault(owner);
 
@@ -123,7 +135,7 @@ describe('Liquidity Rate', function () {
       '100000000000000000000',
       vault,
       marketPlace.address,
-      purchaseData
+      purchaseDataFromLooksRare
     );
 
     const poolData = await voyage.getPoolData(crab.address);

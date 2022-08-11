@@ -6,7 +6,6 @@ import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/Upgradeabl
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {LibAppStorage, AppStorage, BorrowData, VaultConfig, NFTInfo, DiamondFacet, ReserveConfigurationMap} from "./LibAppStorage.sol";
 import {LibReserveConfiguration} from "./LibReserveConfiguration.sol";
-import {IExternalAdapter} from "../interfaces/IExternalAdapter.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
 import {VaultDataFacet} from "../../vault/facets/VaultDataFacet.sol";

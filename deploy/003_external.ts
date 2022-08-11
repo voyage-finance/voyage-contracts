@@ -36,7 +36,11 @@ const deployFn: DeployFunction = async (hre) => {
     log: true,
     args: [],
   });
-  const mp = await ethers.getContract<MockMarketPlace>('MockMarketPlace');
+  await deploy('MockSeaport', {
+    from: owner,
+    log: true,
+    args: [],
+  });
 
   const wadRayMath = await deploy(WRM_NAME, { from: owner, log: true });
 

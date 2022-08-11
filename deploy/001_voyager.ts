@@ -58,7 +58,11 @@ const deployFn: DeployFunction = async (hre) => {
     from: owner,
     log: true,
   });
-
+  await deploy('SeaportAdapter', {
+    from: owner,
+    log: true,
+    args: [weth9.address],
+  });
   const diamondABI: any[] = [];
   const diamondProxyArtifact = await getArtifact('Diamond');
   diamondABI.push(diamondProxyArtifact.abi);

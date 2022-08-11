@@ -54,7 +54,7 @@ export async function initializeMakeSuite() {
     crab,
     deployedVault,
     priceOracle,
-    purchaseData,
+    purchaseDataFromLooksRare,
     marketPlace,
   } = await setupTestSuite();
   testEnv.users.push({
@@ -65,7 +65,7 @@ export async function initializeMakeSuite() {
   testEnv.juniorDepositToken = juniorDepositToken;
   testEnv.seniorDepositToken = seniorDepositToken;
   testEnv.vault = deployedVault;
-  testEnv.purchaseData = purchaseData;
+  testEnv.purchaseData = purchaseDataFromLooksRare;
   testEnv.priceOracle = priceOracle;
   testEnv.marketplace = marketPlace;
   testEnv.collections.set('TUS', crab.address);

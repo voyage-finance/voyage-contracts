@@ -7,7 +7,7 @@ interface IMarketPlaceAdapter {
         pure
         returns (uint256);
 
-    function validate(bytes calldata _data) external pure returns (bool);
+    function validate(bytes calldata _data) external view returns (bool);
 
-    function execute(bytes calldata _data) external pure returns (bytes memory);
+    function execute(bytes calldata _data) external view returns (bytes memory);
 }
