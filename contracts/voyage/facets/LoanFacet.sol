@@ -3,6 +3,7 @@ pragma solidity ^0.8.9;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {ERC4626} from "@rari-capital/solmate/src/mixins/ERC4626.sol";
 import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {LibLoan} from "../libraries/LibLoan.sol";
@@ -10,13 +11,15 @@ import {LibVault} from "../libraries/LibVault.sol";
 import {IReserveInterestRateStrategy} from "../interfaces/IReserveInterestRateStrategy.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
 import {IPriceOracle} from "../interfaces/IPriceOracle.sol";
-import {LibAppStorage, AppStorage, Storage, BorrowData, BorrowState, Loan, ReserveConfigurationMap, ReserveData} from "../libraries/LibAppStorage.sol";
+import {LibAppStorage, AppStorage, Storage, BorrowData, BorrowState, Loan, ReserveConfigurationMap, ReserveData, PMT} from "../libraries/LibAppStorage.sol";
 import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
+import {PaymentsFacet} from "../../shared/facets/PaymentsFacet.sol";
 import {VaultDataFacet} from "../../vault/facets/VaultDataFacet.sol";
-import {VaultMarginFacet} from "../../vault/facets/VaultMarginFacet.sol";
-import {VaultAssetFacet} from "../../vault/facets/VaultAssetFacet.sol";
+import {VaultManageFacet} from "../../vault/facets/VaultManageFacet.sol";
+import {VaultFacet} from "./VaultFacet.sol";
+import {MarketplaceAdapterFacet} from "./MarketplaceAdapterFacet.sol";
 
 contract LoanFacet is Storage {
     using WadRayMath for uint256;
@@ -26,14 +29,30 @@ contract LoanFacet is Storage {
 
     uint256 public immutable TEN_THOUSANDS = 10000;
 
-    struct ExecuteBorrowParams {
-        address asset;
-        address user;
-        uint256 amount;
+    struct ExecuteBuyNowParams {
+        address collection;
+        address marketplace;
+        uint256 tokenId;
+        address vault;
+        uint256 totalPrincipal;
+        uint256 totalInterest;
+        uint256 totalDebt;
+        uint256 outstandingPrincipal;
+        uint256 outstandingInterest;
+        uint256 outstandingDebt;
+        uint256 fv;
+        uint256 timestamp;
         uint256 term;
         uint256 epoch;
+        uint256 nper;
+        uint256 downpayment;
         uint256 liquidityRate;
         uint256 borrowRate;
+        uint256 availableLiquidity;
+        uint256 totalBalance;
+        uint256 totalPending;
+        uint256 loanId;
+        PMT pmt;
     }
 
     struct ExecuteLiquidateParams {
@@ -45,22 +64,18 @@ contract LoanFacet is Storage {
         uint256 principal;
         uint256 interest;
         uint256 totalDebt;
-        uint256 totalFromMargin;
-        uint256 totalToLiquidate;
+        uint256 remaningDebt;
         uint256 discount;
-        uint256 totalSlash;
+        uint256 discountedFloorPrice;
         uint256 amountNeedExtra;
         uint256 juniorTrancheAmount;
         uint256 receivedAmount;
         address liquidator;
         uint256 floorPrice;
         uint256 floorPriceTime;
-        uint256 totalNFTNums;
-        uint256 numNFTsToLiquidate;
         uint256 gracePeriod;
         uint256 liquidationBonus;
         uint256 marginRequirement;
-        uint256 slashedMargin;
         uint256 writeDownAmount;
         uint256 totalAssetFromJuniorTranche;
         bool isFinal;
@@ -101,73 +116,237 @@ contract LoanFacet is Storage {
         uint256 _drowDownId,
         uint256 _repaymentId,
         uint256 _debt,
-        uint256 _margin,
-        uint256 _collateral,
         uint256 _fromJuniorTranche,
         uint256 _amountToWriteDown
     );
 
-    event CollateralTransferred(address from, address to, uint256[] tokenIds);
+    event CollateralTransferred(
+        address collection,
+        address from,
+        address to,
+        uint256[] collaterals
+    );
 
-    function borrow(
-        address _collection,
-        uint256 _amount,
-        address payable _vault
-    ) external whenNotPaused {
-        // 0. check if the user owns the vault
-        if (LibVault.getVaultAddress(_msgSender()) != _vault) {
-            revert Unauthorised();
-        }
-
-        // 1. check if pool liquidity is sufficient
+    function previewBuyNowParams(address _collection, uint256 _amount)
+        public
+        view
+        returns (ExecuteBuyNowParams memory)
+    {
+        ExecuteBuyNowParams memory executeBorrowParams;
         ReserveData memory reserveData = LibLiquidity.getReserveData(
             _collection
         );
+        ReserveConfigurationMap memory reserveConf = LibReserveConfiguration
+            .getConfiguration(_collection);
 
-        uint256 availableSeniorLiquidity = IERC20(reserveData.currency)
-            .balanceOf(reserveData.seniorDepositTokenAddress);
-        if (availableSeniorLiquidity < _amount) {
-            revert InsufficientLiquidity();
-        }
+        (executeBorrowParams.epoch, executeBorrowParams.term) = reserveConf
+            .getBorrowParams();
 
-        // 3. check credit limit
-        uint256 availableCreditLimit = LibVault.getAvailableCredit(
-            _vault,
-            _collection
+        BorrowState storage borrowState = LibLoan.getBorrowState(
+            _collection,
+            reserveData.currency
         );
 
-        if (availableCreditLimit < _amount) {
+        (
+            executeBorrowParams.liquidityRate,
+            executeBorrowParams.borrowRate
+        ) = IReserveInterestRateStrategy(
+            reserveData.interestRateStrategyAddress
+        ).calculateInterestRates(
+                reserveData.currency,
+                reserveData.seniorDepositTokenAddress,
+                0,
+                _amount,
+                borrowState.totalDebt,
+                borrowState.avgBorrowRate
+            );
+
+        return executeBorrowParams;
+    }
+
+    function buyNow(
+        address _collection,
+        uint256 _tokenId,
+        address payable _vault,
+        address _marketplace,
+        bytes calldata _data
+    ) external payable whenNotPaused {
+        ExecuteBuyNowParams memory params;
+        params.collection = _collection;
+        params.tokenId = _tokenId;
+        params.vault = _vault;
+        params.marketplace = _marketplace;
+
+        ReserveData memory reserveData = LibLiquidity.getReserveData(
+            params.collection
+        );
+
+        BorrowState storage borrowState = LibLoan.getBorrowState(
+            params.collection,
+            reserveData.currency
+        );
+
+        // 0. check if the user owns the vault
+        if (LibVault.getVaultAddress(_msgSender()) != params.vault) {
+            revert Unauthorised();
+        }
+
+        // 1. get price for params.tokenId  and floor price pv
+        params.totalPrincipal = MarketplaceAdapterFacet(address(this))
+            .extractAssetPrice(_marketplace, _data);
+        (params.fv, params.timestamp) = IPriceOracle(reserveData.priceOracle)
+            .getTwap(params.collection);
+
+        if (params.fv == 0) {
+            revert InvalidFloorPrice();
+        }
+
+        if (params.fv < params.totalPrincipal) {
+            revert InvalidPrincipal();
+        }
+
+        // 2. get borrow params and borrow rate
+        ReserveConfigurationMap memory reserveConf = LibReserveConfiguration
+            .getConfiguration(params.collection);
+        (params.epoch, params.term) = reserveConf.getBorrowParams();
+        params.nper = params.term / params.epoch;
+
+        (
+            params.liquidityRate,
+            params.borrowRate
+        ) = IReserveInterestRateStrategy(
+            reserveData.interestRateStrategyAddress
+        ).calculateInterestRates(
+                reserveData.currency,
+                reserveData.seniorDepositTokenAddress,
+                0,
+                params.outstandingPrincipal,
+                borrowState.totalDebt,
+                borrowState.avgBorrowRate
+            );
+
+        // 3. insert debt, get total interest and PMT
+        (params.loanId, params.pmt, params.totalInterest) = LibLoan.insertDebt(
+            params.collection,
+            reserveData.currency,
+            params.tokenId,
+            params.vault,
+            params.totalPrincipal,
+            params.term,
+            params.epoch,
+            params.borrowRate
+        );
+
+        // 4. calculate downpayment and outstanding principal, interest and debt
+        params.downpayment = params.pmt.pmt;
+        params.outstandingPrincipal =
+            params.totalPrincipal -
+            params.pmt.principal;
+        params.outstandingInterest = params.totalInterest - params.pmt.interest;
+        params.outstandingDebt =
+            params.outstandingPrincipal +
+            params.outstandingInterest;
+
+        // 5. check credit limit against with outstanding debt
+        uint256 availableCreditLimit = LibVault.getCreditLimit(
+            params.vault,
+            params.collection,
+            reserveData.currency,
+            params.fv
+        );
+        if (availableCreditLimit < params.outstandingDebt) {
             revert InsufficientCreditLimit();
         }
 
-        ExecuteBorrowParams memory executeBorrowParams = previewBorrowParams(
-            _collection,
-            _amount
+        // 6. check if pool liquidity against with outstanding principal
+        params.totalPending = IVToken(reserveData.seniorDepositTokenAddress)
+            .totalUnbonding();
+        params.totalBalance = IERC20(reserveData.currency).balanceOf(
+            reserveData.seniorDepositTokenAddress
+        );
+        if (params.totalBalance > params.totalPending) {
+            params.availableLiquidity =
+                params.totalBalance -
+                params.totalPending;
+        }
+
+        if (params.availableLiquidity < params.outstandingPrincipal) {
+            revert InsufficientLiquidity();
+        }
+
+        // 7.1 receive downpayment
+        if (params.downpayment > msg.value) {
+            IERC20(reserveData.currency).safeTransferFrom(
+                msg.sender,
+                address(this),
+                (params.downpayment - msg.value)
+            );
+        } else {
+            if (params.downpayment != msg.value) {
+                revert InvalidValueTransfered();
+            }
+        }
+
+        // 7.2 wrap msg.value
+        PaymentsFacet(address(this)).wrapWETH9();
+
+        // 7.3 protocol fee
+        uint256 protocolFee = params.totalPrincipal.percentMul(
+            LibAppStorage.ds().protocolFee.cutRatio
+        );
+        IERC20(reserveData.currency).safeTransferFrom(
+            msg.sender,
+            LibAppStorage.ds().protocolFee.treasuryAddress,
+            protocolFee
         );
 
-        (uint256 loanId, Loan memory loan) = LibLoan.insertDebt(
-            _collection,
-            reserveData.currency,
-            _vault,
-            _amount,
-            executeBorrowParams.term,
-            executeBorrowParams.epoch,
-            executeBorrowParams.borrowRate
-        );
-
+        // 8. transfer money to this then forward to vault
         IVToken(reserveData.seniorDepositTokenAddress).transferUnderlyingTo(
-            VaultDataFacet(_vault).creditEscrow(reserveData.currency),
-            _amount
+            address(this),
+            params.outstandingPrincipal
+        );
+
+        IERC20(reserveData.currency).transfer(
+            params.vault,
+            params.totalPrincipal
+        );
+
+        // 9. purchase nft
+        (params.pmt.principal, params.pmt.interest) = LibLoan.getPMT(
+            params.collection,
+            reserveData.currency,
+            params.vault,
+            params.loanId
+        );
+        MarketplaceAdapterFacet(address(this)).purchase(
+            params.marketplace,
+            params.vault,
+            _data
+        );
+
+        // 10. first payment
+        LibLoan.repay(
+            params.collection,
+            reserveData.currency,
+            params.vault,
+            params.loanId
+        );
+
+        // 11. distribute interest
+        LibLoan.distributeInterest(
+            reserveData,
+            params.pmt.interest,
+            _msgSender()
         );
 
         emit Borrow(
-            _vault,
-            _collection,
+            params.vault,
+            params.collection,
             reserveData.currency,
-            loanId,
-            loan.principal,
-            loan.interest,
-            loan.apr
+            params.loanId,
+            params.totalPrincipal,
+            params.totalInterest,
+            params.borrowRate
         );
     }
 
@@ -204,27 +383,16 @@ contract LoanFacet is Storage {
             _collection,
             reserveData.currency,
             _vault,
-            _loan,
-            params.principal,
-            params.interest
+            _loan
         );
 
-        // 3. transfer underlying asset
-        uint256 incomeRatio = LibReserveConfiguration
-            .getConfiguration(reserveData.currency)
-            .getIncomeRatio();
-        uint256 seniorInterest = params.interest.percentMul(incomeRatio);
+        // 3. distribute interest
+        LibLoan.distributeInterest(reserveData, params.interest, _msgSender());
 
         IERC20(reserveData.currency).safeTransferFrom(
             _msgSender(),
             reserveData.seniorDepositTokenAddress,
-            params.principal + seniorInterest
-        );
-
-        IERC20(reserveData.currency).safeTransferFrom(
-            _msgSender(),
-            reserveData.juniorDepositTokenAddress,
-            params.interest - seniorInterest
+            params.principal
         );
 
         emit Repayment(
@@ -257,17 +425,11 @@ contract LoanFacet is Storage {
         param.vault = _vault;
         param.loanId = _loanId;
         param.liquidator = _msgSender();
-        (
-            param.liquidationBonus,
-            param.marginRequirement,
-            param.gracePeriod
-        ) = reserveConf.getLiquidationParams();
-        param.totalNFTNums = VaultDataFacet(param.vault).getTotalNFTNumbers(
-            param.collection
-        );
+        (param.liquidationBonus, param.gracePeriod) = reserveConf
+            .getLiquidationParams();
 
         LibLoan.LoanDetail memory loanDetail = LibLoan.getLoanDetail(
-            _collection,
+            param.collection,
             param.currency,
             param.vault,
             param.loanId
@@ -282,26 +444,7 @@ contract LoanFacet is Storage {
             revert InvalidLiquidate();
         }
 
-        // 3.1 if it is, get debt info
-        (param.principal, param.interest) = LibLoan.getPMT(
-            _collection,
-            param.currency,
-            param.vault,
-            param.loanId
-        );
-        param.totalDebt = param.principal + param.interest;
-        param.totalFromMargin = param
-            .totalDebt
-            .wadToRay()
-            .rayMul(param.marginRequirement)
-            .rayToWad();
-        param.totalToLiquidate = param.totalDebt - param.totalFromMargin;
-        param.discount = getDiscount(
-            param.totalToLiquidate,
-            param.liquidationBonus
-        );
-
-        // 3.2 get floor price from oracle contract
+        // 3 get floor price from oracle contract
         IPriceOracle priceOracle = IPriceOracle(reserveData.priceOracle);
         (param.floorPrice, param.floorPriceTime) = priceOracle.getTwap(
             param.collection
@@ -310,87 +453,99 @@ contract LoanFacet is Storage {
         if (param.floorPrice == 0) {
             revert InvalidFloorPrice();
         }
-        param.numNFTsToLiquidate =
-            (param.totalToLiquidate - param.discount) /
-            param.floorPrice;
-        param.totalSlash = param.totalFromMargin + param.discount;
 
-        // 4.1 slash margin account
-        param.slashedMargin = VaultMarginFacet(param.vault).slash(
+        // 3 get pmt info
+        (param.principal, param.interest) = LibLoan.getPMT(
+            param.collection,
             param.currency,
-            payable(address(this)),
-            param.totalSlash
+            param.vault,
+            param.loanId
         );
-        param.receivedAmount = param.receivedAmount + param.slashedMargin;
+        param.totalDebt = param.principal;
+        param.remaningDebt = param.totalDebt;
+        param.discount = getDiscount(param.floorPrice, param.liquidationBonus);
+        param.discountedFloorPrice = param.floorPrice - param.discount;
 
-        param.amountNeedExtra = param.totalSlash - param.slashedMargin;
+        // 4 transfer all nfts to liquidator
+        uint256[] memory collaterals = LibLoan.releaseLien(
+            param.collection,
+            param.currency,
+            param.vault,
+            param.loanId
+        );
 
-        // 4.2 transfer from liquidator
+        uint256 discountedFloorPriceInTotal = param.discountedFloorPrice *
+            collaterals.length;
         IERC20(param.currency).safeTransferFrom(
             param.liquidator,
             address(this),
-            param.totalToLiquidate
+            discountedFloorPriceInTotal
         );
-        param.receivedAmount = param.receivedAmount + param.totalToLiquidate;
+        param.receivedAmount += discountedFloorPriceInTotal;
 
-        if (param.totalNFTNums < param.numNFTsToLiquidate) {
-            uint256 missingNFTNums = param.numNFTsToLiquidate -
-                param.totalNFTNums;
-            param.amountNeedExtra =
-                missingNFTNums *
-                param.floorPrice +
-                param.amountNeedExtra;
-            param.numNFTsToLiquidate = param.totalNFTNums;
+        for (uint256 i = 0; i < collaterals.length; i++) {
+            bytes4 selector = IERC721(param.collection).transferFrom.selector;
+            bytes memory data = abi.encodePacked(
+                selector,
+                abi.encode(param.vault, param.liquidator, collaterals[i])
+            );
+            bytes memory encodedData = abi.encode(param.collection, data);
+            VaultManageFacet(_vault).exec(encodedData);
         }
 
-        // 4.3 sell nft
-        uint256[] memory ids = VaultAssetFacet(param.vault).transferNFT(
+        emit CollateralTransferred(
             param.collection,
+            param.vault,
             param.liquidator,
-            param.numNFTsToLiquidate
+            collaterals
         );
-        emit CollateralTransferred(param.vault, param.liquidator, ids);
 
-        // 4.4 transfer from junior tranche
-        param.totalAssetFromJuniorTranche = ERC4626(
-            reserveData.juniorDepositTokenAddress
-        ).totalAssets();
-
-        if (param.totalAssetFromJuniorTranche >= param.amountNeedExtra) {
-            IVToken(reserveData.juniorDepositTokenAddress).transferUnderlyingTo(
-                    address(this),
-                    param.amountNeedExtra
-                );
-            param.receivedAmount = param.receivedAmount + param.amountNeedExtra;
-            param.juniorTrancheAmount = param.amountNeedExtra;
+        if (param.totalDebt > discountedFloorPriceInTotal) {
+            param.remaningDebt = param.totalDebt - discountedFloorPriceInTotal;
         } else {
-            IVToken(reserveData.juniorDepositTokenAddress).transferUnderlyingTo(
-                    address(this),
-                    param.totalAssetFromJuniorTranche
-                );
-            param.juniorTrancheAmount = param.totalAssetFromJuniorTranche;
-
-            param.writeDownAmount =
-                param.amountNeedExtra -
-                param.totalAssetFromJuniorTranche;
-            param.receivedAmount =
-                param.receivedAmount +
-                param.totalAssetFromJuniorTranche;
+            uint256 refundAmount = discountedFloorPriceInTotal -
+                param.totalDebt;
+            IERC20(param.currency).transfer(param.vault, refundAmount);
+            param.receivedAmount -= refundAmount;
         }
 
+        // 5. transfer from junior tranche if there is still remaning debt
+        if (param.remaningDebt > 0) {
+            param.totalAssetFromJuniorTranche = ERC4626(
+                reserveData.juniorDepositTokenAddress
+            ).totalAssets();
+
+            if (param.totalAssetFromJuniorTranche >= param.remaningDebt) {
+                IVToken(reserveData.juniorDepositTokenAddress)
+                    .transferUnderlyingTo(address(this), param.remaningDebt);
+                param.juniorTrancheAmount = param.remaningDebt;
+                param.receivedAmount += param.remaningDebt;
+            } else {
+                IVToken(reserveData.juniorDepositTokenAddress)
+                    .transferUnderlyingTo(
+                        address(this),
+                        param.totalAssetFromJuniorTranche
+                    );
+                param.juniorTrancheAmount = param.totalAssetFromJuniorTranche;
+                param.receivedAmount += param.totalAssetFromJuniorTranche;
+                param.writeDownAmount =
+                    param.remaningDebt -
+                    param.totalAssetFromJuniorTranche;
+            }
+        }
+
+        // 6. record repay info
         (param.repaymentId, param.isFinal) = LibLoan.repay(
-            _collection,
+            param.collection,
             param.currency,
             param.vault,
-            param.loanId,
-            param.principal,
-            param.interest
+            param.loanId
         );
 
         emit Repayment(
             _msgSender(),
             param.vault,
-            _collection,
+            param.collection,
             param.currency,
             param.loanId,
             param.repaymentId,
@@ -398,6 +553,7 @@ contract LoanFacet is Storage {
             param.isFinal
         );
 
+        // 7. transfer to senior deposit token
         IERC20(param.currency).safeTransfer(
             reserveData.seniorDepositTokenAddress,
             param.receivedAmount
@@ -410,8 +566,6 @@ contract LoanFacet is Storage {
             param.loanId,
             param.repaymentId,
             param.totalDebt,
-            param.slashedMargin,
-            param.totalToLiquidate,
             param.juniorTrancheAmount,
             param.writeDownAmount
         );
@@ -428,79 +582,6 @@ contract LoanFacet is Storage {
         return LibVault.getVaultDebt(_collection, reserveData.currency, _vault);
     }
 
-    function previewBorrowParams(address _collection, uint256 _amount)
-        public
-        view
-        returns (ExecuteBorrowParams memory)
-    {
-        ExecuteBorrowParams memory executeBorrowParams;
-        ReserveData memory reserveData = LibLiquidity.getReserveData(
-            _collection
-        );
-        ReserveConfigurationMap memory reserveConf = LibReserveConfiguration
-            .getConfiguration(_collection);
-
-        // 4. update debt logic
-        (executeBorrowParams.epoch, executeBorrowParams.term) = reserveConf
-            .getBorrowParams();
-
-        // 5. update liquidity index and interest rate
-        BorrowState memory borrowState = LibLoan.getBorrowState(
-            _collection,
-            reserveData.currency
-        );
-
-        (
-            executeBorrowParams.liquidityRate,
-            executeBorrowParams.borrowRate
-        ) = IReserveInterestRateStrategy(
-            reserveData.interestRateStrategyAddress
-        ).calculateInterestRates(
-                reserveData.currency,
-                reserveData.seniorDepositTokenAddress,
-                0,
-                _amount,
-                borrowState.totalDebt,
-                borrowState.avgBorrowRate
-            );
-
-        return executeBorrowParams;
-    }
-
-    function getTotalPaidAndRedeemed(address _collection, address _vault)
-        public
-        view
-        returns (uint256, uint256)
-    {
-        ReserveData memory reserveData = LibLiquidity.getReserveData(
-            _collection
-        );
-        return
-            LibVault.getTotalPaidAndRedeemed(
-                _collection,
-                reserveData.currency,
-                _vault
-            );
-    }
-
-    function increaseTotalRedeemed(
-        address _collection,
-        address _vault,
-        uint256 _amount
-    ) external {
-        require(msg.sender == address(this));
-        ReserveData memory reserveData = LibLiquidity.getReserveData(
-            _collection
-        );
-        return
-            LibVault.increaseTotalRedeemed(
-                _collection,
-                reserveData.currency,
-                _vault,
-                _amount
-            );
-    }
-
     /// @notice Returns the total outstanding principal debt for a particular underlying asset pool
     /// @param _collection the address of the underlying nft collection.
     /// @return The total outstanding principal owed to depositors.
@@ -512,7 +593,7 @@ contract LoanFacet is Storage {
         ReserveData memory reserveData = LibLiquidity.getReserveData(
             _collection
         );
-        BorrowState memory borrowState = LibLoan.getBorrowState(
+        BorrowState storage borrowState = LibLoan.getBorrowState(
             _collection,
             reserveData.currency
         );
@@ -530,7 +611,7 @@ contract LoanFacet is Storage {
         ReserveData memory reserveData = LibLiquidity.getReserveData(
             _collection
         );
-        BorrowState memory borrowState = LibLoan.getBorrowState(
+        BorrowState storage borrowState = LibLoan.getBorrowState(
             _collection,
             reserveData.currency
         );
@@ -554,3 +635,5 @@ error InsufficientCreditLimit();
 error InvalidDebt();
 error InvalidLiquidate();
 error InvalidFloorPrice();
+error InvalidPrincipal();
+error InvalidValueTransfered();

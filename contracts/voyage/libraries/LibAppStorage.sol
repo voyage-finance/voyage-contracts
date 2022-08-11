@@ -90,6 +90,7 @@ struct Loan {
     RepaymentData[] repayments;
     // size pf repayments
     uint256 paidTimes;
+    uint256[] collateral;
 }
 
 struct LoanList {
@@ -105,14 +106,13 @@ struct BorrowData {
     uint256 totalInterest;
     uint256 mapSize;
     mapping(uint256 => Loan) loans;
-    uint256 totalPaid;
-    uint256 totalRedeemed;
 }
 
 struct BorrowState {
     uint256 totalDebt;
     uint256 totalInterest;
     uint256 avgBorrowRate;
+    mapping(address => uint256) repaidTimes;
 }
 
 struct VaultConfig {
@@ -146,8 +146,11 @@ struct Authorisation {
 }
 
 struct NFTInfo {
-    uint256 price;
-    uint256 timestamp;
+    bool isCollateral; // this determines whether the NFT can be transferred out of the Vault.
+    address collection;
+    uint256 tokenId;
+    address currency; // record what currency was used to pay
+    uint256 price; // price in ETH
 }
 
 struct ERC721AssetInfo {
@@ -173,6 +176,10 @@ struct DiamondFacet {
     address ownershipFacet;
 }
 
+struct MarketPlaceData {
+    address adapterAddr;
+}
+
 struct AppStorage {
     /* -------------------------------- plumbing -------------------------------- */
     mapping(bytes32 => address) _addresses;
@@ -191,8 +198,6 @@ struct AppStorage {
     mapping(address => mapping(address => BorrowState)) _borrowState;
     bool _paused;
     /* ---------------------------------- vault --------------------------------- */
-    UpgradeableBeacon marginEscrowBeacon;
-    UpgradeableBeacon creditEscrowBeacon;
     UpgradeableBeacon subVaultBeacon;
     UpgradeableBeacon vaultBeacon;
     DiamondFacet diamondFacet;
@@ -200,14 +205,10 @@ struct AppStorage {
     address[] vaults;
     // mapping of vault owner to vault instance address
     mapping(address => address) vaultMap;
-    // mapping of underlying asset to vault configuration
-    mapping(address => mapping(address => VaultConfig)) vaultConfigMap;
-    // mapping of marketplace to erc721 address
-    // for validate onNFTReceived
-    mapping(address => address) marketPlaceToAsset;
-    mapping(address => ERC721AssetInfo) erc721AssetInfo;
-    // erc721 address => token id => nft info
-    mapping(address => mapping(uint256 => NFTInfo)) nftInfo;
+    // marketplace address => marketplace type
+    mapping(address => MarketPlaceData) marketPlaceData;
+    // collection => tokenId => info
+    mapping(address => mapping(uint256 => NFTInfo)) nftIndex;
     uint256 currentVersion;
     mapping(uint256 => Snapshot) snapshotMap;
     /* ---------------------------------- security --------------------------------- */

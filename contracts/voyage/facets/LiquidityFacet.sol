@@ -106,7 +106,7 @@ contract LiquidityFacet is Storage {
         ReserveData memory reserve = LibAppStorage.ds()._reserveData[
             _collection
         ];
-        BorrowState memory borrowState = LibAppStorage.ds()._borrowState[
+        BorrowState storage borrowState = LibAppStorage.ds()._borrowState[
             _collection
         ][reserve.currency];
         uint256 totalDebt = borrowState.totalDebt + borrowState.totalInterest;
@@ -148,7 +148,7 @@ contract LiquidityFacet is Storage {
         if (_amount == type(uint256).max) {
             amountToWithdraw = userBalance;
         }
-        BorrowState memory borrowState = LibAppStorage.ds()._borrowState[
+        BorrowState storage borrowState = LibAppStorage.ds()._borrowState[
             _collection
         ][reserve.currency];
         uint256 totalDebt = borrowState.totalDebt + borrowState.totalInterest;

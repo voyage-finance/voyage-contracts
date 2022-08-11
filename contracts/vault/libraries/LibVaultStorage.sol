@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import {PriorityQueue, Heap} from "./PriorityQueue.sol";
-import {IMarginEscrow} from "../interfaces/IMarginEscrow.sol";
-
 struct CustodyData {
     // the "owner" of the token -- must be Vault or a Subvault.
     address owner;
@@ -17,11 +14,6 @@ struct VaultStorageV1 {
     address user;
     uint256 version;
     bytes32 checksum;
-    // asset (ERC20) => escrow
-    mapping(address => address) cescrow;
-    mapping(address => address) escrow;
-    // erc721 address => heap
-    mapping(address => Heap) nfts;
     /// @dev You must not set element 0xffffffff to true
     mapping(bytes4 => bool) supportedInterfaces;
     // subvault array, for retrieval by DataProviderFacet and client-side enumeration
@@ -47,20 +39,5 @@ library LibVaultStorage {
         assembly {
             ds.slot := storagePosition
         }
-    }
-}
-
-contract Storage {
-    modifier onlyVoyage() {
-        require(msg.sender == LibVaultStorage.ds().voyage, "Not Voyage");
-        _;
-    }
-
-    function _marginEscrow(address _asset)
-        internal
-        view
-        returns (IMarginEscrow)
-    {
-        return IMarginEscrow(LibVaultStorage.ds().escrow[_asset]);
     }
 }

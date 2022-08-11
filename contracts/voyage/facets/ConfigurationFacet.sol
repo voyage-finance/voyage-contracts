@@ -73,33 +73,4 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
         LibReserveConfiguration.saveConfiguration(_collection, conf);
         emit LoanParametersUpdated(_collection, _epoch, _term, _gracePeriod);
     }
-
-    function setMarginParams(
-        address _collection,
-        uint256 _min,
-        uint256 _max,
-        uint256 _marginRequirement
-    ) external authorised {
-        if (
-            !LibReserveConfiguration.validateMarginParams(
-                _min,
-                _max,
-                _marginRequirement
-            )
-        ) {
-            revert IllegalMarginParameters();
-        }
-        ReserveConfigurationMap memory conf = LibReserveConfiguration
-            .getConfiguration(_collection);
-        conf.setMinMargin(_min);
-        conf.setMaxMargin(_max);
-        conf.setMarginRequirement(_marginRequirement);
-        LibReserveConfiguration.saveConfiguration(_collection, conf);
-        emit MarginParametersUpdated(
-            _collection,
-            _min,
-            _max,
-            _marginRequirement
-        );
-    }
 }

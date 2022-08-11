@@ -194,7 +194,7 @@ library LibLiquidity {
     {
         AppStorage storage s = LibAppStorage.ds();
         ReserveData memory reserve = getReserveData(_collection);
-        BorrowState memory borrowState = s._borrowState[_collection][
+        BorrowState storage borrowState = s._borrowState[_collection][
             reserve.currency
         ];
         uint256 totalDebt = borrowState.totalDebt + borrowState.totalInterest;

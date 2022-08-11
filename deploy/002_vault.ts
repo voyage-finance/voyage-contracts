@@ -36,27 +36,12 @@ const deployFn: DeployFunction = async (hre) => {
 
   const [facets, _, facetABIs] = await deployFacets(
     {
-      name: 'VaultAssetFacet',
-      from: owner,
-      log: true,
-    },
-    {
       name: 'VaultDataFacet',
       from: owner,
       log: true,
     },
     {
-      name: 'VaultExternalFacet',
-      from: owner,
-      log: true,
-    },
-    {
       name: 'VaultManageFacet',
-      from: owner,
-      log: true,
-    },
-    {
-      name: 'VaultMarginFacet',
       from: owner,
       log: true,
     },

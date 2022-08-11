@@ -1,18 +1,24 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {CustodyData, VaultStorageV1, LibVaultStorage, Storage} from "../libraries/LibVaultStorage.sol";
-import {IMarginEscrow} from "../interfaces/IMarginEscrow.sol";
+import {CustodyData, VaultStorageV1, LibVaultStorage} from "../libraries/LibVaultStorage.sol";
 import {ISubvault} from "../interfaces/ISubvault.sol";
 import {VaultConfig} from "../../voyage/libraries/LibAppStorage.sol";
 import {VaultFacet} from "../../voyage/facets/VaultFacet.sol";
 import {SecurityFacet} from "../../voyage/facets/SecurityFacet.sol";
-import {VaultAuth} from "../libraries/LibAuth.sol";
 
-contract VaultManageFacet is ReentrancyGuard, Storage, VaultAuth {
+contract VaultManageFacet {
+    modifier authorised() {
+        SecurityFacet sf = SecurityFacet(LibVaultStorage.ds().voyage);
+        require(
+            sf.isAuthorised(msg.sender, address(this), msg.sig),
+            "unauthorised"
+        );
+        _;
+    }
+
     /// @notice Create sub vault
     /// @param _owner The address of the owner
     function createSubvault(address _owner)
@@ -120,6 +126,36 @@ contract VaultManageFacet is ReentrancyGuard, Storage, VaultAuth {
         LibVaultStorage.ds().custodyIndex[_collection][_tokenId].owner = _src;
         LibVaultStorage.ds().tokenSet[_collection].push(_tokenId);
     }
+
+    /// @notice Called by erc721 contract or sub vaults
+    function onERC721Received(
+        address operator,
+        address from,
+        uint256 tokenId,
+        bytes calldata data
+    ) public returns (bytes4 ret) {
+        VaultFacet vf = VaultFacet(LibVaultStorage.ds().voyage);
+        bool maybeSubVault = LibVaultStorage.ds().subvaultOwnerIndex[
+            msg.sender
+        ] != address(0);
+        if (!vf.collectionInitialized(msg.sender) && !maybeSubVault) {
+            revert InvalidSender(msg.sender);
+        }
+        // delete anyway
+        delete LibVaultStorage.ds().custodyIndex[msg.sender][tokenId];
+        return this.onERC721Received.selector;
+    }
+
+    function exec(bytes calldata _data) public authorised {
+        (address target, bytes memory data) = abi.decode(
+            _data,
+            (address, bytes)
+        );
+        (bool success, bytes memory ret) = target.call(data);
+        if (!success) {
+            revert UnsuccessfulCall();
+        }
+    }
 }
 
 /* --------------------------------- errors -------------------------------- */
@@ -127,3 +163,5 @@ error FailedDeploySubvaultBeacon();
 error InvalidTransfer(string reason);
 error InvalidSubvaultAddress(address subvault);
 error UnAuthorised();
+error InvalidSender(address sender);
+error UnsuccessfulCall();

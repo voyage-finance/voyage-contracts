@@ -5,7 +5,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
-import {AppStorage, ReserveData, ReserveConfigurationMap, Tranche, VaultConfig, LoanList, RepaymentData} from "../libraries/LibAppStorage.sol";
+import {AppStorage, ReserveData, ReserveConfigurationMap, Tranche, VaultConfig, LoanList, RepaymentData, LibAppStorage} from "../libraries/LibAppStorage.sol";
 import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {LibLoan} from "../libraries/LibLoan.sol";
 import {LibVault} from "../libraries/LibVault.sol";
@@ -14,10 +14,6 @@ import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol"
 struct CreditLineData {
     uint256 totalDebt;
     LoanList loanList;
-    uint256 totalMargin;
-    uint256 withdrawableSecurityDeposit;
-    uint256 creditLimit;
-    uint256 spendableBalance;
     uint256 gav;
     uint256 ltv;
     uint256 healthFactor;
@@ -52,19 +48,11 @@ contract DataProviderFacet {
 
     struct PoolConfiguration {
         uint256 liquidationBonus;
-        uint256 marginRequirement;
-        uint256 minMargin;
-        uint256 maxMargin;
         uint256 loanInterval;
         uint256 loanTenure;
         uint256 incomeRatio;
         bool isInitialized;
         bool isActive;
-    }
-
-    struct FungibleTokenData {
-        string symbol;
-        address tokenAddress;
     }
 
     function getPoolConfiguration(address _collection)
@@ -77,12 +65,6 @@ contract DataProviderFacet {
             .getConfiguration(_collection);
         poolConfiguration.liquidationBonus = config.getLiquidationBonus();
         poolConfiguration.incomeRatio = config.getIncomeRatio();
-        (
-            poolConfiguration.marginRequirement,
-            poolConfiguration.minMargin,
-            poolConfiguration.maxMargin
-        ) = config.getMarginParams();
-        (poolConfiguration.isActive, , ) = config.getFlags();
 
         return poolConfiguration;
     }
@@ -136,31 +118,8 @@ contract DataProviderFacet {
         return LibVault.getVaultAddress(_user);
     }
 
-    function getPoolTokens()
-        external
-        view
-        returns (FungibleTokenData[] memory tokens)
-    {
-        address[] memory collections = LibLiquidity.getReserveList();
-
-        FungibleTokenData[] memory currencies = new FungibleTokenData[](
-            collections.length
-        );
-
-        for (uint256 i = 0; i < collections.length; ) {
-            ReserveData memory reserve = LibLiquidity.getReserveData(
-                collections[i]
-            );
-            currencies[i] = FungibleTokenData({
-                symbol: IERC20Metadata(reserve.currency).symbol(),
-                tokenAddress: reserve.currency
-            });
-            unchecked {
-                ++i;
-            }
-        }
-
-        return currencies;
+    function getCollections() external view returns (address[] memory) {
+        return LibLiquidity.getReserveList();
     }
 
     function getUserPoolData(address _collection, address _user)
@@ -229,25 +188,9 @@ contract DataProviderFacet {
         );
         creditLineData.loanList = loanList;
         creditLineData.totalDebt = principal + interest;
-        creditLineData.totalMargin = LibVault.getMargin(
-            _vault,
-            reserve.currency
-        );
-        creditLineData.withdrawableSecurityDeposit = LibVault
-            .getTotalWithdrawableMargin(_vault, reserve.currency);
-        creditLineData.creditLimit = LibVault.getCreditLimit(
-            _vault,
-            _collection
-        );
-        creditLineData.spendableBalance = LibVault.getAvailableCredit(
-            _vault,
-            _collection
-        );
         creditLineData.ltv = creditLineData.totalDebt == 0
             ? 1
-            : (creditLineData.gav + creditLineData.totalMargin).rayDiv(
-                creditLineData.totalDebt
-            );
+            : (creditLineData.gav).rayDiv(creditLineData.totalDebt);
         return creditLineData;
     }
 
@@ -309,26 +252,8 @@ contract DataProviderFacet {
         return (times, amounts);
     }
 
-    function getMarginConfiguration(address _collection)
-        external
-        view
-        returns (
-            uint256,
-            uint256,
-            uint256
-        )
-    {
-        ReserveConfigurationMap memory conf = LibReserveConfiguration
-            .getConfiguration(_collection);
-        uint256 decimals = conf.getDecimals();
-        uint256 assetUnit = 10**decimals;
-        (
-            uint256 min,
-            uint256 max,
-            uint256 marginRequirement
-        ) = LibReserveConfiguration
-                .getConfiguration(_collection)
-                .getMarginParams();
-        return (min * assetUnit, max * assetUnit, marginRequirement);
+    function getProtocolFeeParam() public view returns (address, uint256) {
+        AppStorage storage s = LibAppStorage.ds();
+        return (s.protocolFee.treasuryAddress, s.protocolFee.cutRatio);
     }
 }
