@@ -1,14 +1,19 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import {LibAppStorage, AppStorage, BorrowData, BorrowState, Loan, PMT, RepaymentData, ReserveData, RepaymentData, NFTInfo} from "./LibAppStorage.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {LibAppStorage, AppStorage, BorrowData, BorrowState, Loan, PMT, RepaymentData, ReserveData, RepaymentData, NFTInfo, ReserveConfigurationMap} from "./LibAppStorage.sol";
 import {LibLiquidity} from "./LibLiquidity.sol";
+import {LibReserveConfiguration} from "./LibReserveConfiguration.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
 
 library LibLoan {
     using WadRayMath for uint256;
     using PercentageMath for uint256;
+    using SafeERC20 for IERC20;
+    using LibReserveConfiguration for ReserveConfigurationMap;
 
     uint256 internal constant RAY = 1e27;
     uint256 internal constant SECOND_PER_DAY = 1 days;
@@ -157,16 +162,12 @@ library LibLoan {
         address _collection,
         address _currency,
         address _vault,
-        uint256 _loanNumber,
-        uint256 _principal,
-        uint256 _interest
+        uint256 _loanNumber
     ) internal returns (uint256, bool) {
         ExecuteDebtParam memory param;
         param.collection = _collection;
         param.currency = _currency;
         param.vault = _vault;
-        param.principal = _principal;
-        param.interest = _interest;
         bool isFinal = false;
         BorrowData storage debtData = getBorrowData(
             param.collection,
@@ -193,12 +194,14 @@ library LibLoan {
                 borrowState.repaidTimes[param.vault] +
                 1;
         } else {
-            loan.totalPrincipalPaid = loan.totalPrincipalPaid + param.principal;
-            loan.totalInterestPaid = loan.totalInterestPaid + param.interest;
+            loan.totalPrincipalPaid =
+                loan.totalPrincipalPaid +
+                loan.pmt.principal;
+            loan.totalInterestPaid = loan.totalInterestPaid + loan.pmt.interest;
             RepaymentData memory repayment;
-            repayment.interest = param.interest;
-            repayment.principal = param.principal;
-            repayment.total = param.principal + param.interest;
+            repayment.interest = loan.pmt.interest;
+            repayment.principal = loan.pmt.principal;
+            repayment.total = loan.pmt.principal + loan.pmt.interest;
             repayment.paidAt = uint40(block.timestamp);
             loan.repayments.push(repayment);
             // t, t+1, t+2
@@ -209,23 +212,45 @@ library LibLoan {
                 SECOND_PER_DAY;
         }
 
-        debtData.totalPrincipal = debtData.totalPrincipal - param.principal;
-        debtData.totalInterest = debtData.totalInterest - param.interest;
-        if (borrowState.totalDebt == param.principal) {
+        debtData.totalPrincipal = debtData.totalPrincipal - loan.pmt.principal;
+        debtData.totalInterest = debtData.totalInterest - loan.pmt.interest;
+        if (borrowState.totalDebt == loan.pmt.principal) {
             borrowState.avgBorrowRate = 0;
         } else {
             uint256 numer = borrowState.totalDebt.rayMul(
                 borrowState.avgBorrowRate
-            ) - param.principal.rayMul(loan.apr);
-            uint256 denom = borrowState.totalDebt - param.principal;
+            ) - loan.pmt.principal.rayMul(loan.apr);
+            uint256 denom = borrowState.totalDebt - loan.pmt.principal;
             borrowState.avgBorrowRate = numer.rayDiv(denom);
         }
-        borrowState.totalDebt = borrowState.totalDebt - param.principal;
+        borrowState.totalDebt = borrowState.totalDebt - loan.pmt.principal;
         borrowState.totalInterest = borrowState.totalInterest - param.interest;
 
         return (
             loan.repayments.length == 0 ? 0 : loan.repayments.length - 1,
             isFinal
+        );
+    }
+
+    function distributeInterest(
+        ReserveData memory reserveData,
+        uint256 interest,
+        address sender
+    ) internal {
+        uint256 incomeRatio = LibReserveConfiguration
+            .getConfiguration(reserveData.currency)
+            .getIncomeRatio();
+        uint256 seniorInterest = interest.percentMul(incomeRatio);
+        IERC20(reserveData.currency).safeTransferFrom(
+            sender,
+            reserveData.seniorDepositTokenAddress,
+            seniorInterest
+        );
+
+        IERC20(reserveData.currency).safeTransferFrom(
+            sender,
+            reserveData.juniorDepositTokenAddress,
+            interest - seniorInterest
         );
     }
 

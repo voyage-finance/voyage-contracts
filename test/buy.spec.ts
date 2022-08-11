@@ -37,7 +37,7 @@ describe('BuyNow', function () {
     ).to.be.revertedWith('InvalidFloorPrice()');
   });
 
-  it('Buy with insufficient credit limit should revert', async function () {
+  it('Buy with invalid principal should revert', async function () {
     const { crab, owner, voyage, priceOracle, marketPlace, purchaseData } =
       await setupTestSuite();
     const depositAmount = toWad(120);
@@ -48,7 +48,7 @@ describe('BuyNow', function () {
     const vault = await voyage.getVault(owner);
     await expect(
       voyage.buyNow(crab.address, 1, vault, marketPlace.address, purchaseData)
-    ).to.be.revertedWith('InsufficientCreditLimit()');
+    ).to.be.revertedWith('InvalidPrincipal');
   });
 
   it('Buy with sufficient credit limit should pass', async function () {

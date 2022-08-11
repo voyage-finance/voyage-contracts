@@ -16,7 +16,9 @@ contract MarketplaceAdapterFacet is Storage {
         address _vault,
         bytes calldata _data
     ) external {
-        require(msg.sender == address(this), "Invalid caller");
+        if (msg.sender != address(this)) {
+            revert InvalidCaller();
+        }
         address adapterAddr = LibAppStorage
             .ds()
             .marketPlaceData[_marketplace]
@@ -49,4 +51,6 @@ contract MarketplaceAdapterFacet is Storage {
             .adapterAddr = _strategy;
         emit MarketplaceAdapterUpdated(_marketplace, _strategy);
     }
+
+    error InvalidCaller();
 }
