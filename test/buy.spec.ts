@@ -142,5 +142,12 @@ describe('BuyNow', function () {
     await voyage.deposit(crab.address, 1, depositAmount);
     await priceOracle.updateTwap(crab.address, toWad(10));
     const vault = await voyage.getVault(owner);
+    await voyage.buyNow(
+      crab.address,
+      1,
+      vault,
+      seaport.address,
+      purchaseDataFromOpensea
+    );
   });
 });

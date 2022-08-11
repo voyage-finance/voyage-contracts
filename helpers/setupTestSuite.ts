@@ -30,7 +30,7 @@ const setupBase = async ({
   const tus = await ethers.getContract('Tus');
   const crab = await ethers.getContract('Crab');
   const marketPlace = await ethers.getContract('MockMarketPlace');
-  const seaport = await ethers.getContract('SeaportAdapter');
+  const seaport = await ethers.getContract('MockSeaport');
   const defaultReserveInterestRateStrategy = await ethers.getContract(
     'DefaultReserveInterestRateStrategy'
   );
@@ -188,7 +188,7 @@ const setupBase = async ({
   );
   const purchaseDataFromOpensea = abiCoder.encode(
     ['bytes4', 'bytes'],
-    [selector, basicOrderParameters]
+    ['0xfb0f3ee1', basicOrderParameters]
   );
   return {
     owner,
