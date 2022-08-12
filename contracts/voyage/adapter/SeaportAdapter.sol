@@ -2,6 +2,8 @@
 pragma solidity ^0.8.9;
 
 import {IMarketPlaceAdapter} from "../interfaces/IMarketPlaceAdapter.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "hardhat/console.sol";
 
 enum BasicOrderType {
     // 0: no partial fills, anyone can execute
@@ -96,6 +98,8 @@ struct BasicOrderParameters {
 }
 
 struct PurchaseParam {
+    address vault;
+    address seaport;
     bytes4 selector;
     bytes basicOrderParameters;
 }
@@ -134,11 +138,7 @@ contract SeaportAdapter is IMarketPlaceAdapter {
         pure
         returns (uint256)
     {
-        PurchaseParam memory param;
-        (param.selector, param.basicOrderParameters) = abi.decode(
-            _data,
-            (bytes4, bytes)
-        );
+        PurchaseParam memory param = _decode(_data);
         BasicOrderParameters memory basicOrderParameters = abi.decode(
             param.basicOrderParameters,
             (BasicOrderParameters)
@@ -159,20 +159,28 @@ contract SeaportAdapter is IMarketPlaceAdapter {
             revert("invalid data");
         }
 
-        PurchaseParam memory param;
-        (param.selector, param.basicOrderParameters) = abi.decode(
-            _data,
-            (bytes4, bytes)
-        );
+        PurchaseParam memory param = _decode(_data);
+
         return abi.encodePacked(param.selector, param.basicOrderParameters);
     }
 
-    function _validate(bytes calldata _data) private view returns (bool) {
+    function _decode(bytes calldata _data)
+        internal
+        pure
+        returns (PurchaseParam memory)
+    {
         PurchaseParam memory param;
-        (param.selector, param.basicOrderParameters) = abi.decode(
-            _data,
-            (bytes4, bytes)
-        );
+        (
+            param.vault,
+            param.seaport,
+            param.selector,
+            param.basicOrderParameters
+        ) = abi.decode(_data, (address, address, bytes4, bytes));
+        return param;
+    }
+
+    function _validate(bytes calldata _data) private view returns (bool) {
+        PurchaseParam memory param = _decode(_data);
 
         // bytes4(keccak256(fulfillBasicOrder()))
         // 0xfb0f3ee1
@@ -241,6 +249,13 @@ contract SeaportAdapter is IMarketPlaceAdapter {
             if (basicOrderParameters.considerationToken != weth) {
                 return false;
             }
+        }
+
+        if (
+            IERC20(weth).allowance(param.vault, param.seaport) <
+            basicOrderParameters.considerationAmount
+        ) {
+            return false;
         }
 
         return true;

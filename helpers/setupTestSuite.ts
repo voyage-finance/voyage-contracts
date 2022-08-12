@@ -182,8 +182,8 @@ const setupBase = async ({
     ]
   );
   const purchaseDataFromOpensea = abiCoder.encode(
-    ['bytes4', 'bytes'],
-    ['0xfb0f3ee1', basicOrderParameters]
+    ['address', 'address', 'bytes4', 'bytes'],
+    [deployedVault, seaport.address, '0xfb0f3ee1', basicOrderParameters]
   );
   return {
     owner,
@@ -201,6 +201,7 @@ const setupBase = async ({
     voyage,
     purchaseDataFromLooksRare,
     purchaseDataFromOpensea,
+    weth,
   };
 };
 
