@@ -20,7 +20,7 @@ describe('BuyNow', function () {
         marketPlace.address,
         purchaseDataFromLooksRare
       )
-    ).to.be.revertedWith('Unauthorised()');
+    ).to.be.revertedWithCustomError(voyage, 'Unauthorised');
   });
 
   it('Buy with insufficient liquidity should revert', async function () {
@@ -35,14 +35,8 @@ describe('BuyNow', function () {
     await priceOracle.updateTwap(crab.address, toWad(10));
     const vault = await voyage.getVault(owner);
     await expect(
-      voyage.buyNow(
-        crab.address,
-        1,
-        vault,
-        marketPlace.address,
-        purchaseDataFromLooksRare
-      )
-    ).to.be.revertedWith('InsufficientLiquidity()');
+      voyage.buyNow(crab.address, 1, vault, marketPlace.address, purchaseData)
+    ).to.be.revertedWithCustomError(voyage, 'InsufficientLiquidity');
   });
 
   it('Buy with invalid floor price should revert', async function () {
@@ -50,14 +44,8 @@ describe('BuyNow', function () {
       await setupTestSuite();
     const vault = await voyage.getVault(owner);
     await expect(
-      voyage.buyNow(
-        crab.address,
-        1,
-        vault,
-        marketPlace.address,
-        purchaseDataFromLooksRare
-      )
-    ).to.be.revertedWith('InvalidFloorPrice()');
+      voyage.buyNow(crab.address, 1, vault, marketPlace.address, purchaseData)
+    ).to.be.revertedWithCustomError(voyage, 'InvalidFloorPrice');
   });
 
   it('Buy with invalid principal should revert', async function () {
@@ -76,14 +64,8 @@ describe('BuyNow', function () {
     await priceOracle.updateTwap(crab.address, toWad(1));
     const vault = await voyage.getVault(owner);
     await expect(
-      voyage.buyNow(
-        crab.address,
-        1,
-        vault,
-        marketPlace.address,
-        purchaseDataFromLooksRare
-      )
-    ).to.be.revertedWith('InvalidPrincipal');
+      voyage.buyNow(crab.address, 1, vault, marketPlace.address, purchaseData)
+    ).to.be.revertedWithCustomError(voyage, 'InvalidPrincipal');
   });
 
   it('Buy with sufficient credit limit should pass', async function () {

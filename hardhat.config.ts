@@ -1,6 +1,6 @@
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
-import '@nomiclabs/hardhat-waffle';
+import '@nomicfoundation/hardhat-chai-matchers';
 import * as tdly from '@tenderly/hardhat-tenderly';
 import 'hardhat-diamond-abi';
 import '@typechain/hardhat';
@@ -12,6 +12,7 @@ import 'hardhat-watcher';
 import { task } from 'hardhat/config';
 import { HardhatUserConfig } from 'hardhat/types';
 import { resolve } from 'path';
+import { ethers } from 'ethers';
 
 dotenvConfig({ path: resolve(__dirname, './.env') });
 
@@ -49,6 +50,11 @@ const config: HardhatUserConfig = {
     },
     hardhat: {
       allowUnlimitedContractSize: false,
+      accounts: {
+        accountsBalance: ethers.utils
+          .parseEther('10000000000000000')
+          .toString(),
+      },
       mining:
         process.env.MINING_MODE !== 'interval'
           ? { auto: true }
@@ -83,6 +89,8 @@ const config: HardhatUserConfig = {
     owner: 0,
     alice: 1,
     bob: 2,
+    treasury: 9,
+    forwarder: 10,
   },
   diamondAbi: [
     {
@@ -119,8 +127,6 @@ const config: HardhatUserConfig = {
     enabled: reportGas,
     currency: 'USD',
     token: 'ETH',
-    // gasPriceApi:
-    // 'https://api.snowtrace.io/api?module=proxy&action=eth_gasPrice',
     // TODO: regenerate key before going to prd
     coinmarketcap: '49d8a069-b7bf-4a9e-8cb4-dc9c19bff806',
   },

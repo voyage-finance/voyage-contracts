@@ -21,7 +21,7 @@ describe('Reserve configuration', async () => {
     const liquidationBonus = ethers.BigNumber.from(10500).mul(RAY);
     await expect(
       voyage.setLiquidationBonus(tus.address, liquidationBonus)
-    ).to.be.revertedWith('InvalidLiquidationBonus()');
+    ).to.be.revertedWithCustomError(voyage, 'InvalidLiquidationBonus');
   });
 
   it('should be able to set a valid income ratio', async () => {
@@ -39,7 +39,7 @@ describe('Reserve configuration', async () => {
     const incomeRatio = ethers.BigNumber.from(10001);
     await expect(
       voyage.setIncomeRatio(tus.address, incomeRatio)
-    ).to.be.revertedWith('InvalidIncomeRatio');
+    ).to.be.revertedWithCustomError(voyage, 'InvalidIncomeRatio');
   });
 
   it('should set valid loan parameters', async () => {
@@ -59,7 +59,7 @@ describe('Reserve configuration', async () => {
     const grace = 7; // days
     await expect(
       voyage.setLoanParams(tus.address, epoch, term, grace)
-    ).to.be.revertedWith('InvalidLoanInterval');
+    ).to.be.revertedWithCustomError(voyage, 'InvalidLoanInterval');
   });
 
   it('should not allow epoch to exceed loan term', async () => {
@@ -70,7 +70,7 @@ describe('Reserve configuration', async () => {
 
     await expect(
       voyage.setLoanParams(tus.address, epoch, term, grace)
-    ).to.be.revertedWith('IllegalLoanParameters');
+    ).to.be.revertedWithCustomError(voyage, 'IllegalLoanParameters');
   });
 
   it('should not allow loan term to be invalid', async () => {
@@ -81,6 +81,6 @@ describe('Reserve configuration', async () => {
 
     await expect(
       voyage.setLoanParams(tus.address, epoch, term, grace)
-    ).to.be.revertedWith('InvalidLoanTerm');
+    ).to.be.revertedWithCustomError(voyage, 'InvalidLoanTerm');
   });
 });
