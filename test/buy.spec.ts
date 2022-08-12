@@ -35,7 +35,13 @@ describe('BuyNow', function () {
     await priceOracle.updateTwap(crab.address, toWad(10));
     const vault = await voyage.getVault(owner);
     await expect(
-      voyage.buyNow(crab.address, 1, vault, marketPlace.address, purchaseData)
+      voyage.buyNow(
+        crab.address,
+        1,
+        vault,
+        marketPlace.address,
+        purchaseDataFromLooksRare
+      )
     ).to.be.revertedWithCustomError(voyage, 'InsufficientLiquidity');
   });
 
@@ -44,7 +50,13 @@ describe('BuyNow', function () {
       await setupTestSuite();
     const vault = await voyage.getVault(owner);
     await expect(
-      voyage.buyNow(crab.address, 1, vault, marketPlace.address, purchaseData)
+      voyage.buyNow(
+        crab.address,
+        1,
+        vault,
+        marketPlace.address,
+        purchaseDataFromLooksRare
+      )
     ).to.be.revertedWithCustomError(voyage, 'InvalidFloorPrice');
   });
 
@@ -64,7 +76,13 @@ describe('BuyNow', function () {
     await priceOracle.updateTwap(crab.address, toWad(1));
     const vault = await voyage.getVault(owner);
     await expect(
-      voyage.buyNow(crab.address, 1, vault, marketPlace.address, purchaseData)
+      voyage.buyNow(
+        crab.address,
+        1,
+        vault,
+        marketPlace.address,
+        purchaseDataFromLooksRare
+      )
     ).to.be.revertedWithCustomError(voyage, 'InvalidPrincipal');
   });
 
