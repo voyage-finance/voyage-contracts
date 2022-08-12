@@ -27,9 +27,9 @@ describe('Liquidate', function () {
     await voyage.repay(crab.address, 0, vault);
 
     // try to liquidate
-    await expect(voyage.liquidate(crab.address, vault, 0)).to.be.revertedWith(
-      'InvalidLiquidate()'
-    );
+    await expect(
+      voyage.liquidate(crab.address, vault, 0)
+    ).to.be.revertedWithCustomError(voyage, 'InvalidLiquidate');
   });
 
   it('Invalid floor price should revert', async function () {
@@ -52,9 +52,9 @@ describe('Liquidate', function () {
 
     // try to liquidate
     await priceOracle.updateTwap(crab.address, toWad(0));
-    await expect(voyage.liquidate(crab.address, vault, 1)).to.be.revertedWith(
-      'InvalidFloorPrice()'
-    );
+    await expect(
+      voyage.liquidate(crab.address, vault, 1)
+    ).to.be.revertedWithCustomError(voyage, 'InvalidFloorPrice');
   });
 
   it('Valid liquidate with nft should return correct value', async function () {

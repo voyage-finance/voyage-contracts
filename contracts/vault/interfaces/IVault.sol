@@ -5,6 +5,8 @@ interface IVault {
     function initialize(
         address _owner,
         address _user,
+        address _paymaster,
+        address _weth9,
         address _cutFacet,
         address _loupeFacet,
         address _ownershipFacet

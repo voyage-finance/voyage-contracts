@@ -15,7 +15,7 @@ describe('BuyNow', function () {
         marketPlace.address,
         purchaseData
       )
-    ).to.be.revertedWith('Unauthorised()');
+    ).to.be.revertedWithCustomError(voyage, 'Unauthorised');
   });
 
   it('Buy with insufficient liquidity should revert', async function () {
@@ -25,7 +25,7 @@ describe('BuyNow', function () {
     const vault = await voyage.getVault(owner);
     await expect(
       voyage.buyNow(crab.address, 1, vault, marketPlace.address, purchaseData)
-    ).to.be.revertedWith('InsufficientLiquidity()');
+    ).to.be.revertedWithCustomError(voyage, 'InsufficientLiquidity');
   });
 
   it('Buy with invalid floor price should revert', async function () {
@@ -34,7 +34,7 @@ describe('BuyNow', function () {
     const vault = await voyage.getVault(owner);
     await expect(
       voyage.buyNow(crab.address, 1, vault, marketPlace.address, purchaseData)
-    ).to.be.revertedWith('InvalidFloorPrice()');
+    ).to.be.revertedWithCustomError(voyage, 'InvalidFloorPrice');
   });
 
   it('Buy with invalid principal should revert', async function () {
@@ -48,7 +48,7 @@ describe('BuyNow', function () {
     const vault = await voyage.getVault(owner);
     await expect(
       voyage.buyNow(crab.address, 1, vault, marketPlace.address, purchaseData)
-    ).to.be.revertedWith('InvalidPrincipal');
+    ).to.be.revertedWithCustomError(voyage, 'InvalidPrincipal');
   });
 
   it('Buy with sufficient credit limit should pass', async function () {

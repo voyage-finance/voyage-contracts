@@ -3,13 +3,16 @@ pragma solidity ^0.8.9;
 
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {CustodyData, VaultStorageV1, LibVaultStorage} from "../libraries/LibVaultStorage.sol";
+import {CustodyData, VaultStorageV1, LibVaultStorage, Storage} from "../libraries/LibVaultStorage.sol";
 import {ISubvault} from "../interfaces/ISubvault.sol";
 import {VaultConfig} from "../../voyage/libraries/LibAppStorage.sol";
 import {VaultFacet} from "../../voyage/facets/VaultFacet.sol";
 import {SecurityFacet} from "../../voyage/facets/SecurityFacet.sol";
+import {IWETH9} from "../../shared/interfaces/IWETH9.sol";
 
-contract VaultManageFacet {
+contract VaultManageFacet is Storage {
+    bytes internal constant EMPTY_BYTES = "";
+
     modifier authorised() {
         SecurityFacet sf = SecurityFacet(LibVaultStorage.ds().voyage);
         require(
@@ -18,6 +21,14 @@ contract VaultManageFacet {
         );
         _;
     }
+
+    event GasRefunded(
+        address _paymaster,
+        address _dst,
+        uint256 _amount,
+        uint256 _shortfall,
+        bytes _result
+    );
 
     /// @notice Create sub vault
     /// @param _owner The address of the owner
@@ -156,6 +167,38 @@ contract VaultManageFacet {
             revert UnsuccessfulCall();
         }
     }
+
+    function refundGas(uint256 _amount, address _dst) external onlyPaymaster {
+        uint256 amountRefundable = _amount;
+        uint256 ethBal = address(this).balance;
+        // we need to unwrap some WETH in this case.
+        if (ethBal < _amount) {
+            IWETH9 weth9 = IWETH9(_weth9());
+            uint256 balanceWETH9 = weth9.balanceOf(address(this));
+            uint256 toUnwrap = _amount - ethBal;
+            // this should not happen, but if it does, we should take what we can instead of reverting
+            if (toUnwrap > balanceWETH9) {
+                weth9.withdraw(balanceWETH9);
+                amountRefundable = amountRefundable - toUnwrap - balanceWETH9;
+            } else {
+                weth9.withdraw(toUnwrap);
+            }
+        }
+        // solhint-disable-next-line avoid-low-level-calls
+        (bool success, bytes memory result) = _dst.call{
+            value: amountRefundable
+        }(EMPTY_BYTES);
+        if (!success) {
+            revert GasRefundFailed(_dst);
+        }
+        emit GasRefunded(
+            _paymaster(),
+            _dst,
+            amountRefundable,
+            _amount - amountRefundable,
+            result
+        );
+    }
 }
 
 /* --------------------------------- errors -------------------------------- */
@@ -165,3 +208,4 @@ error InvalidSubvaultAddress(address subvault);
 error UnAuthorised();
 error InvalidSender(address sender);
 error UnsuccessfulCall();
+error GasRefundFailed(address _paymaster);

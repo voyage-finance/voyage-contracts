@@ -12,6 +12,8 @@ struct VaultStorageV1 {
     address owner;
     address voyage;
     address user;
+    address paymaster;
+    address weth9;
     uint256 version;
     bytes32 checksum;
     /// @dev You must not set element 0xffffffff to true
@@ -39,5 +41,28 @@ library LibVaultStorage {
         assembly {
             ds.slot := storagePosition
         }
+    }
+}
+
+contract Storage {
+    modifier onlyVoyage() {
+        require(msg.sender == LibVaultStorage.ds().voyage, "Not Voyage");
+        _;
+    }
+    modifier onlyPaymaster() {
+        require(_isPaymaster(msg.sender), "Only paymaster allowed");
+        _;
+    }
+
+    function _isPaymaster(address _src) internal view returns (bool) {
+        return _src == LibVaultStorage.ds().paymaster;
+    }
+
+    function _paymaster() internal view returns (address) {
+        return LibVaultStorage.ds().paymaster;
+    }
+
+    function _weth9() internal view returns (address) {
+        return LibVaultStorage.ds().weth9;
     }
 }
