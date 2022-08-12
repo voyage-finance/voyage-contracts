@@ -128,14 +128,9 @@ const setupBase = async ({
       ),
     ]
   );
-  var abi = [
-    'function matchAskWithTakerBidUsingETHAndWETH((bool,address,uint256,uint256,uint256,bytes),(bool,address,address,uint256,uint256,uint256,address,address,uint256,uint256,uint256,uint256,bytes,uint8,bytes32,bytes32))',
-  ];
-  var iface = new ethers.utils.Interface(abi);
-  var selector = iface.getSighash('matchAskWithTakerBidUsingETHAndWETH');
   const purchaseDataFromLooksRare = abiCoder.encode(
     ['address', 'bytes4', 'bytes', 'bytes'],
-    [marketPlace.address, selector, looksRareMakerOrderData, takerOrderData]
+    [marketPlace.address, '0xb4e4b296', looksRareMakerOrderData, takerOrderData]
   );
 
   const basicOrderParameters = abiCoder.encode(
