@@ -67,7 +67,7 @@ const setupBase = async ({
   /* -------------------------- vault initialisation -------------------------- */
 
   // create an empty vault
-  const salt = randomBytes(20);
+  const salt = ethers.utils.toUtf8Bytes('hw.kk@voyage.finance').slice(0, 42);
   await voyage.createVault(owner, salt);
   const deployedVault = await voyage.getVault(owner);
   await tus.approve(deployedVault, MAX_UINT_256);
@@ -178,16 +178,24 @@ const setupMocks = async (
   args: any = {}
 ) => {
   const { owner } = await getNamedAccounts();
-  const [facets] = await deployFacets({
-    name: 'MockLoanFacet',
-    from: owner,
-    log: true,
-  });
+  const [facets] = await deployFacets(
+    {
+      name: 'MockLoanFacet',
+      from: owner,
+      log: true,
+    },
+    {
+      name: 'MockContextFacet',
+      from: owner,
+      log: true,
+    }
+  );
   await deployments.deploy('TestInitDiamond', {
     from: owner,
     log: true,
     args: [],
   });
+
   const { principalBalance = 0, interestBalance = 0 } = args;
   const initDiamond = await ethers.getContract('TestInitDiamond');
   const initArgs = initDiamond.interface.encodeFunctionData('init', [
@@ -201,7 +209,10 @@ const setupMocks = async (
     'Voyage',
     { from: owner, log: true },
     'diamondCut',
-    [{ ...facets[0], action: FacetCutAction.Replace }],
+    [
+      { ...facets[0], action: FacetCutAction.Replace },
+      { ...facets[1], action: FacetCutAction.Add },
+    ],
     initDiamond.address,
     initArgs
   );
