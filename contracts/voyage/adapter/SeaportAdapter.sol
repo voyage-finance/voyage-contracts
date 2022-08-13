@@ -5,6 +5,65 @@ import {IMarketPlaceAdapter} from "../interfaces/IMarketPlaceAdapter.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "hardhat/console.sol";
 
+uint256 constant BasicOrder_basicOrderType_cdPtr = 0x124;
+
+// prettier-ignore
+enum BasicOrderRouteType {
+    // 0: provide Ether (or other native token) to receive offered ERC721 item.
+    ETH_TO_ERC721,
+
+    // 1: provide Ether (or other native token) to receive offered ERC1155 item.
+    ETH_TO_ERC1155,
+
+    // 2: provide ERC20 item to receive offered ERC721 item.
+    ERC20_TO_ERC721,
+
+    // 3: provide ERC20 item to receive offered ERC1155 item.
+    ERC20_TO_ERC1155,
+
+    // 4: provide ERC721 item to receive offered ERC20 item.
+    ERC721_TO_ERC20,
+
+    // 5: provide ERC1155 item to receive offered ERC20 item.
+    ERC1155_TO_ERC20
+}
+
+// prettier-ignore
+enum OrderType {
+    // 0: no partial fills, anyone can execute
+    FULL_OPEN,
+
+    // 1: partial fills supported, anyone can execute
+    PARTIAL_OPEN,
+
+    // 2: no partial fills, only offerer or zone can execute
+    FULL_RESTRICTED,
+
+    // 3: partial fills supported, only offerer or zone can execute
+    PARTIAL_RESTRICTED
+}
+
+// prettier-ignore
+enum ItemType {
+    // 0: ETH on mainnet, MATIC on polygon, etc.
+    NATIVE,
+
+    // 1: ERC20 items (ERC777 and ERC20 analogues could also technically work)
+    ERC20,
+
+    // 2: ERC721 items
+    ERC721,
+
+    // 3: ERC1155 items
+    ERC1155,
+
+    // 4: ERC721 items where a number of tokenIds are supported
+    ERC721_WITH_CRITERIA,
+
+    // 5: ERC1155 items where a number of ids are supported
+    ERC1155_WITH_CRITERIA
+}
+
 enum BasicOrderType {
     // 0: no partial fills, anyone can execute
     ETH_TO_ERC721_FULL_OPEN,
@@ -179,7 +238,7 @@ contract SeaportAdapter is IMarketPlaceAdapter {
         return param;
     }
 
-    function _validate(bytes calldata _data) private view returns (bool) {
+    function _validate(bytes calldata _data) private pure returns (bool) {
         PurchaseParam memory param = _decode(_data);
 
         // bytes4(keccak256(fulfillBasicOrder()))
@@ -195,25 +254,17 @@ contract SeaportAdapter is IMarketPlaceAdapter {
             param.basicOrderParameters,
             (BasicOrderParameters)
         );
+        BasicOrderType basicOrderType = basicOrderParameters.basicOrderType;
 
-        if (
-            (basicOrderParameters.basicOrderType !=
-                BasicOrderType.ETH_TO_ERC721_FULL_OPEN) &&
-            (basicOrderParameters.basicOrderType !=
-                BasicOrderType.ETH_TO_ERC721_PARTIAL_OPEN) &&
-            (basicOrderParameters.basicOrderType !=
-                BasicOrderType.ETH_TO_ERC721_FULL_RESTRICTED) &&
-            (basicOrderParameters.basicOrderType !=
-                BasicOrderType.ETH_TO_ERC721_PARTIAL_RESTRICTED) &&
-            (basicOrderParameters.basicOrderType !=
-                BasicOrderType.ERC20_TO_ERC721_FULL_OPEN) &&
-            (basicOrderParameters.basicOrderType !=
-                BasicOrderType.ERC20_TO_ERC721_PARTIAL_OPEN) &&
-            (basicOrderParameters.basicOrderType !=
-                BasicOrderType.ERC20_TO_ERC721_FULL_RESTRICTED) &&
-            (basicOrderParameters.basicOrderType !=
-                BasicOrderType.ERC20_TO_ERC721_PARTIAL_RESTRICTED)
-        ) {
+        BasicOrderRouteType route;
+
+        // Utilize assembly to extract the basic order route.
+        assembly {
+            // Divide basicOrderType by four to derive the route.
+            route := shr(2, basicOrderType)
+        }
+
+        if (route != BasicOrderRouteType.ETH_TO_ERC721) {
             return false;
         }
 
@@ -221,40 +272,7 @@ contract SeaportAdapter is IMarketPlaceAdapter {
             return false;
         }
 
-        if (
-            (basicOrderParameters.basicOrderType ==
-                BasicOrderType.ETH_TO_ERC721_FULL_OPEN) ||
-            (basicOrderParameters.basicOrderType ==
-                BasicOrderType.ETH_TO_ERC721_PARTIAL_OPEN) ||
-            (basicOrderParameters.basicOrderType ==
-                BasicOrderType.ETH_TO_ERC721_FULL_RESTRICTED) ||
-            (basicOrderParameters.basicOrderType ==
-                BasicOrderType.ETH_TO_ERC721_PARTIAL_RESTRICTED)
-        ) {
-            if (basicOrderParameters.considerationToken != address(0)) {
-                return false;
-            }
-        }
-
-        if (
-            (basicOrderParameters.basicOrderType ==
-                BasicOrderType.ERC20_TO_ERC721_FULL_OPEN) ||
-            (basicOrderParameters.basicOrderType ==
-                BasicOrderType.ERC20_TO_ERC721_PARTIAL_OPEN) ||
-            (basicOrderParameters.basicOrderType ==
-                BasicOrderType.ERC20_TO_ERC721_FULL_RESTRICTED) ||
-            (basicOrderParameters.basicOrderType ==
-                BasicOrderType.ERC20_TO_ERC721_PARTIAL_RESTRICTED)
-        ) {
-            if (basicOrderParameters.considerationToken != weth) {
-                return false;
-            }
-        }
-
-        if (
-            IERC20(weth).allowance(param.vault, param.seaport) <
-            basicOrderParameters.considerationAmount
-        ) {
+        if (basicOrderParameters.considerationToken != address(0)) {
             return false;
         }
 
