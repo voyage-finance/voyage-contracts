@@ -124,21 +124,6 @@ contract VaultFacet is Storage, ReentrancyGuard {
         VaultManageFacet(_vault).exec(encodedData);
     }
 
-    function approveMarketPlace(
-        address _vault,
-        address _currency,
-        address _spender
-    ) external {
-        if (LibVault.getVaultAddress(_msgSender()) != _vault) {
-            revert InvalidVaultCall();
-        }
-        bytes4 selector = IERC20(_currency).approve.selector;
-        bytes memory param = abi.encode(_spender, type(uint256).max);
-        bytes memory data = abi.encodePacked(selector, param);
-        bytes memory encodedData = abi.encode(_currency, data);
-        VaultManageFacet(_vault).exec(encodedData);
-    }
-
     /* ---------------------- view functions --------------------- */
     function computeCounterfactualAddress(address _owner, bytes20 _salt)
         external
