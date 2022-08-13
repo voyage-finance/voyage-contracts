@@ -227,29 +227,21 @@ contract DataProviderFacet {
     function pendingSeniorWithdrawals(address _user, address _collection)
         public
         view
-        returns (uint256[] memory, uint256[] memory)
+        returns (uint256)
     {
         ReserveData memory reserve = LibLiquidity.getReserveData(_collection);
 
-        (uint256[] memory times, uint256[] memory amounts) = IVToken(
-            reserve.seniorDepositTokenAddress
-        ).unbonding(_user);
-
-        return (times, amounts);
+        return IVToken(reserve.seniorDepositTokenAddress).unbonding(_user);
     }
 
     function pendingJuniorWithdrawals(address _user, address _collection)
         public
         view
-        returns (uint256[] memory, uint256[] memory)
+        returns (uint256)
     {
         ReserveData memory reserve = LibLiquidity.getReserveData(_collection);
 
-        (uint256[] memory times, uint256[] memory amounts) = IVToken(
-            reserve.juniorDepositTokenAddress
-        ).unbonding(_user);
-
-        return (times, amounts);
+        return IVToken(reserve.juniorDepositTokenAddress).unbonding(_user);
     }
 
     function getProtocolFeeParam() public view returns (address, uint256) {
