@@ -27,12 +27,12 @@ const setupBase = async ({
   );
   await paymaster.setTrustedForwarder(forwarder);
   const priceOracle = await ethers.getContract('PriceOracle');
-  const weth = await ethers.getContract('WETH9');
+  const weth = await ethers.getContract<WETH9>('WETH9');
+  await weth.deposit({ value: ethers.utils.parseEther('100000') });
   /* ---------------------------------- adapter --------------------------------- */
   const looksRareAdapter = await ethers.getContract('LooksRareAdapter');
   const seaportAdapter = await ethers.getContract('SeaportAdapter');
   /* ------------------------------ tokenization ------------------------------ */
-  const tus = await ethers.getContract('Tus');
   const crab = await ethers.getContract('Crab');
   const marketPlace = await ethers.getContract('MockMarketPlace');
   const seaport = await ethers.getContract('MockSeaport');
@@ -42,7 +42,7 @@ const setupBase = async ({
   /* ------------------------- reserve initialisation ------------------------- */
   await voyage.initReserve(
     crab.address,
-    tus.address,
+    weth.address,
     defaultReserveInterestRateStrategy.address,
     priceOracle.address
   );
@@ -67,14 +67,14 @@ const setupBase = async ({
     'JuniorDepositToken',
     junior
   );
-  await tus.approve(voyage.address, MAX_UINT_256);
+  await weth.approve(voyage.address, MAX_UINT_256);
   /* -------------------------- vault initialisation -------------------------- */
 
   // create an empty vault
   const salt = ethers.utils.toUtf8Bytes('hw.kk@voyage.finance').slice(0, 42);
   await voyage.createVault(owner, salt);
   const deployedVault = await voyage.getVault(owner);
-  await tus.approve(deployedVault, MAX_UINT_256);
+  await weth.approve(deployedVault, MAX_UINT_256);
   const abiCoder = ethers.utils.defaultAbiCoder;
   const looksRareMakerOrderData = abiCoder.encode(
     [
@@ -103,7 +103,7 @@ const setupBase = async ({
       1,
       1,
       alice,
-      tus.address,
+      weth.address,
       1,
       1,
       1,
@@ -164,7 +164,7 @@ const setupBase = async ({
       1,
       owner,
       owner,
-      tus.address,
+      weth.address,
       1,
       1,
       1,
@@ -213,7 +213,6 @@ const setupBase = async ({
     defaultReserveInterestRateStrategy,
     priceOracle,
     paymaster,
-    tus,
     crab,
     marketPlace,
     seaport,
@@ -282,7 +281,7 @@ export const setupTestSuiteWithMocks = d.createFixture(async (hre, args) => {
   const voyage = await hre.ethers.getContract<Voyage>('Voyage');
   return {
     ...base,
-    underlying: base.tus as ERC20,
+    underlying: base.weth,
     decimals: dec,
     voyage,
   };

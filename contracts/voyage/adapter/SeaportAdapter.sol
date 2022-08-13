@@ -205,13 +205,13 @@ contract SeaportAdapter is IMarketPlaceAdapter {
         return basicOrderParameters.considerationAmount;
     }
 
-    function validate(bytes calldata _data) external view returns (bool) {
+    function validate(bytes calldata _data) external pure returns (bool) {
         return _validate(_data);
     }
 
     function execute(bytes calldata _data)
         external
-        view
+        pure
         returns (bytes memory)
     {
         if (!_validate(_data)) {

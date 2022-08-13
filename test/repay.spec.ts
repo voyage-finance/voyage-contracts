@@ -18,7 +18,7 @@ describe('Repay', function () {
       owner,
       juniorDepositToken,
       seniorDepositToken,
-      tus,
+      weth,
       crab,
       voyage,
       priceOracle,
@@ -31,8 +31,8 @@ describe('Repay', function () {
     const depositAmount = toWad(100);
     await voyage.deposit(crab.address, 0, depositAmount);
     await voyage.deposit(crab.address, 1, depositAmount);
-    const seniorLiquidity = await tus.balanceOf(seniorDepositToken.address);
-    const juniorLiquidity = await tus.balanceOf(juniorDepositToken.address);
+    const seniorLiquidity = await weth.balanceOf(seniorDepositToken.address);
+    const juniorLiquidity = await weth.balanceOf(juniorDepositToken.address);
     console.log('senior liquidity: ', seniorLiquidity.toString());
     console.log('junior liquidity: ', juniorLiquidity.toString());
     await priceOracle.updateTwap(crab.address, toWad(10));

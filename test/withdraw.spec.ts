@@ -35,7 +35,7 @@ describe('Withdraw', function () {
       voyage,
       seniorDepositToken,
       juniorDepositToken,
-      tus,
+      weth,
       crab,
       owner,
       priceOracle,
@@ -66,7 +66,7 @@ describe('Withdraw', function () {
     // @ts-ignore
     await ethers.provider.send('evm_mine');
 
-    const originalBalance = await tus.balanceOf(owner);
+    const originalBalance = await weth.balanceOf(owner);
     console.log('original balance: ', originalBalance.toString());
 
     const accumulatedBalance = await seniorDepositToken.balanceOf(owner);
@@ -80,12 +80,12 @@ describe('Withdraw', function () {
       accumulatedBalanceAfter
     );
 
-    const updatedBalance = await tus.balanceOf(owner);
+    const updatedBalance = await weth.balanceOf(owner);
     console.log('updated balance: ', updatedBalance.toString());
   });
 
   it('maxWithdraw should exclude unbonding amount', async function () {
-    const { voyage, tus, crab, seniorDepositToken, juniorDepositToken, owner } =
+    const { voyage, crab, seniorDepositToken, juniorDepositToken, owner } =
       await setupTestSuite();
     await seniorDepositToken.approve(voyage.address, MAX_UINT_256);
     await juniorDepositToken.approve(voyage.address, MAX_UINT_256);

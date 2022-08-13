@@ -106,9 +106,9 @@ describe('Liquidate', function () {
       voyage,
       priceOracle,
       crab,
-      tus,
       purchaseDataFromLooksRare,
       marketPlace,
+      weth,
     } = await setupTestSuite();
     const vault = await voyage.getVault(owner);
 
@@ -131,7 +131,7 @@ describe('Liquidate', function () {
     await priceOracle.updateTwap(crab.address, toWad(100));
     await voyage.liquidate(crab.address, vault, 0);
     await expect(await crab.ownerOf(1)).to.equal(owner);
-    const refundedAmount = await tus.balanceOf(vault);
+    const refundedAmount = await weth.balanceOf(vault);
     console.log('refunded amount: ', refundedAmount.toString());
     await expect(refundedAmount).to.be.gt(toWad(0));
   });

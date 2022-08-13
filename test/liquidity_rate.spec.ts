@@ -109,7 +109,7 @@ describe('Liquidity Rate', function () {
   it('Borrow should return correct interest rate', async function () {
     const {
       owner,
-      tus,
+      weth,
       crab,
       seniorDepositToken,
       juniorDepositToken,
@@ -125,8 +125,8 @@ describe('Liquidity Rate', function () {
 
     await voyage.deposit(crab.address, 0, juniorDepositAmount);
     await voyage.deposit(crab.address, 1, seniorDepositAmount);
-    const seniorLiquidity = await tus.balanceOf(seniorDepositToken.address);
-    const juniorLiquidity = await tus.balanceOf(juniorDepositToken.address);
+    const seniorLiquidity = await weth.balanceOf(seniorDepositToken.address);
+    const juniorLiquidity = await weth.balanceOf(juniorDepositToken.address);
     console.log('senior liquidity: ', seniorLiquidity.toString());
     console.log('junior liquidity: ', juniorLiquidity.toString());
     await priceOracle.updateTwap(crab.address, toWad(10));

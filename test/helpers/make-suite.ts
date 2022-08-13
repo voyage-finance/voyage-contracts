@@ -50,7 +50,6 @@ export async function initializeMakeSuite() {
     voyage,
     juniorDepositToken,
     seniorDepositToken,
-    tus,
     crab,
     deployedVault,
     priceOracle,
