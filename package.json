@@ -71,7 +71,7 @@
     "@ethersproject/bignumber": "^5.6.2",
     "@opengsn/common": "2.2.6",
     "@opengsn/contracts": "^2.2.6",
-    "@openzeppelin/contracts": "^4.7.1",
+    "@openzeppelin/contracts": "^4.7.2",
     "@openzeppelin/contracts-upgradeable": "^4.7.2",
     "@rari-capital/solmate": "^6.4.0",
     "@tenderly/hardhat-tenderly": "^1.1.4",
