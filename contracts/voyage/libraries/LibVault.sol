@@ -10,7 +10,6 @@ import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
 import {VaultDataFacet} from "../../vault/facets/VaultDataFacet.sol";
 import {LogarithmMath} from "../../shared/libraries/LogarithmMath.sol";
-import "hardhat/console.sol";
 
 library LibVault {
     using WadRayMath for uint256;

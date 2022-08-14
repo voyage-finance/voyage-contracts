@@ -8,13 +8,16 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {ERC4626, IERC4626} from "../../shared/tokenization/ERC4626.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
 
+struct Unbonding {
+    uint256 shares;
+    uint256 maxUnderlying;
+}
+
 abstract contract VToken is Initializable, ERC4626, IVToken {
     using SafeERC20 for IERC20Metadata;
 
     address internal voyage;
-    // user address => shares
-    mapping(address => uint256) public withdrawalbleShare;
-    mapping(address => uint256) public withdrawaleUnderlying;
+    mapping(address => Unbonding) public unbondings;
 
     uint256 public totalUnbonding;
 
@@ -65,39 +68,39 @@ abstract contract VToken is Initializable, ERC4626, IVToken {
     }
 
     function pushWithdraw(address _user, uint256 _shares) internal {
-        withdrawalbleShare[_user] += _shares;
-        withdrawaleUnderlying[_user] += convertToAssets(_shares);
+        unbondings[_user].shares += _shares;
+        unbondings[_user].maxUnderlying += convertToAssets(_shares);
         totalUnbonding += _shares;
     }
 
-    function reset(address _user) internal {
-        withdrawaleUnderlying[_user] = 0;
-        withdrawalbleShare[_user] = 0;
+    function resetUnbondingPosition(address _user) internal {
+        unbondings[_user].shares = 0;
+        unbondings[_user].maxUnderlying = 0;
     }
 
-    function subtract(uint256 _shares, uint256 _asset) internal {
-        withdrawaleUnderlying[msg.sender] -= _asset;
-        withdrawalbleShare[msg.sender] -= _shares;
+    function reduceUnbondingPosition(uint256 _shares, uint256 _asset) internal {
+        if (_shares > unbondings[msg.sender].shares) {
+            unbondings[msg.sender].shares == 0;
+            unbondings[msg.sender].maxUnderlying = 0;
+            return;
+        }
+        unbondings[msg.sender].maxUnderlying -= _asset;
+        unbondings[msg.sender].shares -= _shares;
     }
 
     function claim() external {
-        if (withdrawalbleShare[msg.sender] == 0) {
-            withdrawaleUnderlying[msg.sender] = 0;
-            return;
-        }
-
-        uint256 ownedAsset = withdrawaleUnderlying[msg.sender];
-        uint256 totalAsset = asset.balanceOf(address(this));
+        uint256 maxClaimable = unbondings[msg.sender].maxUnderlying;
+        uint256 availableLiquidity = asset.balanceOf(address(this));
         uint256 transferredShares;
         uint256 transferredAsset;
-        if (totalAsset > ownedAsset) {
-            transferredAsset = ownedAsset;
-            transferredShares = withdrawalbleShare[msg.sender];
-            reset(msg.sender);
+        if (availableLiquidity > maxClaimable) {
+            transferredAsset = maxClaimable;
+            transferredShares = unbondings[msg.sender].shares;
+            resetUnbondingPosition(msg.sender);
         } else {
-            transferredAsset = totalAsset;
-            uint256 shares = convertToShares(totalAsset);
-            subtract(shares, transferredAsset);
+            transferredAsset = availableLiquidity;
+            uint256 shares = convertToShares(availableLiquidity);
+            reduceUnbondingPosition(shares, transferredAsset);
             transferredShares = shares;
         }
         totalUnbonding -= transferredShares;
@@ -105,12 +108,12 @@ abstract contract VToken is Initializable, ERC4626, IVToken {
     }
 
     function unbonding(address _user) external view returns (uint256) {
-        return convertToAssets(withdrawalbleShare[_user]);
+        return convertToAssets(unbondings[_user].shares);
     }
 
     function maximumClaimable(address _user) external view returns (uint256) {
-        uint256 underlyingUnbonding = withdrawaleUnderlying[_user];
-        uint256 underlyingNow = convertToAssets(withdrawalbleShare[_user]);
+        uint256 underlyingUnbonding = unbondings[_user].maxUnderlying;
+        uint256 underlyingNow = convertToAssets(unbondings[_user].shares);
         return
             underlyingUnbonding < underlyingNow
                 ? underlyingUnbonding

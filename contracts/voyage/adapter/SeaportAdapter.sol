@@ -3,7 +3,6 @@ pragma solidity ^0.8.9;
 
 import {IMarketPlaceAdapter} from "../interfaces/IMarketPlaceAdapter.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "hardhat/console.sol";
 
 uint256 constant BasicOrder_basicOrderType_cdPtr = 0x124;
 
