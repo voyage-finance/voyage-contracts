@@ -19,6 +19,7 @@ import {PaymentsFacet} from "../../shared/facets/PaymentsFacet.sol";
 import {SafeTransferLib} from "../../shared/libraries/SafeTransferLib.sol";
 import {IVault} from "../../vault/Vault.sol";
 import {MarketplaceAdapterFacet} from "./MarketplaceAdapterFacet.sol";
+import "hardhat/console.sol";
 
 contract LoanFacet is Storage {
     using WadRayMath for uint256;
@@ -263,6 +264,12 @@ contract LoanFacet is Storage {
         params.totalBalance = IERC20(reserveData.currency).balanceOf(
             reserveData.seniorDepositTokenAddress
         );
+        console.log("currency: ", reserveData.currency);
+        console.log(
+            "senior deposit tokenAddress: ",
+            reserveData.seniorDepositTokenAddress
+        );
+        console.log("balance: ", params.totalBalance);
         if (params.totalBalance > params.totalPending) {
             params.availableLiquidity =
                 params.totalBalance -
