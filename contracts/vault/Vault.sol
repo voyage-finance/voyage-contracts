@@ -40,7 +40,7 @@ library LibVaultStorage {
     function ds() internal pure returns (VaultStorageV1 storage ds) {
         // Set the position of our struct in contract storage
         bytes32 storagePosition = keccak256(
-            "diamond.storage.simplevault.voyage"
+            "diamond.storage.vault.voyage"
         );
         assembly {
             ds.slot := storagePosition
