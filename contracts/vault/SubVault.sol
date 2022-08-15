@@ -4,7 +4,16 @@ pragma solidity ^0.8.9;
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {IVault} from "./Vault.sol";
-import {ISubvault} from "./interfaces/ISubvault.sol";
+
+interface ISubvault {
+    function initialize(address _parent, address _owner) external;
+
+    function updateOwner(address _newOwner) external;
+
+    function callExternal(address target, bytes calldata data)
+        external
+        returns (bytes memory);
+}
 
 contract SubVault is Initializable, ISubvault, IERC721Receiver {
     struct SubVaultStorageV1 {
