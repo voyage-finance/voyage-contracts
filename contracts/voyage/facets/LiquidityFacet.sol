@@ -12,7 +12,6 @@ import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol"
 import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PaymentsFacet} from "../../shared/facets/PaymentsFacet.sol";
-import "hardhat/console.sol";
 
 contract LiquidityFacet is Storage {
     using LibLiquidity for ReserveData;
@@ -134,12 +133,6 @@ contract LiquidityFacet is Storage {
         uint256 bal = IERC20(reserve.currency).balanceOf(
             reserve.seniorDepositTokenAddress
         );
-        console.log("currency: ", reserve.currency);
-        console.log(
-            "senior deposit token: ",
-            reserve.seniorDepositTokenAddress
-        );
-        console.log("bal: ", bal);
     }
 
     function withdraw(
