@@ -2,7 +2,6 @@ import { BigNumber } from '@ethersproject/bignumber';
 import { RelayRequest } from '@opengsn/common/dist/EIP712/RelayRequest';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { Vault } from 'typechain/Vault';
 import { WETH9 } from 'typechain/WETH9';
 import { setupTestSuite } from '../helpers/setupTestSuite';
 import { anyValue } from '@nomicfoundation/hardhat-chai-matchers/withArgs';
@@ -242,10 +241,9 @@ describe('VoyagePaymaster', function () {
     const initialTreasuryBalance = await ethers.provider.getBalance(treasury);
     const gasPrice = ethers.utils.parseUnits('32', 'gwei');
     const gasUseWithoutPost = ethers.BigNumber.from(1_000_000);
-    const vault = await ethers.getContractAt<Vault>(
-      'hardhat-diamond-abi/HardhatDiamondABI.sol:Vault',
-      deployedVault
-    );
+    const vault = await (
+      await ethers.getContractFactory('Vault')
+    ).attach(deployedVault);
     const tx = await paymaster.postRelayedCall(
       ethers.utils.defaultAbiCoder.encode(['address'], [deployedVault]),
       true,
@@ -318,10 +316,9 @@ describe('VoyagePaymaster', function () {
       .add(postOverhead)
       .add(ethers.BigNumber.from(24000))
       .mul(gasPrice);
-    const vault = await ethers.getContractAt<Vault>(
-      'hardhat-diamond-abi/HardhatDiamondABI.sol:Vault',
-      deployedVault
-    );
+    const vault = await (
+      await ethers.getContractFactory('Vault')
+    ).attach(deployedVault);
     const tx = await paymaster.postRelayedCall(
       ethers.utils.defaultAbiCoder.encode(['address'], [deployedVault]),
       true,

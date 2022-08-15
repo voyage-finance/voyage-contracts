@@ -1,4 +1,3 @@
-import { Crab, MockMarketPlace, Tus } from '@contracts';
 import BigNumber from 'bignumber.js';
 import { DeployFunction } from 'hardhat-deploy/types';
 
@@ -20,7 +19,6 @@ const deployFn: DeployFunction = async (hre) => {
     });
   }
 
-  const crab = await ethers.getContract<Crab>('Crab');
   await deploy('MockMarketPlace', {
     from: owner,
     log: true,
@@ -45,6 +43,22 @@ const deployFn: DeployFunction = async (hre) => {
     libraries: { WadRayMath: wadRayMath.address },
     args: [utilisationRate, slope1, slope2, baseInterest],
   });
+
+  const vault = await deploy('Vault', {
+    from: owner,
+    log: true,
+    args: [],
+  });
+
+  await execute(
+    'Voyage',
+    {
+      from: owner,
+      log: true,
+    },
+    'setVaultBeacon',
+    vault.address
+  );
 };
 
 deployFn.dependencies = ['Voyage'];

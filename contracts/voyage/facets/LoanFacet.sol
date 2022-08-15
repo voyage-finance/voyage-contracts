@@ -17,9 +17,7 @@ import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
 import {PaymentsFacet} from "../../shared/facets/PaymentsFacet.sol";
 import {SafeTransferLib} from "../../shared/libraries/SafeTransferLib.sol";
-import {VaultDataFacet} from "../../vault/facets/VaultDataFacet.sol";
-import {VaultManageFacet} from "../../vault/facets/VaultManageFacet.sol";
-import {VaultFacet} from "./VaultFacet.sol";
+import {IVault} from "../../vault/Vault.sol";
 import {MarketplaceAdapterFacet} from "./MarketplaceAdapterFacet.sol";
 
 contract LoanFacet is Storage {
@@ -491,7 +489,7 @@ contract LoanFacet is Storage {
                 abi.encode(param.vault, param.liquidator, collaterals[i])
             );
             bytes memory encodedData = abi.encode(param.collection, data);
-            VaultManageFacet(_vault).exec(encodedData);
+            IVault(_vault).exec(encodedData);
         }
 
         emit CollateralTransferred(

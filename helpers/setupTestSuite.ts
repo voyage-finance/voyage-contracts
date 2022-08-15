@@ -74,6 +74,7 @@ const setupBase = async ({
   const salt = ethers.utils.toUtf8Bytes('hw.kk@voyage.finance').slice(0, 42);
   await voyage.createVault(owner, salt);
   const deployedVault = await voyage.getVault(owner);
+  console.log('deployed vault', deployedVault);
   await weth.approve(deployedVault, MAX_UINT_256);
   const abiCoder = ethers.utils.defaultAbiCoder;
   const looksRareMakerOrderData = abiCoder.encode(

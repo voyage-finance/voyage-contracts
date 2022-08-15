@@ -12,13 +12,11 @@ import {LibAppStorage, AppStorage, Storage, VaultConfig, NFTInfo, DiamondFacet, 
 import {LibVault} from "../libraries/LibVault.sol";
 import {LibSecurity} from "../libraries/LibSecurity.sol";
 import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
-import {IVault} from "../../vault/interfaces/IVault.sol";
+import {IVault} from "../../vault/Vault.sol";
 import {IDiamondVersionFacet, Snapshot} from "../interfaces/IDiamondVersionFacet.sol";
-import {Vault} from "../../vault/Vault.sol";
 import {IDiamondCut} from "../../shared/diamond/interfaces/IDiamondCut.sol";
 import {DiamondCutFacet} from "../../shared/diamond/facets/DiamondCutFacet.sol";
 import {DiamondVersionFacet} from "./DiamondVersionFacet.sol";
-import {VaultManageFacet} from "../../vault/facets/VaultManageFacet.sol";
 
 contract VaultFacet is Storage, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -39,9 +37,9 @@ contract VaultFacet is Storage, ReentrancyGuard {
     );
 
     /* ----------------------------- admin interface ---------------------------- */
-    function createVault(address _owner, bytes20 _salt) external authorised {
-        bytes memory data = getEncodedVaultInitData(_owner);
-        bytes32 newsalt = newSalt(_salt, _owner);
+    function createVault(address _user, bytes20 _salt) external authorised {
+        bytes memory data = getEncodedVaultInitData(_user);
+        bytes32 newsalt = newSalt(_salt, _user);
         address vaultBeaconProxy;
         bytes memory initCode = abi.encodePacked(
             type(BeaconProxy).creationCode,
@@ -58,28 +56,16 @@ contract VaultFacet is Storage, ReentrancyGuard {
         if (vaultBeaconProxy == address(0)) {
             revert FailedDeployVault();
         }
-        diamondCut(vaultBeaconProxy);
-        uint256 numVaults = LibVault.recordVault(_owner, vaultBeaconProxy);
-        bytes4[] memory sigs = new bytes4[](4);
-        sigs[0] = VaultManageFacet(address(0)).createSubvault.selector;
-        sigs[1] = VaultManageFacet(address(0)).updateSubvaultOwner.selector;
-        sigs[2] = VaultManageFacet(address(0)).pauseSubvault.selector;
-        sigs[3] = VaultManageFacet(address(0)).unpauseSubvault.selector;
-        LibSecurity.grantPermissions(
-            LibAppStorage.ds().auth,
-            _owner,
-            vaultBeaconProxy,
-            sigs
-        );
-        sigs = new bytes4[](1);
-        sigs[0] = VaultManageFacet(address(0)).exec.selector;
+        uint256 numVaults = LibVault.recordVault(_user, vaultBeaconProxy);
+        bytes4[] memory sigs = new bytes4[](1);
+        sigs[0] = IVault(address(0)).exec.selector;
         LibSecurity.grantPermissions(
             LibAppStorage.ds().auth,
             address(this),
             vaultBeaconProxy,
             sigs
         );
-        emit VaultCreated(vaultBeaconProxy, _owner, numVaults);
+        emit VaultCreated(vaultBeaconProxy, _user, numVaults);
     }
 
     /* ---------------------- vault configuration interface --------------------- */
@@ -105,7 +91,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         bytes memory param = abi.encode(_vault, _msgSender(), _tokenId);
         bytes memory data = abi.encodePacked(selector, param);
         bytes memory encodedData = abi.encode(_collection, data);
-        VaultManageFacet(_vault).exec(encodedData);
+        IVault(_vault).exec(encodedData);
     }
 
     function transferReserve(
@@ -121,16 +107,16 @@ contract VaultFacet is Storage, ReentrancyGuard {
         bytes memory param = abi.encode(_vault, _to, _amount);
         bytes memory data = abi.encodePacked(selector, param);
         bytes memory encodedData = abi.encode(_currency, data);
-        VaultManageFacet(_vault).exec(encodedData);
+        IVault(_vault).exec(encodedData);
     }
 
     /* ---------------------- view functions --------------------- */
-    function computeCounterfactualAddress(address _owner, bytes20 _salt)
+    function computeCounterfactualAddress(address _user, bytes20 _salt)
         external
         view
         returns (address)
     {
-        bytes memory data = getEncodedVaultInitData(_owner);
+        bytes memory data = getEncodedVaultInitData(_user);
         bytes memory initCode = abi.encodePacked(
             type(BeaconProxy).creationCode,
             abi.encode(vaultBeacon(), data)
@@ -139,7 +125,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
             abi.encodePacked(
                 bytes1(0xff),
                 address(this),
-                newSalt(_salt, _owner),
+                newSalt(_salt, _user),
                 keccak256(initCode)
             )
         );
@@ -177,21 +163,17 @@ contract VaultFacet is Storage, ReentrancyGuard {
         return LibVault.getVaultAddress(_user);
     }
 
-    function getEncodedVaultInitData(address _owner)
+    function getEncodedVaultInitData(address _user)
         internal
         view
         returns (bytes memory)
     {
-        DiamondFacet memory cutFacet = LibVault.getDiamondFacets();
         bytes memory data = abi.encodeWithSelector(
             IVault(address(0)).initialize.selector,
             address(this),
-            _owner,
+            _user,
             LibAppStorage.ds().paymaster,
-            LibAppStorage.ds().WETH9,
-            cutFacet.diamondCutFacet,
-            cutFacet.diamondLoupeFacet,
-            cutFacet.ownershipFacet
+            LibAppStorage.ds().WETH9
         );
         return data;
     }

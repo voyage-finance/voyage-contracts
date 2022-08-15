@@ -8,7 +8,6 @@ import {LibAppStorage, AppStorage, BorrowData, VaultConfig, NFTInfo, DiamondFace
 import {LibReserveConfiguration} from "./LibReserveConfiguration.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
-import {VaultDataFacet} from "../../vault/facets/VaultDataFacet.sol";
 import {LogarithmMath} from "../../shared/libraries/LogarithmMath.sol";
 
 library LibVault {

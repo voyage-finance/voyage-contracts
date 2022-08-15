@@ -10,10 +10,7 @@ async function main() {
   if (vaultAddress === ethers.constants.AddressZero) {
     throw new Error('Owner has no vault');
   }
-  const vault = await ethers.getContractAt<Vault>(
-    'hardhat-diamond-abi/HardhatDiamondABI.sol:Vault',
-    vaultAddress
-  );
+  const vault = (await ethers.getContractFactory('Vault')).attach(vaultAddress);
 
   const tus = await ethers.getContract('Tus', owner);
   // max approve vault

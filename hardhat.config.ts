@@ -96,11 +96,7 @@ const config: HardhatUserConfig = {
     {
       name: 'Voyage',
       include: ['contracts/voyage/facets', 'contracts/shared/diamond/facets'],
-    },
-    {
-      name: 'Vault',
-      include: ['contracts/vault/facets', 'contracts/shared/diamond/facets'],
-    },
+    }
   ],
   solidity: {
     compilers: [
