@@ -16,10 +16,7 @@ async function main() {
     console.log('createVault tx hash: ', tx.hash);
     vaultAddress = await voyage.getVault(owner);
   }
-  const vault = await ethers.getContractAt<Vault>(
-    'hardhat-diamond-abi/HardhatDiamondABI.sol:Vault',
-    vaultAddress
-  );
+  const vault = (await ethers.getContractFactory('Vault')).attach(vaultAddress);
   const marginEscrow = await vault.marginEscrow(tus.address);
   console.log('margin escrow: ', marginEscrow);
   if (ethers.BigNumber.from(marginEscrow).isZero()) {

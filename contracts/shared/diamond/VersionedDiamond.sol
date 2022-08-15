@@ -13,7 +13,6 @@ import {LibDiamond} from "./libraries/LibDiamond.sol";
 import {DiamondCutFacet} from "./facets/DiamondCutFacet.sol";
 import {DiamondLoupeFacet} from "./facets/DiamondLoupeFacet.sol";
 import {OwnershipFacet} from "./facets/OwnershipFacet.sol";
-import {VaultStorageV1} from "../../vault/libraries/LibVaultStorage.sol";
 import {DiamondVersionFacet} from "../../voyage/facets/DiamondVersionFacet.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
@@ -38,7 +37,6 @@ contract VersionedDiamond is Initializable {
     // function if a facet is found and return any value.
     fallback() external payable {
         LibDiamond.DiamondStorage storage ds;
-        VaultStorageV1 storage vs;
         bytes32 position = LibDiamond.DIAMOND_STORAGE_POSITION;
         assembly {
             ds.slot := position

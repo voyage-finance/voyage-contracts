@@ -3,9 +3,7 @@ pragma solidity ^0.8.9;
 
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import {Vault} from "./Vault.sol";
-import {VaultDataFacet} from "./facets/VaultDataFacet.sol";
-import {VaultManageFacet} from "./facets/VaultManageFacet.sol";
+import {IVault} from "./Vault.sol";
 import {ISubvault} from "./interfaces/ISubvault.sol";
 
 contract SubVault is Initializable, ISubvault, IERC721Receiver {
@@ -42,13 +40,11 @@ contract SubVault is Initializable, ISubvault, IERC721Receiver {
         bytes calldata data
     ) external returns (bytes4 ret) {
         if (
-            !VaultDataFacet(diamondStorage().parent).collectionInitialized(
-                msg.sender
-            )
+            !IVault(diamondStorage().parent).collectionInitialized(msg.sender)
         ) {
             revert InvalidSenderAddress();
         }
-        VaultManageFacet(diamondStorage().parent).onERC721Transferred(
+        IVault(diamondStorage().parent).onERC721Transferred(
             msg.sender,
             tokenId,
             from,

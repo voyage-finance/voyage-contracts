@@ -2,7 +2,7 @@
 pragma solidity ^0.8.9;
 
 import {VaultFacet} from "../../voyage/facets/VaultFacet.sol";
-import {VaultManageFacet} from "../../vault/facets/VaultManageFacet.sol";
+import {IVault} from "../../vault/Vault.sol";
 import {IPaymaster, BasePaymaster, GsnTypes} from "@opengsn/contracts/src/BasePaymaster.sol";
 import {IForwarder} from "@opengsn/contracts/src/forwarder/IForwarder.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -103,6 +103,6 @@ contract VoyagePaymaster is BasePaymaster {
         uint256 refund = vault.balance >= minimumFees
             ? minimumFees
             : minimumFees + 21000 * relayData.gasPrice; // cover cost of unwrapping WETH
-        VaultManageFacet(vault).refundGas(refund, treasury);
+        IVault(vault).refundGas(refund, treasury);
     }
 }

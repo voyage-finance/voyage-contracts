@@ -6,7 +6,7 @@ describe('Vault Signature', function () {
   it('Vault should recover correct address from signature', async function () {
     const { owner, voyage } = await setupTestSuite();
     const vault = await voyage.getVault(owner);
-    const bp = await ethers.getContractFactory('VaultDataFacet');
+    const bp = await ethers.getContractFactory('Vault');
     const vaultInstance = await bp.attach(vault);
 
     // Create a wallet to sign the message with
