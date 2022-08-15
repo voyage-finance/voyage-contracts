@@ -6,7 +6,7 @@ import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
 import {VaultFacet} from "../voyage/facets/VaultFacet.sol";
 import {SecurityFacet} from "../voyage/facets/SecurityFacet.sol";
 import {IWETH9} from "../shared/interfaces/IWETH9.sol";
-import {ISubvault} from "./interfaces/ISubvault.sol";
+import {ISubvault} from "./SubVault.sol";
 
 struct VaultStorageV1 {
     address voyage;
@@ -39,9 +39,7 @@ library LibVaultStorage {
     // ds is short for DiamondStorage
     function ds() internal pure returns (VaultStorageV1 storage ds) {
         // Set the position of our struct in contract storage
-        bytes32 storagePosition = keccak256(
-            "diamond.storage.vault.voyage"
-        );
+        bytes32 storagePosition = keccak256("diamond.storage.vault.voyage");
         assembly {
             ds.slot := storagePosition
         }
