@@ -24,8 +24,14 @@ describe('Liquidity Rate', function () {
   });
 
   it('Junior deposit should return correct interest rate', async function () {
-    const { owner, crab, priceOracle, voyage, purchaseData, marketPlace } =
-      await setupTestSuite();
+    const {
+      owner,
+      crab,
+      priceOracle,
+      voyage,
+      purchaseDataFromLooksRare,
+      marketPlace,
+    } = await setupTestSuite();
     const vault = await voyage.getVault(owner);
 
     const seniorDepositAmount = '500000000000000000000';
@@ -38,7 +44,7 @@ describe('Liquidity Rate', function () {
       1,
       vault,
       marketPlace.address,
-      purchaseData
+      purchaseDataFromLooksRare
     );
     const poolData = await voyage.getPoolData(crab.address);
 
@@ -58,8 +64,14 @@ describe('Liquidity Rate', function () {
   });
 
   it('Senior deposit should return correct interest rate', async function () {
-    const { owner, crab, voyage, priceOracle, marketPlace, purchaseData } =
-      await setupTestSuite();
+    const {
+      owner,
+      crab,
+      voyage,
+      priceOracle,
+      marketPlace,
+      purchaseDataFromLooksRare,
+    } = await setupTestSuite();
     const vault = await voyage.getVault(owner);
 
     const seniorDepositAmount = '50000000000000000000';
@@ -74,7 +86,7 @@ describe('Liquidity Rate', function () {
       '25000000000000000000',
       vault,
       marketPlace.address,
-      purchaseData
+      purchaseDataFromLooksRare
     );
     const poolData = await voyage.getPoolData(crab.address);
 
@@ -97,14 +109,14 @@ describe('Liquidity Rate', function () {
   it('Borrow should return correct interest rate', async function () {
     const {
       owner,
-      tus,
+      weth,
       crab,
       seniorDepositToken,
       juniorDepositToken,
       voyage,
       priceOracle,
       marketPlace,
-      purchaseData,
+      purchaseDataFromLooksRare,
     } = await setupTestSuite();
     const vault = await voyage.getVault(owner);
 
@@ -113,8 +125,8 @@ describe('Liquidity Rate', function () {
 
     await voyage.deposit(crab.address, 0, juniorDepositAmount);
     await voyage.deposit(crab.address, 1, seniorDepositAmount);
-    const seniorLiquidity = await tus.balanceOf(seniorDepositToken.address);
-    const juniorLiquidity = await tus.balanceOf(juniorDepositToken.address);
+    const seniorLiquidity = await weth.balanceOf(seniorDepositToken.address);
+    const juniorLiquidity = await weth.balanceOf(juniorDepositToken.address);
     console.log('senior liquidity: ', seniorLiquidity.toString());
     console.log('junior liquidity: ', juniorLiquidity.toString());
     await priceOracle.updateTwap(crab.address, toWad(10));
@@ -123,7 +135,7 @@ describe('Liquidity Rate', function () {
       '100000000000000000000',
       vault,
       marketPlace.address,
-      purchaseData
+      purchaseDataFromLooksRare
     );
 
     const poolData = await voyage.getPoolData(crab.address);

@@ -16,6 +16,7 @@ import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol"
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
 import {PaymentsFacet} from "../../shared/facets/PaymentsFacet.sol";
+import {SafeTransferLib} from "../../shared/libraries/SafeTransferLib.sol";
 import {VaultDataFacet} from "../../vault/facets/VaultDataFacet.sol";
 import {VaultManageFacet} from "../../vault/facets/VaultManageFacet.sol";
 import {VaultFacet} from "./VaultFacet.sol";
@@ -287,10 +288,7 @@ contract LoanFacet is Storage {
             }
         }
 
-        // 7.2 wrap msg.value
-        PaymentsFacet(address(this)).wrapWETH9();
-
-        // 7.3 protocol fee
+        // 7.2 protocol fee
         uint256 protocolFee = params.totalPrincipal.percentMul(
             LibAppStorage.ds().protocolFee.cutRatio
         );
@@ -300,16 +298,19 @@ contract LoanFacet is Storage {
             protocolFee
         );
 
-        // 8. transfer money to this then forward to vault
+        // 8.1 transfer money to this
         IVToken(reserveData.seniorDepositTokenAddress).transferUnderlyingTo(
             address(this),
             params.outstandingPrincipal
         );
 
-        IERC20(reserveData.currency).transfer(
-            params.vault,
-            params.totalPrincipal
+        // 8.2 unwrap weth
+        PaymentsFacet(address(this)).unwrapWETH9(
+            params.outstandingPrincipal,
+            address(this)
         );
+
+        SafeTransferLib.safeTransferETH(params.vault, params.totalPrincipal);
 
         // 9. purchase nft
         (params.pmt.principal, params.pmt.interest) = LibLoan.getPMT(

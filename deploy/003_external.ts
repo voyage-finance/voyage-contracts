@@ -12,15 +12,7 @@ const deployFn: DeployFunction = async (hre) => {
   const { deploy, execute } = deployments;
   const { owner } = await getNamedAccounts();
 
-  const tusSupply = new BigNumber(1_000_000_000_000).multipliedBy(
-    new BigNumber(10).pow(18)
-  );
   if (network.name !== 'avalancheMain') {
-    await deploy('Tus', {
-      from: owner,
-      log: true,
-      args: [tusSupply.toFixed()],
-    });
     await deploy('Crab', {
       from: owner,
       log: true,
@@ -28,14 +20,17 @@ const deployFn: DeployFunction = async (hre) => {
     });
   }
 
-  const tus = await ethers.getContract<Tus>('Tus');
   const crab = await ethers.getContract<Crab>('Crab');
   await deploy('MockMarketPlace', {
     from: owner,
     log: true,
     args: [],
   });
-  const mp = await ethers.getContract<MockMarketPlace>('MockMarketPlace');
+  await deploy('MockSeaport', {
+    from: owner,
+    log: true,
+    args: [],
+  });
 
   const wadRayMath = await deploy(WRM_NAME, { from: owner, log: true });
 

@@ -8,15 +8,16 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {ERC4626, IERC4626} from "../../shared/tokenization/ERC4626.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
 
+struct Unbonding {
+    uint256 shares;
+    uint256 maxUnderlying;
+}
+
 abstract contract VToken is Initializable, ERC4626, IVToken {
     using SafeERC20 for IERC20Metadata;
 
     address internal voyage;
-    // user address => timestamp => shares
-    mapping(address => mapping(uint256 => uint256)) private withdrawals;
-
-    // user address => timestamp array
-    mapping(address => uint256[]) private pendingTimestamp;
+    mapping(address => Unbonding) public unbondings;
 
     uint256 public totalUnbonding;
 
@@ -55,14 +56,6 @@ abstract contract VToken is Initializable, ERC4626, IVToken {
         emit Withdraw(msg.sender, _receiver, _owner, _amount, shares);
     }
 
-    function claim(uint256 _index) public {
-        uint256 amount = popWithdraw(msg.sender, _index);
-        if (asset.balanceOf(address(this)) < amount) {
-            revert InsufficientLiquidity();
-        }
-        asset.safeTransfer(msg.sender, amount);
-    }
-
     function transferUnderlyingTo(address _target, uint256 _amount)
         public
         onlyAdmin
@@ -75,55 +68,60 @@ abstract contract VToken is Initializable, ERC4626, IVToken {
     }
 
     function pushWithdraw(address _user, uint256 _shares) internal {
-        if (withdrawals[_user][block.timestamp] != 0) {
-            revert InvalidWithdrawal();
-        }
-        withdrawals[_user][block.timestamp] = _shares;
-        pendingTimestamp[_user].push(block.timestamp);
+        unbondings[_user].shares += _shares;
+        unbondings[_user].maxUnderlying += convertToAssets(_shares);
         totalUnbonding += _shares;
     }
 
-    function popWithdraw(address _user, uint256 _index)
-        internal
-        returns (uint256)
-    {
-        uint256[] storage times = pendingTimestamp[_user];
-        if (_index >= times.length) {
-            revert InvalidIndex();
-        }
-        uint256 ts = times[_index];
-        if (block.timestamp - ts <= cooldown) {
-            revert CollDownError();
-        }
-
-        uint256 last = times[times.length - 1];
-        times[_index] = last;
-        times.pop();
-
-        uint256 withdrawable = withdrawals[_user][ts];
-        delete withdrawals[_user][ts];
-        totalUnbonding -= withdrawable;
-        return withdrawable;
+    function resetUnbondingPosition(address _user) internal {
+        unbondings[_user].shares = 0;
+        unbondings[_user].maxUnderlying = 0;
     }
 
-    function unbonding(address _user)
-        public
-        view
-        returns (uint256[] memory, uint256[] memory)
-    {
-        uint256[] memory times = pendingTimestamp[_user];
-        uint256[] memory amounts = new uint256[](times.length);
-
-        for (uint256 i = 0; i < times.length; i++) {
-            amounts[i] = withdrawals[_user][times[i]];
+    function reduceUnbondingPosition(uint256 _shares, uint256 _asset) internal {
+        if (_shares > unbondings[msg.sender].shares) {
+            unbondings[msg.sender].shares == 0;
+            unbondings[msg.sender].maxUnderlying = 0;
+            return;
         }
+        unbondings[msg.sender].maxUnderlying -= _asset;
+        unbondings[msg.sender].shares -= _shares;
+    }
 
-        return (times, amounts);
+    function claim() external {
+        uint256 maxClaimable = unbondings[msg.sender].maxUnderlying;
+        uint256 availableLiquidity = asset.balanceOf(address(this));
+        uint256 transferredShares;
+        uint256 transferredAsset;
+        if (availableLiquidity > maxClaimable) {
+            transferredAsset = maxClaimable;
+            transferredShares = unbondings[msg.sender].shares;
+            resetUnbondingPosition(msg.sender);
+        } else {
+            transferredAsset = availableLiquidity;
+            uint256 shares = convertToShares(availableLiquidity);
+            reduceUnbondingPosition(shares, transferredAsset);
+            transferredShares = shares;
+        }
+        totalUnbonding -= transferredShares;
+        asset.safeTransfer(msg.sender, transferredAsset);
+    }
+
+    function unbonding(address _user) external view returns (uint256) {
+        return convertToAssets(unbondings[_user].shares);
+    }
+
+    function maximumClaimable(address _user) external view returns (uint256) {
+        uint256 underlyingUnbonding = unbondings[_user].maxUnderlying;
+        uint256 underlyingNow = convertToAssets(unbondings[_user].shares);
+        return
+            underlyingUnbonding < underlyingNow
+                ? underlyingUnbonding
+                : underlyingNow;
     }
 }
 
 /* --------------------------------- errors -------------------------------- */
 error InsufficientLiquidity();
-error InvalidWithdrawal();
 error InvalidIndex();
 error CollDownError();

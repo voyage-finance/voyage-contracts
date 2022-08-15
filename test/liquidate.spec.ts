@@ -6,8 +6,14 @@ import { setupTestSuite } from '../helpers/setupTestSuite';
 
 describe('Liquidate', function () {
   it('Liquidate a invalid debt should revert', async function () {
-    const { owner, priceOracle, crab, voyage, purchaseData, marketPlace } =
-      await setupTestSuite();
+    const {
+      owner,
+      priceOracle,
+      crab,
+      voyage,
+      purchaseDataFromLooksRare,
+      marketPlace,
+    } = await setupTestSuite();
     const vault = await voyage.getVault(owner);
 
     const depositAmount = toWad(100);
@@ -20,7 +26,7 @@ describe('Liquidate', function () {
       '1',
       vault,
       marketPlace.address,
-      purchaseData
+      purchaseDataFromLooksRare
     );
 
     // repay the first draw down
@@ -33,8 +39,14 @@ describe('Liquidate', function () {
   });
 
   it('Invalid floor price should revert', async function () {
-    const { owner, priceOracle, crab, voyage, purchaseData, marketPlace } =
-      await setupTestSuite();
+    const {
+      owner,
+      priceOracle,
+      crab,
+      voyage,
+      purchaseDataFromLooksRare,
+      marketPlace,
+    } = await setupTestSuite();
     const vault = await voyage.getVault(owner);
 
     const depositAmount = toWad(100);
@@ -46,7 +58,7 @@ describe('Liquidate', function () {
       '1',
       vault,
       marketPlace.address,
-      purchaseData
+      purchaseDataFromLooksRare
     );
     await increase(51);
 
@@ -58,8 +70,14 @@ describe('Liquidate', function () {
   });
 
   it('Valid liquidate with nft should return correct value', async function () {
-    const { owner, voyage, priceOracle, crab, purchaseData, marketPlace } =
-      await setupTestSuite();
+    const {
+      owner,
+      voyage,
+      priceOracle,
+      crab,
+      purchaseDataFromLooksRare,
+      marketPlace,
+    } = await setupTestSuite();
     const vault = await voyage.getVault(owner);
 
     const depositAmount = toWad(120);
@@ -72,7 +90,7 @@ describe('Liquidate', function () {
       1,
       vault,
       marketPlace.address,
-      purchaseData
+      purchaseDataFromLooksRare
     );
     await crab.safeMint(vault, 1);
 
@@ -83,8 +101,15 @@ describe('Liquidate', function () {
   });
 
   it('Valid liquidate with remaining funds should refund to the vault', async function () {
-    const { owner, voyage, priceOracle, crab, tus, purchaseData, marketPlace } =
-      await setupTestSuite();
+    const {
+      owner,
+      voyage,
+      priceOracle,
+      crab,
+      purchaseDataFromLooksRare,
+      marketPlace,
+      weth,
+    } = await setupTestSuite();
     const vault = await voyage.getVault(owner);
 
     const depositAmount = toWad(120);
@@ -97,7 +122,7 @@ describe('Liquidate', function () {
       1,
       vault,
       marketPlace.address,
-      purchaseData
+      purchaseDataFromLooksRare
     );
     await crab.safeMint(vault, 1);
 
@@ -106,7 +131,7 @@ describe('Liquidate', function () {
     await priceOracle.updateTwap(crab.address, toWad(100));
     await voyage.liquidate(crab.address, vault, 0);
     await expect(await crab.ownerOf(1)).to.equal(owner);
-    const refundedAmount = await tus.balanceOf(vault);
+    const refundedAmount = await weth.balanceOf(vault);
     console.log('refunded amount: ', refundedAmount.toString());
     await expect(refundedAmount).to.be.gt(toWad(0));
   });

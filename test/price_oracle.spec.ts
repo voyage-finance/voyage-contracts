@@ -4,30 +4,30 @@ import { setupTestSuite } from '../helpers/setupTestSuite';
 
 describe('Price Oracle', function () {
   it('Owner should able to update price', async function () {
-    const { priceOracle, tus } = await setupTestSuite();
-    await priceOracle.updateTwap(tus.address, '100');
-    const price = await priceOracle.getTwap(tus.address);
+    const { priceOracle, weth } = await setupTestSuite();
+    await priceOracle.updateTwap(weth.address, '100');
+    const price = await priceOracle.getTwap(weth.address);
     await expect(price[0].toString()).to.equal('100');
   });
 
   it('Valid operator should able to update price', async function () {
-    const { priceOracle, tus, alice } = await setupTestSuite();
+    const { priceOracle, weth, alice } = await setupTestSuite();
     await priceOracle.setOperator(alice, true);
     await priceOracle
       .connect(await ethers.getSigner(alice))
-      .updateTwap(tus.address, '100');
-    const price = await priceOracle.getTwap(tus.address);
+      .updateTwap(weth.address, '100');
+    const price = await priceOracle.getTwap(weth.address);
     await expect(price[0].toString()).to.equal('100');
   });
 
   it('InValid operator should able to update price', async function () {
-    const { priceOracle, tus, alice } = await setupTestSuite();
+    const { priceOracle, weth, alice } = await setupTestSuite();
     await priceOracle.setOperator(alice, true);
     await priceOracle.setOperator(alice, false);
     await expect(
       priceOracle
         .connect(await ethers.getSigner(alice))
-        .updateTwap(tus.address, '100')
+        .updateTwap(weth.address, '100')
     ).to.be.revertedWithCustomError(priceOracle, 'InvalidOperator');
   });
 });

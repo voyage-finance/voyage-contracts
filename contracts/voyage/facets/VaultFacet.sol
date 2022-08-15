@@ -13,7 +13,6 @@ import {LibVault} from "../libraries/LibVault.sol";
 import {LibSecurity} from "../libraries/LibSecurity.sol";
 import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
 import {IVault} from "../../vault/interfaces/IVault.sol";
-import {IExternalAdapter} from "../interfaces/IExternalAdapter.sol";
 import {IDiamondVersionFacet, Snapshot} from "../interfaces/IDiamondVersionFacet.sol";
 import {Vault} from "../../vault/Vault.sol";
 import {IDiamondCut} from "../../shared/diamond/interfaces/IDiamondCut.sol";

@@ -151,15 +151,7 @@ library LibLiquidity {
         } else {
             vToken = reserve.seniorDepositTokenAddress;
         }
-        (, uint256[] memory amounts) = IVToken(vToken).unbonding(_user);
-        uint256 unbondingBalance = 0;
-        for (uint8 i = 0; i < amounts.length; ) {
-            unbondingBalance += amounts[i];
-            unchecked {
-                ++i;
-            }
-        }
-        return unbondingBalance;
+        return IVToken(vToken).unbonding(_user);
     }
 
     function getDepositAndDebt(address _collection)
