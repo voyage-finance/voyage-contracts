@@ -127,7 +127,7 @@ describe('BuyNow', function () {
     ).to.eq(firstPmt);
   });
 
-  it('Buy with sufficient credit limit from OS should pass', async function () {
+  it.only('Buy with sufficient credit limit from OS should pass', async function () {
     const {
       crab,
       owner,
@@ -143,6 +143,8 @@ describe('BuyNow', function () {
     await voyage.deposit(crab.address, 1, depositAmount);
     await priceOracle.updateTwap(crab.address, toWad(10));
     const vault = await voyage.getVault(owner);
+    const param = await voyage.previewBuyNowParams(crab.address, '1000');
+    console.log(param);
     await voyage.buyNow(
       crab.address,
       1,

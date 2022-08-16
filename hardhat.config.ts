@@ -50,6 +50,10 @@ const config: HardhatUserConfig = {
     },
     hardhat: {
       allowUnlimitedContractSize: false,
+      forking: {
+        url: `https://eth-goerli.g.alchemy.com/v2/${process.env.ALCHEMY_GOERLI_API_KEY}`,
+        blockNumber: 7413520
+      },
       accounts: {
         accountsBalance: ethers.utils
           .parseEther('10000000000000000')
