@@ -94,8 +94,12 @@ describe('Repay', function () {
     const loanDetail01 = await voyage.getLoanDetail(vault, crab.address, 0);
     console.log('draw down 01: ');
     showLoan(loanDetail01);
-    expect(loanDetail01.totalPrincipalPaid).to.equal('6666666666666666666');
-    expect(loanDetail01.totalInterestPaid).to.equal('300000000000000000');
+    expect(loanDetail01.totalPrincipalPaid.toString()).to.equal(
+      '6666666666666666666'
+    );
+    expect(loanDetail01.totalInterestPaid.toString()).to.equal(
+      '300000000000000000'
+    );
 
     // repay draw down 0 again
     await voyage.repay(crab.address, 0, vault);

@@ -4,8 +4,6 @@ import { Voyage } from '../typechain/Voyage';
 
 async function main() {
   const { owner } = await getNamedAccounts();
-  const tus = await ethers.getContract('Tus');
-  const crab = await ethers.getContract('Crab');
   const voyage = await ethers.getContract<Voyage>('Voyage', owner);
   let vaultAddress = await voyage.getVault(owner);
   console.log('vault address: ', vaultAddress);
@@ -15,17 +13,6 @@ async function main() {
     await tx.wait();
     console.log('createVault tx hash: ', tx.hash);
     vaultAddress = await voyage.getVault(owner);
-  }
-  const vault = (await ethers.getContractFactory('Vault')).attach(vaultAddress);
-  const marginEscrow = await vault.marginEscrow(tus.address);
-  console.log('margin escrow: ', marginEscrow);
-  if (ethers.BigNumber.from(marginEscrow).isZero()) {
-    const initTx = await voyage.initCreditLine(
-      vaultAddress,
-      tus.address,
-      crab.address
-    );
-    await initTx.wait();
   }
 }
 

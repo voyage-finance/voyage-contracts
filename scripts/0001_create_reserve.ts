@@ -11,7 +11,7 @@ async function main() {
     'DefaultReserveInterestRateStrategy'
   );
   const voyage = await ethers.getContract<Voyage>('Voyage');
-  const tus = await ethers.getContract('Tus');
+  const weth = await ethers.getContract('WETH9');
   const crab = await ethers.getContract('Crab');
   const priceOracle = await ethers.getContract('PriceOracle');
 
@@ -23,7 +23,7 @@ async function main() {
     await voyage
       .initReserve(
         crab.address,
-        tus.address,
+        weth.address,
         interestStrategy,
         priceOracle.address
       )

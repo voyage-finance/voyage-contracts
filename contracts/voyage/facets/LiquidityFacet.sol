@@ -130,6 +130,9 @@ contract LiquidityFacet is Storage {
             _tranche,
             _amount
         );
+        uint256 bal = IERC20(reserve.currency).balanceOf(
+            reserve.seniorDepositTokenAddress
+        );
     }
 
     function withdraw(
