@@ -80,13 +80,10 @@ export const getCreditLine = async (
   vault: string
 ): Promise<CreditLineData> => {
   const creditLineData = await helper.getCreditLineData(vault, collection);
-  const head = creditLineData.loanList.head;
-  const tail = creditLineData.loanList.tail;
+  const head = BigNumber.from(creditLineData.loanList.head);
+  const tail = BigNumber.from(creditLineData.loanList.tail);
   const totalDebt = BigNumber.from(creditLineData.totalDebt);
   const loanlist = { head, tail };
-  const gav = BigNumber.from(creditLineData.gav);
-  const ltv = BigNumber.from(creditLineData.ltv);
-  const healthFactor = BigNumber.from(creditLineData.healthFactor);
   return {
     totalDebt,
     loanlist,

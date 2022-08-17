@@ -70,11 +70,11 @@ struct Loan {
     uint256 principal;
     uint256 interest;
     // the total intended length of the loan in seconds - e.g., 90 days
-    uint256 term;
+    uint40 term;
     // the repayment interval - e.g., 30 days
-    uint256 epoch;
+    uint40 epoch;
     // number of instalments, term / epoch
-    uint256 nper;
+    uint40 nper;
     // the amount to be repaid per instalment (principal + interest)
     PMT pmt;
     // the borrow rate of this loan
@@ -93,14 +93,14 @@ struct Loan {
 }
 
 struct LoanList {
-    uint256 head;
-    uint256 tail;
+    uint40 head;
+    uint40 tail;
 }
 
 struct BorrowData {
-    uint256 paidLoanNumber;
+    uint40 paidLoanNumber;
     // next draw down number
-    uint256 nextLoanNumber;
+    uint40 nextLoanNumber;
     uint256 totalPrincipal;
     uint256 totalInterest;
     uint256 mapSize;

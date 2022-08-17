@@ -6,7 +6,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {ERC4626} from "@rari-capital/solmate/src/mixins/ERC4626.sol";
 import {LibLiquidity} from "../libraries/LibLiquidity.sol";
-import {LibLoan} from "../libraries/LibLoan.sol";
+import {LibLoan, ExecuteBuyNowParams, ExecuteLiquidateParams} from "../libraries/LibLoan.sol";
 import {LibVault} from "../libraries/LibVault.sol";
 import {IReserveInterestRateStrategy} from "../interfaces/IReserveInterestRateStrategy.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
@@ -27,57 +27,6 @@ contract LoanFacet is Storage {
     using LibReserveConfiguration for ReserveConfigurationMap;
 
     uint256 public immutable TEN_THOUSANDS = 10000;
-
-    struct ExecuteBuyNowParams {
-        address collection;
-        address marketplace;
-        uint256 tokenId;
-        address vault;
-        uint256 totalPrincipal;
-        uint256 totalInterest;
-        uint256 totalDebt;
-        uint256 outstandingPrincipal;
-        uint256 outstandingInterest;
-        uint256 outstandingDebt;
-        uint256 fv;
-        uint256 timestamp;
-        uint256 term;
-        uint256 epoch;
-        uint256 nper;
-        uint256 downpayment;
-        uint256 borrowRate;
-        uint256 availableLiquidity;
-        uint256 totalBalance;
-        uint256 totalPending;
-        uint256 loanId;
-        PMT pmt;
-    }
-
-    struct ExecuteLiquidateParams {
-        address collection;
-        address currency;
-        address vault;
-        uint256 loanId;
-        uint256 repaymentId;
-        uint256 principal;
-        uint256 interest;
-        uint256 totalDebt;
-        uint256 remaningDebt;
-        uint256 discount;
-        uint256 discountedFloorPrice;
-        uint256 amountNeedExtra;
-        uint256 juniorTrancheAmount;
-        uint256 receivedAmount;
-        address liquidator;
-        uint256 floorPrice;
-        uint256 floorPriceTime;
-        uint256 gracePeriod;
-        uint256 liquidationBonus;
-        uint256 marginRequirement;
-        uint256 writeDownAmount;
-        uint256 totalAssetFromJuniorTranche;
-        bool isFinal;
-    }
 
     struct ExecuteRepayParams {
         uint256 principal;
@@ -180,9 +129,17 @@ contract LoanFacet is Storage {
             params.collection
         );
 
+        params.currency = reserveData.currency;
+
         BorrowState storage borrowState = LibLoan.getBorrowState(
             params.collection,
             reserveData.currency
+        );
+
+        BorrowData storage borrowData = LibLoan.getBorrowData(
+            params.collection,
+            params.currency,
+            params.vault
         );
 
         // 0. check if the user owns the vault
@@ -242,15 +199,10 @@ contract LoanFacet is Storage {
             );
 
         // 4. insert debt, get total interest and PMT
-        (params.loanId, params.pmt, params.totalInterest) = LibLoan.insertDebt(
-            params.collection,
-            reserveData.currency,
-            params.tokenId,
-            params.vault,
-            params.totalPrincipal,
-            params.term,
-            params.epoch,
-            params.borrowRate
+        (params.loanId, params.pmt, params.totalInterest) = LibLoan.initDebt(
+            borrowState,
+            borrowData,
+            params
         );
 
         // 5. calculate downpayment and outstanding interest and debt

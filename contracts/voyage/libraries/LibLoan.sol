@@ -9,6 +9,58 @@ import {LibReserveConfiguration} from "./LibReserveConfiguration.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
 
+struct ExecuteBuyNowParams {
+    address collection;
+    address currency;
+    address marketplace;
+    uint256 tokenId;
+    address vault;
+    uint256 totalPrincipal;
+    uint256 totalInterest;
+    uint256 totalDebt;
+    uint256 outstandingPrincipal;
+    uint256 outstandingInterest;
+    uint256 outstandingDebt;
+    uint256 fv;
+    uint256 timestamp;
+    uint40 term;
+    uint40 epoch;
+    uint40 nper;
+    uint256 downpayment;
+    uint256 borrowRate;
+    uint256 availableLiquidity;
+    uint256 totalBalance;
+    uint256 totalPending;
+    uint256 loanId;
+    PMT pmt;
+}
+
+struct ExecuteLiquidateParams {
+    address collection;
+    address currency;
+    address vault;
+    uint256 loanId;
+    uint256 repaymentId;
+    uint256 principal;
+    uint256 interest;
+    uint256 totalDebt;
+    uint256 remaningDebt;
+    uint256 discount;
+    uint256 discountedFloorPrice;
+    uint256 amountNeedExtra;
+    uint256 juniorTrancheAmount;
+    uint256 receivedAmount;
+    address liquidator;
+    uint256 floorPrice;
+    uint256 floorPriceTime;
+    uint256 gracePeriod;
+    uint256 liquidationBonus;
+    uint256 marginRequirement;
+    uint256 writeDownAmount;
+    uint256 totalAssetFromJuniorTranche;
+    bool isFinal;
+}
+
 library LibLoan {
     using WadRayMath for uint256;
     using PercentageMath for uint256;
@@ -42,8 +94,8 @@ library LibLoan {
         address vault;
         uint256 principal;
         uint256 interest;
-        uint256 term;
-        uint256 epoch;
+        uint40 term;
+        uint40 epoch;
         uint256 apr;
         uint256 loanNumber;
     }
@@ -78,8 +130,8 @@ library LibLoan {
         uint256 _collateral,
         address _vault,
         uint256 _principal,
-        uint256 _term,
-        uint256 _epoch,
+        uint40 _term,
+        uint40 _epoch,
         uint256 _apr
     ) internal {
         ExecuteDebtParam memory param = composeExecuteDebtParam(
@@ -103,7 +155,9 @@ library LibLoan {
         loan.term = param.term;
         loan.epoch = param.epoch;
         loan.apr = param.apr;
-        loan.nper = (_term * SECOND_PER_DAY) / (_epoch * SECOND_PER_DAY);
+        loan.nper = uint40(
+            (_term * SECOND_PER_DAY) / (_epoch * SECOND_PER_DAY)
+        );
         loan.borrowAt = block.timestamp;
         uint256 periodsPerYear = SECONDS_PER_YEAR /
             (loan.epoch * SECOND_PER_DAY);
@@ -117,15 +171,10 @@ library LibLoan {
         loan.pmt = pmt;
     }
 
-    function insertDebt(
-        address _collection,
-        address _currency,
-        uint256 _collateral,
-        address _vault,
-        uint256 _principal,
-        uint256 _term,
-        uint256 _epoch,
-        uint256 _apr
+    function initDebt(
+        BorrowState storage borrowState,
+        BorrowData storage borrowData,
+        ExecuteBuyNowParams memory param
     )
         internal
         returns (
@@ -134,22 +183,6 @@ library LibLoan {
             uint256 totalInterest
         )
     {
-        ExecuteDebtParam memory param = composeExecuteDebtParam(
-            _collection,
-            _currency,
-            _collateral,
-            _vault,
-            _principal,
-            _term,
-            _epoch,
-            _apr
-        );
-
-        (
-            BorrowState storage borrowState,
-            BorrowData storage borrowData
-        ) = getBorrowDataAndState(param);
-
         uint256 currentLoanNumber = borrowData.nextLoanNumber;
         Loan storage loan = borrowData.loans[currentLoanNumber];
         updateLoan(loan, param);
@@ -167,7 +200,7 @@ library LibLoan {
             loan.epoch *
             SECOND_PER_DAY;
 
-        updateBorrowData(borrowState, loan, borrowData, param.principal);
+        updateBorrowData(borrowState, loan, borrowData, param.totalPrincipal);
 
         return (currentLoanNumber, pmt, loan.interest);
     }
@@ -187,7 +220,9 @@ library LibLoan {
         uint256 denom = borrowState.totalDebt - loan.pmt.principal;
         borrowState.avgBorrowRate = numer.rayDiv(denom);
         borrowState.totalDebt = borrowState.totalDebt - loan.pmt.principal;
-        borrowState.totalInterest = borrowState.totalInterest - loan.pmt.interest;
+        borrowState.totalInterest =
+            borrowState.totalInterest -
+            loan.pmt.interest;
     }
 
     function repay(
@@ -206,8 +241,13 @@ library LibLoan {
         (
             BorrowState storage borrowState,
             BorrowData storage debtData
-        ) = getBorrowDataAndState(param);
+        ) = getBorrowDataAndState(
+                param.collection,
+                param.currency,
+                param.vault
+            );
         Loan storage loan = debtData.loans[_loanNumber];
+        debtData.paidLoanNumber += 1;
         loan.paidTimes += 1;
         if (loan.paidTimes == loan.nper) {
             isFinal = true;
@@ -246,7 +286,9 @@ library LibLoan {
             borrowState.avgBorrowRate = numer.rayDiv(denom);
         }
         borrowState.totalDebt = borrowState.totalDebt - loan.pmt.principal;
-        borrowState.totalInterest = borrowState.totalInterest - loan.pmt.interest;
+        borrowState.totalInterest =
+            borrowState.totalInterest -
+            loan.pmt.interest;
     }
 
     function insertLoan(Loan storage loan) internal {
@@ -284,30 +326,30 @@ library LibLoan {
             1;
     }
 
-    function getBorrowDataAndState(ExecuteDebtParam memory param)
+    function getBorrowDataAndState(
+        address collection,
+        address currency,
+        address vault
+    )
         internal
         view
         returns (BorrowState storage borrowState, BorrowData storage borrowData)
     {
-        borrowState = getBorrowState(param.collection, param.currency);
-        borrowData = getBorrowData(
-            param.collection,
-            param.currency,
-            param.vault
-        );
+        borrowState = getBorrowState(collection, currency);
+        borrowData = getBorrowData(collection, currency, vault);
         return (borrowState, borrowData);
     }
 
-    function updateLoan(Loan storage loan, ExecuteDebtParam memory param)
+    function updateLoan(Loan storage loan, ExecuteBuyNowParams memory param)
         internal
     {
-        loan.principal = param.principal;
+        loan.principal = param.totalPrincipal;
         loan.term = param.term;
         loan.epoch = param.epoch;
-        loan.apr = param.apr;
-        loan.nper =
-            (param.term * SECOND_PER_DAY) /
-            (param.epoch * SECOND_PER_DAY);
+        loan.apr = param.borrowRate;
+        loan.nper = uint40(
+            (param.term * SECOND_PER_DAY) / (param.epoch * SECOND_PER_DAY)
+        );
         loan.borrowAt = block.timestamp;
         uint256 periodsPerYear = SECONDS_PER_YEAR /
             (loan.epoch * SECOND_PER_DAY);
@@ -333,8 +375,8 @@ library LibLoan {
         uint256 _collateral,
         address _vault,
         uint256 _principal,
-        uint256 _term,
-        uint256 _epoch,
+        uint40 _term,
+        uint40 _epoch,
         uint256 _apr
     ) internal pure returns (ExecuteDebtParam memory param) {
         param.collection = _collection;
@@ -348,7 +390,7 @@ library LibLoan {
         return param;
     }
 
-    function composeNFTInfo(ExecuteDebtParam memory param)
+    function composeNFTInfo(ExecuteBuyNowParams memory param)
         internal
         pure
         returns (NFTInfo memory nftInfo)
@@ -356,7 +398,7 @@ library LibLoan {
         nftInfo.collection = param.collection;
         nftInfo.tokenId = param.tokenId;
         nftInfo.currency = param.currency;
-        nftInfo.price = param.principal;
+        nftInfo.price = param.totalPrincipal;
         nftInfo.isCollateral = true;
         return nftInfo;
     }
@@ -473,7 +515,7 @@ library LibLoan {
         address _collection,
         address _currency,
         address _vault
-    ) internal view returns (uint256, uint256) {
+    ) internal view returns (uint40, uint40) {
         AppStorage storage s = LibAppStorage.ds();
         BorrowData storage borrowData = s._borrowData[_collection][_currency][
             _vault
