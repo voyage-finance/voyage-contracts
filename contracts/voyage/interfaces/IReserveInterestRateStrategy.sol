@@ -7,19 +7,11 @@ pragma solidity ^0.8.9;
 */
 
 interface IReserveInterestRateStrategy {
-    function calculateInterestRates(
+    function calculateBorrowRate(
         address reserve,
-        uint256 availableLiquidity,
-        uint256 totalStableDebt,
-        uint256 averageBorrowRate
-    ) external view returns (uint256, uint256);
-
-    function calculateInterestRates(
-        address reserve,
-        address liquidityEscrow,
+        address seniorDepositTokenAddress,
         uint256 liquidityAdded,
         uint256 liquidityTaken,
-        uint256 totalStableDebt,
-        uint256 averageBorrowRate
-    ) external view returns (uint256, uint256);
+        uint256 totalStableDebt
+    ) external view returns (uint256);
 }

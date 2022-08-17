@@ -29,7 +29,7 @@ struct ReserveData {
     uint40 juniorLastUpdateTimestamp;
     uint40 seniorLastUpdateTimestamp;
     address currency;
-    address priceOracle;
+    UpgradeableBeacon priceOracle;
     bool initialized;
 }
 

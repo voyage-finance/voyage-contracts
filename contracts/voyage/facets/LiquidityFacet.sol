@@ -92,6 +92,16 @@ contract LiquidityFacet is Storage {
         LibLiquidity.updateProtocolFee(_treasuryAddr, _cutRatio);
     }
 
+    function upgradePriceOracleImpl(address _collection, address _priceOracle)
+        external
+        authorised
+    {
+        ReserveData storage reserveData = LibLiquidity.getReserveData(
+            _collection
+        );
+        reserveData.priceOracle.upgradeTo(_priceOracle);
+    }
+
     function updateWETH9(address _weth9) external authorised {
         LibLiquidity.updateWETH9(_weth9);
     }

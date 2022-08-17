@@ -10,7 +10,7 @@ interface ISubvault {
 
     function updateOwner(address _newOwner) external;
 
-    function callExternal(address target, bytes calldata data)
+    function execute(address target, bytes calldata data)
         external
         returns (bytes memory);
 }
@@ -20,6 +20,8 @@ contract SubVault is Initializable, ISubvault, IERC721Receiver {
         address owner;
         address parent;
     }
+
+    event Execute(address _vault, address _target, bytes _data);
 
     // only `parent` should be able to call
     modifier authorised() {
@@ -32,13 +34,14 @@ contract SubVault is Initializable, ISubvault, IERC721Receiver {
         diamondStorage().parent = _parent;
     }
 
-    function callExternal(address target, bytes calldata data)
+    function execute(address target, bytes calldata data)
         external
         authorised
         returns (bytes memory)
     {
         (bool success, bytes memory ret) = target.call(data);
         require(success);
+        emit Execute(address(this), target, data);
         return ret;
     }
 

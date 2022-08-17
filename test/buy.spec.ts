@@ -135,7 +135,6 @@ describe('BuyNow', function () {
       priceOracle,
       purchaseDataFromOpensea,
       seaport,
-      weth,
     } = await setupTestSuite();
     const depositAmount = toWad(120);
     const juniorDeposit = toWad(50);
@@ -143,6 +142,8 @@ describe('BuyNow', function () {
     await voyage.deposit(crab.address, 1, depositAmount);
     await priceOracle.updateTwap(crab.address, toWad(10));
     const vault = await voyage.getVault(owner);
+    const param = await voyage.previewBuyNowParams(crab.address);
+    console.log(param);
     await voyage.buyNow(
       crab.address,
       1,

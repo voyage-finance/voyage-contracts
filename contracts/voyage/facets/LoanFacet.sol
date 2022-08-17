@@ -45,7 +45,6 @@ contract LoanFacet is Storage {
         uint256 epoch;
         uint256 nper;
         uint256 downpayment;
-        uint256 liquidityRate;
         uint256 borrowRate;
         uint256 availableLiquidity;
         uint256 totalBalance;
@@ -126,41 +125,42 @@ contract LoanFacet is Storage {
         uint256[] collaterals
     );
 
-    function previewBuyNowParams(address _collection, uint256 _amount)
+    function previewBuyNowParams(address _collection)
         public
         view
         returns (ExecuteBuyNowParams memory)
     {
-        ExecuteBuyNowParams memory executeBorrowParams;
+        ExecuteBuyNowParams memory params;
         ReserveData memory reserveData = LibLiquidity.getReserveData(
             _collection
         );
         ReserveConfigurationMap memory reserveConf = LibReserveConfiguration
             .getConfiguration(_collection);
 
-        (executeBorrowParams.epoch, executeBorrowParams.term) = reserveConf
-            .getBorrowParams();
+        (params.epoch, params.term) = reserveConf.getBorrowParams();
+        params.nper = params.term / params.epoch;
+
+        params.outstandingPrincipal =
+            params.totalPrincipal -
+            params.totalPrincipal /
+            params.nper;
 
         BorrowState storage borrowState = LibLoan.getBorrowState(
             _collection,
             reserveData.currency
         );
 
-        (
-            executeBorrowParams.liquidityRate,
-            executeBorrowParams.borrowRate
-        ) = IReserveInterestRateStrategy(
+        (params.borrowRate) = IReserveInterestRateStrategy(
             reserveData.interestRateStrategyAddress
-        ).calculateInterestRates(
+        ).calculateBorrowRate(
                 reserveData.currency,
                 reserveData.seniorDepositTokenAddress,
                 0,
-                _amount,
-                borrowState.totalDebt,
-                borrowState.avgBorrowRate
+                params.outstandingPrincipal,
+                borrowState.totalDebt
             );
 
-        return executeBorrowParams;
+        return params;
     }
 
     function buyNow(
@@ -193,8 +193,9 @@ contract LoanFacet is Storage {
         // 1. get price for params.tokenId  and floor price pv
         params.totalPrincipal = MarketplaceAdapterFacet(address(this))
             .extractAssetPrice(_marketplace, _data);
-        (params.fv, params.timestamp) = IPriceOracle(reserveData.priceOracle)
-            .getTwap(params.collection);
+        (params.fv, params.timestamp) = IPriceOracle(
+            reserveData.priceOracle.implementation()
+        ).getTwap(params.collection);
 
         if (params.fv == 0) {
             revert InvalidFloorPrice();
@@ -209,55 +210,12 @@ contract LoanFacet is Storage {
             .getConfiguration(params.collection);
         (params.epoch, params.term) = reserveConf.getBorrowParams();
         params.nper = params.term / params.epoch;
-
-        (
-            params.liquidityRate,
-            params.borrowRate
-        ) = IReserveInterestRateStrategy(
-            reserveData.interestRateStrategyAddress
-        ).calculateInterestRates(
-                reserveData.currency,
-                reserveData.seniorDepositTokenAddress,
-                0,
-                params.outstandingPrincipal,
-                borrowState.totalDebt,
-                borrowState.avgBorrowRate
-            );
-
-        // 3. insert debt, get total interest and PMT
-        (params.loanId, params.pmt, params.totalInterest) = LibLoan.insertDebt(
-            params.collection,
-            reserveData.currency,
-            params.tokenId,
-            params.vault,
-            params.totalPrincipal,
-            params.term,
-            params.epoch,
-            params.borrowRate
-        );
-
-        // 4. calculate downpayment and outstanding principal, interest and debt
-        params.downpayment = params.pmt.pmt;
         params.outstandingPrincipal =
             params.totalPrincipal -
-            params.pmt.principal;
-        params.outstandingInterest = params.totalInterest - params.pmt.interest;
-        params.outstandingDebt =
-            params.outstandingPrincipal +
-            params.outstandingInterest;
+            params.totalPrincipal /
+            params.nper;
 
-        // 5. check credit limit against with outstanding debt
-        uint256 availableCreditLimit = LibVault.getCreditLimit(
-            params.vault,
-            params.collection,
-            reserveData.currency,
-            params.fv
-        );
-        if (availableCreditLimit < params.outstandingDebt) {
-            revert InsufficientCreditLimit();
-        }
-
-        // 6. check if pool liquidity against with outstanding principal
+        // 3. check if available liquidity sufficient
         params.totalPending = IVToken(reserveData.seniorDepositTokenAddress)
             .totalUnbonding();
         params.totalBalance = IERC20(reserveData.currency).balanceOf(
@@ -271,6 +229,46 @@ contract LoanFacet is Storage {
 
         if (params.availableLiquidity < params.outstandingPrincipal) {
             revert InsufficientLiquidity();
+        }
+
+        (params.borrowRate) = IReserveInterestRateStrategy(
+            reserveData.interestRateStrategyAddress
+        ).calculateBorrowRate(
+                reserveData.currency,
+                reserveData.seniorDepositTokenAddress,
+                0,
+                params.outstandingPrincipal,
+                borrowState.totalDebt
+            );
+
+        // 4. insert debt, get total interest and PMT
+        (params.loanId, params.pmt, params.totalInterest) = LibLoan.insertDebt(
+            params.collection,
+            reserveData.currency,
+            params.tokenId,
+            params.vault,
+            params.totalPrincipal,
+            params.term,
+            params.epoch,
+            params.borrowRate
+        );
+
+        // 5. calculate downpayment and outstanding interest and debt
+        params.downpayment = params.pmt.pmt;
+        params.outstandingInterest = params.totalInterest - params.pmt.interest;
+        params.outstandingDebt =
+            params.outstandingPrincipal +
+            params.outstandingInterest;
+
+        // 6. check credit limit against with outstanding debt
+        uint256 availableCreditLimit = LibVault.getCreditLimit(
+            params.vault,
+            params.collection,
+            reserveData.currency,
+            params.fv
+        );
+        if (availableCreditLimit < params.outstandingDebt) {
+            revert InsufficientCreditLimit();
         }
 
         // 7.1 receive downpayment
@@ -444,7 +442,9 @@ contract LoanFacet is Storage {
         }
 
         // 3 get floor price from oracle contract
-        IPriceOracle priceOracle = IPriceOracle(reserveData.priceOracle);
+        IPriceOracle priceOracle = IPriceOracle(
+            reserveData.priceOracle.implementation()
+        );
         (param.floorPrice, param.floorPriceTime) = priceOracle.getTwap(
             param.collection
         );
@@ -489,7 +489,7 @@ contract LoanFacet is Storage {
                 abi.encode(param.vault, param.liquidator, collaterals[i])
             );
             bytes memory encodedData = abi.encode(param.collection, data);
-            IVault(_vault).exec(encodedData);
+            IVault(_vault).execute(encodedData);
         }
 
         emit CollateralTransferred(

@@ -25,7 +25,7 @@ contract MarketplaceAdapterFacet is Storage {
             .adapterAddr;
         bytes memory data = IMarketPlaceAdapter(adapterAddr).execute(_data);
         bytes memory encodedData = abi.encode(_marketplace, data);
-        IVault(_vault).exec(encodedData);
+        IVault(_vault).execute(encodedData);
     }
 
     function extractAssetPrice(address _marketplace, bytes calldata _data)

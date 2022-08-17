@@ -58,7 +58,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         }
         uint256 numVaults = LibVault.recordVault(_user, vaultBeaconProxy);
         bytes4[] memory sigs = new bytes4[](1);
-        sigs[0] = IVault(address(0)).exec.selector;
+        sigs[0] = IVault(address(0)).execute.selector;
         LibSecurity.grantPermissions(
             LibAppStorage.ds().auth,
             address(this),
@@ -91,7 +91,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         bytes memory param = abi.encode(_vault, _msgSender(), _tokenId);
         bytes memory data = abi.encodePacked(selector, param);
         bytes memory encodedData = abi.encode(_collection, data);
-        IVault(_vault).exec(encodedData);
+        IVault(_vault).execute(encodedData);
     }
 
     function transferReserve(
@@ -107,7 +107,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         bytes memory param = abi.encode(_vault, _to, _amount);
         bytes memory data = abi.encodePacked(selector, param);
         bytes memory encodedData = abi.encode(_currency, data);
-        IVault(_vault).exec(encodedData);
+        IVault(_vault).execute(encodedData);
     }
 
     /* ---------------------- view functions --------------------- */
