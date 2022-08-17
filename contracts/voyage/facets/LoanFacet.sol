@@ -322,12 +322,12 @@ contract LoanFacet is Storage {
         );
 
         // 10. first payment
-        LibLoan.repay(
+        BorrowData storage debtData = LibLoan.getBorrowData(
             params.collection,
             reserveData.currency,
-            params.vault,
-            params.loanId
+            params.vault
         );
+        LibLoan.firstRepay(borrowState, debtData, params.loanId);
 
         // 11. distribute interest
         LibLoan.distributeInterest(
