@@ -7,8 +7,9 @@ async function main() {
   const weth = await ethers.getContract('WETH9');
   const crab = await ethers.getContract('Crab');
   // max approve voyage, for deposits
-  await weth.deposit({ value: ethers.utils.parseEther('1') });
-  let tx = await weth.approve(voyage.address, MAX_UINT_256);
+  let tx = await weth.deposit({ value: ethers.utils.parseEther('1') });
+  await tx.wait();
+  tx = await weth.approve(voyage.address, MAX_UINT_256);
   await tx.wait();
   const depositAmount = ethers.BigNumber.from(500);
 
