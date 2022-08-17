@@ -114,29 +114,9 @@ struct BorrowState {
     mapping(address => uint256) repaidTimes;
 }
 
-struct VaultConfig {
-    address currency;
-    uint256 minMargin;
-    uint256 maxMargin;
-    uint256 marginRequirement;
-    bool overrideGlobal;
-}
-
 struct ProtocolFee {
     address treasuryAddress;
     uint256 cutRatio; // express in Ray
-}
-
-struct VaultData {
-    uint256 totalDebt;
-    LoanList loanList;
-    uint256 totalMargin;
-    uint256 withdrawableSecurityDeposit;
-    uint256 creditLimit;
-    uint256 spendableBalance;
-    uint256 gav;
-    uint256 ltv;
-    uint256 healthFactor;
 }
 
 struct Authorisation {
