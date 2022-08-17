@@ -14,20 +14,10 @@ async function main() {
     looksRareAdapter.address
   );
   console.log('vault address: ', vaultAddress);
-  const { execute } = deployments;
   const priceOracle = await ethers.getContract<PriceOracle>('PriceOracle');
   await priceOracle.updateTwap(crab.address, 300);
-  await execute(
-    'Voyage',
-    {
-      from: owner,
-      log: true,
-      gasLimit: 12450000,
-    },
-    'previewBuyNowParams',
-    crab.address,
-    '10'
-  );
+  const param = await voyage.previewBuyNowParams(crab.address);
+  console.log('param: ', param);
 }
 
 main()
