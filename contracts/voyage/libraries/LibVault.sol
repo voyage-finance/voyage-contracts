@@ -4,7 +4,7 @@ pragma solidity ^0.8.9;
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {LibAppStorage, AppStorage, BorrowData, VaultConfig, NFTInfo, DiamondFacet, ReserveConfigurationMap} from "./LibAppStorage.sol";
+import {LibAppStorage, AppStorage, BorrowData, NFTInfo, DiamondFacet, ReserveConfigurationMap} from "./LibAppStorage.sol";
 import {LibReserveConfiguration} from "./LibReserveConfiguration.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";

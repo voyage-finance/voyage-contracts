@@ -9,13 +9,15 @@ async function main() {
   const crab = await ethers.getContract('Crab');
   const marketPlace = await ethers.getContract('MockMarketPlace');
   const looksRareAdapter = await ethers.getContract('LooksRareAdapter');
-  await voyage.updateMarketPlaceData(
+  let tx = await voyage.updateMarketPlaceData(
     marketPlace.address,
     looksRareAdapter.address
   );
+  await tx.wait();
   const priceOracle = await ethers.getContract<PriceOracle>('PriceOracle');
   console.log('vault address: ', vaultAddress);
-  await priceOracle.updateTwap(crab.address, 300);
+  tx = await priceOracle.updateTwap(crab.address, 300);
+  await tx.wait();
   const abiCoder = ethers.utils.defaultAbiCoder;
   const looksRareMakerOrderData = abiCoder.encode(
     [
@@ -83,7 +85,7 @@ async function main() {
     {
       from: owner,
       log: true,
-      gasLimit: 12450000,
+      gasLimit: 13450000,
     },
     'buyNow',
     crab.address,

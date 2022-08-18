@@ -5,7 +5,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
-import {AppStorage, ReserveData, ReserveConfigurationMap, Tranche, VaultConfig, LoanList, RepaymentData, LibAppStorage} from "../libraries/LibAppStorage.sol";
+import {AppStorage, ReserveData, ReserveConfigurationMap, Tranche, LoanList, RepaymentData, LibAppStorage} from "../libraries/LibAppStorage.sol";
 import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {LibLoan} from "../libraries/LibLoan.sol";
 import {LibVault} from "../libraries/LibVault.sol";

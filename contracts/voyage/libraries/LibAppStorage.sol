@@ -29,7 +29,7 @@ struct ReserveData {
     uint40 juniorLastUpdateTimestamp;
     uint40 seniorLastUpdateTimestamp;
     address currency;
-    address priceOracle;
+    UpgradeableBeacon priceOracle;
     bool initialized;
 }
 
@@ -70,37 +70,37 @@ struct Loan {
     uint256 principal;
     uint256 interest;
     // the total intended length of the loan in seconds - e.g., 90 days
-    uint256 term;
+    uint40 term;
     // the repayment interval - e.g., 30 days
-    uint256 epoch;
+    uint40 epoch;
     // number of instalments, term / epoch
-    uint256 nper;
+    uint40 nper;
     // the amount to be repaid per instalment (principal + interest)
     PMT pmt;
     // the borrow rate of this loan
     uint256 apr;
-    uint256 borrowAt;
+    uint40 borrowAt;
     // next due data
-    uint256 nextPaymentDue;
+    uint40 nextPaymentDue;
     // principal paid
     uint256 totalPrincipalPaid;
     // interest paid
     uint256 totalInterestPaid;
     RepaymentData[] repayments;
     // size pf repayments
-    uint256 paidTimes;
+    uint40 paidTimes;
     uint256[] collateral;
 }
 
 struct LoanList {
-    uint256 head;
-    uint256 tail;
+    uint40 head;
+    uint40 tail;
 }
 
 struct BorrowData {
-    uint256 paidLoanNumber;
+    uint40 paidLoanNumber;
     // next draw down number
-    uint256 nextLoanNumber;
+    uint40 nextLoanNumber;
     uint256 totalPrincipal;
     uint256 totalInterest;
     uint256 mapSize;
@@ -114,29 +114,9 @@ struct BorrowState {
     mapping(address => uint256) repaidTimes;
 }
 
-struct VaultConfig {
-    address currency;
-    uint256 minMargin;
-    uint256 maxMargin;
-    uint256 marginRequirement;
-    bool overrideGlobal;
-}
-
 struct ProtocolFee {
     address treasuryAddress;
-    uint256 cutRatio; // express in Ray
-}
-
-struct VaultData {
-    uint256 totalDebt;
-    LoanList loanList;
-    uint256 totalMargin;
-    uint256 withdrawableSecurityDeposit;
-    uint256 creditLimit;
-    uint256 spendableBalance;
-    uint256 gav;
-    uint256 ltv;
-    uint256 healthFactor;
+    uint40 cutRatio; // express in Ray
 }
 
 struct Authorisation {

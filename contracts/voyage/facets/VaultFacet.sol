@@ -8,7 +8,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
-import {LibAppStorage, AppStorage, Storage, VaultConfig, NFTInfo, DiamondFacet, ReserveConfigurationMap} from "../libraries/LibAppStorage.sol";
+import {LibAppStorage, AppStorage, Storage, NFTInfo, DiamondFacet, ReserveConfigurationMap} from "../libraries/LibAppStorage.sol";
 import {LibVault} from "../libraries/LibVault.sol";
 import {LibSecurity} from "../libraries/LibSecurity.sol";
 import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
@@ -58,7 +58,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         }
         uint256 numVaults = LibVault.recordVault(_user, vaultBeaconProxy);
         bytes4[] memory sigs = new bytes4[](1);
-        sigs[0] = IVault(address(0)).exec.selector;
+        sigs[0] = IVault(address(0)).execute.selector;
         LibSecurity.grantPermissions(
             LibAppStorage.ds().auth,
             address(this),
@@ -91,7 +91,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         bytes memory param = abi.encode(_vault, _msgSender(), _tokenId);
         bytes memory data = abi.encodePacked(selector, param);
         bytes memory encodedData = abi.encode(_collection, data);
-        IVault(_vault).exec(encodedData);
+        IVault(_vault).execute(encodedData);
     }
 
     function transferReserve(
@@ -107,7 +107,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         bytes memory param = abi.encode(_vault, _to, _amount);
         bytes memory data = abi.encodePacked(selector, param);
         bytes memory encodedData = abi.encode(_currency, data);
-        IVault(_vault).exec(encodedData);
+        IVault(_vault).execute(encodedData);
     }
 
     /* ---------------------- view functions --------------------- */

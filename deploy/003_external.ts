@@ -33,15 +33,14 @@ const deployFn: DeployFunction = async (hre) => {
   const wadRayMath = await deploy(WRM_NAME, { from: owner, log: true });
 
   const utilisationRate = new BigNumber('0.8').multipliedBy(RAY).toFixed();
-  const slope1 = new BigNumber('0.04').multipliedBy(RAY).toFixed();
-  const slope2 = new BigNumber('1').multipliedBy(RAY).toFixed();
+  const slope = new BigNumber('0.04').multipliedBy(RAY).toFixed();
   const baseInterest = new BigNumber('0.18').multipliedBy(RAY).toFixed();
 
   await deploy(INTEREST_STRATEGY_NAME, {
     from: owner,
     log: true,
     libraries: { WadRayMath: wadRayMath.address },
-    args: [utilisationRate, slope1, slope2, baseInterest],
+    args: [utilisationRate, slope, baseInterest],
   });
 
   const vault = await deploy('Vault', {

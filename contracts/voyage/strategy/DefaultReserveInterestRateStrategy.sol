@@ -17,22 +17,17 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
     // Base interest rate set by governance. Expressed in ray
     uint256 internal immutable baseBorrowRate;
 
-    // Slope of the stable interest curve when utilization rate > 0 and <= OPTIMAL_UTILIZATION_RATE. Expressed in ray
-    uint256 internal immutable stableRateSlope1;
-
     // Slope of the stable interest curve when utilization rate > OPTIMAL_UTILIZATION_RATE. Expressed in ray
-    uint256 internal immutable stableRateSlope2;
+    uint256 internal immutable stableRateSlope;
 
     constructor(
         uint256 _optimalUtilizationRate,
-        uint256 _stableRateSlope1,
-        uint256 _stableRateSlope2,
+        uint256 _stableRateSlope,
         uint256 _baseBorrowRate
-    ) public {
+    ) {
         OPTIMAL_UTILIZATION_RATE = _optimalUtilizationRate;
         baseBorrowRate = _baseBorrowRate;
-        stableRateSlope1 = _stableRateSlope1;
-        stableRateSlope2 = _stableRateSlope2;
+        stableRateSlope = _stableRateSlope;
     }
 
     struct CalcInterestRatesLocalVars {
@@ -42,23 +37,17 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
         uint256 utilizationRate;
     }
 
-    /**
-     * @dev Calculates the interest rates depending on the reserve's state and configuration
-     * @param reserve The address of the reserve
-     * @param seniorDepositTokenAddress The address of senior deposit token
-     * @param liquidityAdded The liquidity added during the operation
-     * @param liquidityTaken The liquidity taken during the operation
-     * @param totalStableDebt The total borrowed from the reserve a stable rate
-     * @param averageBorrowRate The current average borrow rate
-     **/
-    function calculateInterestRates(
+    function calculateBorrowRate(
         address reserve,
         address seniorDepositTokenAddress,
         uint256 liquidityAdded,
         uint256 liquidityTaken,
-        uint256 totalStableDebt,
-        uint256 averageBorrowRate
-    ) external view returns (uint256, uint256) {
+        uint256 totalStableDebt
+    ) external view returns (uint256) {
+        CalcInterestRatesLocalVars memory vars;
+        vars.totalDebt = totalStableDebt;
+        vars.currentStableBorrowRate = baseBorrowRate;
+
         uint256 totalPendingWithdrawal = IVToken(seniorDepositTokenAddress)
             .totalUnbonding();
 
@@ -70,61 +59,19 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
             availableLiquidity +
             liquidityAdded -
             liquidityTaken;
-        return
-            calculateInterestRates(
-                reserve,
-                availableLiquidity,
-                totalStableDebt,
-                averageBorrowRate
-            );
-    }
-
-    /**
-     * @dev Calculates the interest rates depending on the reserve's state and configurations.
-     * @param reserve The address of the reserve
-     * @param availableLiquidity The liquidity available in the corresponding aToken
-     * @param totalStableDebt The total borrowed from the reserve a stable rate
-     * @param averageBorrowRate The current average borrow rate
-     * @return The liquidity rate, the stable borrow rate
-     **/
-    function calculateInterestRates(
-        address reserve,
-        uint256 availableLiquidity,
-        uint256 totalStableDebt,
-        uint256 averageBorrowRate
-    ) public view returns (uint256, uint256) {
-        CalcInterestRatesLocalVars memory vars;
-
-        vars.totalDebt = totalStableDebt;
-        vars.currentStableBorrowRate = baseBorrowRate;
-        vars.currentLiquidityRate = 0;
 
         vars.utilizationRate = vars.totalDebt == 0
             ? 0
             : vars.totalDebt.rayDiv(availableLiquidity + vars.totalDebt);
-
         if (vars.utilizationRate > OPTIMAL_UTILIZATION_RATE) {
             vars.currentStableBorrowRate =
                 vars.currentStableBorrowRate +
-                stableRateSlope1 +
                 (
-                    stableRateSlope2
+                    stableRateSlope
                         .rayMul(vars.utilizationRate - OPTIMAL_UTILIZATION_RATE)
                         .rayDiv(WadRayMath.Ray() - OPTIMAL_UTILIZATION_RATE)
                 );
-        } else {
-            vars.currentStableBorrowRate =
-                vars.currentStableBorrowRate +
-                (
-                    stableRateSlope1.rayMul(vars.utilizationRate).rayDiv(
-                        OPTIMAL_UTILIZATION_RATE
-                    )
-                );
         }
-
-        vars.currentLiquidityRate = averageBorrowRate.rayMul(
-            vars.utilizationRate
-        );
-        return (vars.currentLiquidityRate, vars.currentStableBorrowRate);
+        return vars.currentStableBorrowRate;
     }
 }

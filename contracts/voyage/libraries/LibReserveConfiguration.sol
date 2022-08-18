@@ -194,13 +194,15 @@ library LibReserveConfiguration {
     function getBorrowParams(ReserveConfigurationMap memory self)
         internal
         pure
-        returns (uint256, uint256)
+        returns (uint40, uint40)
     {
         uint256 localData = self.data;
         return (
-            (localData & ~LOAN_INTERVAL_MASK) >>
-                LOAN_INTERVAL_MASK_BIT_POSITION,
-            (localData & ~LOAN_TERM_MASK) >> LOAN_TERM_MASK_BIT_POSITION
+            uint40(
+                (localData & ~LOAN_INTERVAL_MASK) >>
+                    LOAN_INTERVAL_MASK_BIT_POSITION
+            ),
+            uint40((localData & ~LOAN_TERM_MASK) >> LOAN_TERM_MASK_BIT_POSITION)
         );
     }
 

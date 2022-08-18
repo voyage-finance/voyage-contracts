@@ -55,6 +55,8 @@ interface IVault {
         bytes _result
     );
 
+    event Execute(address _vault, address _target, bytes _data);
+
     function initialize(
         address _voyage,
         address _user,
@@ -62,7 +64,7 @@ interface IVault {
         address _weth
     ) external;
 
-    function exec(bytes calldata _data) external;
+    function execute(bytes calldata _data) external;
 
     function refundGas(uint256 _amount, address _dst) external;
 
@@ -108,7 +110,7 @@ contract Vault is Initializable, IERC1271, IVault {
         LibVaultStorage.ds().weth = _weth;
     }
 
-    function exec(bytes calldata _data) external onlyAuthorised {
+    function execute(bytes calldata _data) external onlyAuthorised {
         (address target, bytes memory data) = abi.decode(
             _data,
             (address, bytes)
@@ -117,6 +119,7 @@ contract Vault is Initializable, IERC1271, IVault {
         if (!success) {
             revert();
         }
+        emit Execute(address(this), target, data);
     }
 
     function refundGas(uint256 _amount, address _dst) external onlyPaymaster {
@@ -161,13 +164,13 @@ contract Vault is Initializable, IERC1271, IVault {
             !sf.isAuthorised(
                 msg.sender,
                 _subvault,
-                ISubvault(address(0)).callExternal.selector
+                ISubvault(address(0)).execute.selector
             )
         ) {
             revert UnAuthorised();
         }
 
-        ISubvault(_subvault).callExternal(_target, _data);
+        ISubvault(_subvault).execute(_target, _data);
     }
 
     function collectionInitialized(address _collection)

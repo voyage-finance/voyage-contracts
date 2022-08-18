@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
+import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import {LibReserveConfiguration} from "./LibReserveConfiguration.sol";
 import {IReserveInterestRateStrategy} from "../interfaces/IReserveInterestRateStrategy.sol";
 import {LibAppStorage, AppStorage, ReserveData, ReserveConfigurationMap, BorrowData, BorrowState, Tranche} from "./LibAppStorage.sol";
@@ -70,7 +71,7 @@ library LibLiquidity {
         token.approve(reserve.juniorDepositTokenAddress, UINT256_MAX);
         reserve.interestRateStrategyAddress = _interestRateStrategyAddress;
         reserve.initialized = true;
-        reserve.priceOracle = _priceOracle;
+        reserve.priceOracle = new UpgradeableBeacon(_priceOracle);
         reserve.currency = _currency;
     }
 
@@ -82,7 +83,7 @@ library LibLiquidity {
     }
 
     /* --------------------------- fee management --------------------------- */
-    function updateProtocolFee(address _treasuryAddr, uint256 _cutRatio)
+    function updateProtocolFee(address _treasuryAddr, uint40 _cutRatio)
         internal
     {
         AppStorage storage s = LibAppStorage.ds();
