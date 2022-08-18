@@ -85,7 +85,7 @@ contract LiquidityFacet is Storage {
         emit ReserveActivated(_collection);
     }
 
-    function updateProtocolFee(address _treasuryAddr, uint256 _cutRatio)
+    function updateProtocolFee(address _treasuryAddr, uint40 _cutRatio)
         external
         authorised
     {

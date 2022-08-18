@@ -79,16 +79,16 @@ struct Loan {
     PMT pmt;
     // the borrow rate of this loan
     uint256 apr;
-    uint256 borrowAt;
+    uint40 borrowAt;
     // next due data
-    uint256 nextPaymentDue;
+    uint40 nextPaymentDue;
     // principal paid
     uint256 totalPrincipalPaid;
     // interest paid
     uint256 totalInterestPaid;
     RepaymentData[] repayments;
     // size pf repayments
-    uint256 paidTimes;
+    uint40 paidTimes;
     uint256[] collateral;
 }
 
@@ -116,7 +116,7 @@ struct BorrowState {
 
 struct ProtocolFee {
     address treasuryAddress;
-    uint256 cutRatio; // express in Ray
+    uint40 cutRatio; // express in Ray
 }
 
 struct Authorisation {

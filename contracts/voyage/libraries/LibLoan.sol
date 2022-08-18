@@ -158,7 +158,7 @@ library LibLoan {
         loan.nper = uint40(
             (_term * SECOND_PER_DAY) / (_epoch * SECOND_PER_DAY)
         );
-        loan.borrowAt = block.timestamp;
+        loan.borrowAt = uint40(block.timestamp);
         uint256 periodsPerYear = SECONDS_PER_YEAR /
             (loan.epoch * SECOND_PER_DAY);
         uint256 effectiveInterestRate = (loan.apr * loan.nper) / periodsPerYear;
@@ -198,7 +198,7 @@ library LibLoan {
             loan.borrowAt +
             (loan.paidTimes + 1) *
             loan.epoch *
-            SECOND_PER_DAY;
+            uint40(SECOND_PER_DAY);
 
         updateBorrowData(borrowState, loan, borrowData, param.totalPrincipal);
 
@@ -305,7 +305,7 @@ library LibLoan {
             loan.borrowAt +
             loan.paidTimes *
             loan.epoch *
-            SECOND_PER_DAY;
+            uint40(SECOND_PER_DAY);
     }
 
     function clearLoan(
@@ -350,7 +350,7 @@ library LibLoan {
         loan.nper = uint40(
             (param.term * SECOND_PER_DAY) / (param.epoch * SECOND_PER_DAY)
         );
-        loan.borrowAt = block.timestamp;
+        loan.borrowAt = uint40(block.timestamp);
         uint256 periodsPerYear = SECONDS_PER_YEAR /
             (loan.epoch * SECOND_PER_DAY);
         uint256 effectiveInterestRate = (loan.apr * loan.nper) / periodsPerYear;

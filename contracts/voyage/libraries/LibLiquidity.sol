@@ -83,7 +83,7 @@ library LibLiquidity {
     }
 
     /* --------------------------- fee management --------------------------- */
-    function updateProtocolFee(address _treasuryAddr, uint256 _cutRatio)
+    function updateProtocolFee(address _treasuryAddr, uint40 _cutRatio)
         internal
     {
         AppStorage storage s = LibAppStorage.ds();
