@@ -39,7 +39,7 @@ contract VoyagePaymaster is BasePaymaster {
         override
         returns (string memory)
     {
-        return "1.0.0+voyage.ipaymaster";
+        return "2.2.3+voyage.refundable.ipaymaster";
     }
 
     /// @inheritdoc IPaymaster
