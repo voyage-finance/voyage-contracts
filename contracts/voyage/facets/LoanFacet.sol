@@ -19,6 +19,7 @@ import {PaymentsFacet} from "../../shared/facets/PaymentsFacet.sol";
 import {SafeTransferLib} from "../../shared/libraries/SafeTransferLib.sol";
 import {IVault} from "../../vault/Vault.sol";
 import {MarketplaceAdapterFacet} from "./MarketplaceAdapterFacet.sol";
+import "hardhat/console.sol";
 
 contract LoanFacet is Storage {
     using WadRayMath for uint256;
@@ -415,6 +416,10 @@ contract LoanFacet is Storage {
             param.loanId
         );
         param.totalDebt = param.principal;
+        if (param.totalDebt == 0) {
+            revert InvalidDebt();
+        }
+        console.log("total debt: ", param.totalDebt);
         param.remaningDebt = param.totalDebt;
         param.discount = getDiscount(param.floorPrice, param.liquidationBonus);
         param.discountedFloorPrice = param.floorPrice - param.discount;

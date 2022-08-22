@@ -3,7 +3,7 @@
   "description": "Test cases for the repay function.",
   "stories": [
     {
-      "description": "User deposit 50 eth to junior, 120 eth to senior, then buy nft",
+      "description": "User deposit 50 eth to junior, 120 eth to senior, buy nft and repay",
       "actions": [
         {
           "name": "deposit",
