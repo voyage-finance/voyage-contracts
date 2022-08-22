@@ -331,6 +331,37 @@ export const repay = async (
   expectEqual(loanDetailAfter, expectedLoanDetailData);
 };
 
+// todo current try to liquidate itself, try using a different user instead
+export const liquidate = async (
+  cname: string,
+  loan: string,
+  userIndex: number,
+  expected: string,
+  testEnv: TestEnv
+) => {
+  const collection = testEnv.collections.get(cname);
+  const user = testEnv.users[userIndex];
+  const vault = testEnv.vaults.get(user.address);
+
+  const loanDetailBefore = await getLoanDetail(
+    testEnv.voyage,
+    collection!,
+    vault!,
+    loan
+  );
+
+  if (expected != 'success') {
+    await expect(
+      testEnv.voyage.liquidate(collection!, vault!, loan)
+    ).to.be.revertedWithCustomError(testEnv.voyage, expected);
+    return;
+  }
+
+  const txResult = await (
+    await testEnv.voyage.liquidate(collection!, vault!, loan)
+  ).wait();
+};
+
 export const approve = async (
   tranche: string,
   amount: string,

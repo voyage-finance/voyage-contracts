@@ -1,5 +1,12 @@
 import { SignerWithAddress, TestEnv } from './make-suite';
-import { approve, buyNow, deposit, repay, withdraw } from './actions';
+import {
+  approve,
+  buyNow,
+  deposit,
+  liquidate,
+  repay,
+  withdraw,
+} from './actions';
 
 export interface Action {
   name: string;
@@ -89,6 +96,11 @@ const executeAction = async (
     case 'repay': {
       const { cname, loan } = action.args;
       await repay(cname, loan, action.expected, testEnv);
+      break;
+    }
+    case 'liquidate': {
+      const { cname, loan, user } = action.args;
+      await liquidate(cname, loan, user, action.expected, testEnv);
       break;
     }
 
