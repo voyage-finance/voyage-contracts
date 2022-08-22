@@ -3,6 +3,7 @@ import { DataProviderFacet } from 'typechain/DataProviderFacet';
 import {
   CreditLineData,
   LoanDetail,
+  PMT,
   PoolConfiguration,
   ReserveData,
   UserReserveData,
@@ -62,8 +63,29 @@ export const getLoanDetail = async (
   const loanDetail = await helper.getLoanDetail(vault, collection, loanId);
   const principal = loanDetail.principal;
   const interest = loanDetail.interest;
+  const term = loanDetail.term;
+  const epoch = loanDetail.epoch;
   const nper = loanDetail.nper;
-  return { principal, interest, nper };
+  const pmt = <PMT>{};
+  pmt.principal = loanDetail.pmt.principal;
+  pmt.interest = loanDetail.pmt.interest;
+  pmt.pmt = loanDetail.pmt.pmt;
+  const apr = loanDetail.apr;
+  const totalPrincipalPaid = loanDetail.totalPrincipalPaid;
+  const totalInterestPaid = loanDetail.totalInterestPaid;
+  const paidTimes = loanDetail.paidTimes;
+  return {
+    principal,
+    interest,
+    term,
+    epoch,
+    nper,
+    pmt,
+    apr,
+    totalPrincipalPaid,
+    totalInterestPaid,
+    paidTimes,
+  };
 };
 
 export const getPoolConfiguration = async (
@@ -87,12 +109,5 @@ export const getCreditLine = async (
   return {
     totalDebt,
     loanlist,
-    // totalMargin,
-    // withdrawableSecurityDeposit,
-    // creditLimit,
-    // spendableBalance,
-    // gav,
-    // ltv,
-    // healthFactor,
   };
 };

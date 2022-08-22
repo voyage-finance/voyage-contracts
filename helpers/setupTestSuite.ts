@@ -1,9 +1,7 @@
-import { randomBytes } from 'crypto';
 import { deployments as d } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { VoyagePaymaster } from 'typechain/VoyagePaymaster';
 import { WETH9 } from 'typechain/WETH9';
-import { ERC20 } from '../typechain/ERC20';
 import { Voyage } from '../typechain/Voyage';
 import { deployFacets, FacetCutAction } from './diamond';
 import { decimals, MAX_UINT_256, toWad } from './math';
@@ -74,7 +72,6 @@ const setupBase = async ({
   const salt = ethers.utils.toUtf8Bytes('hw.kk@voyage.finance').slice(0, 42);
   await voyage.createVault(owner, salt);
   const deployedVault = await voyage.getVault(owner);
-  console.log('deployed vault', deployedVault);
   await weth.approve(deployedVault, MAX_UINT_256);
   const abiCoder = ethers.utils.defaultAbiCoder;
   const looksRareMakerOrderData = abiCoder.encode(

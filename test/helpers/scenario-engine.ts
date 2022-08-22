@@ -1,5 +1,5 @@
 import { SignerWithAddress, TestEnv } from './make-suite';
-import { approve, borrow, deposit, repay, withdraw } from './actions';
+import { approve, buyNow, deposit, repay, withdraw } from './actions';
 
 export interface Action {
   name: string;
@@ -52,7 +52,6 @@ const executeAction = async (
       if (!amount || amount === '') {
         throw `Invalid amount to deposit into the ${cname} collection`;
       }
-      console.log('before deposit');
       await deposit(cname, tranche, amount, testEnv);
       break;
     case 'withdraw': {
@@ -63,9 +62,20 @@ const executeAction = async (
       await withdraw(cname, tranche, amount, testEnv);
       break;
     }
-    case 'borrow': {
-      const { cname, tokenId } = action.args;
-      await borrow(cname, tokenId, testEnv);
+    case 'buyNow': {
+      const { cname, tokenId, nftprice, purchasingData, user } = action.args;
+      const owner = testEnv.users[userIndex];
+      const vault = testEnv.vaults.get(owner.address);
+      await buyNow(
+        cname,
+        tokenId,
+        nftprice,
+        purchasingData,
+        action.expected,
+        parseInt(user),
+        vault!,
+        testEnv
+      );
       break;
     }
     case 'approve': {

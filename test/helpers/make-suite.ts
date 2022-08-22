@@ -44,8 +44,9 @@ declare var hre: HardhatRuntimeEnvironment;
 
 export async function initializeMakeSuite() {
   const { getNamedAccounts } = hre;
-  const { owner } = await getNamedAccounts();
-  const signer = await ethers.getSigner(owner);
+  const { owner, alice } = await getNamedAccounts();
+  const signerOfOwner = await ethers.getSigner(owner);
+  const signerOfAlice = await ethers.getSigner(alice);
   const {
     voyage,
     juniorDepositToken,
@@ -57,8 +58,12 @@ export async function initializeMakeSuite() {
     marketPlace,
   } = await setupTestSuite();
   testEnv.users.push({
-    signer,
+    signer: signerOfOwner,
     address: owner,
+  });
+  testEnv.users.push({
+    signer: signerOfAlice,
+    address: alice,
   });
   testEnv.voyage = voyage;
   testEnv.juniorDepositToken = juniorDepositToken;
@@ -69,4 +74,6 @@ export async function initializeMakeSuite() {
   testEnv.marketplace = marketPlace;
   testEnv.collections.set('TUS', crab.address);
   testEnv.vaults.set(owner, deployedVault);
+  // for negative case, alice does not own deployedVault
+  testEnv.vaults.set(alice, deployedVault);
 }

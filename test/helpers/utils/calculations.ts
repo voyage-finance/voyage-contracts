@@ -1,11 +1,17 @@
 import {
   CreditLineData,
+  LoanDetail,
+  PMT,
   ReserveData,
   Tranche,
   UserReserveData,
 } from './interfaces';
 import './wadraymath';
 import { BigNumber } from 'ethers';
+
+const RAY = BigNumber.from('1000000000000000000000000000');
+const SECOND_PER_DAY = BigNumber.from('86400');
+const SECOND_PER_YEAR = BigNumber.from('31556926');
 
 export const calcExpectedUserDataAfterDeposit = (
   amountDeposit: string,
@@ -71,6 +77,52 @@ export const calcExpectedReserveDataAfterBorrow = (
   expectedReserveData.isActive = reserveDataBeforeAction.isActive;
   expectedReserveData.currency = reserveDataBeforeAction.currency;
   return expectedReserveData;
+};
+
+export const calcExpectedLoanDetailAfterBuyNow = (
+  principal: BigNumber
+): LoanDetail => {
+  const loanDetail: LoanDetail = <LoanDetail>{};
+  // hard code for now, should be reading from contract
+  loanDetail.term = BigNumber.from(90);
+  loanDetail.epoch = BigNumber.from(30);
+  loanDetail.principal = principal;
+  loanDetail.nper = calcNper(loanDetail);
+  loanDetail.apr = BigNumber.from(18).mul(RAY).div(100);
+  const effectiveInterestRate = calcEffectiveInterestRate(loanDetail);
+  loanDetail.interest = loanDetail.principal.rayMul(effectiveInterestRate);
+  loanDetail.pmt = calcPMT(loanDetail);
+  loanDetail.totalPrincipalPaid = loanDetail.pmt.principal;
+  loanDetail.totalPrincipalPaid = loanDetail.pmt.interest;
+  loanDetail.paidTimes = BigNumber.from(1);
+  return loanDetail;
+};
+
+export const calcNper = (loanDetail: LoanDetail): BigNumber => {
+  const nper = loanDetail.term
+    .mul(SECOND_PER_DAY)
+    .div(loanDetail.epoch.mul(SECOND_PER_DAY));
+  return nper;
+};
+
+export const calcEffectiveInterestRate = (
+  loanDetail: LoanDetail
+): BigNumber => {
+  const periodPerYear = SECOND_PER_YEAR.div(
+    loanDetail.epoch.mul(SECOND_PER_DAY)
+  );
+  const effectiveInterestRate = loanDetail.apr
+    .mul(loanDetail.nper)
+    .div(periodPerYear);
+  return effectiveInterestRate;
+};
+
+export const calcPMT = (loanDetail: LoanDetail): PMT => {
+  const pmt: PMT = <PMT>{};
+  pmt.principal = loanDetail.principal.div(loanDetail.nper);
+  pmt.interest = loanDetail.interest.div(loanDetail.nper);
+  pmt.pmt = pmt.principal.add(pmt.interest);
+  return pmt;
 };
 
 export const calcExpectedCreditLineAfterBorrow = (

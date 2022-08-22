@@ -6,6 +6,7 @@ import {
   caclExpectedReserveDataAfterRepay,
   caclExpectedReserveDataAfterWithdraw,
   calcExpectedCreditLineAfterBorrow,
+  calcExpectedLoanDetailAfterBuyNow,
   calcExpectedReserveDataAfterBorrow,
   calcExpectedReserveDataAfterDeposit,
   calcExpectedUserDataAfterDeposit,
@@ -19,6 +20,7 @@ import {
 } from './utils/helpers';
 import {
   CreditLineData,
+  LoanDetail,
   ReserveData,
   Tranche,
   UserReserveData,
@@ -95,8 +97,8 @@ chai.use(function (chai: any, utils: any) {
 });
 
 const expectEqual = (
-  actual: UserReserveData | ReserveData | CreditLineData,
-  expected: UserReserveData | ReserveData | CreditLineData
+  actual: UserReserveData | ReserveData | CreditLineData | LoanDetail,
+  expected: UserReserveData | ReserveData | CreditLineData | LoanDetail
 ) => {
   if (!configuration.skipIntegrityCheck) {
     // @ts-ignore
@@ -111,7 +113,6 @@ export const deposit = async (
   testEnv: TestEnv
 ) => {
   const collection = testEnv.collections.get(cname);
-  console.log('collection: ', collection!);
   const user = testEnv.users[0];
   const { reserveData: reserveDataBefore, userData: userDataBefore } =
     await getContractsData(collection!, user.address, testEnv);
@@ -178,14 +179,18 @@ export const withdraw = async (
   expectEqual(reserveDataAfter, expectedReserveData);
 };
 
-export const borrow = async (
+export const buyNow = async (
   cname: string,
   tokenId: string,
+  nftprice: string,
+  purchasingData: string,
+  expected: string,
+  userIndex: number,
+  vault: string,
   testEnv: TestEnv
 ) => {
   const collection = testEnv.collections.get(cname);
-  const user = testEnv.users[0];
-  const vault = testEnv.vaults.get(user.address);
+  const user = testEnv.users[userIndex];
 
   const {
     reserveData: reserveDataBefore,
@@ -193,8 +198,22 @@ export const borrow = async (
     creditLine: creditLineBefore,
   } = await getContractsData(collection!, user.address, testEnv);
 
-  const assetPrice = toWad(10);
-  await testEnv.priceOracle.updateTwap(collection!, assetPrice);
+  await testEnv.priceOracle.updateTwap(collection!, nftprice);
+  if (expected != 'success') {
+    await expect(
+      testEnv.voyage
+        .connect(user.signer)
+        .buyNow(
+          collection!,
+          tokenId,
+          vault!,
+          testEnv.marketplace.address,
+          purchasingData
+        )
+    ).to.be.revertedWithCustomError(testEnv.voyage, expected);
+    return;
+  }
+
   const txResult = await (
     await testEnv.voyage
       .connect(user.signer)
@@ -203,7 +222,7 @@ export const borrow = async (
         tokenId,
         vault!,
         testEnv.marketplace.address,
-        testEnv.purchaseData
+        purchasingData
       )
   ).wait();
 
@@ -216,17 +235,31 @@ export const borrow = async (
     timestamp,
   } = await getContractsData(collection!, user.address, testEnv);
 
+  const loanDetail = await getLoanDetail(
+    testEnv.voyage,
+    collection!,
+    vault!,
+    '0'
+  );
+
+  console.log('loan detail: ', loanDetail);
+
   const expectedReserveData = calcExpectedReserveDataAfterBorrow(
-    assetPrice.toString(),
+    nftprice.toString(),
     reserveDataBefore
   );
 
   const expectedCreditLineData = calcExpectedCreditLineAfterBorrow(
-    assetPrice.toString(),
+    nftprice.toString(),
     creditLineBefore
   );
+
+  const principal = BigNumber.from('10000000000000000000');
+  const expectedLoanDetail = calcExpectedLoanDetailAfterBuyNow(principal);
+
   expectEqual(reserveDataAfter, expectedReserveData);
   expectEqual(creditLineAfter, expectedCreditLineData);
+  expectEqual(loanDetail, expectedLoanDetail);
 };
 
 export const repay = async (cname: string, loan: string, testEnv: TestEnv) => {
