@@ -98,6 +98,27 @@ export const calcExpectedLoanDetailAfterBuyNow = (
   return loanDetail;
 };
 
+export const calcExpectedLoanDetailAfterRepay = (
+  loanDetailBefore: LoanDetail
+): LoanDetail => {
+  const loanDetail: LoanDetail = <LoanDetail>{};
+  loanDetail.principal = loanDetailBefore.principal;
+  loanDetail.interest = loanDetailBefore.interest;
+  loanDetail.term = loanDetailBefore.term;
+  loanDetail.epoch = loanDetailBefore.epoch;
+  loanDetail.nper = loanDetailBefore.nper;
+  loanDetail.pmt = loanDetailBefore.pmt;
+  loanDetail.apr = loanDetailBefore.apr;
+  loanDetail.totalPrincipalPaid = loanDetailBefore.totalPrincipalPaid.add(
+    loanDetailBefore.pmt.principal
+  );
+  loanDetail.totalInterestPaid = loanDetailBefore.totalInterestPaid.add(
+    loanDetail.pmt.interest
+  );
+  loanDetail.paidTimes = loanDetailBefore.paidTimes.add(1);
+  return loanDetail;
+};
+
 export const calcNper = (loanDetail: LoanDetail): BigNumber => {
   const nper = loanDetail.term
     .mul(SECOND_PER_DAY)

@@ -1,6 +1,6 @@
 {
   "title": "Pool: BuyNow",
-  "description": "Test cases for the borrow function.",
+  "description": "Test cases for the buyNow function.",
   "stories": [
     {
       "description": "User deposit 120 eth to junior, buy nft and revert",

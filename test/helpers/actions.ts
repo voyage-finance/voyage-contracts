@@ -7,6 +7,7 @@ import {
   caclExpectedReserveDataAfterWithdraw,
   calcExpectedCreditLineAfterBorrow,
   calcExpectedLoanDetailAfterBuyNow,
+  calcExpectedLoanDetailAfterRepay,
   calcExpectedReserveDataAfterBorrow,
   calcExpectedReserveDataAfterDeposit,
   calcExpectedUserDataAfterDeposit,
@@ -242,8 +243,6 @@ export const buyNow = async (
     '0'
   );
 
-  console.log('loan detail: ', loanDetail);
-
   const expectedReserveData = calcExpectedReserveDataAfterBorrow(
     nftprice.toString(),
     reserveDataBefore
@@ -273,7 +272,7 @@ export const repay = async (cname: string, loan: string, testEnv: TestEnv) => {
     creditLine: creditLineBefore,
   } = await getContractsData(collection!, user.address, testEnv);
 
-  const loanDetail = await getLoanDetail(
+  const loanDetailBefore = await getLoanDetail(
     testEnv.voyage,
     collection!,
     vault!,
@@ -287,6 +286,12 @@ export const repay = async (cname: string, loan: string, testEnv: TestEnv) => {
     await testEnv.voyage.repay(collection!, '0', vault!)
   ).wait();
 
+  const loanDetailAfter = await getLoanDetail(
+    testEnv.voyage,
+    collection!,
+    vault!,
+    loan
+  );
   const {
     reserveData: reserveDataAfter,
     userData: userDataAfter,
@@ -294,18 +299,24 @@ export const repay = async (cname: string, loan: string, testEnv: TestEnv) => {
   } = await getContractsData(collection!, user.address, testEnv);
 
   const expectedReserveData = await caclExpectedReserveDataAfterRepay(
-    loanDetail.principal.div(loanDetail.nper),
-    loanDetail.interest.div(loanDetail.nper),
+    loanDetailBefore.principal.div(loanDetailBefore.nper),
+    loanDetailBefore.interest.div(loanDetailBefore.nper),
     incomeRatio,
     reserveDataBefore
   );
 
   const expectedCreditLineData = await caclExpectedCreditLineDataAfterRepay(
-    loanDetail.principal.div(loanDetail.nper),
+    loanDetailBefore.principal.div(loanDetailBefore.nper),
     creditLineBefore
   );
+
+  const expectedLoanDetailData = await calcExpectedLoanDetailAfterRepay(
+    loanDetailBefore
+  );
+
   expectEqual(reserveDataAfter, expectedReserveData);
   expectEqual(creditLineAfter, expectedCreditLineData);
+  expectEqual(loanDetailAfter, expectedLoanDetailData);
 };
 
 export const approve = async (
