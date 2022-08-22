@@ -44,6 +44,24 @@
             "user": "0"
           },
           "expected": "success"
+        },
+        {
+          "name": "repay",
+          "args": {
+            "cname": "TUS",
+            "loan": "0",
+            "user": "0"
+          },
+          "expected": "success"
+        },
+        {
+          "name": "repay",
+          "args": {
+            "cname": "TUS",
+            "loan": "0",
+            "user": "0"
+          },
+          "expected": "InvalidDebt"
         }
       ]
     }

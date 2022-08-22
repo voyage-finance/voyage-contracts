@@ -88,7 +88,7 @@ const executeAction = async (
     }
     case 'repay': {
       const { cname, loan } = action.args;
-      await repay(cname, loan, testEnv);
+      await repay(cname, loan, action.expected, testEnv);
       break;
     }
 

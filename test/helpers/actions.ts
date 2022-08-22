@@ -261,7 +261,12 @@ export const buyNow = async (
   expectEqual(loanDetail, expectedLoanDetail);
 };
 
-export const repay = async (cname: string, loan: string, testEnv: TestEnv) => {
+export const repay = async (
+  cname: string,
+  loan: string,
+  expected: string,
+  testEnv: TestEnv
+) => {
   const collection = testEnv.collections.get(cname);
   const user = testEnv.users[0];
   const vault = testEnv.vaults.get(user.address);
@@ -281,6 +286,13 @@ export const repay = async (cname: string, loan: string, testEnv: TestEnv) => {
 
   const poolConfg = await getPoolConfiguration(testEnv.voyage, collection!);
   const incomeRatio = poolConfg.incomeRatio;
+
+  if (expected != 'success') {
+    await expect(
+      testEnv.voyage.repay(collection!, '0', vault!)
+    ).to.be.revertedWithCustomError(testEnv.voyage, expected);
+    return;
+  }
 
   const txResult = await (
     await testEnv.voyage.repay(collection!, '0', vault!)
