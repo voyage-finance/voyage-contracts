@@ -8,7 +8,7 @@ fs.readdirSync(scenarioFolder).forEach((file) => {
   const scenario = require(`./helpers/scenarios/${file}`);
   makeSuite(scenario.title, async (testEnv) => {
     for (const story of scenario.stories) {
-      it(story.description, async function () {
+      it.only(story.description, async function () {
         await executeStory(story, testEnv);
       });
     }

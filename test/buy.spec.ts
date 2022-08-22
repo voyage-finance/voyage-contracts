@@ -95,10 +95,8 @@ describe('BuyNow', function () {
       purchaseDataFromLooksRare,
       marketPlace,
     } = await setupTestSuite();
-    const depositAmount = toWad(120);
-    const juniorDeposit = toWad(50);
-    await voyage.deposit(crab.address, 0, juniorDeposit);
-    await voyage.deposit(crab.address, 1, depositAmount);
+    await voyage.deposit(crab.address, 0, toWad(50));
+    await voyage.deposit(crab.address, 1, toWad(120));
     await priceOracle.updateTwap(crab.address, toWad(10));
     const vault = await voyage.getVault(owner);
     await voyage.buyNow(

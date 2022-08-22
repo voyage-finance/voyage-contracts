@@ -47,13 +47,6 @@ export interface ReserveData {
 export interface CreditLineData {
   totalDebt: BigNumber;
   loanlist: LoanList;
-  // totalMargin: BigNumber;
-  // withdrawableSecurityDeposit: BigNumber;
-  // creditLimit: BigNumber;
-  // spendableBalance: BigNumber;
-  // gav: BigNumber;
-  // ltv: BigNumber;
-  // healthFactor: BigNumber;
 }
 
 export interface LoanList {
@@ -61,10 +54,26 @@ export interface LoanList {
   tail: BigNumber;
 }
 
+export interface PMT {
+  principal: BigNumber;
+  interest: BigNumber;
+  pmt: BigNumber;
+}
+
 export interface LoanDetail {
   principal: BigNumber;
   interest: BigNumber;
+  term: BigNumber;
+  epoch: BigNumber;
   nper: BigNumber;
+  pmt: PMT;
+  // reserve: string;
+  apr: BigNumber;
+  // borrowAt: BigNumber;
+  // nextPaymentDue: BigNumber;
+  totalPrincipalPaid: BigNumber;
+  totalInterestPaid: BigNumber;
+  paidTimes: BigNumber;
 }
 
 export interface PoolConfiguration {
