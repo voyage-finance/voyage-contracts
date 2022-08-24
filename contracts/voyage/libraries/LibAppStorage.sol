@@ -254,7 +254,7 @@ contract Storage {
         return
             LibSecurity.isAuthorisedInbound(
                 LibAppStorage.ds().auth,
-                msg.sender,
+                _msgSender(),
                 msg.sig
             );
     }

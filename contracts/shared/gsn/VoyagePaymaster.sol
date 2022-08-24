@@ -82,7 +82,7 @@ contract VoyagePaymaster is BasePaymaster {
             revert VaultBalanceInsufficient();
         }
 
-        return (abi.encodePacked(relayRequest.request.from), false);
+        return (abi.encodePacked(relayRequest.request.from), true);
     }
 
     /// @inheritdoc IPaymaster
