@@ -23,7 +23,7 @@ abstract contract VToken is Initializable, ERC4626, IVToken {
 
     uint256 public cooldown = 7 days;
 
-    event Claim(address receiver, uint256 amount);
+    event Claim(address receiver, uint256 amount, uint256 shares);
 
     modifier onlyAdmin() {
         require(_msgSender() == voyage, "Not admin");
@@ -105,6 +105,7 @@ abstract contract VToken is Initializable, ERC4626, IVToken {
         }
         totalUnbonding -= transferredShares;
         asset.safeTransfer(msg.sender, transferredAsset);
+        emit Claim(msg.sender, transferredAsset, transferredShares);
     }
 
     function unbonding(address _user) external view returns (uint256) {
