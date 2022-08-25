@@ -3,6 +3,7 @@ pragma solidity ^0.8.9;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -80,9 +81,8 @@ contract VaultFacet is Storage, ReentrancyGuard {
         address _collection,
         uint256 _tokenId
     ) external nonReentrant {
-        if (LibVault.getVaultAddress(_msgSender()) != _vault) {
-            revert InvalidVaultCall();
-        }
+        checkVaultAddr(_vault);
+        checkCollectionAddr(_collection);
         if (LibAppStorage.ds().nftIndex[_collection][_tokenId].isCollateral) {
             revert InvalidWithdrawal();
         }
@@ -100,9 +100,8 @@ contract VaultFacet is Storage, ReentrancyGuard {
         address _to,
         uint256 _amount
     ) external nonReentrant {
-        if (LibVault.getVaultAddress(_msgSender()) != _vault) {
-            revert InvalidVaultCall();
-        }
+        checkVaultAddr(_vault);
+        checkCurrencyAddr(_currency);
         bytes4 selector = IERC20(_currency).transferFrom.selector;
         bytes memory param = abi.encode(_vault, _to, _amount);
         bytes memory data = abi.encodePacked(selector, param);
@@ -177,9 +176,33 @@ contract VaultFacet is Storage, ReentrancyGuard {
         );
         return data;
     }
+
+    function checkVaultAddr(address _vault) internal view {
+        if (!Address.isContract(_vault)) {
+            revert InvalidVaultAddress();
+        }
+        if (LibVault.getVaultAddress(_msgSender()) != _vault) {
+            revert InvalidVaultCall();
+        }
+    }
+
+    function checkCollectionAddr(address _collection) internal view {
+        if (!Address.isContract(_collection)) {
+            revert InvalidCollectionAddress();
+        }
+    }
+
+    function checkCurrencyAddr(address _currency) internal view {
+        if (!Address.isContract(_currency)) {
+            revert InvalidCurrencyAddress();
+        }
+    }
 }
 
 /* --------------------------------- errors -------------------------------- */
 error InvalidVaultCall();
+error InvalidVaultAddress();
+error InvalidCollectionAddress();
+error InvalidCurrencyAddress();
 error FailedDeployVault();
 error InvalidWithdrawal();
