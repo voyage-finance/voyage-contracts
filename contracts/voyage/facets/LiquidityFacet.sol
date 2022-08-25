@@ -27,6 +27,7 @@ contract LiquidityFacet is Storage {
         address _interestRateStrategyAddress
     );
     event ReserveActivated(address indexed _collection);
+    event ReserveInactived(address indexed _collection);
     event Deposit(
         address indexed _collection,
         address indexed _currency,
@@ -75,14 +76,23 @@ contract LiquidityFacet is Storage {
     }
 
     function activateReserve(address _collection) external authorised {
+        modifyReserveStatus(_collection, true);
+        emit ReserveActivated(_collection);
+    }
+
+    function deactivateReserve(address _collection) external authorised {
+        modifyReserveStatus(_collection, false);
+        emit ReserveInactived(_collection);
+    }
+
+    function modifyReserveStatus(address _collection, bool active) internal {
         if (!Address.isContract(_collection)) {
             revert InvalidContract();
         }
         ReserveConfigurationMap memory config = LibReserveConfiguration
             .getConfiguration(_collection);
-        config.setActive(true);
+        config.setActive(active);
         LibReserveConfiguration.saveConfiguration(_collection, config);
-        emit ReserveActivated(_collection);
     }
 
     function updateProtocolFee(address _treasuryAddr, uint40 _cutRatio)
