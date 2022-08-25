@@ -5,6 +5,7 @@ import {
   caclExpectedCreditLineDataAfterRepay,
   caclExpectedReserveDataAfterRepay,
   caclExpectedReserveDataAfterWithdraw,
+  calcEmptyLoanDetail,
   calcExpectedCreditLineAfterBorrow,
   calcExpectedLoanDetailAfterBuyNow,
   calcExpectedLoanDetailAfterRepay,
@@ -15,6 +16,7 @@ import {
 import {
   getCreditLine,
   getLoanDetail,
+  getOwnerOf,
   getPoolConfiguration,
   getReserveData,
   getUserPoolData,
@@ -27,7 +29,7 @@ import {
   UserReserveData,
 } from './utils/interfaces';
 import chai from 'chai';
-import { toWad } from '../../helpers/math';
+import { ethers } from 'hardhat';
 
 declare var hre: HardhatRuntimeEnvironment;
 
@@ -98,8 +100,8 @@ chai.use(function (chai: any, utils: any) {
 });
 
 const expectEqual = (
-  actual: UserReserveData | ReserveData | CreditLineData | LoanDetail,
-  expected: UserReserveData | ReserveData | CreditLineData | LoanDetail
+  actual: UserReserveData | ReserveData | CreditLineData | LoanDetail | string,
+  expected: UserReserveData | ReserveData | CreditLineData | LoanDetail | string
 ) => {
   if (!configuration.skipIntegrityCheck) {
     // @ts-ignore
@@ -236,6 +238,8 @@ export const buyNow = async (
     timestamp,
   } = await getContractsData(collection!, user.address, testEnv);
 
+  console.log('credit line: ', creditLineAfter.loanlist.tail.toString());
+
   const loanDetail = await getLoanDetail(
     testEnv.voyage,
     collection!,
@@ -342,24 +346,34 @@ export const liquidate = async (
   const collection = testEnv.collections.get(cname);
   const user = testEnv.users[userIndex];
   const vault = testEnv.vaults.get(user.address);
-
-  const loanDetailBefore = await getLoanDetail(
-    testEnv.voyage,
-    collection!,
-    vault!,
-    loan
-  );
+  const ownerBefore = await getOwnerOf(collection!, '1');
 
   if (expected != 'success') {
     await expect(
       testEnv.voyage.liquidate(collection!, vault!, loan)
     ).to.be.revertedWithCustomError(testEnv.voyage, expected);
+    const ownerAfter = await getOwnerOf(collection!, '1');
+    expectEqual(ownerBefore, ownerAfter);
+    expectEqual(ownerAfter, vault!);
     return;
   }
 
   const txResult = await (
     await testEnv.voyage.liquidate(collection!, vault!, loan)
   ).wait();
+
+  const loanDetailAfter = await getLoanDetail(
+    testEnv.voyage,
+    collection!,
+    vault!,
+    loan
+  );
+
+  const loanDetailEmpty = calcEmptyLoanDetail();
+  expectEqual(loanDetailAfter, loanDetailEmpty);
+
+  const ownerAfter = await getOwnerOf(collection!, '1');
+  expectEqual(ownerAfter, user.address);
 };
 
 export const approve = async (
@@ -376,6 +390,24 @@ export const approve = async (
       await testEnv.seniorDepositToken.approve(testEnv.voyage.address, amount)
     ).wait();
   }
+};
+
+export const mine = async (days: number) => {
+  const daysToIncreased = days * 24 * 60 * 60;
+  await ethers.provider.send('evm_increaseTime', [daysToIncreased]);
+  await ethers.provider.send('evm_mine', []);
+};
+
+export const mint = async (
+  cname: string,
+  vault: string,
+  tokenId: string,
+  testEnv: TestEnv
+) => {
+  const Crab = await ethers.getContractFactory('Crab');
+  const crabAddress = testEnv.collections.get(cname);
+  const crab = Crab.attach(crabAddress!);
+  await crab.safeMint(vault, tokenId);
 };
 
 export const getTxCostAndTimestamp = async (tx: ContractReceipt) => {

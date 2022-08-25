@@ -13,7 +13,6 @@ import {LibDiamond} from "./libraries/LibDiamond.sol";
 import {DiamondCutFacet} from "./facets/DiamondCutFacet.sol";
 import {DiamondLoupeFacet} from "./facets/DiamondLoupeFacet.sol";
 import {OwnershipFacet} from "./facets/OwnershipFacet.sol";
-import {DiamondVersionFacet} from "../../voyage/facets/DiamondVersionFacet.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 contract VersionedDiamond is Initializable {

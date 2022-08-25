@@ -4,6 +4,8 @@ import {
   buyNow,
   deposit,
   liquidate,
+  mine,
+  mint,
   repay,
   withdraw,
 } from './actions';
@@ -101,6 +103,16 @@ const executeAction = async (
     case 'liquidate': {
       const { cname, loan, user } = action.args;
       await liquidate(cname, loan, user, action.expected, testEnv);
+      break;
+    }
+    case 'mine': {
+      const { days } = action.args;
+      await mine(days);
+      break;
+    }
+    case 'mint': {
+      const { cname, tokenId } = action.args;
+      await mint(cname, testEnv.vault, tokenId, testEnv);
       break;
     }
 

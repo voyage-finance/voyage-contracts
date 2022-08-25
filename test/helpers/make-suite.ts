@@ -72,8 +72,8 @@ export async function initializeMakeSuite() {
   testEnv.purchaseData = purchaseDataFromLooksRare;
   testEnv.priceOracle = priceOracle;
   testEnv.marketplace = marketPlace;
-  testEnv.collections.set('TUS', crab.address);
+  testEnv.collections.set('crab', crab.address);
   testEnv.vaults.set(owner, deployedVault);
-  // for negative case, alice does not own deployedVault
+  // for negative case, alice does not  deployedVault
   testEnv.vaults.set(alice, deployedVault);
 }

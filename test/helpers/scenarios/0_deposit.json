@@ -3,12 +3,12 @@
     "description": "Test cases for the deposit function.",
     "stories": [
         {
-            "description": "User 0 Deposits 10000 TUS in an empty reserve",
+            "description": "User 0 Deposits 10000 eth in an empty reserve",
             "actions": [
               {
                 "name": "deposit",
                 "args": {
-                  "cname": "TUS",
+                  "cname": "crab",
                   "tranche": "1",
                   "amount": "10000",
                   "user": "0"

@@ -12,6 +12,7 @@ import { BigNumber } from 'ethers';
 const RAY = BigNumber.from('1000000000000000000000000000');
 const SECOND_PER_DAY = BigNumber.from('86400');
 const SECOND_PER_YEAR = BigNumber.from('31556926');
+const ZERO_VAULE = BigNumber.from(0);
 
 export const calcExpectedUserDataAfterDeposit = (
   amountDeposit: string,
@@ -117,6 +118,25 @@ export const calcExpectedLoanDetailAfterRepay = (
   );
   loanDetail.paidTimes = loanDetailBefore.paidTimes.add(1);
   return loanDetail;
+};
+
+export const calcEmptyLoanDetail = (): LoanDetail => {
+  const loanDetailEmpty = <LoanDetail>{};
+  loanDetailEmpty.principal = ZERO_VAULE;
+  loanDetailEmpty.interest = ZERO_VAULE;
+  loanDetailEmpty.term = ZERO_VAULE;
+  loanDetailEmpty.epoch = ZERO_VAULE;
+  loanDetailEmpty.nper = ZERO_VAULE;
+  const pmt = <PMT>{};
+  pmt.principal = ZERO_VAULE;
+  pmt.interest = ZERO_VAULE;
+  pmt.pmt = ZERO_VAULE;
+  loanDetailEmpty.pmt = pmt;
+  loanDetailEmpty.apr = ZERO_VAULE;
+  loanDetailEmpty.totalPrincipalPaid = ZERO_VAULE;
+  loanDetailEmpty.totalInterestPaid = ZERO_VAULE;
+  loanDetailEmpty.paidTimes = ZERO_VAULE;
+  return loanDetailEmpty;
 };
 
 export const calcNper = (loanDetail: LoanDetail): BigNumber => {

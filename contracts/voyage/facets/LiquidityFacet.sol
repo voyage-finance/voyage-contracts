@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
 import {JuniorDepositToken} from "../tokenization/JuniorDepositToken.sol";
 import {SeniorDepositToken} from "../tokenization/SeniorDepositToken.sol";
@@ -13,7 +14,7 @@ import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PaymentsFacet} from "../../shared/facets/PaymentsFacet.sol";
 
-contract LiquidityFacet is Storage {
+contract LiquidityFacet is Storage, ReentrancyGuard {
     using LibLiquidity for ReserveData;
     using LibReserveConfiguration for ReserveConfigurationMap;
     using WadRayMath for uint256;
@@ -112,7 +113,7 @@ contract LiquidityFacet is Storage {
         address _collection,
         Tranche _tranche,
         uint256 _amount
-    ) external {
+    ) external nonReentrant {
         ReserveData memory reserve = LibAppStorage.ds()._reserveData[
             _collection
         ];
@@ -149,7 +150,7 @@ contract LiquidityFacet is Storage {
         address _collection,
         Tranche _tranche,
         uint256 _amount
-    ) external {
+    ) external nonReentrant {
         ReserveData memory reserve = LibAppStorage.ds()._reserveData[
             _collection
         ];

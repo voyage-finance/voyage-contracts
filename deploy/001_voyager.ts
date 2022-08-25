@@ -115,11 +115,6 @@ const deployFn: DeployFunction = async (hre) => {
       log: true,
     },
     {
-      name: 'DiamondVersionFacet',
-      from: owner,
-      log: true,
-    },
-    {
       name: 'ConfigurationFacet',
       from: owner,
       log: true,
