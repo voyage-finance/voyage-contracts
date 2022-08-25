@@ -5,7 +5,6 @@ import {DSRoles} from "../auth/DSRoles.sol";
 import {DSGuard} from "../auth/DSGuard.sol";
 import {LibSecurity} from "./LibSecurity.sol";
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
-import {Snapshot} from "../interfaces/IDiamondVersionFacet.sol";
 import {IVaultFactory} from "../interfaces/IVaultFactory.sol";
 import {IDiamondCut} from "../../shared/diamond/interfaces/IDiamondCut.sol";
 import {IDiamondLoupe} from "../../shared/diamond/interfaces/IDiamondLoupe.sol";
@@ -188,8 +187,6 @@ struct AppStorage {
     mapping(address => MarketPlaceData) marketPlaceData;
     // collection => tokenId => info
     mapping(address => mapping(uint256 => NFTInfo)) nftIndex;
-    uint256 currentVersion;
-    mapping(uint256 => Snapshot) snapshotMap;
     /* ---------------------------------- security --------------------------------- */
     Authorisation auth;
     address trustedForwarder; // GSN IERC2771 receiver
@@ -295,55 +292,5 @@ contract Storage {
         } else {
             return msg.data;
         }
-    }
-
-    function computeSnapshotChecksum(Snapshot memory snapshot)
-        internal
-        view
-        returns (bytes32)
-    {
-        bytes memory data;
-        for (uint256 i = 0; i < snapshot.facets.length; ) {
-            IDiamondLoupe.Facet memory facet = snapshot.facets[i];
-            data = bytes.concat(data, abi.encodePacked(facet.facetAddress));
-            for (uint256 j = 0; j < facet.functionSelectors.length; j++) {
-                data = bytes.concat(data, facet.functionSelectors[j]);
-            }
-            bytes32 facetCodeHash;
-            address facetAddress = facet.facetAddress;
-            assembly {
-                facetCodeHash := extcodehash(facetAddress)
-            }
-            data = bytes.concat(data, facetCodeHash);
-            unchecked {
-                ++i;
-            }
-        }
-        return keccak256(data);
-    }
-
-    function diamondCut(address vault) internal {
-        uint256 currentVersion = LibAppStorage.ds().currentVersion;
-        Snapshot memory snapshot = LibAppStorage.ds().snapshotMap[
-            currentVersion
-        ];
-        IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](
-            snapshot.facets.length
-        );
-        for (uint256 i = 0; i < snapshot.facets.length; ) {
-            address facetAddr = snapshot.facets[i].facetAddress;
-            bytes4[] memory selectors = snapshot.facets[i].functionSelectors;
-            facetCuts[i].facetAddress = facetAddr;
-            facetCuts[i].functionSelectors = selectors;
-            facetCuts[i].action = IDiamondCut.FacetCutAction.Add;
-            unchecked {
-                ++i;
-            }
-        }
-        DiamondCutFacet(vault).diamondCut(
-            facetCuts,
-            snapshot.init,
-            snapshot.initArgs
-        );
     }
 }

@@ -3,12 +3,12 @@
     "description": "Test cases for the withdraw function.",
     "stories": [
         {
-            "description": "User deposit 1**18 TUS, approve voyage, then withdraw 1**17 TUS",
+            "description": "User deposit 1**18 eth, approve voyage, then withdraw 1**17 eth",
             "actions": [
               {
                 "name": "deposit",
                 "args": {
-                  "cname": "TUS",
+                  "cname": "crab",
                   "tranche": "1",
                   "amount": "1000000000000000000",
                   "user": "0"
@@ -18,7 +18,7 @@
               {
                 "name": "approve",
                 "args": {
-                  "cname": "TUS",
+                  "cname": "crab",
                   "tranche": "1",
                   "amount": "1000000000000000000",
                   "user": "0"
@@ -28,7 +28,7 @@
               {
                 "name": "withdraw",
                 "args": {
-                  "cname": "TUS",
+                  "cname": "crab",
                   "tranche": "1",
                   "amount": "100000000000000000",
                   "user": "0"

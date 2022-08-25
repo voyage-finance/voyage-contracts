@@ -1,4 +1,7 @@
+import { ether } from '@opengsn/common';
 import { BigNumber } from 'ethers';
+import { ethers } from 'hardhat';
+import { Crab } from 'typechain/Crab';
 import { DataProviderFacet } from 'typechain/DataProviderFacet';
 import {
   CreditLineData,
@@ -52,6 +55,16 @@ export const getUserPoolData = async (
   );
   const decimals = userPoolData.decimals.toNumber();
   return { juniorTrancheBalance, seniorTrancheBalance, decimals };
+};
+
+export const getOwnerOf = async (
+  collection: string,
+  tokenId: string
+): Promise<string> => {
+  const Crab = await ethers.getContractFactory('Crab');
+  const crab = Crab.attach(collection);
+  const owner = await crab.ownerOf(tokenId);
+  return owner;
 };
 
 export const getLoanDetail = async (

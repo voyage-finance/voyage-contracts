@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {ERC4626} from "@rari-capital/solmate/src/mixins/ERC4626.sol";
 import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {LibLoan, ExecuteBuyNowParams, ExecuteLiquidateParams} from "../libraries/LibLoan.sol";
@@ -19,9 +20,8 @@ import {PaymentsFacet} from "../../shared/facets/PaymentsFacet.sol";
 import {SafeTransferLib} from "../../shared/libraries/SafeTransferLib.sol";
 import {IVault} from "../../vault/Vault.sol";
 import {MarketplaceAdapterFacet} from "./MarketplaceAdapterFacet.sol";
-import "hardhat/console.sol";
 
-contract LoanFacet is Storage {
+contract LoanFacet is Storage, ReentrancyGuard {
     using WadRayMath for uint256;
     using SafeERC20 for IERC20;
     using PercentageMath for uint256;
@@ -120,7 +120,7 @@ contract LoanFacet is Storage {
         address payable _vault,
         address _marketplace,
         bytes calldata _data
-    ) external payable whenNotPaused {
+    ) external payable whenNotPaused nonReentrant {
         ExecuteBuyNowParams memory params;
         params.collection = _collection;
         params.tokenId = _tokenId;
@@ -306,7 +306,7 @@ contract LoanFacet is Storage {
         address _collection,
         uint256 _loan,
         address payable _vault
-    ) external whenNotPaused {
+    ) external whenNotPaused nonReentrant {
         ExecuteRepayParams memory params;
         ReserveData memory reserveData = LibLiquidity.getReserveData(
             _collection
@@ -363,7 +363,7 @@ contract LoanFacet is Storage {
         address _collection,
         address _vault,
         uint256 _loanId
-    ) external whenNotPaused {
+    ) external whenNotPaused nonReentrant {
         ExecuteLiquidateParams memory param;
         param.collection = _collection;
         ReserveData memory reserveData = LibLiquidity.getReserveData(
@@ -419,7 +419,6 @@ contract LoanFacet is Storage {
         if (param.totalDebt == 0) {
             revert InvalidDebt();
         }
-        console.log("total debt: ", param.totalDebt);
         param.remaningDebt = param.totalDebt;
         param.discount = getDiscount(param.floorPrice, param.liquidationBonus);
         param.discountedFloorPrice = param.floorPrice - param.discount;

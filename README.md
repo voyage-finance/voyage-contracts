@@ -7,31 +7,14 @@
 
 # Voyage
 [![Hardhat CI](https://github.com/voyage-finance/voyage-contracts/actions/workflows/hardhat-test.yml/badge.svg?branch=main)](https://github.com/voyage-finance/voyage-contracts/actions/workflows/hardhat-test.yml)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/b267ea2078424f5b927060006ca5c66b)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=voyage-finance/voyage-contracts&amp;utm_campaign=Badge_Grade)
-[![Codacy Badge](https://app.codacy.com/project/badge/Coverage/b267ea2078424f5b927060006ca5c66b)](https://www.codacy.com?utm_source=github.com&utm_medium=referral&utm_content=voyage-finance/voyage-contracts&utm_campaign=Badge_Coverage)
 
 ## Architecture
 
 ![contract architecture](https://github.com/halcyon-project/voyage-contracts/blob/main/doc/voyage_arch.png)
 
-
-## Docker
-
-There is a docker image available for use.
-
-```shell
-# in the repository root
-yarn build:docker
-
-# to run on port 8545 with deploy
-docker run -d -it --rm --name hh-voyage -p 8545:8545 596511190950.dkr.ecr.us-west-2.amazonaws.com/voyage-core-contracts:latest
-
-# to run on port 8545 without deploying contracts
-docker run -d -it --rm --name hh-voyage -p 8545:8545 596511190950.dkr.ecr.us-west-2.amazonaws.com/voyage-core-contracts:latest 'node'
-```
 ## Getting started
 
-To run deploy and run the contracts against a local hardhat node:
+1. To run deploy and run the contracts against a local hardhat node:
 
 ```shell
 # runs hardhat in automine mode and runs all deployments.
@@ -42,12 +25,20 @@ yarn node:deploy:interval
 
 This should listen on `localhost:8545` as expected.
 
+2. To fork from a testnet (e.g. rinkeby) state, following the current steps:
+
+```shell
+1. yarn run node --fork https://eth-rinkeby.alchemyapi.io/v2/2rkHcv3Pdg7j3iHPWUu9cDsEOtSoXtoB this command runs a node without deploying any contracts to it wiht the current Rinkeby state
+
+2. yarn run deploy:local to redeploy voyage contracts to the local node
+```
+
 ## Run scripts
 
 There is a runner that helps run scripts automatically with nice logs.
 
 ```shell
-yarn scripts
+yarn hardhat run scripts 
 ```
 
 If you need to run these scripts against a network that is not `localhost`, ensure to set your private key by executing:
@@ -58,85 +49,120 @@ DEPLOYER_PRIVATE_KEY=<0xsecret> yarn scripts
 
 ## Specification
 
-### Voyager
+### Voyage
 
-Constants:
+Base on EIP-2535, Voyage is the contract that uses functions from its facets (see the next section) to execute calls. It is the entry point of the Voyage protocol.
 
-```solidity
-    bytes32 public constant liquidityManagerName = 'liquidityManager';
-    bytes32 public constant loanManagerName = 'loanManager';
-    bytes32 public constant vaultManagerName = 'vaultManager';
-    bytes32 public constant vaultStorageName = 'vaultStorage';
-```
+### Facets
 
-| Name                        | Description                             | Parameters                 | Modifier    |
-| --------------------------- | --------------------------------------- | -------------------------- | ----------- |
-| `setAddressResolverAddress` | Update addressResolver contract address | `address _addressResolver` | `onlyOwner` |
-| `getAddressResolverAddress` | Get addressResolver contract address    |                            | `public`    |
-| `createVault`               | Create an empty Vault for user          |                            | `public`    |
+#### liquidityFacet
 
-
-### Escrow
-
-
-| Name        | Description                                                                | Parameters                                         | Modifier    |
-| ----------- | -------------------------------------------------------------------------- | -------------------------------------------------- | ----------- |
-| `deposit`   | Stores the sent amount as credit to be withdrawn                           | `address _reserve, address _user, uint256 _amount` | `onlyOwner` |
-| `withdraw ` | Withdraw accumulated balance for a payee, only beyond _lockupTimeInSeconds | `address _reserve, address _user, uint256 _amount` | `onlyOwner` |
-
-### AddressResolver
+Manage liquidity pool, provide interfaces for users to deposit and withdraw currency to/from liquidity pools.
 
 | Name                   | Description                                                                  | Modifier    | Parameters                                                  |
 | ---------------------- | ---------------------------------------------------------------------------- | ----------- | ----------------------------------------------------------- |
-| `importAddresses`      | import addresses of contracts                                                | `onlyOwner` | `bytes32[] calldata names, address[] calldata destinations` |
-| `getAddress`           | get address of a specific named contract                                     | `public`    | `bytes32 name`                                              |
-| `requireAndGetAddress` | get address of a specific named contract, throw error if the address is zero | `public`    | `bytes32 name, string calldata reason`                      |
+| `initReserve`      | Init a new reserve | `authorised` | `address _collection, address _currency, address _interestRateStrategyAddress, address _priceOracle` |
+| `activateReserve`      | Active a reserve | `authorised` | `address _collection` |
+| `updateProtocolFee`      | Update treasury address and cut ratio | `authorised` | `address _treasuryAddr, uint40 _cutRatio` |
+| `upgradePriceOracleImpl`      | Update the implementation address of PriceOracle contract, see [UpgradeableBeacon](https://docs.openzeppelin.com/contracts/3.x/api/proxy) pattern | `authorised` | `address _collection, address _priceOracle` |
+| `updateWETH9`      | Update weth9 contract address | `authorised` | `address _weth9` |
+| `deposit`      | Deposit liquidity to a specific pool base on collection address | `N/A` | `address _collection, Tranche _tranche, uint256 _amount` |
+| `withdraw`      | Withdraw liquidity from a specific pool base on collection address | `N/A` | `address _collection, Tranche _tranche, uint256 _amount` |
 
-### LiquidityManager
+#### LoanFacet
 
-#### Functions
+Manage NFT purchasing, debt repayment and liquidation.
 
-| Name                     | Description                                                                                                                                            | Modifier             | Parameters                                                                                                                                                                                                                                 |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `initReserve`            | init a reserve                                                                                                                                         | `onlyVoyager`        | `address _reserve, uint8 _underlyingAssetDecimals, address _interestRateStrategyAddress, uint256 _securityRequirement`                                                                                                                     |
-| `initReserveWithData`    | init a reserve                                                                                                                                         | `onlyVoyager`        | `address _reserve, string memory _jdTokenName, string memory _jdTokenSymbol, string memory _sdTokenName, string memory _sdTokenSymbol, uint8 _underlyingAssetDecimals, address _interestRateStrategyAddress, uint256 _securityRequirement` |
-| `activateReserve`        | activates a reserve                                                                                                                                    | `onlyVoyager`        | `address _reserve`                                                                                                                                                                                                                         |  |
-| `deactivateReserve`      | deactivates a reserve                                                                                                                                  | `onlyVoyager`        | `address _reserve`                                                                                                                                                                                                                         |  |
-| `depositLiquidity`       | depositLiquidity The underlying asset into the reserve. A corresponding amount of the overlying asset is minted.                                       | `onlyVoyager`        | ` address _reserve， CoreLibrary.Tranche _tranche, uint256 _amount`                                                                                                                                                                        |  |
-| `redeemUnderlying`       | Redeems the underlying amount of assets requested by _user. This function is executed by the overlying aToken contract in response to a redeem action. | `onlyOverlyingToken` | ` address _reserve, CoreLibrary.Tranche _tranche, address payable _user, uint256 _amount, uint256 _aTokenBalanceAfterRedeem`                                                                                                               |  |
-| `getSecurityRequirement` | Get security requirement for _reserve.                                                                                                                 | `public`             | ` address _reserve`                                                                                                                                                                                                                        |  |
-| `setSecurityRequirement` | Set security requirement for _reserve.                                                                                                                 | `onlyVoyager`        | ` address _reserve, uint256 _value`                                                                                                                                                                                                        |  |
+| Name                   | Description                                                                  | Modifier    | Parameters                                                  |
+| ---------------------- | ---------------------------------------------------------------------------- | ----------- | ----------------------------------------------------------- |
+| `buyNow`      | Buy a specific NFT from a choosing marketplace | `nonReentrant` | `address _collection, uint256 _tokenId, address payable _vault, bytes calldata _data` |
+| `repay`      | Repay a specific debt | `nonReentrant` | `address _collection, uint256 _loan, address payable _vault` |
+| `liquidate`      | Liquidate a bad debt | `nonReentrant` | `address _collection, address _vault, uint256 _loanId` |
 
-### LoanManager
+#### VaultFacet
 
-### VaultManager
+Manage vault creation, delegate calls to vaults.
 
-#### Mutable Fields
+| Name                   | Description                                                                  | Modifier    | Parameters                                                  |
+| ---------------------- | ---------------------------------------------------------------------------- | ----------- | ----------------------------------------------------------- |
+| `createVault`      | Create a vault using create2 | `authorised` | `address _user, bytes20 _salt` |
+| `withdrawNFT`      | Delegate call to vault contract to withdraw a specific NFT | `nonReentrant` | `address _vault, address _collection, uint256 _tokenId` |
+| `transferReserve`      | Delegate call to vault contract to transfer reserve | `nonReentrant` | `address _vault, address _currency, address _to, uint256 _amount` |
 
-| Name        | Type        | Description                      |
-| ----------- | ----------- | -------------------------------- |
-| `allVaults` | `address[]` | Address array contains all vault |
-| `voyager`   | `address`   | voyager contract address         |
+#### SecurityFacet
 
-### VaultStorage
+Provides a flexible and updatable auth pattern which is completely separate from application logic. Refer https://github.com/dapphub/ds-auth
 
-#### Functions
+#### ConfigurationFacet
 
-| Name              | Description                                    | Modifier      | Parameters        |
-| ----------------- | ---------------------------------------------- | ------------- | ----------------- |
-| `createAccount`   | Create a credit account                        | `onlyVoyager` | `address _player` |
-| `getVaultAddress` | Get credit account address for a specific user | `public`      | `address _user`   |
-| `getAllVaults`    | Get all credit account addresses               | `public`      |                   |
+Set protocol variables.
+
+| Name                   | Description                                                                  | Modifier    | Parameters                                                  |
+| ---------------------- | ---------------------------------------------------------------------------- | ----------- | ----------------------------------------------------------- |
+| `setLiquidationBonus`      | Set liquidation bonus using by liquidate function | `authorised` | `address _collection, uint256 _liquidationBonus` |
+| `setIncomeRatio`      | Set income ration for allocating incoming interest | `authorised` | `address _collection, uint256 _ratio` |
+| `setLoanParams`      | Set loan params such as epoch, term and grace period | `authorised` | `address _collection, uint256 _epoch, uint256  _term, uint256 _gracePeriod` |
+
+#### MarketplaceAdapterFacet
+
+Delegate NFT purchasing to different marketplace. See Adapters section.
+
+| Name                   | Description                                                                  | Modifier    | Parameters                                                  |
+| ---------------------- | ---------------------------------------------------------------------------- | ----------- | ----------------------------------------------------------- |
+| `purchase`      | Purchase a NFT from a supported marketplace | `N/A` | `address _marketplace, address _vault, bytes calldata _data` |
+
+### Adapters
+
+Adapters are contracts that saperate from the main protocol logic but provide essential functions such as buying NFT from outside protocols. Voyage protocol currently provides two adapters:
+
+1. LooksRareAdapter for purchasing NFT from [LooksRare](https://looksrare.org/)
+
+2. SeaportAdapter for purchasing NFT from [OpenSea](https://opensea.io/)
+
+As the protocol grows over time, more adapters might be added, and all adapters should implemetate interface as follows:
+
+```solidity
+interface IMarketPlaceAdapter {
+    function extractAssetPrice(bytes calldata _data)
+        external
+        pure
+        returns (uint256);
+
+    function validate(bytes calldata _data) external view returns (bool);
+
+    function execute(bytes calldata _data) external view returns (bytes memory);
+}
+```
 
 
-### StakingRewards
+### Price Oracle
 
-While sponsors do the security deposit, they will get back `SecurityDepsitToken` in return, which can be staked and earn rewards.
+Voyage protocol uses a centralized way to provide on-chain price for now, A offchain service is authorised to feed prices to the oracle contract using:
 
-#### Functions
+```solidity
+    function updateTwap(address _currency, uint256 _priceAverage)
+        external
+        auth
+    {
+        prices[_currency].priceAverage = _priceAverage;
+        prices[_currency].blockTimestamp = block.timestamp;
+    }
+```
 
-| Name | Description | Modifier | Parameters |
-| ---- | ----------- | -------- | ---------- |
+Any contract within voyage protocol can access price data through:
+
+```solidity
+    function getTwap(address _currency)
+        external
+        view
+        returns (uint256, uint256)
+    {
+        return (
+            prices[_currency].priceAverage,
+            prices[_currency].blockTimestamp
+        );
+    }
+```
 
 ## Reference
 
@@ -144,16 +170,14 @@ While sponsors do the security deposit, they will get back `SecurityDepsitToken`
 
 https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/token/ERC721
 
-### ACL
+### EIP-2535
 
-https://docs.openzeppelin.com/contracts/4.x/access-control
+https://eips.ethereum.org/EIPS/eip-2535
 
-https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.5.0/contracts/access/AccessControl.sol
+### DSAuth
 
-### Synthetix Staking
+https://github.com/dapphub/ds-auth
 
-https://github.com/Synthetixio/synthetix/blob/e53c9c05e1fdf8e530143e9dd843846638538bde/contracts/StakingRewards.sol
+### GSN
 
-### Synthetix Proxy
-
-https://docs.synthetix.io/contracts/source/contracts/Proxy/
+https://docs.opengsn.org/
