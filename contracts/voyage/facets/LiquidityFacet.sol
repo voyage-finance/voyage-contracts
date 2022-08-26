@@ -127,11 +127,6 @@ contract LiquidityFacet is Storage, ReentrancyGuard {
         ReserveData memory reserve = LibAppStorage.ds()._reserveData[
             _collection
         ];
-        BorrowState storage borrowState = LibAppStorage.ds()._borrowState[
-            _collection
-        ][reserve.currency];
-        uint256 totalDebt = borrowState.totalDebt + borrowState.totalInterest;
-        uint256 avgBorrowRate = borrowState.avgBorrowRate;
 
         IVToken vToken = _tranche == Tranche.JUNIOR
             ? IVToken(reserve.juniorDepositTokenAddress)
@@ -150,9 +145,6 @@ contract LiquidityFacet is Storage, ReentrancyGuard {
             msg.sender,
             _tranche,
             _amount
-        );
-        uint256 bal = IERC20(reserve.currency).balanceOf(
-            reserve.seniorDepositTokenAddress
         );
     }
 
