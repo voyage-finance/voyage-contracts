@@ -14,12 +14,6 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
         uint256 _liquidationBonus
     );
     event IncomeRatioUpdated(address indexed _collection, uint256 _incomeRatio);
-    event MarginParametersUpdated(
-        address indexed _collection,
-        uint256 _min,
-        uint256 _max,
-        uint256 _marginRequirement
-    );
     event LoanParametersUpdated(
         address indexed _collection,
         uint256 _epoch,
@@ -29,7 +23,6 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
 
     /* --------------------------------- errors --------------------------------- */
     error IllegalLoanParameters();
-    error IllegalMarginParameters();
 
     /// @dev maximum size of _liquidationBonus is 2^16, ~600%
     /// @param _collection address of the underlying NFT collection
