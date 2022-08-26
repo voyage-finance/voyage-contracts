@@ -164,19 +164,20 @@ contract LiquidityFacet is Storage, ReentrancyGuard {
         if (_amount == type(uint256).max) {
             amountToWithdraw = userBalance;
         }
+        require(amountToWithdraw <= userBalance, "InvalidWithdrawal");
         BorrowState storage borrowState = LibAppStorage.ds()._borrowState[
             _collection
         ][reserve.currency];
         uint256 totalDebt = borrowState.totalDebt + borrowState.totalInterest;
         uint256 avgBorrowRate = borrowState.avgBorrowRate;
-        IVToken(vToken).withdraw(_amount, msg.sender, msg.sender);
+        IVToken(vToken).withdraw(amountToWithdraw, msg.sender, msg.sender);
 
         emit Withdraw(
             _collection,
             reserve.currency,
             msg.sender,
             _tranche,
-            _amount
+            amountToWithdraw
         );
     }
 
@@ -250,3 +251,4 @@ contract LiquidityFacet is Storage, ReentrancyGuard {
 /* --------------------------------- errors -------------------------------- */
 error InvalidInitialize();
 error InvalidContract();
+error InvalidWithdrawal();
