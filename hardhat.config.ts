@@ -18,6 +18,14 @@ dotenvConfig({ path: resolve(__dirname, './.env') });
 
 tdly.setup({ automaticVerifications: process.env.TENDERLY === 'true' });
 
+const HARDHAT_MNEMONIC =
+  process.env.HARDHAT_MNEMONIC ||
+  'test test test test test test test test test test test junk';
+
+const HARDHAT_CHAIN_ID = process.env.HARDHAT_CHAIN_ID
+  ? parseInt(process.env.HARDHAT_CHAIN_ID)
+  : 31337;
+
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || '';
 
 const cov = process.env.COVERAGE === 'true';
@@ -45,16 +53,14 @@ const config: HardhatUserConfig = {
   networks: {
     // configuration is for tenderly.
     localhost: {
-      chainId: 31337,
+      chainId: HARDHAT_CHAIN_ID,
       url: 'http://127.0.0.1:8545',
     },
     hardhat: {
+      chainId: HARDHAT_CHAIN_ID,
       allowUnlimitedContractSize: false,
-      // forking: {
-      //   url: `https://eth-goerli.g.alchemy.com/v2/${process.env.ALCHEMY_GOERLI_API_KEY}`,
-      //   blockNumber: 7413520
-      // },
       accounts: {
+        mnemonic: HARDHAT_MNEMONIC,
         accountsBalance: ethers.utils
           .parseEther('10000000000000000')
           .toString(),
@@ -100,7 +106,7 @@ const config: HardhatUserConfig = {
     {
       name: 'Voyage',
       include: ['contracts/voyage/facets', 'contracts/shared/diamond/facets'],
-    }
+    },
   ],
   solidity: {
     compilers: [

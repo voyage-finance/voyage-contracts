@@ -239,6 +239,25 @@ const deployFn: DeployFunction = async (hre) => {
       args: [existingProxyDeployment.address, weth9.address, treasury],
     });
 
+    const RELAY_HUB = process.env.RELAY_HUB || ethers.constants.AddressZero;
+    await execute(
+      'VoyagePaymaster',
+      { from: owner, log: true },
+      'setRelayHub',
+      RELAY_HUB
+    );
+
+    const FORWARDER =
+      process.env.NODE_ENV === 'test'
+        ? forwarder
+        : process.env.TRUSTED_FORWARDER || forwarder;
+    await execute(
+      'VoyagePaymaster',
+      { from: owner, log: true },
+      'setTrustedForwarder',
+      FORWARDER
+    );
+
     if (cuts.length > 0) {
       log.debug('Deploying InitDiamond');
       await deploy('InitDiamond', {
@@ -259,8 +278,7 @@ const deployFn: DeployFunction = async (hre) => {
           diamondLoupeFacet: diamondLoupeFacet.address,
           ownershipFacet: ownershipFacet.address,
           weth9: weth9.address,
-          // TODO: this should be the GSN forwarder
-          trustedForwarder: forwarder,
+          trustedForwarder: FORWARDER,
           paymaster: paymaster.address,
         },
       ]);
