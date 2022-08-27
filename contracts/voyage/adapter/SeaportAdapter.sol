@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import {IMarketPlaceAdapter} from "../interfaces/IMarketPlaceAdapter.sol";
+import {IMarketPlaceAdapter, AssetInfo} from "../interfaces/IMarketPlaceAdapter.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 uint256 constant BasicOrder_basicOrderType_cdPtr = 0x124;
@@ -191,17 +191,19 @@ contract SeaportAdapter is IMarketPlaceAdapter {
         weth = _weth;
     }
 
-    function extractAssetPrice(bytes calldata _data)
+    function extractAssetInfo(bytes calldata _data)
         external
         pure
-        returns (uint256)
+        returns (AssetInfo memory assetInfo)
     {
         PurchaseParam memory param = _decode(_data);
         BasicOrderParameters memory basicOrderParameters = abi.decode(
             param.basicOrderParameters,
             (BasicOrderParameters)
         );
-        return basicOrderParameters.considerationAmount;
+        assetInfo.assetPrice = basicOrderParameters.considerationAmount;
+        assetInfo.tokenId = basicOrderParameters.considerationIdentifier;
+        return assetInfo;
     }
 
     function validate(bytes calldata _data) external pure returns (bool) {

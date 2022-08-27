@@ -2,7 +2,7 @@
 pragma solidity ^0.8.9;
 
 import {IVault} from "../../vault/Vault.sol";
-import {IMarketPlaceAdapter} from "../interfaces/IMarketPlaceAdapter.sol";
+import {IMarketPlaceAdapter, AssetInfo} from "../interfaces/IMarketPlaceAdapter.sol";
 import {Storage, LibAppStorage} from "../libraries/LibAppStorage.sol";
 
 contract MarketplaceAdapterFacet is Storage {
@@ -28,17 +28,17 @@ contract MarketplaceAdapterFacet is Storage {
         IVault(_vault).execute(encodedData);
     }
 
-    function extractAssetPrice(address _marketplace, bytes calldata _data)
+    function extractAssetInfo(address _marketplace, bytes calldata _data)
         external
         view
-        returns (uint256)
+        returns (AssetInfo memory)
     {
         address adapterAddr = LibAppStorage
             .ds()
             .marketPlaceData[_marketplace]
             .adapterAddr;
 
-        return IMarketPlaceAdapter(adapterAddr).extractAssetPrice(_data);
+        return IMarketPlaceAdapter(adapterAddr).extractAssetInfo(_data);
     }
 
     function updateMarketPlaceData(address _marketplace, address _strategy)

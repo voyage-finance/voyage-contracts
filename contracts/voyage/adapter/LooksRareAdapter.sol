@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import {IMarketPlaceAdapter} from "../interfaces/IMarketPlaceAdapter.sol";
+import {IMarketPlaceAdapter, AssetInfo} from "../interfaces/IMarketPlaceAdapter.sol";
 
 struct MakerOrder {
     bool isOrderAsk; // true --> ask / false --> bid
@@ -86,10 +86,10 @@ contract LooksRareAdapter is IMarketPlaceAdapter {
         bytes takerOrder;
     }
 
-    function extractAssetPrice(bytes calldata _data)
+    function extractAssetInfo(bytes calldata _data)
         external
         pure
-        returns (uint256)
+        returns (AssetInfo memory assetInfo)
     {
         PurchaseParam memory param;
         (
@@ -112,7 +112,10 @@ contract LooksRareAdapter is IMarketPlaceAdapter {
             (bool, address, uint256, uint256, uint256, bytes)
         );
 
-        return takerOrder.price;
+        assetInfo.assetPrice = takerOrder.price;
+        assetInfo.tokenId = takerOrder.tokenId;
+
+        return assetInfo;
     }
 
     function validate(bytes calldata _data) external pure returns (bool) {
