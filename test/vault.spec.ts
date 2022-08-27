@@ -33,11 +33,4 @@ describe('Vault', function () {
       voyage.withdrawNFT(deployedVault, ZERO_ADDRESS, 1)
     ).to.be.revertedWithCustomError(voyage, 'InvalidCollectionAddress');
   });
-
-  it('Pass zero currency address should be revert', async function () {
-    const { voyage, alice, deployedVault } = await setupTestSuite();
-    await expect(
-      voyage.transferReserve(deployedVault, ZERO_ADDRESS, alice, 1)
-    ).to.be.revertedWithCustomError(voyage, 'InvalidCurrencyAddress');
-  });
 });
