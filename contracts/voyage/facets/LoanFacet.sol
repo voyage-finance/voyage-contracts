@@ -11,6 +11,7 @@ import {LibLoan, ExecuteBuyNowParams, ExecuteLiquidateParams} from "../libraries
 import {LibVault} from "../libraries/LibVault.sol";
 import {IReserveInterestRateStrategy} from "../interfaces/IReserveInterestRateStrategy.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
+import {AssetInfo} from "../interfaces/IMarketPlaceAdapter.sol";
 import {IPriceOracle} from "../interfaces/IPriceOracle.sol";
 import {LibAppStorage, AppStorage, Storage, BorrowData, BorrowState, Loan, ReserveConfigurationMap, ReserveData, PMT} from "../libraries/LibAppStorage.sol";
 import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
@@ -150,8 +151,12 @@ contract LoanFacet is Storage, ReentrancyGuard {
         }
 
         // 1. get price for params.tokenId  and floor price pv
-        params.totalPrincipal = MarketplaceAdapterFacet(address(this))
-            .extractAssetPrice(_marketplace, _data);
+        params.assetInfo = MarketplaceAdapterFacet(address(this))
+            .extractAssetInfo(_marketplace, _data);
+        params.totalPrincipal = params.assetInfo.assetPrice;
+        if (params.tokenId != params.assetInfo.tokenId) {
+            revert InvalidTokenid();
+        }
         (params.fv, params.timestamp) = IPriceOracle(
             reserveData.priceOracle.implementation()
         ).getTwap(params.collection);
@@ -592,5 +597,6 @@ error InsufficientCreditLimit();
 error InvalidDebt();
 error InvalidLiquidate();
 error InvalidFloorPrice();
+error InvalidTokenid();
 error InvalidPrincipal();
 error InvalidValueTransfered();

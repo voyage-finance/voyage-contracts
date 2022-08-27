@@ -83,7 +83,7 @@ describe('Liquidity Rate', function () {
     await priceOracle.updateTwap(crab.address, toWad(10));
     await voyage.buyNow(
       crab.address,
-      '25000000000000000000',
+      1,
       vault,
       marketPlace.address,
       purchaseDataFromLooksRare
@@ -132,7 +132,7 @@ describe('Liquidity Rate', function () {
     await priceOracle.updateTwap(crab.address, toWad(10));
     await voyage.buyNow(
       crab.address,
-      '100000000000000000000',
+      1,
       vault,
       marketPlace.address,
       purchaseDataFromLooksRare

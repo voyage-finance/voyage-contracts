@@ -1,11 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
+struct AssetInfo {
+    uint256 tokenId;
+    uint256 assetPrice;
+}
+
 interface IMarketPlaceAdapter {
-    function extractAssetPrice(bytes calldata _data)
+    function extractAssetInfo(bytes calldata _data)
         external
         pure
-        returns (uint256);
+        returns (AssetInfo memory);
 
     function validate(bytes calldata _data) external view returns (bool);
 

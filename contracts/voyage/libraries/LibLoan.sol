@@ -3,6 +3,7 @@ pragma solidity ^0.8.9;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {AssetInfo} from "../interfaces/IMarketPlaceAdapter.sol";
 import {LibAppStorage, AppStorage, BorrowData, BorrowState, Loan, PMT, RepaymentData, ReserveData, RepaymentData, NFTInfo, ReserveConfigurationMap} from "./LibAppStorage.sol";
 import {LibLiquidity} from "./LibLiquidity.sol";
 import {LibReserveConfiguration} from "./LibReserveConfiguration.sol";
@@ -33,6 +34,7 @@ struct ExecuteBuyNowParams {
     uint256 totalPending;
     uint256 loanId;
     PMT pmt;
+    AssetInfo assetInfo;
 }
 
 struct ExecuteLiquidateParams {

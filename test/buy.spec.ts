@@ -23,6 +23,28 @@ describe('BuyNow', function () {
     ).to.be.revertedWithCustomError(voyage, 'Unauthorised');
   });
 
+  it('Buy with wrong tokenId should revert', async function () {
+    const {
+      crab,
+      owner,
+      voyage,
+      priceOracle,
+      purchaseDataFromLooksRare,
+      marketPlace,
+    } = await setupTestSuite();
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    const vault = await voyage.getVault(owner);
+    await expect(
+      voyage.buyNow(
+        crab.address,
+        2,
+        vault,
+        marketPlace.address,
+        purchaseDataFromLooksRare
+      )
+    ).to.be.revertedWithCustomError(voyage, 'InvalidTokenid');
+  });
+
   it('Buy with insufficient liquidity should revert', async function () {
     const {
       crab,

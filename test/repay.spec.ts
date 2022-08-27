@@ -38,7 +38,7 @@ describe('Repay', function () {
     await priceOracle.updateTwap(crab.address, toWad(10));
     await voyage.buyNow(
       crab.address,
-      '1',
+      1,
       vault,
       marketPlace.address,
       purchaseDataFromLooksRare
@@ -63,7 +63,7 @@ describe('Repay', function () {
 
     await voyage.buyNow(
       crab.address,
-      '2',
+      1,
       vault,
       marketPlace.address,
       purchaseDataFromLooksRare
