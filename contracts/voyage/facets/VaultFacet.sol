@@ -89,18 +89,22 @@ contract VaultFacet is Storage, ReentrancyGuard {
         IVault(_vault).execute(encodedData);
     }
 
-    function transferReserve(
+    function transferCurrency(
         address _vault,
-        address _currency,
+        address _collection,
         address _to,
         uint256 _amount
     ) external nonReentrant {
         checkVaultAddr(_vault);
-        checkCurrencyAddr(_currency);
-        bytes4 selector = IERC20(_currency).transferFrom.selector;
+        checkCollectionAddr(_collection);
+        address currency = LibAppStorage
+            .ds()
+            ._reserveData[_collection]
+            .currency;
+        bytes4 selector = IERC20(currency).transferFrom.selector;
         bytes memory param = abi.encode(_vault, _to, _amount);
         bytes memory data = abi.encodePacked(selector, param);
-        bytes memory encodedData = abi.encode(_currency, data);
+        bytes memory encodedData = abi.encode(currency, data);
         IVault(_vault).execute(encodedData);
     }
 
@@ -184,12 +188,6 @@ contract VaultFacet is Storage, ReentrancyGuard {
     function checkCollectionAddr(address _collection) internal view {
         if (!Address.isContract(_collection)) {
             revert InvalidCollectionAddress();
-        }
-    }
-
-    function checkCurrencyAddr(address _currency) internal view {
-        if (!Address.isContract(_currency)) {
-            revert InvalidCurrencyAddress();
         }
     }
 }
