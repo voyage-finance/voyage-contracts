@@ -254,12 +254,20 @@ contract LoanFacet is Storage, ReentrancyGuard {
             params.outstandingPrincipal
         );
 
-        // 8.2 unwrap weth
+        // 8.2 distrubute interest before unwrap weth to eth
+        LibLoan.distributeInterest(
+            reserveData,
+            params.pmt.interest,
+            address(this)
+        );
+
+        // 8.3 unwrap weth
         PaymentsFacet(address(this)).unwrapWETH9(
             params.outstandingPrincipal,
             address(this)
         );
 
+        // 8.4 transfer eth to vault
         SafeTransferLib.safeTransferETH(params.vault, params.totalPrincipal);
 
         // 9. purchase nft
@@ -282,13 +290,6 @@ contract LoanFacet is Storage, ReentrancyGuard {
             params.vault
         );
         LibLoan.firstRepay(borrowState, debtData, params.loanId);
-
-        // 11. distribute interest
-        LibLoan.distributeInterest(
-            reserveData,
-            params.pmt.interest,
-            _msgSender()
-        );
 
         emit Borrow(
             params.vault,
