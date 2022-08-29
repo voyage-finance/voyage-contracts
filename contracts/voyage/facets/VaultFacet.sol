@@ -77,7 +77,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         uint256 _tokenId
     ) external nonReentrant {
         checkVaultAddr(_vault);
-        checkCollectionAddr(_collection);
+        checkContractAddr(_collection);
         if (LibAppStorage.ds().nftIndex[_collection][_tokenId].isCollateral) {
             revert InvalidWithdrawal();
         }
@@ -91,20 +91,20 @@ contract VaultFacet is Storage, ReentrancyGuard {
 
     function transferCurrency(
         address _vault,
-        address _collection,
+        address _currency,
         address _to,
         uint256 _amount
     ) external nonReentrant {
         checkVaultAddr(_vault);
-        checkCollectionAddr(_collection);
-        address currency = LibAppStorage
-            .ds()
-            ._reserveData[_collection]
-            .currency;
-        bytes4 selector = IERC20(currency).transferFrom.selector;
+        checkContractAddr(_currency);
+        // to prevent currency being a collection address
+        if (LibAppStorage.ds()._reserveData[_currency].currency != address(0)) {
+            revert InvalidCurrencyAddress();
+        }
+        bytes4 selector = IERC20(_currency).transferFrom.selector;
         bytes memory param = abi.encode(_vault, _to, _amount);
         bytes memory data = abi.encodePacked(selector, param);
-        bytes memory encodedData = abi.encode(currency, data);
+        bytes memory encodedData = abi.encode(_currency, data);
         IVault(_vault).execute(encodedData);
     }
 
@@ -185,7 +185,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         }
     }
 
-    function checkCollectionAddr(address _collection) internal view {
+    function checkContractAddr(address _collection) internal view {
         if (!Address.isContract(_collection)) {
             revert InvalidCollectionAddress();
         }
