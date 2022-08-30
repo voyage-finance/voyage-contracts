@@ -121,7 +121,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
         address payable _vault,
         address _marketplace,
         bytes calldata _data
-    ) external payable whenNotPaused nonReentrant {
+    ) external whenNotPaused nonReentrant {
         ExecuteBuyNowParams memory params;
         params.collection = _collection;
         params.tokenId = _tokenId;
@@ -231,16 +231,11 @@ contract LoanFacet is Storage, ReentrancyGuard {
         }
 
         // 7.1 receive downpayment
-        if (params.downpayment > msg.value) {
-            IERC20(reserveData.currency).safeTransferFrom(
-                msg.sender,
-                address(this),
-                (params.downpayment - msg.value)
-            );
-        } else {
-            if (params.downpayment != msg.value) {
-                revert InvalidValueTransfered();
-            }
+        if (
+            IERC20(reserveData.currency).balanceOf(params.vault) <
+            params.downpayment
+        ) {
+            revert InsufficientVaultBalance();
         }
 
         // 7.2 protocol fee
@@ -272,8 +267,10 @@ contract LoanFacet is Storage, ReentrancyGuard {
             address(this)
         );
 
-        // 8.4 transfer eth to vault
-        SafeTransferLib.safeTransferETH(params.vault, params.totalPrincipal);
+        SafeTransferLib.safeTransferETH(
+            params.vault,
+            params.outstandingPrincipal
+        );
 
         // 9. purchase nft
         (params.pmt.principal, params.pmt.interest) = LibLoan.getPMT(
@@ -594,10 +591,10 @@ contract LoanFacet is Storage, ReentrancyGuard {
 /* --------------------------------- errors -------------------------------- */
 error Unauthorised();
 error InsufficientLiquidity();
+error InsufficientVaultBalance();
 error InsufficientCreditLimit();
 error InvalidDebt();
 error InvalidLiquidate();
 error InvalidFloorPrice();
 error InvalidTokenid();
 error InvalidPrincipal();
-error InvalidValueTransfered();
