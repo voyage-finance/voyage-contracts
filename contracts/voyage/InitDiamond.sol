@@ -18,7 +18,7 @@ contract InitDiamond {
         address initOwner;
         address seniorDepositTokenImpl;
         address juniorDepositTokenImpl;
-        address vaultFactory;
+        address vaultImpl;
         address diamondCutFacet;
         address diamondLoupeFacet;
         address ownershipFacet;
@@ -51,6 +51,11 @@ contract InitDiamond {
                 ANY,
                 ANY
             );
+            LibAppStorage.ds().auth.acl.permit(
+                bytes32(bytes20(address(this))),
+                ANY,
+                ANY
+            );
         }
 
         if (
@@ -69,8 +74,10 @@ contract InitDiamond {
             );
         }
 
-        if (address(LibAppStorage.ds().vaultFactory) == address(0)) {
-            LibAppStorage.ds().vaultFactory = IVaultFactory(_args.vaultFactory);
+        if (address(LibAppStorage.ds().vaultBeacon) == address(0)) {
+            LibAppStorage.ds().vaultBeacon = new UpgradeableBeacon(
+                _args.vaultImpl
+            );
         }
 
         if (LibAppStorage.ds().diamondFacet.diamondCutFacet == address(0)) {

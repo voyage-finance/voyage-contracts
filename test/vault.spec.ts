@@ -1,10 +1,43 @@
 import { expect } from 'chai';
-import { ethers } from 'hardhat';
 import { randomBytes } from 'crypto';
-import { setupTestSuite } from '../helpers/setupTestSuite';
+import { deployments, ethers } from 'hardhat';
 import { ZERO_ADDRESS } from '../helpers/constants';
+import { setupTestSuite } from '../helpers/setupTestSuite';
 
 describe('Vault', function () {
+  it('should revert if passing 0 as vault impl', async function () {
+    const { voyage } = await setupTestSuite();
+    await expect(
+      voyage.setVaultImpl(ethers.constants.AddressZero)
+    ).to.be.revertedWithCustomError(voyage, 'InvalidVaultImpl');
+  });
+
+  it('should revert if passing a garbage address as vault impl', async function () {
+    const { voyage } = await setupTestSuite();
+    const garbageAddress = ethers.utils.hexlify(ethers.utils.randomBytes(20));
+    await expect(
+      voyage.setVaultImpl(garbageAddress)
+    ).to.be.revertedWithCustomError(voyage, 'InvalidVaultImpl');
+  });
+
+  it('should revert if passing an EOA as vault impl', async function () {
+    const { voyage } = await setupTestSuite();
+    const garbageAddress = ethers.utils.hexlify(ethers.utils.randomBytes(20));
+    await expect(
+      voyage.setVaultImpl(garbageAddress)
+    ).to.be.revertedWithCustomError(voyage, 'InvalidVaultImpl');
+  });
+
+  it('should work if valid contract address', async function () {
+    const { voyage, owner } = await setupTestSuite();
+    const vaultImpl = await deployments.deploy('Vault2', {
+      from: owner,
+      contract: 'contracts/vault/Vault.sol:Vault',
+    });
+    await voyage.setVaultImpl(vaultImpl.address);
+    expect(await voyage.getVaultImpl()).to.equal(vaultImpl.address);
+  });
+
   it('Granted acount should be able to create vault', async function () {
     const { voyage, alice } = await setupTestSuite();
     var abi = ['function createVault(address,bytes20)'];

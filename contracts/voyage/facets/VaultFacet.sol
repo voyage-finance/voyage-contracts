@@ -55,21 +55,19 @@ contract VaultFacet is Storage, ReentrancyGuard {
             revert FailedDeployVault();
         }
         uint256 numVaults = LibVault.recordVault(_user, vaultBeaconProxy);
-        bytes4[] memory sigs = new bytes4[](1);
-        sigs[0] = IVault(address(0)).execute.selector;
-        LibSecurity.grantPermissions(
-            LibAppStorage.ds().auth,
-            address(this),
-            vaultBeaconProxy,
-            sigs
-        );
         emit VaultCreated(vaultBeaconProxy, _user, numVaults);
     }
 
     /* ---------------------- vault configuration interface --------------------- */
+    function getVaultImpl() external view returns (address) {
+        return LibVault.getVaultImpl();
+    }
 
-    function setVaultBeacon(address _impl) external authorised {
-        LibVault.setVaultBeacon(_impl);
+    function setVaultImpl(address _impl) external authorised {
+        if (_impl == address(0) || !Address.isContract(_impl)) {
+            revert InvalidVaultImpl();
+        }
+        LibVault.setVaultImpl(_impl);
     }
 
     /* ---------------------- user interface --------------------- */
@@ -197,6 +195,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
 }
 
 /* --------------------------------- errors -------------------------------- */
+error InvalidVaultImpl();
 error InvalidVaultCall();
 error InvalidVaultAddress();
 error InvalidCollectionAddress();

@@ -26,15 +26,18 @@ library LibVault {
         return (s.vaults.length);
     }
 
-    function setVaultBeacon(address _impl) internal {
-        AppStorage storage s = LibAppStorage.ds();
-        s.vaultBeacon = new UpgradeableBeacon(_impl);
+    function setVaultImpl(address _impl) internal {
+        LibAppStorage.ds().vaultBeacon.upgradeTo(_impl);
     }
 
     /* ----------------------------- view functions ----------------------------- */
     function vaultBeacon() internal view returns (address) {
         AppStorage storage s = LibAppStorage.ds();
         return address(s.vaultBeacon);
+    }
+
+    function getVaultImpl() internal view returns (address) {
+        return LibAppStorage.ds().vaultBeacon.implementation();
     }
 
     function subVaultBeacon() internal view returns (address) {
