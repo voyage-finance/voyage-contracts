@@ -26,7 +26,7 @@ const setupBase = async ({
   await paymaster.setTrustedForwarder(forwarder);
   const priceOracle = await ethers.getContract('PriceOracle');
   const weth = await ethers.getContract<WETH9>('WETH9');
-  await weth.deposit({ value: ethers.utils.parseEther('100000') });
+  await weth.deposit({ value: ethers.utils.parseEther('1000000') });
   /* ---------------------------------- adapter --------------------------------- */
   const looksRareAdapter = await ethers.getContract('LooksRareAdapter');
   const seaportAdapter = await ethers.getContract('SeaportAdapter');
@@ -72,6 +72,7 @@ const setupBase = async ({
   const salt = ethers.utils.toUtf8Bytes('hw.kk@voyage.finance').slice(0, 42);
   await voyage.createVault(owner, salt);
   const deployedVault = await voyage.getVault(owner);
+  await weth.transfer(deployedVault, toWad(10));
   await weth.approve(deployedVault, MAX_UINT_256);
   const abiCoder = ethers.utils.defaultAbiCoder;
   const looksRareMakerOrderData = abiCoder.encode(
