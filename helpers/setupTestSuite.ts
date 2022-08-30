@@ -26,7 +26,7 @@ const setupBase = async ({
   await paymaster.setTrustedForwarder(forwarder);
   const priceOracle = await ethers.getContract('PriceOracle');
   const weth = await ethers.getContract<WETH9>('WETH9');
-  await weth.deposit({ value: ethers.utils.parseEther('1000000') });
+  await weth.deposit({ value: ethers.utils.parseEther('10000000') });
   /* ---------------------------------- adapter --------------------------------- */
   const looksRareAdapter = await ethers.getContract('LooksRareAdapter');
   const seaportAdapter = await ethers.getContract('SeaportAdapter');

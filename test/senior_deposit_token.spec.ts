@@ -26,9 +26,10 @@ describe('SeniorDepositToken', async () => {
     await underlying.transfer(seniorDepositToken.address, underlyingBalance);
 
     const totalAssets = await seniorDepositToken.totalAssets();
+    console.log('total assets: ', totalAssets.toString());
     expect(totalAssets).to.equal(
       underlyingBalance.add(
-        ethers.BigNumber.from(principalBalance + interestBalance).mul(decimals)
+        ethers.BigNumber.from(principalBalance).mul(decimals)
       )
     );
   });
