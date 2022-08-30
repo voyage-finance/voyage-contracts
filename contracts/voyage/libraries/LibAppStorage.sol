@@ -74,6 +74,8 @@ struct Loan {
     uint40 epoch;
     // number of instalments, term / epoch
     uint40 nper;
+    // cache of reserve data
+    uint256 incomeRatio;
     // the amount to be repaid per instalment (principal + interest)
     PMT pmt;
     // the borrow rate of this loan
@@ -109,6 +111,8 @@ struct BorrowData {
 struct BorrowState {
     uint256 totalDebt;
     uint256 totalInterest;
+    uint256 totalSeniorInterest;
+    uint256 totalJuniorInterest;
     uint256 avgBorrowRate;
     mapping(address => uint256) repaidTimes;
 }
