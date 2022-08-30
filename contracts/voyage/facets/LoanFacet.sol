@@ -232,7 +232,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
             revert InsufficientCreditLimit();
         }
 
-        // 7.1 receive downpayment
+        // 7.1 check if the vault has sufficient fund
         if (
             IERC20(reserveData.currency).balanceOf(params.vault) <
             params.downpayment
@@ -245,7 +245,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
             LibAppStorage.ds().protocolFee.cutRatio
         );
         IERC20(reserveData.currency).safeTransferFrom(
-            msg.sender,
+            _msgSender(),
             LibAppStorage.ds().protocolFee.treasuryAddress,
             protocolFee
         );
@@ -260,7 +260,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
         LibLoan.distributeInterest(
             reserveData,
             params.pmt.interest,
-            address(this)
+            _msgSender()
         );
 
         // 8.3 unwrap weth
