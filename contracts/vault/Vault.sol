@@ -318,14 +318,7 @@ contract Vault is Initializable, IERC1271, IVault {
         }
 
         // Recover ECDSA signer
-        signer = ecrecover(
-            keccak256(
-                abi.encodePacked("\x19Ethereum Signed Message:\n32", _hash)
-            ),
-            v,
-            r,
-            s
-        );
+        signer = ecrecover(_hash, v, r, s);
 
         // Prevent signer from being 0x0
         require(
