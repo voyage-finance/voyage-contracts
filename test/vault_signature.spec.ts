@@ -12,11 +12,13 @@ describe('Vault Signature', function () {
       'Welcome to OpenSea!\n\nClick to sign in and accept the OpenSea Terms of Service: https://opensea.io/tos\n\nThis request will not trigger a blockchain transaction or cost any gas fees.\n\nYour authentication status will reset after 24 hours.\n\nWallet address:\n0xad5792b1d998f607d3eeb2f357138a440b03f19f\n\nNonce:\naff63e58-1b2c-44a6-99c1-eb0fbc9dacab';
     const signature = await signer.signMessage(message);
     const rec = ethers.utils.verifyMessage(message, signature);
+    const ethHashMessage = ethers.utils.hashMessage(message);
     expect(rec).to.equal(signer.address);
-    const result = await vault.isValidSignature(
-      ethers.utils.hashMessage(message),
-      signature
-    );
+    const result = await vault.isValidSignature(ethHashMessage, signature);
     expect(result).to.equal('0x1626ba7e');
+    console.log('signer: ', rec);
+    console.log('message: ', message);
+    console.log('message digest: ', ethHashMessage);
+    console.log('signature: ', signature);
   });
 });
