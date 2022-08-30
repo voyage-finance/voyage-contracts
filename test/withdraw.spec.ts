@@ -84,9 +84,15 @@ describe('Withdraw', function () {
     console.log('updated balance: ', updatedBalance.toString());
   });
 
-  it('maxWithdraw should exclude unbonding amount', async function () {
-    const { voyage, crab, seniorDepositToken, juniorDepositToken, owner } =
-      await setupTestSuite();
+  it('withdraw senior token should return correct value', async function () {
+    const {
+      voyage,
+      crab,
+      weth,
+      seniorDepositToken,
+      juniorDepositToken,
+      owner,
+    } = await setupTestSuite();
     await seniorDepositToken.approve(voyage.address, MAX_UINT_256);
     await juniorDepositToken.approve(voyage.address, MAX_UINT_256);
     const amount = ethers.BigNumber.from(100).mul(decimals(18));
@@ -95,9 +101,188 @@ describe('Withdraw', function () {
     const balance = await voyage.balance(crab.address, owner, 1);
     const shares = await seniorDepositToken.balanceOf(owner);
     const unbonding = await voyage.unbonding(crab.address, owner, 1);
+    const maxRedeem = await seniorDepositToken.maxRedeem(owner);
+    const maxWithdraw = await seniorDepositToken.maxWithdraw(owner);
+    const maxClaimable = await seniorDepositToken.maximumClaimable(owner);
+    const totalUnbondingAsset = await seniorDepositToken.totalUnbondingAsset();
 
-    expect(balance).to.equal(ethers.BigNumber.from(0));
-    expect(shares).to.equal(ethers.BigNumber.from(0));
+    expect(balance).to.equal(ethers.BigNumber.from('0'));
+    expect(shares).to.equal(ethers.BigNumber.from('0'));
     expect(unbonding).to.equal(amount);
+    expect(maxRedeem).to.equal(ethers.BigNumber.from('0'));
+    expect(maxWithdraw).to.equal(ethers.BigNumber.from('0'));
+    expect(maxClaimable).to.equal(amount);
+    expect(totalUnbondingAsset).to.equal(amount);
+
+    const balanceBeforeClaim = await weth.balanceOf(owner);
+    await seniorDepositToken.claim();
+    const balanceAfterClaim = await weth.balanceOf(owner);
+    expect(balanceAfterClaim.sub(balanceBeforeClaim)).to.equal(amount);
+
+    const maxClaimableAfterClaim = await seniorDepositToken.maximumClaimable(
+      owner
+    );
+    expect(maxClaimableAfterClaim).to.equal(0);
+
+    const totalUnbondingAssetAfter =
+      await seniorDepositToken.totalUnbondingAsset();
+    expect(totalUnbondingAssetAfter).to.equal(0);
+  });
+
+  it.only('withdraw senior token with insufficient underlying asset should return correct value', async function () {
+    const {
+      voyage,
+      crab,
+      weth,
+      seniorDepositToken,
+      juniorDepositToken,
+      owner,
+      priceOracle,
+      marketPlace,
+      purchaseDataFromLooksRare,
+    } = await setupTestSuite();
+    await seniorDepositToken.approve(voyage.address, MAX_UINT_256);
+    await juniorDepositToken.approve(voyage.address, MAX_UINT_256);
+    const amount = ethers.BigNumber.from(100).mul(decimals(18));
+    await voyage.deposit(crab.address, 1, amount);
+
+    const maxWithdrawBefore = await seniorDepositToken.maxWithdraw(owner);
+    console.log('max withdraw before buyNow: ', maxWithdrawBefore.toString());
+    const sharesBefore = await seniorDepositToken.balanceOf(owner);
+    expect(sharesBefore).to.equal(amount);
+
+    // to reduce underlying asset
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    const vault = await voyage.getVault(owner);
+    const underlyingAssetBeforeBuyNow = await weth.balanceOf(
+      seniorDepositToken.address
+    );
+    await voyage.buyNow(
+      crab.address,
+      1,
+      vault,
+      marketPlace.address,
+      purchaseDataFromLooksRare
+    );
+
+    const underlyingAssetAfterBuyNow = await weth.balanceOf(
+      seniorDepositToken.address
+    );
+    const underlyingAssetBorrowed = underlyingAssetBeforeBuyNow.sub(
+      underlyingAssetAfterBuyNow
+    );
+    expect(underlyingAssetBorrowed).to.equal('6666666666666666667');
+
+    const maxWithdrawAfter = await seniorDepositToken.maxWithdraw(owner);
+    // underlying balance + total outstanding principal + (total outstanding interest)
+    // which is total principal + total interest
+    // 100000000000000000000(principal) + 0(interest)
+    expect(maxWithdrawAfter).to.equal('100000000000000000000');
+
+    await seniorDepositToken.withdraw(maxWithdrawAfter, owner, owner);
+    const sharesAfter = await seniorDepositToken.balanceOf(owner);
+    expect(sharesAfter).to.equal(0);
+
+    // 100000000000000000000 - 6666666666666666667 + 0
+    const maxClaimable = await seniorDepositToken.maximumClaimable(owner);
+    expect(maxClaimable).to.equal('93333333333333333333');
+
+    const balanceBeforeClaim = await weth.balanceOf(owner);
+    await seniorDepositToken.claim();
+    const balanceAfterClaim = await weth.balanceOf(owner);
+    expect(balanceAfterClaim.sub(balanceBeforeClaim)).to.equal(
+      '93333333333333333333'
+    );
+    expect(await seniorDepositToken.maximumClaimable(owner)).to.equal(0);
+  });
+
+  it('withdraw senior token with sufficient underlying asset should return correct value', async function () {
+    const {
+      voyage,
+      crab,
+      weth,
+      seniorDepositToken,
+      juniorDepositToken,
+      owner,
+      priceOracle,
+      marketPlace,
+      purchaseDataFromLooksRare,
+    } = await setupTestSuite();
+    await seniorDepositToken.approve(voyage.address, MAX_UINT_256);
+    await juniorDepositToken.approve(voyage.address, MAX_UINT_256);
+    const amount = ethers.BigNumber.from(100).mul(decimals(18));
+    await voyage.deposit(crab.address, 1, amount);
+
+    const maxWithdrawBefore = await seniorDepositToken.maxWithdraw(owner);
+    console.log('max withdraw before buyNow: ', maxWithdrawBefore.toString());
+    const sharesBefore = await seniorDepositToken.balanceOf(owner);
+    expect(sharesBefore).to.equal(amount);
+
+    // to reduce underlying asset
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    const vault = await voyage.getVault(owner);
+    const underlyingAssetBeforeBuyNow = await weth.balanceOf(
+      seniorDepositToken.address
+    );
+    await voyage.buyNow(
+      crab.address,
+      1,
+      vault,
+      marketPlace.address,
+      purchaseDataFromLooksRare
+    );
+
+    const underlyingAssetAfterBuyNow = await weth.balanceOf(
+      seniorDepositToken.address
+    );
+    const underlyingAssetBorrowed = underlyingAssetBeforeBuyNow.sub(
+      underlyingAssetAfterBuyNow
+    );
+    expect(underlyingAssetBorrowed).to.equal('6666666666666666667');
+
+    const maxWithdrawAfter = await seniorDepositToken.maxWithdraw(owner);
+    // underlying balance + total outstanding principal + (total outstanding interest)
+    // which is total principal + total interest
+    // 100000000000000000000(principal) + 0(interest)
+    expect(maxWithdrawAfter).to.equal('100000000000000000000');
+
+    await seniorDepositToken.withdraw(maxWithdrawAfter, owner, owner);
+    const sharesAfter = await seniorDepositToken.balanceOf(owner);
+    expect(sharesAfter).to.equal(0);
+
+    // 100000000000000000000 - 6666666666666666667 + 0
+    const maxClaimable = await seniorDepositToken.maximumClaimable(owner);
+    expect(maxClaimable).to.equal('93333333333333333333');
+
+    const maxWithdrawBeforeTransfer = await seniorDepositToken.maxWithdraw(
+      owner
+    );
+    expect(maxWithdrawBeforeTransfer).to.equal(0);
+
+    await weth.transfer(seniorDepositToken.address, underlyingAssetBorrowed);
+    const maxWithdrawAfterTransfer = await seniorDepositToken.maxWithdraw(
+      owner
+    );
+    expect(maxWithdrawAfterTransfer).to.equal(0);
+
+    let maxClaimableAfter = await seniorDepositToken.maximumClaimable(owner);
+    expect(maxClaimableAfter).to.equal('100000000000000000000');
+
+    // transfer again
+    await weth.transfer(seniorDepositToken.address, underlyingAssetBorrowed);
+    maxClaimableAfter = await seniorDepositToken.maximumClaimable(owner);
+    expect(maxClaimableAfter).to.equal('100000000000000000000');
+
+    const underlyingBalanceAfterTransfer = await weth.balanceOf(
+      seniorDepositToken.address
+    );
+    expect(underlyingBalanceAfterTransfer).to.equal('106666666666666666667');
+
+    const balanceBeforeClaim = await weth.balanceOf(owner);
+    await seniorDepositToken.claim();
+    const balanceAfterClaim = await weth.balanceOf(owner);
+    expect(balanceAfterClaim.sub(balanceBeforeClaim)).to.equal(
+      '100000000000000000000'
+    );
   });
 });

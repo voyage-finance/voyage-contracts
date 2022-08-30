@@ -21,6 +21,7 @@ import {PaymentsFacet} from "../../shared/facets/PaymentsFacet.sol";
 import {SafeTransferLib} from "../../shared/libraries/SafeTransferLib.sol";
 import {IVault} from "../../vault/Vault.sol";
 import {MarketplaceAdapterFacet} from "./MarketplaceAdapterFacet.sol";
+import {IUnbondingToken} from "../tokenization/SeniorDepositToken.sol";
 
 contract LoanFacet is Storage, ReentrancyGuard {
     using WadRayMath for uint256;
@@ -180,16 +181,17 @@ contract LoanFacet is Storage, ReentrancyGuard {
             params.nper;
 
         // 3. check if available liquidity sufficient
-        params.totalPending = IVToken(reserveData.seniorDepositTokenAddress)
-            .totalUnbonding();
+        params.totalPending = IUnbondingToken(
+            reserveData.seniorDepositTokenAddress
+        ).totalUnbondingAsset();
         params.totalBalance = IERC20(reserveData.currency).balanceOf(
             reserveData.seniorDepositTokenAddress
         );
-        if (params.totalBalance > params.totalPending) {
-            params.availableLiquidity =
-                params.totalBalance -
-                params.totalPending;
+
+        if (params.totalPending >= params.totalBalance) {
+            revert InsufficientCash();
         }
+        params.availableLiquidity = params.totalBalance - params.totalPending;
 
         if (params.availableLiquidity < params.outstandingPrincipal) {
             revert InsufficientLiquidity();
@@ -213,7 +215,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
         );
 
         // 5. calculate downpayment and outstanding interest and debt
-        params.downpayment = params.pmt.pmt;
+        params.downpayment = params.pmt.principal;
         params.outstandingInterest = params.totalInterest - params.pmt.interest;
         params.outstandingDebt =
             params.outstandingPrincipal +
@@ -590,6 +592,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
 
 /* --------------------------------- errors -------------------------------- */
 error Unauthorised();
+error InsufficientCash();
 error InsufficientLiquidity();
 error InsufficientVaultBalance();
 error InsufficientCreditLimit();

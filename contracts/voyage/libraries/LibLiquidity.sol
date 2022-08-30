@@ -11,6 +11,7 @@ import {LibAppStorage, AppStorage, ReserveData, ReserveConfigurationMap, BorrowD
 import {IVToken} from "../interfaces/IVToken.sol";
 import {IWETH9} from "../../shared/facets/PaymentsFacet.sol";
 import {VToken} from "../tokenization/VToken.sol";
+import {IUnbondingToken} from "../tokenization/SeniorDepositToken.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
 
@@ -40,6 +41,7 @@ library LibLiquidity {
     /* --------------------------- reserve management --------------------------- */
     function init(
         ReserveData storage reserve,
+        address _collection,
         address _currency,
         address _interestRateStrategyAddress,
         address _priceOracle
@@ -57,6 +59,7 @@ library LibLiquidity {
         bytes memory data = abi.encodeWithSelector(
             VToken.initialize.selector,
             address(this),
+            _collection,
             _currency
         );
         reserve.seniorDepositTokenAddress = deployBeaconProxy(
@@ -148,11 +151,13 @@ library LibLiquidity {
         ReserveData memory reserve = getReserveData(_collection);
         address vToken;
         if (Tranche.JUNIOR == _tranche) {
-            vToken = reserve.juniorDepositTokenAddress;
+            return 0;
         } else {
-            vToken = reserve.seniorDepositTokenAddress;
+            return
+                IUnbondingToken(reserve.seniorDepositTokenAddress).unbonding(
+                    _user
+                );
         }
-        return IVToken(vToken).unbonding(_user);
     }
 
     function getDepositAndDebt(address _collection)
@@ -192,9 +197,9 @@ library LibLiquidity {
         ];
         uint256 totalDebt = borrowState.totalDebt + borrowState.totalInterest;
 
-        uint256 totalPendingWithdrawal = IVToken(
+        uint256 totalPendingWithdrawal = IUnbondingToken(
             reserve.seniorDepositTokenAddress
-        ).totalUnbonding();
+        ).totalUnbondingAsset();
 
         uint256 availableLiquidity = IERC20Metadata(reserve.currency).balanceOf(
             reserve.seniorDepositTokenAddress
