@@ -166,7 +166,7 @@ contract LiquidityFacet is Storage, ReentrancyGuard {
         IVToken vToken = Tranche.JUNIOR == _tranche
             ? IVToken(reserve.juniorDepositTokenAddress)
             : IVToken(reserve.seniorDepositTokenAddress);
-        uint256 userBalance = vToken.maxWithdraw(msg.sender);
+        uint256 userBalance = vToken.maxWithdraw(_msgSender());
         uint256 amountToWithdraw = _amount;
         if (_amount == type(uint256).max) {
             amountToWithdraw = userBalance;
@@ -175,18 +175,12 @@ contract LiquidityFacet is Storage, ReentrancyGuard {
         BorrowState storage borrowState = LibAppStorage.ds()._borrowState[
             _collection
         ][reserve.currency];
-        uint256 totalDebt = borrowState.totalDebt + borrowState.totalInterest;
-        uint256 avgBorrowRate = borrowState.avgBorrowRate;
-        if (Tranche.JUNIOR == _tranche) {
-            IERC4626(vToken).withdraw(amountToWithdraw, msg.sender, msg.sender);
-        } else {
-            IERC4626(vToken).withdraw(amountToWithdraw, msg.sender, msg.sender);
-        }
+        IERC4626(vToken).withdraw(amountToWithdraw, _msgSender(), _msgSender());
 
         emit Withdraw(
             _collection,
             reserve.currency,
-            msg.sender,
+            _msgSender(),
             _tranche,
             amountToWithdraw
         );
