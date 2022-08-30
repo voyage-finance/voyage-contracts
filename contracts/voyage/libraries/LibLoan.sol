@@ -9,6 +9,7 @@ import {LibLiquidity} from "./LibLiquidity.sol";
 import {LibReserveConfiguration} from "./LibReserveConfiguration.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
+import "hardhat/console.sol";
 
 struct ExecuteBuyNowParams {
     address collection;
@@ -437,7 +438,10 @@ library LibLoan {
         uint256 incomeRatio = LibReserveConfiguration
             .getConfiguration(reserveData.currency)
             .getIncomeRatio();
+        console.log("interest: ", interest);
+        console.log("income ratio: ", incomeRatio);
         uint256 seniorInterest = interest.percentMul(incomeRatio);
+        console.log("senior interest: ", seniorInterest);
         IERC20(reserveData.currency).safeTransferFrom(
             sender,
             reserveData.seniorDepositTokenAddress,

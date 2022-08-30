@@ -5,6 +5,6 @@ import {VToken} from "./VToken.sol";
 
 contract JuniorDepositToken is VToken {
     function totalAssets() public view override returns (uint256) {
-        return asset.balanceOf(address(this)) - totalUnbonding;
+        return asset.balanceOf(address(this));
     }
 }

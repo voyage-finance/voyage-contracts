@@ -10,6 +10,7 @@ import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {LibLoan} from "../libraries/LibLoan.sol";
 import {LibVault} from "../libraries/LibVault.sol";
 import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
+import {IUnbondingToken} from "../tokenization/SeniorDepositToken.sol";
 
 struct CreditLineData {
     uint256 totalDebt;
@@ -231,17 +232,8 @@ contract DataProviderFacet {
     {
         ReserveData memory reserve = LibLiquidity.getReserveData(_collection);
 
-        return IVToken(reserve.seniorDepositTokenAddress).unbonding(_user);
-    }
-
-    function pendingJuniorWithdrawals(address _user, address _collection)
-        public
-        view
-        returns (uint256)
-    {
-        ReserveData memory reserve = LibLiquidity.getReserveData(_collection);
-
-        return IVToken(reserve.juniorDepositTokenAddress).unbonding(_user);
+        return
+            IUnbondingToken(reserve.seniorDepositTokenAddress).unbonding(_user);
     }
 
     function getProtocolFeeParam() public view returns (address, uint256) {

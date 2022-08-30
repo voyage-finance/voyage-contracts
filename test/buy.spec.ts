@@ -64,7 +64,7 @@ describe('BuyNow', function () {
         marketPlace.address,
         purchaseDataFromLooksRare
       )
-    ).to.be.revertedWithCustomError(voyage, 'InsufficientLiquidity');
+    ).to.be.revertedWithCustomError(voyage, 'InsufficientCash');
   });
 
   it('Buy with invalid floor price should revert', async function () {
