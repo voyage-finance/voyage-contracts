@@ -129,7 +129,7 @@ describe('Withdraw', function () {
     expect(totalUnbondingAssetAfter).to.equal(0);
   });
 
-  it.only('withdraw senior token with insufficient underlying asset should return correct value', async function () {
+  it('withdraw senior token with insufficient underlying asset should return correct value', async function () {
     const {
       voyage,
       crab,
