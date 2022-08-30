@@ -19,6 +19,7 @@ struct ExecuteBuyNowParams {
     address vault;
     uint256 totalPrincipal;
     uint256 totalInterest;
+    uint256 incomeRatio;
     uint256 totalDebt;
     uint256 outstandingPrincipal;
     uint256 outstandingInterest;
@@ -203,7 +204,13 @@ library LibLoan {
             loan.epoch *
             uint40(SECOND_PER_DAY);
 
-        updateBorrowData(borrowState, loan, borrowData, param.totalPrincipal);
+        updateBorrowData(
+            borrowState,
+            loan,
+            borrowData,
+            param.totalPrincipal,
+            param.incomeRatio
+        );
 
         return (currentLoanNumber, pmt, loan.interest);
     }
@@ -211,7 +218,8 @@ library LibLoan {
     function firstRepay(
         BorrowState storage borrowState,
         BorrowData storage debtData,
-        uint256 _loanNumber
+        uint256 _loanNumber,
+        uint256 incomeRatio
     ) internal {
         Loan storage loan = debtData.loans[_loanNumber];
         loan.paidTimes += 1;
@@ -222,10 +230,19 @@ library LibLoan {
         ) - loan.pmt.principal.rayMul(loan.apr);
         uint256 denom = borrowState.totalDebt - loan.pmt.principal;
         borrowState.avgBorrowRate = numer.rayDiv(denom);
+        // we suppose to call updateGlobalBorrowState here, but for gas optimization, the following
+        // code inlined
         borrowState.totalDebt = borrowState.totalDebt - loan.pmt.principal;
+        uint256 seniorInterest = loan.pmt.principal.percentMul(incomeRatio);
         borrowState.totalInterest =
             borrowState.totalInterest -
             loan.pmt.interest;
+        borrowState.totalSeniorInterest =
+            borrowState.totalSeniorInterest -
+            seniorInterest;
+        borrowState.totalJuniorInterest =
+            borrowState.totalJuniorInterest -
+            (loan.pmt.interest - seniorInterest);
     }
 
     function repay(
@@ -260,7 +277,7 @@ library LibLoan {
         }
 
         updateDebtData(debtData, loan);
-        updateBorrowState(borrowState, loan);
+        updateGlobalBorrowState(borrowState, loan);
 
         return (
             loan.repayments.length == 0 ? 0 : loan.repayments.length - 1,
@@ -275,7 +292,7 @@ library LibLoan {
         debtData.totalInterest = debtData.totalInterest - loan.pmt.interest;
     }
 
-    function updateBorrowState(
+    function updateGlobalBorrowState(
         BorrowState storage borrowState,
         Loan storage loan
     ) internal {
@@ -292,6 +309,15 @@ library LibLoan {
         borrowState.totalInterest =
             borrowState.totalInterest -
             loan.pmt.interest;
+        uint256 seniorInterest = loan.pmt.principal.percentMul(
+            loan.incomeRatio
+        );
+        borrowState.totalSeniorInterest =
+            borrowState.totalSeniorInterest -
+            seniorInterest;
+        borrowState.totalJuniorInterest =
+            borrowState.totalJuniorInterest -
+            (loan.pmt.interest - seniorInterest);
     }
 
     function insertLoan(Loan storage loan) internal {
@@ -410,7 +436,8 @@ library LibLoan {
         BorrowState storage borrowState,
         Loan storage loan,
         BorrowData storage borrowData,
-        uint256 principal
+        uint256 principal,
+        uint256 incomeRatio
     ) internal {
         borrowData.nextLoanNumber++;
         borrowData.mapSize++;
@@ -428,6 +455,14 @@ library LibLoan {
         borrowState.avgBorrowRate = numer.rayDiv(denom);
         borrowState.totalDebt = borrowState.totalDebt + loan.principal;
         borrowState.totalInterest = borrowState.totalInterest + loan.interest;
+        uint256 seniorInterest = loan.interest.percentMul(incomeRatio);
+        borrowState.totalSeniorInterest =
+            borrowState.totalSeniorInterest +
+            seniorInterest;
+        borrowState.totalJuniorInterest =
+            borrowState.totalJuniorInterest +
+            loan.interest -
+            seniorInterest;
     }
 
     function distributeInterest(

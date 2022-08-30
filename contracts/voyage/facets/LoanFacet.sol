@@ -208,6 +208,9 @@ contract LoanFacet is Storage, ReentrancyGuard {
             );
 
         // 4. insert debt, get total interest and PMT
+        params.incomeRatio = LibReserveConfiguration
+            .getConfiguration(reserveData.currency)
+            .getIncomeRatio();
         (params.loanId, params.pmt, params.totalInterest) = LibLoan.initDebt(
             borrowState,
             borrowData,
@@ -293,7 +296,12 @@ contract LoanFacet is Storage, ReentrancyGuard {
             reserveData.currency,
             params.vault
         );
-        LibLoan.firstRepay(borrowState, debtData, params.loanId);
+        LibLoan.firstRepay(
+            borrowState,
+            debtData,
+            params.loanId,
+            params.incomeRatio
+        );
 
         emit Borrow(
             params.vault,
