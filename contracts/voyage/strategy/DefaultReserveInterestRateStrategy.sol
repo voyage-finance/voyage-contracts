@@ -5,6 +5,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
 import {IReserveInterestRateStrategy} from "../interfaces/IReserveInterestRateStrategy.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
+import {IUnbondingToken} from "../tokenization/SeniorDepositToken.sol";
 
 contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
     using WadRayMath for uint256;
@@ -48,8 +49,9 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
         vars.totalDebt = totalStableDebt;
         vars.currentStableBorrowRate = baseBorrowRate;
 
-        uint256 totalPendingWithdrawal = IVToken(seniorDepositTokenAddress)
-            .totalUnbonding();
+        uint256 totalPendingWithdrawal = IUnbondingToken(
+            seniorDepositTokenAddress
+        ).totalUnbondingAsset();
 
         uint256 availableLiquidity = IERC20(reserve).balanceOf(
             seniorDepositTokenAddress

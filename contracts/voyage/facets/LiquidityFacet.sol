@@ -13,6 +13,8 @@ import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol"
 import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PaymentsFacet} from "../../shared/facets/PaymentsFacet.sol";
+import {IERC4626} from "../../shared/interfaces/IERC4626.sol";
+import {IUnbondingToken} from "../tokenization/SeniorDepositToken.sol";
 
 contract LiquidityFacet is Storage, ReentrancyGuard {
     using LibLiquidity for ReserveData;
@@ -62,7 +64,12 @@ contract LiquidityFacet is Storage, ReentrancyGuard {
         if (reserveData.initialized) {
             revert InvalidInitialize();
         }
-        reserveData.init(_currency, _interestRateStrategyAddress, _priceOracle);
+        reserveData.init(
+            _collection,
+            _currency,
+            _interestRateStrategyAddress,
+            _priceOracle
+        );
         LibAppStorage.ds()._reserveList[
             LibAppStorage.ds()._reservesCount
         ] = _collection;
@@ -170,7 +177,11 @@ contract LiquidityFacet is Storage, ReentrancyGuard {
         ][reserve.currency];
         uint256 totalDebt = borrowState.totalDebt + borrowState.totalInterest;
         uint256 avgBorrowRate = borrowState.avgBorrowRate;
-        IVToken(vToken).withdraw(amountToWithdraw, msg.sender, msg.sender);
+        if (Tranche.JUNIOR == _tranche) {
+            IERC4626(vToken).withdraw(amountToWithdraw, msg.sender, msg.sender);
+        } else {
+            IERC4626(vToken).withdraw(amountToWithdraw, msg.sender, msg.sender);
+        }
 
         emit Withdraw(
             _collection,
@@ -221,9 +232,9 @@ contract LiquidityFacet is Storage, ReentrancyGuard {
         ][_currency];
         uint256 totalDebt = borrowState.totalDebt + borrowState.totalInterest;
 
-        uint256 totalPendingWithdrawal = IVToken(
+        uint256 totalPendingWithdrawal = IUnbondingToken(
             reserve.seniorDepositTokenAddress
-        ).totalUnbonding();
+        ).totalUnbondingAsset();
 
         uint256 availableLiquidity = IERC20(_currency).balanceOf(
             reserve.seniorDepositTokenAddress
