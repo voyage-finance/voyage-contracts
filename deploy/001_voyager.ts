@@ -1,5 +1,6 @@
 import { ethers } from 'hardhat';
 import { DeployFunction, Facet, FacetCut } from 'hardhat-deploy/types';
+import { Voyage } from 'typechain/Voyage';
 import { deployFacets, FacetCutAction, mergeABIs } from '../helpers/diamond';
 import { log } from '../helpers/logger';
 
@@ -39,10 +40,6 @@ const deployFn: DeployFunction = async (hre) => {
     log: true,
   });
 
-  const vaultFactory = await deploy('VaultFactory', {
-    from: owner,
-    log: true,
-  });
   const diamondCutFacet = await deploy('DiamondCutFacet', {
     from: owner,
     log: true,
@@ -247,6 +244,12 @@ const deployFn: DeployFunction = async (hre) => {
       RELAY_HUB
     );
 
+    const vaultImpl = await deploy('Vault', {
+      from: owner,
+      log: true,
+      args: [],
+    });
+
     const FORWARDER =
       process.env.NODE_ENV === 'test'
         ? forwarder
@@ -273,7 +276,7 @@ const deployFn: DeployFunction = async (hre) => {
           initOwner: owner,
           seniorDepositTokenImpl: seniorDepositImpl.address,
           juniorDepositTokenImpl: juniorDepositImpl.address,
-          vaultFactory: vaultFactory.address,
+          vaultImpl: vaultImpl.address,
           diamondCutFacet: diamondCutFacet.address,
           diamondLoupeFacet: diamondLoupeFacet.address,
           ownershipFacet: ownershipFacet.address,
@@ -299,6 +302,15 @@ const deployFn: DeployFunction = async (hre) => {
       log.debug(
         'No facets to update for diamond at %s',
         existingProxyDeployment.address
+      );
+    }
+
+    if (vaultImpl.newlyDeployed) {
+      execute(
+        'Voyage',
+        { from: owner, log: true },
+        'setVaultImpl',
+        vaultImpl.address
       );
     }
   }

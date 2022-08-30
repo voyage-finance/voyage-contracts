@@ -42,22 +42,6 @@ const deployFn: DeployFunction = async (hre) => {
     libraries: { WadRayMath: wadRayMath.address },
     args: [utilisationRate, slope, baseInterest],
   });
-
-  const vault = await deploy('Vault', {
-    from: owner,
-    log: true,
-    args: [],
-  });
-
-  await execute(
-    'Voyage',
-    {
-      from: owner,
-      log: true,
-    },
-    'setVaultBeacon',
-    vault.address
-  );
 };
 
 deployFn.dependencies = ['Voyage'];
