@@ -47,8 +47,6 @@ const setupBase = async ({
   // 105%
   await voyage.setLiquidationBonus(crab.address, 10500);
   await voyage.setIncomeRatio(crab.address, 0.5 * 1e4);
-  const incomeRatio = await voyage.getIncomeRatio(crab.address);
-  console.log('income-ratio: ', incomeRatio.toString());
   await voyage.setLoanParams(crab.address, 30, 90, 10);
   await voyage.activateReserve(crab.address);
   const cutPercentage = '200'; //2%
