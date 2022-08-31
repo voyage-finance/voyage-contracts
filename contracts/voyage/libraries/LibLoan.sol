@@ -234,6 +234,8 @@ library LibLoan {
         // code inlined
         borrowState.totalDebt = borrowState.totalDebt - loan.pmt.principal;
         uint256 seniorInterest = loan.pmt.interest.percentMul(incomeRatio);
+        console.log("pmt.principal: ", loan.pmt.principal);
+        console.log("pmt.interest: ", loan.pmt.interest);
         borrowState.totalInterest =
             borrowState.totalInterest -
             loan.pmt.interest;
@@ -306,6 +308,8 @@ library LibLoan {
             borrowState.avgBorrowRate = numer.rayDiv(denom);
         }
         borrowState.totalDebt = borrowState.totalDebt - loan.pmt.principal;
+        console.log("pmt.principal: ", loan.pmt.principal);
+        console.log("pmt.interest: ", loan.pmt.interest);
         borrowState.totalInterest =
             borrowState.totalInterest -
             loan.pmt.interest;
@@ -454,6 +458,7 @@ library LibLoan {
         borrowState.avgBorrowRate = numer.rayDiv(denom);
         borrowState.totalDebt = borrowState.totalDebt + loan.principal;
         borrowState.totalInterest = borrowState.totalInterest + loan.interest;
+
         uint256 seniorInterest = loan.interest.percentMul(incomeRatio);
         borrowState.totalSeniorInterest =
             borrowState.totalSeniorInterest +
