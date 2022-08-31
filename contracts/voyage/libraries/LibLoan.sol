@@ -233,7 +233,7 @@ library LibLoan {
         // we suppose to call updateGlobalBorrowState here, but for gas optimization, the following
         // code inlined
         borrowState.totalDebt = borrowState.totalDebt - loan.pmt.principal;
-        uint256 seniorInterest = loan.pmt.principal.percentMul(incomeRatio);
+        uint256 seniorInterest = loan.pmt.interest.percentMul(incomeRatio);
         borrowState.totalInterest =
             borrowState.totalInterest -
             loan.pmt.interest;
@@ -309,9 +309,7 @@ library LibLoan {
         borrowState.totalInterest =
             borrowState.totalInterest -
             loan.pmt.interest;
-        uint256 seniorInterest = loan.pmt.principal.percentMul(
-            loan.incomeRatio
-        );
+        uint256 seniorInterest = loan.pmt.interest.percentMul(loan.incomeRatio);
         borrowState.totalSeniorInterest =
             borrowState.totalSeniorInterest -
             seniorInterest;

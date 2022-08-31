@@ -588,6 +588,30 @@ contract LoanFacet is Storage, ReentrancyGuard {
         return borrowState.totalInterest;
     }
 
+    function seniorInterestBalance(address _collection, address _asset)
+        external
+        view
+        returns (uint256)
+    {
+        BorrowState storage borrowState = LibLoan.getBorrowState(
+            _collection,
+            _asset
+        );
+        return borrowState.totalSeniorInterest;
+    }
+
+    function juniorInterestBalance(address _collection, address _asset)
+        external
+        view
+        returns (uint256)
+    {
+        BorrowState storage borrowState = LibLoan.getBorrowState(
+            _collection,
+            _asset
+        );
+        return borrowState.totalJuniorInterest;
+    }
+
     function getDiscount(uint256 _value, uint256 _liquidationBonus)
         private
         pure
