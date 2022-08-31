@@ -382,6 +382,7 @@ library LibLoan {
             (loan.epoch * SECOND_PER_DAY);
         uint256 effectiveInterestRate = (loan.apr * loan.nper) / periodsPerYear;
         loan.interest = loan.principal.rayMul(effectiveInterestRate);
+        loan.incomeRatio = param.incomeRatio;
     }
 
     function calculatePMT(Loan storage loan)
@@ -466,11 +467,9 @@ library LibLoan {
     function distributeInterest(
         ReserveData memory reserveData,
         uint256 interest,
-        address sender
+        address sender,
+        uint256 incomeRatio
     ) internal {
-        uint256 incomeRatio = LibReserveConfiguration
-            .getConfiguration(reserveData.currency)
-            .getIncomeRatio();
         console.log("interest: ", interest);
         console.log("income ratio: ", incomeRatio);
         uint256 seniorInterest = interest.percentMul(incomeRatio);
@@ -573,5 +572,18 @@ library LibLoan {
             _loan
         ];
         return (loan.pmt.principal, loan.pmt.interest);
+    }
+
+    function getIncomeRatio(
+        address _collection,
+        address _currency,
+        address _vault,
+        uint256 _loan
+    ) internal view returns (uint256) {
+        AppStorage storage s = LibAppStorage.ds();
+        Loan storage loan = s._borrowData[_collection][_currency][_vault].loans[
+            _loan
+        ];
+        return loan.incomeRatio;
     }
 }

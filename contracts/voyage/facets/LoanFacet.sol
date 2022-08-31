@@ -36,6 +36,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
         uint256 interest;
         uint256 total;
         uint256 totalDebt;
+        uint256 incomeRatio;
     }
 
     event Borrow(
@@ -209,7 +210,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
 
         // 4. insert debt, get total interest and PMT
         params.incomeRatio = LibReserveConfiguration
-            .getConfiguration(reserveData.currency)
+            .getConfiguration(params.collection)
             .getIncomeRatio();
         (params.loanId, params.pmt, params.totalInterest) = LibLoan.initDebt(
             borrowState,
@@ -263,7 +264,8 @@ contract LoanFacet is Storage, ReentrancyGuard {
         LibLoan.distributeInterest(
             reserveData,
             params.pmt.interest,
-            _msgSender()
+            _msgSender(),
+            params.incomeRatio
         );
 
         // 8.3 unwrap weth
@@ -342,6 +344,12 @@ contract LoanFacet is Storage, ReentrancyGuard {
         }
 
         params.total = params.principal + params.interest;
+        params.incomeRatio = LibLoan.getIncomeRatio(
+            _collection,
+            reserveData.currency,
+            _vault,
+            _loan
+        );
 
         // 2. update repay data
         (uint256 repaymentId, bool isFinal) = LibLoan.repay(
@@ -352,7 +360,12 @@ contract LoanFacet is Storage, ReentrancyGuard {
         );
 
         // 3. distribute interest
-        LibLoan.distributeInterest(reserveData, params.interest, _msgSender());
+        LibLoan.distributeInterest(
+            reserveData,
+            params.interest,
+            _msgSender(),
+            params.incomeRatio
+        );
 
         IERC20(reserveData.currency).safeTransferFrom(
             _msgSender(),
