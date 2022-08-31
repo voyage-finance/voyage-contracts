@@ -66,4 +66,10 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
         LibReserveConfiguration.saveConfiguration(_collection, conf);
         emit LoanParametersUpdated(_collection, _epoch, _term, _gracePeriod);
     }
+
+    function getIncomeRatio(address _collection) public view returns (uint256) {
+        ReserveConfigurationMap memory conf = LibReserveConfiguration
+            .getConfiguration(_collection);
+        return conf.getIncomeRatio();
+    }
 }
