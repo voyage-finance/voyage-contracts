@@ -32,8 +32,9 @@ contract SeniorDepositToken is VToken, IUnbondingToken {
         uint256 outstandingPrincipal = LoanFacet(voyage).principalBalance(
             collection
         );
-        uint256 outstandingInterest = LoanFacet(voyage).interestBalance(
-            collection
+        uint256 outstandingInterest = LoanFacet(voyage).seniorInterestBalance(
+            collection,
+            address(asset)
         );
         return underlyingBalance + outstandingPrincipal;
     }
