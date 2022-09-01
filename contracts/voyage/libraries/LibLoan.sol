@@ -9,7 +9,6 @@ import {LibLiquidity} from "./LibLiquidity.sol";
 import {LibReserveConfiguration} from "./LibReserveConfiguration.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
-import "hardhat/console.sol";
 
 struct ExecuteBuyNowParams {
     address collection;
@@ -234,8 +233,6 @@ library LibLoan {
         // code inlined
         borrowState.totalDebt = borrowState.totalDebt - loan.pmt.principal;
         uint256 seniorInterest = loan.pmt.interest.percentMul(incomeRatio);
-        console.log("pmt.principal: ", loan.pmt.principal);
-        console.log("pmt.interest: ", loan.pmt.interest);
         borrowState.totalInterest =
             borrowState.totalInterest -
             loan.pmt.interest;
@@ -308,8 +305,6 @@ library LibLoan {
             borrowState.avgBorrowRate = numer.rayDiv(denom);
         }
         borrowState.totalDebt = borrowState.totalDebt - loan.pmt.principal;
-        console.log("pmt.principal: ", loan.pmt.principal);
-        console.log("pmt.interest: ", loan.pmt.interest);
         borrowState.totalInterest =
             borrowState.totalInterest -
             loan.pmt.interest;
@@ -475,10 +470,7 @@ library LibLoan {
         address sender,
         uint256 incomeRatio
     ) internal {
-        console.log("interest: ", interest);
-        console.log("income ratio: ", incomeRatio);
         uint256 seniorInterest = interest.percentMul(incomeRatio);
-        console.log("senior interest: ", seniorInterest);
         IERC20(reserveData.currency).safeTransferFrom(
             sender,
             reserveData.seniorDepositTokenAddress,

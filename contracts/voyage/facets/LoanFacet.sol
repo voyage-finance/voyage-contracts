@@ -22,7 +22,6 @@ import {SafeTransferLib} from "../../shared/libraries/SafeTransferLib.sol";
 import {IVault} from "../../vault/Vault.sol";
 import {MarketplaceAdapterFacet} from "./MarketplaceAdapterFacet.sol";
 import {IUnbondingToken} from "../tokenization/SeniorDepositToken.sol";
-import "hardhat/console.sol";
 
 contract LoanFacet is Storage, ReentrancyGuard {
     using WadRayMath for uint256;
@@ -208,7 +207,6 @@ contract LoanFacet is Storage, ReentrancyGuard {
                 params.outstandingPrincipal,
                 borrowState.totalDebt
             );
-        console.log("borrow rate: ", params.borrowRate);
 
         // 4. insert debt, get total interest and PMT
         params.incomeRatio = LibReserveConfiguration
