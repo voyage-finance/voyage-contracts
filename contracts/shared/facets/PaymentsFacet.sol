@@ -16,6 +16,7 @@ contract PaymentsFacet is Multicall, SelfPermit {
         public
         payable
     {
+        checkAuthority();
         uint256 balanceWETH9 = LibAppStorage.ds().WETH9.balanceOf(
             address(this)
         );
@@ -28,6 +29,7 @@ contract PaymentsFacet is Multicall, SelfPermit {
     }
 
     function wrapWETH9() public payable {
+        checkAuthority();
         if (address(this).balance > 0)
             LibAppStorage.ds().WETH9.deposit{value: address(this).balance}(); // wrap everything
     }
@@ -37,6 +39,7 @@ contract PaymentsFacet is Multicall, SelfPermit {
         uint256 amountMinimum,
         address recipient
     ) public payable {
+        checkAuthority();
         uint256 balanceToken = token.balanceOf(address(this));
         require(balanceToken >= amountMinimum, "Insufficient token");
 
@@ -46,6 +49,7 @@ contract PaymentsFacet is Multicall, SelfPermit {
     }
 
     function refundETH() external payable {
+        checkAuthority();
         if (address(this).balance > 0) {
             SafeTransferLib.safeTransferETH(msg.sender, address(this).balance);
         }
@@ -57,10 +61,14 @@ contract PaymentsFacet is Multicall, SelfPermit {
         address from,
         address recipient
     ) external {
+        checkAuthority();
+        LibPeripheryPayments.pullToken(token, amount, from, recipient);
+    }
+
+    function checkAuthority() internal view {
         if (msg.sender != address(this)) {
             revert Unauthorised();
         }
-        LibPeripheryPayments.pullToken(token, amount, from, recipient);
     }
 }
 
