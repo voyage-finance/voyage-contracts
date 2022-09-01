@@ -3,6 +3,7 @@ pragma solidity ^0.8.9;
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {VaultFacet} from "../voyage/facets/VaultFacet.sol";
 import {SecurityFacet} from "../voyage/facets/SecurityFacet.sol";
 import {IWETH9} from "../shared/interfaces/IWETH9.sol";
@@ -108,6 +109,7 @@ contract Vault is Initializable, IERC1271, IVault {
         LibVaultStorage.ds().user = _user;
         LibVaultStorage.ds().paymaster = _paymaster;
         LibVaultStorage.ds().weth = _weth;
+        IERC20(_weth).approve(_voyage, type(uint256).max);
     }
 
     function execute(bytes calldata _data) external onlyAuthorised {
