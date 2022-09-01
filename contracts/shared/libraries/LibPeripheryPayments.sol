@@ -8,7 +8,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 /// @author Voyage Finance
 /// @notice Forwards calls to ERC-4626 compliant Vaults, but with the actual depositor appended to the encoded call data.
 /// @dev This does not work if the receiving contract does not implement ERC-4626!
-abstract contract PeripheryPayments {
+library LibPeripheryPayments {
     using SafeERC20 for IERC20;
 
     function pullToken(
@@ -16,7 +16,7 @@ abstract contract PeripheryPayments {
         uint256 amount,
         address from,
         address recipient
-    ) public payable {
+    ) internal {
         token.safeTransferFrom(from, recipient, amount);
     }
 
@@ -24,7 +24,7 @@ abstract contract PeripheryPayments {
         IERC20 token,
         address to,
         uint256 amount
-    ) public payable {
+    ) internal {
         token.safeApprove(to, amount);
     }
 }

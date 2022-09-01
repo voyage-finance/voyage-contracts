@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import {PeripheryPayments} from "../util/PeripheryPayments.sol";
+import {LibPeripheryPayments} from "../libraries/LibPeripheryPayments.sol";
 import {Multicall} from "../util/Multicall.sol";
 import {SelfPermit} from "../util/SelfPermit.sol";
 import {LibAppStorage} from "../../voyage/libraries/LibAppStorage.sol";
@@ -9,7 +9,7 @@ import {SafeTransferLib} from "../libraries/SafeTransferLib.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract PaymentsFacet is PeripheryPayments, Multicall, SelfPermit {
+contract PaymentsFacet is Multicall, SelfPermit {
     using SafeERC20 for IERC20;
 
     function unwrapWETH9(uint256 amountMinimum, address recipient)
@@ -50,6 +50,18 @@ contract PaymentsFacet is PeripheryPayments, Multicall, SelfPermit {
             SafeTransferLib.safeTransferETH(msg.sender, address(this).balance);
         }
     }
+
+    function pullToken(
+        IERC20 token,
+        uint256 amount,
+        address from,
+        address recipient
+    ) external {
+        if (msg.sender != address(this)) {
+            revert Unauthorised();
+        }
+        LibPeripheryPayments.pullToken(token, amount, from, recipient);
+    }
 }
 
 abstract contract IWETH9 is IERC20 {
@@ -59,3 +71,5 @@ abstract contract IWETH9 is IERC20 {
     /// @notice Withdraw wrapped ether to get ether
     function withdraw(uint256) external virtual;
 }
+
+error Unauthorised();
