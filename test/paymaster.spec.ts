@@ -1,10 +1,10 @@
+import { WETH9 } from '@contracts';
 import { BigNumber } from '@ethersproject/bignumber';
+import { anyValue } from '@nomicfoundation/hardhat-chai-matchers/withArgs';
 import { RelayRequest } from '@opengsn/common/dist/EIP712/RelayRequest';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { WETH9 } from 'typechain/WETH9';
 import { setupTestSuite } from '../helpers/setupTestSuite';
-import { anyValue } from '@nomicfoundation/hardhat-chai-matchers/withArgs';
 
 // TODO: this should be a mock IForwarder contract for integration tests.
 // use a random 20-byte string for now

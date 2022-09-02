@@ -10,8 +10,8 @@
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
-      "@contracts": ["typechain"],
-      "@helpers/*": ["helpers/*"]
+      "@contracts": ["./contract-types"],
+      "@helpers/*": ["./helpers/*"]
     },
     "lib": [
       "dom",
@@ -25,9 +25,10 @@
     "./scripts",
     "./helpers",
     "./deploy",
+    "./tasks",
     "./test",
     "./typings/**/*.d.ts",
-    "./typechain/**/*"
+    "./contract-types/**/*"
   ],
   "ts-node": {
     "compilerOptions": {

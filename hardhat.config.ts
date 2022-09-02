@@ -9,10 +9,16 @@ import 'hardhat-deploy';
 import 'hardhat-gas-reporter';
 import 'hardhat-prettier';
 import 'hardhat-watcher';
+import 'tsconfig-paths/register';
 import { task } from 'hardhat/config';
 import { HardhatUserConfig } from 'hardhat/types';
 import { resolve } from 'path';
 import { ethers } from 'ethers';
+
+if (process.env.SKIP_TASKS !== 'true') {
+  require('./tasks/helpers');
+  require('./tasks/dev');
+}
 
 dotenvConfig({ path: resolve(__dirname, './.env') });
 
@@ -127,7 +133,10 @@ const config: HardhatUserConfig = {
     privateVerification: true,
   },
   etherscan: {
-    apiKey: ETHERSCAN_API_KEY,
+    apiKey: {
+      mainnet: ETHERSCAN_API_KEY,
+      rinkeby: ETHERSCAN_API_KEY,
+    },
   },
   gasReporter: {
     enabled: reportGas,
@@ -137,7 +146,7 @@ const config: HardhatUserConfig = {
     coinmarketcap: '49d8a069-b7bf-4a9e-8cb4-dc9c19bff806',
   },
   typechain: {
-    outDir: 'typechain',
+    outDir: 'contract-types',
     target: 'ethers-v5',
   },
 };

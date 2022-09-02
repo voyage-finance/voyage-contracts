@@ -2,8 +2,7 @@ import { setupTestSuite } from '../../helpers/setupTestSuite';
 import { Contract, Signer } from 'ethers';
 import { ethers } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { Tus } from 'typechain/Tus';
-import { Voyage } from 'typechain/Voyage';
+import { Tus, Voyage } from '@contracts';
 
 export type tEthereumAddress = string;
 
