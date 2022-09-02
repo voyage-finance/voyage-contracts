@@ -1,8 +1,6 @@
-import { ether } from '@opengsn/common';
+import { DataProviderFacet } from '@contracts';
 import { BigNumber } from 'ethers';
 import { ethers } from 'hardhat';
-import { Crab } from 'typechain/Crab';
-import { DataProviderFacet } from 'typechain/DataProviderFacet';
 import {
   CreditLineData,
   LoanDetail,

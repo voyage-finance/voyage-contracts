@@ -1,8 +1,6 @@
 import { deployments as d } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { VoyagePaymaster } from 'typechain/VoyagePaymaster';
-import { WETH9 } from 'typechain/WETH9';
-import { Voyage } from '../typechain/Voyage';
+import { WETH9, Voyage, VoyagePaymaster } from '@contracts';
 import { deployFacets, FacetCutAction } from './diamond';
 import { decimals, MAX_UINT_256, toWad } from './math';
 import './wadraymath';
