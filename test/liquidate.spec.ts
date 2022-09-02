@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { Tus } from 'typechain/Tus';
 import { toWad } from '../helpers/math';
 import { setupTestSuite } from '../helpers/setupTestSuite';
 

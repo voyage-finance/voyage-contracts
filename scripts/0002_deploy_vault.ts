@@ -1,6 +1,5 @@
-import { ethers, getNamedAccounts, tenderly } from 'hardhat';
-import { Vault } from '../typechain/Vault';
-import { Voyage } from '../typechain/Voyage';
+import { Voyage } from '@contracts';
+import { ethers, getNamedAccounts } from 'hardhat';
 
 async function main() {
   const { owner } = await getNamedAccounts();

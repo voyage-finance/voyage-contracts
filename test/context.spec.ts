@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { MockContextFacet } from 'typechain/MockContextFacet';
+import { MockContextFacet } from '@contracts';
 import { setupTestSuiteWithMocks } from '../helpers/setupTestSuite';
 
 describe('Meta Transaction Receiver Context', function () {

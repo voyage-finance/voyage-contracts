@@ -24,6 +24,10 @@ export const formatBN = (
     .toFixed(precision);
 };
 
+export const formatWad = (num: ethers.BigNumber) => formatBN(num, 18, 18);
+
+export const formatRay = (num: ethers.BigNumber) => formatBN(num, 27, 27);
+
 export const decimals = (n: number) => ethers.BigNumber.from(10).pow(n);
 
 export const toEthersBN = (num: BigNumber) =>
