@@ -190,7 +190,7 @@ library LibLoan {
         Loan storage loan = borrowData.loans[currentLoanNumber];
         updateLoan(loan, param);
 
-        pmt = calculatePMT(loan);
+        pmt = previewPMT(loan.principal, loan.interest, loan.nper);
         loan.pmt = pmt;
 
         loan.collateral.push(param.tokenId);
@@ -377,21 +377,33 @@ library LibLoan {
             (param.term * SECOND_PER_DAY) / (param.epoch * SECOND_PER_DAY)
         );
         loan.borrowAt = uint40(block.timestamp);
-        uint256 periodsPerYear = SECONDS_PER_YEAR /
-            (loan.epoch * SECOND_PER_DAY);
-        uint256 effectiveInterestRate = (loan.apr * loan.nper) / periodsPerYear;
-        loan.interest = loan.principal.rayMul(effectiveInterestRate);
-        loan.incomeRatio = param.incomeRatio;
+        loan.interest = previewInterest(
+            loan.principal,
+            loan.apr,
+            loan.epoch,
+            loan.nper
+        );
     }
 
-    function calculatePMT(Loan storage loan)
-        internal
-        view
-        returns (PMT memory)
-    {
+    function previewInterest(
+        uint256 principal,
+        uint256 apr,
+        uint256 epoch,
+        uint256 nper
+    ) internal pure returns (uint256) {
+        uint256 periodsPerYear = SECONDS_PER_YEAR / (epoch * SECOND_PER_DAY);
+        uint256 effectiveInterestRate = (apr * nper) / periodsPerYear;
+        return principal.rayMul(effectiveInterestRate);
+    }
+
+    function previewPMT(
+        uint256 principal,
+        uint256 interest,
+        uint256 nper
+    ) internal pure returns (PMT memory) {
         PMT memory pmt;
-        pmt.principal = loan.principal / loan.nper;
-        pmt.interest = loan.interest / loan.nper;
+        pmt.principal = principal / nper;
+        pmt.interest = interest / nper;
         pmt.pmt = pmt.principal + pmt.interest;
         return pmt;
     }

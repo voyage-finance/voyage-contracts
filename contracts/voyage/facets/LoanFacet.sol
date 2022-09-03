@@ -39,6 +39,18 @@ contract LoanFacet is Storage, ReentrancyGuard {
         uint256 incomeRatio;
     }
 
+    struct PreviewBuyNowParams {
+        uint256 epoch;
+        uint256 term;
+        uint256 nper;
+        uint256 totalPrincipal;
+        uint256 outstandingPrincipal;
+        uint256 totalInterest;
+        uint256 borrowRate;
+        uint256 protocolFee;
+        PMT pmt;
+    }
+
     event Borrow(
         address indexed _vault,
         address indexed _collection,
@@ -79,12 +91,13 @@ contract LoanFacet is Storage, ReentrancyGuard {
         uint256[] collaterals
     );
 
-    function previewBuyNowParams(address _collection)
+    function previewBuyNowParams(address _collection, uint256 _principal)
         public
         view
-        returns (ExecuteBuyNowParams memory)
+        returns (PreviewBuyNowParams memory)
     {
-        ExecuteBuyNowParams memory params;
+        PreviewBuyNowParams memory params;
+        params.totalPrincipal = _principal;
         ReserveData memory reserveData = LibLiquidity.getReserveData(
             _collection
         );
@@ -114,6 +127,22 @@ contract LoanFacet is Storage, ReentrancyGuard {
                 borrowState.totalDebt
             );
 
+        params.totalInterest = LibLoan.previewInterest(
+            params.totalPrincipal,
+            params.borrowRate,
+            params.epoch,
+            params.nper
+        );
+
+        params.pmt = LibLoan.previewPMT(
+            params.totalPrincipal,
+            params.totalInterest,
+            params.nper
+        );
+
+        params.protocolFee = params.totalPrincipal.percentMul(
+            LibAppStorage.ds().protocolFee.cutRatio
+        );
         return params;
     }
 
