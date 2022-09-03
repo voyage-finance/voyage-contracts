@@ -207,12 +207,12 @@ contract LiquidityFacet is Storage, ReentrancyGuard {
         return LibLiquidity.balance(_collection, _user, _tranche);
     }
 
-    function unbonding(
-        address _collection,
-        address _user,
-        Tranche _tranche
-    ) public view returns (uint256) {
-        return LibLiquidity.unbonding(_collection, _user, _tranche);
+    function unbonding(address _collection, address _user)
+        public
+        view
+        returns (uint256)
+    {
+        return LibLiquidity.unbonding(_collection, _user);
     }
 
     function utilizationRate(address _collection, address _currency)

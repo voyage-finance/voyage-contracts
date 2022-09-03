@@ -143,21 +143,14 @@ library LibLiquidity {
         return IVToken(vToken).maxWithdraw(_user);
     }
 
-    function unbonding(
-        address _collection,
-        address _user,
-        Tranche _tranche
-    ) internal view returns (uint256) {
+    function unbonding(address _collection, address _user)
+        internal
+        view
+        returns (uint256)
+    {
         ReserveData memory reserve = getReserveData(_collection);
-        address vToken;
-        if (Tranche.JUNIOR == _tranche) {
-            return 0;
-        } else {
-            return
-                IUnbondingToken(reserve.seniorDepositTokenAddress).unbonding(
-                    _user
-                );
-        }
+        return
+            IUnbondingToken(reserve.seniorDepositTokenAddress).unbonding(_user);
     }
 
     function getDepositAndDebt(address _collection)
