@@ -100,7 +100,7 @@ describe('Withdraw', function () {
     await voyage.withdraw(crab.address, 1, amount);
     const balance = await voyage.balance(crab.address, owner, 1);
     const shares = await seniorDepositToken.balanceOf(owner);
-    const unbonding = await voyage.unbonding(crab.address, owner, 1);
+    const unbonding = await voyage.unbonding(crab.address, owner);
     const maxRedeem = await seniorDepositToken.maxRedeem(owner);
     const maxWithdraw = await seniorDepositToken.maxWithdraw(owner);
     const maxClaimable = await seniorDepositToken.maximumClaimable(owner);

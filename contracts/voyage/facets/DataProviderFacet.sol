@@ -139,8 +139,7 @@ contract DataProviderFacet {
         );
         uint256 seniorTrancheUnbonding = LibLiquidity.unbonding(
             _collection,
-            _user,
-            Tranche.SENIOR
+            _user
         );
         uint256 seniorTrancheTotalBalance = seniorTrancheWithdrawable +
             seniorTrancheUnbonding;
@@ -149,15 +148,7 @@ contract DataProviderFacet {
             _user,
             Tranche.JUNIOR
         );
-        uint256 juniorTrancheUnbonding = LibLiquidity.unbonding(
-            _collection,
-            _user,
-            Tranche.JUNIOR
-        );
-        uint256 juniorTrancheTotalBalance = juniorTrancheWithdrawable +
-            juniorTrancheUnbonding;
-
-        userPoolData.juniorTrancheBalance = juniorTrancheTotalBalance;
+        userPoolData.juniorTrancheBalance = juniorTrancheWithdrawable;
         userPoolData
             .withdrawableJuniorTrancheBalance = juniorTrancheWithdrawable;
         userPoolData.seniorTrancheBalance = seniorTrancheTotalBalance;
