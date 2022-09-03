@@ -95,7 +95,7 @@ describe('BuyNow', function () {
     const juniorDeposit = toWad(50);
     await voyage.deposit(crab.address, 0, juniorDeposit);
     await voyage.deposit(crab.address, 1, depositAmount);
-    await priceOracle.updateTwap(crab.address, toWad(1));
+    await priceOracle.updateTwap(crab.address, toWad(0.000001));
     const vault = await voyage.getVault(owner);
     await expect(
       voyage.buyNow(

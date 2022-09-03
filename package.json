@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "check:hh": "hardhat check",
-    "cov": "COVERAGE=true hardhat coverage",
+    "cov": "NODE_ENV=test COVERAGE=true hardhat coverage",
     "build:docker": "./docker/build.sh",
     "compile": "hardhat compile",
     "deploy:local": "hardhat --network localhost deploy",
@@ -42,11 +42,12 @@
     "@types/mocha": "^8.2.2",
     "@types/node": "^15.12.2",
     "bignumber.js": "^9.0.2",
+    "@looksrare/sdk": "^0.8.2",
     "chai": "^4.3.4",
     "cross-env": "^7.0.3",
     "dotenv": "^10.0.0",
     "enquirer": "^2.3.6",
-    "ethers": "^5.4.7",
+    "ethers": "^5.7.0",
     "execa": "5.1.1",
     "hardhat": "^2.9.4",
     "hardhat-deploy": "^0.11.4",
@@ -81,6 +82,7 @@
     "openzeppelin-solidity": "^4.4.1"
   },
   "resolutions": {
-    "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.3.0-beta.13"
+    "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.3.0-beta.13",
+    "@ethersproject/bignumber": "^5.6.0"
   }
 }
