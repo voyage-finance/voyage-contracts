@@ -162,7 +162,7 @@ describe('BuyNow', function () {
     await voyage.deposit(crab.address, 1, depositAmount);
     await priceOracle.updateTwap(crab.address, toWad(10));
     const vault = await voyage.getVault(owner);
-    const param = await voyage.previewBuyNowParams(crab.address);
+    const param = await voyage.previewBuyNowParams(crab.address, vault, 1000);
     console.log(param);
     await voyage.buyNow(
       crab.address,
