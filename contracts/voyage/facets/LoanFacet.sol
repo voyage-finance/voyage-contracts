@@ -202,7 +202,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
         }
 
         if (params.fv < params.totalPrincipal) {
-            revert InvalidPrincipal();
+            revert ExceedsFloorPrice();
         }
 
         // 2. get borrow params and borrow rate
@@ -679,4 +679,4 @@ error InvalidDebt();
 error InvalidLiquidate();
 error InvalidFloorPrice();
 error InvalidTokenid();
-error InvalidPrincipal();
+error ExceedsFloorPrice();
