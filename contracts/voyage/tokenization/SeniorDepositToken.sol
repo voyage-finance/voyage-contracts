@@ -50,7 +50,7 @@ contract SeniorDepositToken is VToken, IUnbondingToken {
 
         beforeWithdraw(_asset, shares);
 
-        pushWithdraw(_owner, shares);
+        pushWithdraw(_owner, shares, _asset);
 
         emit Withdraw(msg.sender, _receiver, _owner, _asset, shares);
     }
@@ -66,7 +66,7 @@ contract SeniorDepositToken is VToken, IUnbondingToken {
         asset = convertToAssets(_shares);
         beforeWithdraw(asset, _shares);
 
-        pushWithdraw(_owner, _shares);
+        pushWithdraw(_owner, _shares, asset);
 
         emit Withdraw(msg.sender, _receiver, _owner, asset, _shares);
     }
@@ -124,9 +124,14 @@ contract SeniorDepositToken is VToken, IUnbondingToken {
 
     /* --------------------------------- internal functions -------------------------------- */
 
-    function pushWithdraw(address _user, uint256 _shares) internal {
+    function pushWithdraw(
+        address _user,
+        uint256 _shares,
+        uint256 _amount
+    ) internal {
         unbondings[_user].shares += _shares;
-        unbondings[_user].maxUnderlying += convertToAssets(_shares);
+        // unbondings[_user].maxUnderlying += convertToAssets(_shares);
+        unbondings[_user].maxUnderlying += _amount;
         totalUnbonding += _shares;
     }
 
