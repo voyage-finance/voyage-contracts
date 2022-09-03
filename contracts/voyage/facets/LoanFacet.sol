@@ -44,9 +44,9 @@ contract LoanFacet is Storage, ReentrancyGuard {
         uint256 term;
         uint256 nper;
         uint256 totalPrincipal;
-        uint256 outstandingPrincipal;
         uint256 totalInterest;
         uint256 borrowRate;
+        uint256 cutRatio;
         uint256 protocolFee;
         uint256 loanId;
         PMT pmt;
@@ -114,8 +114,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
         (params.epoch, params.term) = reserveConf.getBorrowParams();
         params.nper = params.term / params.epoch;
 
-        params.outstandingPrincipal =
-            params.totalPrincipal -
+        uint256 outstandingPrincipal = params.totalPrincipal -
             params.totalPrincipal /
             params.nper;
 
@@ -130,7 +129,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
                 reserveData.currency,
                 reserveData.seniorDepositTokenAddress,
                 0,
-                params.outstandingPrincipal,
+                outstandingPrincipal,
                 borrowState.totalDebt
             );
 
@@ -147,9 +146,8 @@ contract LoanFacet is Storage, ReentrancyGuard {
             params.nper
         );
 
-        params.protocolFee = params.totalPrincipal.percentMul(
-            LibAppStorage.ds().protocolFee.cutRatio
-        );
+        params.cutRatio = LibAppStorage.ds().protocolFee.cutRatio;
+        params.protocolFee = params.totalPrincipal.percentMul(params.cutRatio);
         return params;
     }
 
