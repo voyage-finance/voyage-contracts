@@ -162,15 +162,11 @@ describe('BuyNow', function () {
     await voyage.deposit(crab.address, 1, depositAmount);
     await priceOracle.updateTwap(crab.address, toWad(10));
     const vault = await voyage.getVault(owner);
-<<<<<<< HEAD
-    const param = await voyage.previewBuyNowParams(crab.address, vault, 1000);
-=======
     const param = await voyage.previewBuyNowParams(
       crab.address,
       vault,
       10000000000
     );
->>>>>>> b828a0c (feat: return loan id for preview buyNow)
     console.log(param);
     await voyage.buyNow(
       crab.address,
