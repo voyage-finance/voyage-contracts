@@ -14,6 +14,7 @@ contract MarketplaceAdapterFacet is Storage {
     function purchase(
         address _marketplace,
         address _vault,
+        uint256 _value,
         bytes calldata _data
     ) external {
         if (msg.sender != address(this)) {
@@ -25,7 +26,7 @@ contract MarketplaceAdapterFacet is Storage {
             .adapterAddr;
         bytes memory data = IMarketPlaceAdapter(adapterAddr).execute(_data);
         bytes memory encodedData = abi.encode(_marketplace, data);
-        IVault(_vault).execute(encodedData);
+        IVault(_vault).execute(encodedData, _value);
     }
 
     function extractAssetInfo(address _marketplace, bytes calldata _data)

@@ -86,7 +86,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         bytes memory param = abi.encode(_vault, _msgSender(), _tokenId);
         bytes memory data = abi.encodePacked(selector, param);
         bytes memory encodedData = abi.encode(_collection, data);
-        IVault(_vault).execute(encodedData);
+        IVault(_vault).execute(encodedData, 0);
     }
 
     function transferCurrency(
@@ -105,7 +105,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         bytes memory param = abi.encode(_vault, _to, _amount);
         bytes memory data = abi.encodePacked(selector, param);
         bytes memory encodedData = abi.encode(_currency, data);
-        IVault(_vault).execute(encodedData);
+        IVault(_vault).execute(encodedData, 0);
     }
 
     /* ---------------------- view functions --------------------- */

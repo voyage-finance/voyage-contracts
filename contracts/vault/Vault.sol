@@ -65,7 +65,7 @@ interface IVault {
         address _weth
     ) external;
 
-    function execute(bytes calldata _data) external;
+    function execute(bytes calldata _data, uint256 _value) external payable;
 
     function refundGas(uint256 _amount, address _dst) external;
 
@@ -112,14 +112,18 @@ contract Vault is Initializable, IERC1271, IVault {
         IERC20(_weth).approve(_voyage, type(uint256).max);
     }
 
-    function execute(bytes calldata _data) external onlyAuthorised {
+    function execute(bytes calldata _data, uint256 _value)
+        external
+        payable
+        onlyAuthorised
+    {
         (address target, bytes memory data) = abi.decode(
             _data,
             (address, bytes)
         );
-        (bool success, bytes memory ret) = target.call(data);
+        (bool success, bytes memory ret) = target.call{value: _value}(data);
         if (!success) {
-            revert();
+            revert ExternalCallFailed(bytesToHex(ret));
         }
         emit Execute(address(this), target, data);
     }
@@ -248,8 +252,6 @@ contract Vault is Initializable, IERC1271, IVault {
         uint256 tokenId,
         bytes calldata data
     ) external returns (bytes4 ret) {
-        VaultFacet vf = VaultFacet(LibVaultStorage.ds().voyage);
-        // todo
         return this.onERC721Received.selector;
     }
 
@@ -370,7 +372,26 @@ contract Vault is Initializable, IERC1271, IVault {
         return _src == LibVaultStorage.ds().paymaster;
     }
 
+    function bytesToHex(bytes memory buffer)
+        internal
+        pure
+        returns (string memory)
+    {
+        // Fixed buffer size for hexadecimal convertion
+        bytes memory converted = new bytes(buffer.length * 2);
+
+        bytes memory _base = "0123456789abcdef";
+
+        for (uint256 i = 0; i < buffer.length; i++) {
+            converted[i * 2] = _base[uint8(buffer[i]) / _base.length];
+            converted[i * 2 + 1] = _base[uint8(buffer[i]) % _base.length];
+        }
+
+        return string(abi.encodePacked("0x", converted));
+    }
+
     error GasRefundFailed(address _paymaster);
+    error ExternalCallFailed(string);
     error UnAuthorised();
     error InvalidSubvaultAddress(address subvault);
     error InvalidTransfer(string reason);
