@@ -105,7 +105,7 @@ describe('BuyNow', function () {
         marketPlace.address,
         purchaseDataFromLooksRare
       )
-    ).to.be.revertedWithCustomError(voyage, 'InvalidPrincipal');
+    ).to.be.revertedWithCustomError(voyage, 'ExceedsFloorPrice');
   });
 
   it('Buy with sufficient credit limit should pass', async function () {
