@@ -48,6 +48,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
         uint256 totalInterest;
         uint256 borrowRate;
         uint256 protocolFee;
+        uint256 loanId;
         PMT pmt;
     }
 
@@ -91,16 +92,22 @@ contract LoanFacet is Storage, ReentrancyGuard {
         uint256[] collaterals
     );
 
-    function previewBuyNowParams(address _collection, uint256 _principal)
-        public
-        view
-        returns (PreviewBuyNowParams memory)
-    {
+    function previewBuyNowParams(
+        address _collection,
+        address _vault,
+        uint256 _principal
+    ) public view returns (PreviewBuyNowParams memory) {
         PreviewBuyNowParams memory params;
         params.totalPrincipal = _principal;
         ReserveData memory reserveData = LibLiquidity.getReserveData(
             _collection
         );
+        BorrowData storage borrowData = LibLoan.getBorrowData(
+            _collection,
+            reserveData.currency,
+            _vault
+        );
+        params.loanId = borrowData.nextLoanNumber;
         ReserveConfigurationMap memory reserveConf = LibReserveConfiguration
             .getConfiguration(_collection);
 
