@@ -270,7 +270,6 @@ contract LoanFacet is Storage, ReentrancyGuard {
             revert InsufficientCreditLimit();
         }
 
-        // 7.1 check if the vault has sufficient fund
         if (
             IERC20(reserveData.currency).balanceOf(params.vault) <
             params.downpayment
@@ -323,6 +322,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
         MarketplaceAdapterFacet(address(this)).purchase(
             params.marketplace,
             params.vault,
+            params.totalPrincipal,
             _data
         );
 
@@ -507,7 +507,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
                 abi.encode(param.vault, param.liquidator, collaterals[i])
             );
             bytes memory encodedData = abi.encode(param.collection, data);
-            IVault(_vault).execute(encodedData);
+            IVault(_vault).execute(encodedData, 0);
         }
 
         emit CollateralTransferred(

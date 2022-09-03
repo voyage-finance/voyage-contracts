@@ -8,7 +8,7 @@ contract MockMarketPlace {
     function matchAskWithTakerBidUsingETHAndWETH(
         TakerOrder calldata takerBid,
         MakerOrder calldata makerAsk
-    ) external {
+    ) external payable {
         console.log("in matchAskWithTakerBid");
     }
 }

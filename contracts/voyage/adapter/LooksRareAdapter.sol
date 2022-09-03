@@ -79,39 +79,12 @@ contract LooksRareAdapter is IMarketPlaceAdapter {
             );
     }
 
-    struct PurchaseParam {
-        address marketplace;
-        bytes4 selector;
-        bytes makerOrder;
-        bytes takerOrder;
-    }
-
     function extractAssetInfo(bytes calldata _data)
         external
         pure
         returns (AssetInfo memory assetInfo)
     {
-        PurchaseParam memory param;
-        (
-            param.marketplace,
-            param.selector,
-            param.makerOrder,
-            param.takerOrder
-        ) = abi.decode(_data, (address, bytes4, bytes, bytes));
-
-        TakerOrder memory takerOrder;
-        (
-            takerOrder.isOrderAsk,
-            takerOrder.taker,
-            takerOrder.price,
-            takerOrder.tokenId,
-            takerOrder.minPercentageToAsk,
-            takerOrder.params
-        ) = abi.decode(
-            param.takerOrder,
-            (bool, address, uint256, uint256, uint256, bytes)
-        );
-
+        (, TakerOrder memory takerOrder, ) = _decodeCalldata(_data);
         assetInfo.assetPrice = takerOrder.price;
         assetInfo.tokenId = takerOrder.tokenId;
 
@@ -128,15 +101,13 @@ contract LooksRareAdapter is IMarketPlaceAdapter {
         returns (bytes memory)
     {
         if (_validate(_data)) {
-            PurchaseParam memory param;
             (
-                param.marketplace,
-                param.selector,
-                param.makerOrder,
-                param.takerOrder
-            ) = abi.decode(_data, (address, bytes4, bytes, bytes));
-            bytes memory data = abi.encode(param.takerOrder, param.makerOrder);
-            data = abi.encodePacked(param.selector, data);
+                bytes4 selector,
+                TakerOrder memory takerOrder,
+                MakerOrder memory makerOrder
+            ) = _decodeCalldata(_data);
+            bytes memory data = abi.encode(takerOrder, makerOrder);
+            data = abi.encodePacked(selector, data);
             return data;
         }
         // use native error type here cause an ABI issue
@@ -144,18 +115,11 @@ contract LooksRareAdapter is IMarketPlaceAdapter {
     }
 
     function _validate(bytes calldata _data) private pure returns (bool) {
-        PurchaseParam memory param;
-        (
-            param.marketplace,
-            param.selector,
-            param.makerOrder,
-            param.takerOrder
-        ) = abi.decode(_data, (address, bytes4, bytes, bytes));
-
+        (bytes4 selector, , ) = _decodeCalldata(_data);
         // bytes4(keccak256(matchAskWithTakerBidUsingETHAndWETH()))
         // 0xb4e4b296
         if (
-            param.selector !=
+            selector !=
             ILooksRareExchange(address(0))
                 .matchAskWithTakerBidUsingETHAndWETH
                 .selector
@@ -163,5 +127,21 @@ contract LooksRareAdapter is IMarketPlaceAdapter {
             return false;
         }
         return true;
+    }
+
+    function _decodeCalldata(bytes calldata _data)
+        internal
+        pure
+        returns (
+            bytes4 selector,
+            TakerOrder memory takerOrder,
+            MakerOrder memory makerOrder
+        )
+    {
+        selector = bytes4(_data[0:4]);
+        (takerOrder, makerOrder) = abi.decode(
+            _data[4:],
+            (TakerOrder, MakerOrder)
+        );
     }
 }

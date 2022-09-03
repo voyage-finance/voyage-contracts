@@ -5,7 +5,7 @@ async function main() {
   const voyage = await ethers.getContract<Voyage>('Voyage');
   await voyage.updateMarketPlaceData(
     '0x1AA777972073Ff66DCFDeD85749bDD555C0665dA',
-    '0x84b46875338c38E99a29D66Ab59B49778A7B4793'
+    '0xB1559cf7fF5Da13589DBB041Dcf9Be9948D6d064'
   );
 }
 

@@ -1,8 +1,12 @@
 import { ethers } from 'hardhat';
 import { DeployFunction, Facet, FacetCut } from 'hardhat-deploy/types';
-import { Voyage } from 'typechain/Voyage';
 import { deployFacets, FacetCutAction, mergeABIs } from '../helpers/diamond';
 import { log } from '../helpers/logger';
+
+// rinkeby relay hub
+const DEFAULT_RELAY_HUB = '0x6650d69225CA31049DB7Bd210aE4671c0B1ca132';
+// rinkeby forwarder
+const DEFAULT_TRUSTED_FORWARDER = '0x83A54884bE4657706785D7309cf46B58FE5f6e8a';
 
 // These selectors are for DiamondCutFacet, DiamondLoupeFacet, and OwnershipFacet.
 // When deciding which facets to remove, these should be excluded as they are part of the diamond standard.
@@ -236,13 +240,14 @@ const deployFn: DeployFunction = async (hre) => {
       args: [existingProxyDeployment.address, weth9.address, treasury],
     });
 
-    const RELAY_HUB = process.env.RELAY_HUB || ethers.constants.AddressZero;
+    const RELAY_HUB = process.env.RELAY_HUB || DEFAULT_RELAY_HUB;
     await execute(
       'VoyagePaymaster',
       { from: owner, log: true },
       'setRelayHub',
       RELAY_HUB
     );
+    log.info('set paymaster relay hub to %s', RELAY_HUB);
 
     const vaultImpl = await deploy('Vault', {
       from: owner,
@@ -253,13 +258,14 @@ const deployFn: DeployFunction = async (hre) => {
     const FORWARDER =
       process.env.NODE_ENV === 'test'
         ? forwarder
-        : process.env.TRUSTED_FORWARDER || forwarder;
+        : process.env.TRUSTED_FORWARDER || DEFAULT_TRUSTED_FORWARDER;
     await execute(
       'VoyagePaymaster',
       { from: owner, log: true },
       'setTrustedForwarder',
       FORWARDER
     );
+    log.info('set paymaster forwarder to %s', FORWARDER);
 
     if (cuts.length > 0) {
       log.debug('Deploying InitDiamond');
@@ -267,7 +273,6 @@ const deployFn: DeployFunction = async (hre) => {
         from: owner,
         log: true,
         args: [],
-        gasLimit: ethers.BigNumber.from('8000000'),
       });
       const initDiamond = await ethers.getContract('InitDiamond');
       log.debug('Preparing InitDiamond call data');
@@ -306,7 +311,7 @@ const deployFn: DeployFunction = async (hre) => {
     }
 
     if (vaultImpl.newlyDeployed) {
-      execute(
+      await execute(
         'Voyage',
         { from: owner, log: true },
         'setVaultImpl',

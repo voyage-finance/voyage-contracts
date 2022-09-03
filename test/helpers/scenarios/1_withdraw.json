@@ -10,7 +10,7 @@
                 "args": {
                   "cname": "crab",
                   "tranche": "1",
-                  "amount": "1000000000000000000",
+                  "amount": "1000000000000",
                   "user": "0"
                 },
                 "expected": "success"
@@ -20,7 +20,7 @@
                 "args": {
                   "cname": "crab",
                   "tranche": "1",
-                  "amount": "1000000000000000000",
+                  "amount": "1000000000000",
                   "user": "0"
                 },
                 "expected": "success"
@@ -30,7 +30,7 @@
                 "args": {
                   "cname": "crab",
                   "tranche": "1",
-                  "amount": "100000000000000000",
+                  "amount": "100000000000",
                   "user": "0"
                 },
                 "expected": "success"

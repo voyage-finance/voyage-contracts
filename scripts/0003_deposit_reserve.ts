@@ -6,14 +6,17 @@ async function main() {
   const voyage = await ethers.getContract<Voyage>('Voyage');
   const weth = await ethers.getContract('WETH9');
   const crab = await ethers.getContract('Crab');
+  const collection = '0x6C5AE80Bcf0Ec85002FE8eb3Ce267232614127C0';
   // max approve voyage, for deposits
-  let tx = await weth.deposit({ value: ethers.utils.parseEther('1') });
+  let tx = await weth.deposit({ value: ethers.utils.parseEther('10000000') });
   await tx.wait();
   tx = await weth.approve(voyage.address, MAX_UINT_256);
   await tx.wait();
-  const depositAmount = ethers.BigNumber.from(500);
+  const depositAmount = ethers.utils.parseEther('10000');
 
-  tx = await voyage.deposit(crab.address, 1, depositAmount);
+  tx = await voyage.deposit(collection, 0, depositAmount);
+  await tx.wait();
+  tx = await voyage.deposit(collection, 1, depositAmount);
   await tx.wait();
 }
 

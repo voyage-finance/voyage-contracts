@@ -6,6 +6,11 @@ import { Voyage } from '../typechain/Voyage';
 import { deployFacets, FacetCutAction } from './diamond';
 import { decimals, MAX_UINT_256, toWad } from './math';
 import './wadraymath';
+import {
+  LooksRareExchangeAbi,
+  MakerOrderWithVRS,
+  TakerOrderWithEncodedParams,
+} from '@looksrare/sdk';
 
 const dec = decimals(18);
 
@@ -72,70 +77,67 @@ const setupBase = async ({
   const salt = ethers.utils.toUtf8Bytes('hw.kk@voyage.finance').slice(0, 42);
   await voyage.createVault(owner, salt);
   const deployedVault = await voyage.getVault(owner);
+  // fund vault for first payment
+  const tx = {
+    to: deployedVault,
+    value: ethers.utils.parseEther('100'),
+  };
+  const ownerSigner = await ethers.getSigner(owner);
+  const createReceipt = await ownerSigner.sendTransaction(tx);
+  await createReceipt.wait();
   await weth.transfer(deployedVault, toWad(10));
   await weth.approve(deployedVault, MAX_UINT_256);
   const abiCoder = ethers.utils.defaultAbiCoder;
-  const looksRareMakerOrderData = abiCoder.encode(
-    [
-      'bool',
-      'address',
-      'address',
-      'uint256',
-      'uint256',
-      'uint256',
-      'address',
-      'address',
-      'uint256',
-      'uint256',
-      'uint256',
-      'uint256',
-      'bytes',
-      'uint8',
-      'bytes32',
-      'bytes32',
-    ],
-    [
-      true,
-      owner,
-      crab.address,
-      1000,
-      1,
-      1,
-      alice,
-      weth.address,
-      1,
-      1,
-      1,
-      1,
-      ethers.utils.arrayify('0x1234'),
-      1,
-      ethers.utils.arrayify(
-        '0x66fdd5e25ef9ddb305ba3c2aae1856ab9c6f2979000000000000000000000000'
-      ),
-      ethers.utils.arrayify(
-        '0x66fdd5e25ef9ddb305ba3c2aae1856ab9c6f2979000000000000000000000000'
-      ),
-    ]
-  );
-  const floorPrice = toWad(10);
-  const takerOrderData = abiCoder.encode(
-    ['bool', 'address', 'uint256', 'uint256', 'uint256', 'bytes'],
-    [
-      true,
-      deployedVault,
-      floorPrice,
-      1,
-      1,
-      ethers.utils.arrayify(
-        '0x66fdd5e25ef9ddb305ba3c2aae1856ab9c6f2979000000000000000000000000'
-      ),
-    ]
-  );
-  const purchaseDataFromLooksRare = abiCoder.encode(
-    ['address', 'bytes4', 'bytes', 'bytes'],
-    [marketPlace.address, '0xb4e4b296', looksRareMakerOrderData, takerOrderData]
-  );
 
+  /// todo delete
+  var input =
+    '5369676e61747572653a20496e76616c69640000000000000000000000000000';
+
+  const output = Buffer.from(input, 'hex');
+  console.log(input + ' -> ' + output);
+
+  const provider = new ethers.providers.AlchemyProvider(
+    'rinkeby',
+    process.env.RINKEBY_API_KEY
+  );
+  const LOOKS_EXCHANGE_RINKEBY = '0x1AA777972073Ff66DCFDeD85749bDD555C0665dA';
+  const looks = new ethers.Contract(
+    LOOKS_EXCHANGE_RINKEBY,
+    LooksRareExchangeAbi,
+    provider
+  );
+  const looksRareMakerOrderData: MakerOrderWithVRS = {
+    isOrderAsk: true,
+    signer: '0xAc786F3E609eeBC3830A26881bd026B6b9211ae2',
+    collection: '0xd10E39Afe133eF729aE7f4266B26d173BC5AD1B1',
+    price: toWad(10),
+    tokenId: '1',
+    amount: 1,
+    strategy: '0x732319A3590E4fA838C111826f9584a9A2fDEa1a',
+    currency: '0xc778417E063141139Fce010982780140Aa0cD5Ab',
+    nonce: ethers.constants.Zero,
+    startTime: 1661852317,
+    endTime: 1662457076,
+    minPercentageToAsk: 9800,
+    params: ethers.utils.defaultAbiCoder.encode([], []),
+    v: 27,
+    r: '0x66f2bf329cf885420596359ed1b435ef3ffe3b35efcbf10854b393724482369b',
+    s: '0x6db5028edf4f90eba89576e8181a4b4051ae9053b08b0dfb5c0fd6c580b73f66',
+  };
+  const looksRareTakerOrderData: TakerOrderWithEncodedParams = {
+    isOrderAsk: false,
+    taker: deployedVault,
+    price: looksRareMakerOrderData.price,
+    tokenId: looksRareMakerOrderData.tokenId,
+    minPercentageToAsk: 9800,
+    params: ethers.utils.defaultAbiCoder.encode([], []),
+  };
+  const purchaseDataFromLooksRare = (
+    await looks.populateTransaction.matchAskWithTakerBidUsingETHAndWETH(
+      looksRareTakerOrderData,
+      looksRareMakerOrderData
+    )
+  ).data!;
   const basicOrderParameters = abiCoder.encode(
     [
       'address',
