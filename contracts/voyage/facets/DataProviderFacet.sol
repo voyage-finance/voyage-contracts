@@ -41,7 +41,6 @@ contract DataProviderFacet {
 
     struct UserPoolData {
         uint256 juniorTrancheBalance;
-        uint256 withdrawableJuniorTrancheBalance;
         uint256 seniorTrancheBalance;
         uint256 withdrawableSeniorTrancheBalance;
         uint256 decimals;
@@ -143,14 +142,11 @@ contract DataProviderFacet {
         );
         uint256 seniorTrancheTotalBalance = seniorTrancheWithdrawable +
             seniorTrancheUnbonding;
-        uint256 juniorTrancheWithdrawable = LibLiquidity.balance(
+        userPoolData.juniorTrancheBalance = LibLiquidity.balance(
             _collection,
             _user,
             Tranche.JUNIOR
         );
-        userPoolData.juniorTrancheBalance = juniorTrancheWithdrawable;
-        userPoolData
-            .withdrawableJuniorTrancheBalance = juniorTrancheWithdrawable;
         userPoolData.seniorTrancheBalance = seniorTrancheTotalBalance;
         userPoolData
             .withdrawableSeniorTrancheBalance = seniorTrancheWithdrawable;
