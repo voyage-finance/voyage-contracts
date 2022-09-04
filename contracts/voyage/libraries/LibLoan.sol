@@ -33,7 +33,6 @@ struct ExecuteBuyNowParams {
     uint256 availableLiquidity;
     uint256 totalSeniorBalance;
     uint256 totalJuniorBalance;
-    uint256 currentLiquidityRatio;
     uint256 totalPending;
     uint256 loanId;
     PMT pmt;
