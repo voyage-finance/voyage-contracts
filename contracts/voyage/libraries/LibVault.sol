@@ -4,7 +4,7 @@ pragma solidity ^0.8.9;
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {LibAppStorage, AppStorage, BorrowData, NFTInfo, DiamondFacet, ReserveConfigurationMap} from "./LibAppStorage.sol";
+import {LibAppStorage, AppStorage, RepayRecord, BorrowData, NFTInfo, DiamondFacet, ReserveConfigurationMap} from "./LibAppStorage.sol";
 import {LibReserveConfiguration} from "./LibReserveConfiguration.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
@@ -78,11 +78,26 @@ library LibVault {
         uint256 _fv
     ) internal view returns (uint256) {
         AppStorage storage s = LibAppStorage.ds();
-        uint256 rep = s._borrowState[_collection][_currency].repaidTimes[
-            _vault
-        ];
+        RepayRecord memory repayRecord = s
+        ._borrowState[_collection][_currency].repayRecord[_vault];
+        uint256 rep;
+        if (repayRecord.repaidTimes > repayRecord.defaultTimes) {
+            rep = repayRecord.repaidTimes - repayRecord.defaultTimes;
+        }
         uint256 scaledRep = (rep + 1) * 1e18;
         uint256 multiplier = LogarithmMath.log2(scaledRep) + 1;
         return _fv * multiplier;
+    }
+
+    function slashRep(
+        address _vault,
+        address _collection,
+        address _currency
+    ) internal {
+        AppStorage storage s = LibAppStorage.ds();
+        s
+        ._borrowState[_collection][_currency]
+            .repayRecord[_vault]
+            .defaultTimes += 1;
     }
 }
