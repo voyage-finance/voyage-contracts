@@ -33,6 +33,15 @@ describe('Reserve configuration', async () => {
       .withArgs(weth.address, incomeRatio);
   });
 
+  it('should be able to set a valid optimal ratio', async () => {
+    const { weth, voyage } = await setupTestSuite();
+    // 0.5
+    const optimalRatio = ethers.BigNumber.from(5000);
+    await expect(voyage.setOptimalLiquidityRatio(weth.address, optimalRatio))
+      .to.emit(voyage, 'OptimalLiquidityRatioUpdated')
+      .withArgs(weth.address, optimalRatio);
+  });
+
   it('should revert if income ratio exceeds 100%', async () => {
     const { weth, voyage } = await setupTestSuite();
     // 1.001
@@ -40,6 +49,14 @@ describe('Reserve configuration', async () => {
     await expect(
       voyage.setIncomeRatio(weth.address, incomeRatio)
     ).to.be.revertedWithCustomError(voyage, 'InvalidIncomeRatio');
+  });
+
+  it('should revert if optimal ratio exceeds 4294967296', async () => {
+    const { weth, voyage } = await setupTestSuite();
+    const optimalRatio = ethers.BigNumber.from(4294967297);
+    await expect(
+      voyage.setOptimalLiquidityRatio(weth.address, optimalRatio)
+    ).to.be.revertedWithCustomError(voyage, 'InvalidOptimalRatio');
   });
 
   it('should set valid loan parameters', async () => {

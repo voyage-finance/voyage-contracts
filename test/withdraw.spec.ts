@@ -44,6 +44,7 @@ describe('Withdraw', function () {
     } = await setupTestSuite();
     const amount = ethers.BigNumber.from(100).mul(decimals(18));
     await voyage.deposit(crab.address, 1, amount);
+    await voyage.deposit(crab.address, 0, amount);
     const vault = await voyage.getVaultAddr(owner);
     await priceOracle.updateTwap(crab.address, toWad(10));
     await voyage.buyNow(
@@ -144,6 +145,7 @@ describe('Withdraw', function () {
     await seniorDepositToken.approve(voyage.address, MAX_UINT_256);
     await juniorDepositToken.approve(voyage.address, MAX_UINT_256);
     const amount = ethers.BigNumber.from(100).mul(decimals(18));
+    await voyage.deposit(crab.address, 0, amount);
     await voyage.deposit(crab.address, 1, amount);
 
     const maxWithdrawBefore = await seniorDepositToken.maxWithdraw(owner);
@@ -217,6 +219,7 @@ describe('Withdraw', function () {
     await seniorDepositToken.approve(voyage.address, MAX_UINT_256);
     await juniorDepositToken.approve(voyage.address, MAX_UINT_256);
     const amount = ethers.BigNumber.from(100).mul(decimals(18));
+    await voyage.deposit(crab.address, 0, amount);
     await voyage.deposit(crab.address, 1, amount);
 
     const maxWithdrawBefore = await seniorDepositToken.maxWithdraw(owner);
