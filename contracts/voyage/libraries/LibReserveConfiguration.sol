@@ -9,15 +9,16 @@ import {ReserveData, ReserveConfigurationMap, AppStorage, LibAppStorage} from ".
  * @notice Implements the bitmap logic to handle the reserve configuration, inspired by Aave
  **/
 library LibReserveConfiguration {
-    uint256 constant internal LIQUIDATION_BONUS_MASK =  0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000; // prettier-ignore
-    uint256 constant internal DECIMAL_MASK =            0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00FFFF; // prettier-ignore
-    uint256 constant internal ACTIVE_MASK =             0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFF; // prettier-ignore
-    uint256 constant internal FROZEN_MASK =             0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFDFFFFFF; // prettier-ignore
-    uint256 constant internal BORROWING_ENABLE_MASK =   0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBFFFFFF; // prettier-ignore
-    uint256 constant internal INCOME_RATIO_MASK =       0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
-    uint256 constant internal LOAN_INTERVAL_MASK =      0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
-    uint256 constant internal LOAN_TERM_MASK =          0xFFFFFFFFFFFFFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
-    uint256 constant internal GRACE_PERIOD_MASK =       0xFFFFFFFFFFFFFFFFFFFFFFF00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
+    uint256 constant internal LIQUIDATION_BONUS_MASK =       0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000; // prettier-ignore
+    uint256 constant internal DECIMAL_MASK =                 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00FFFF; // prettier-ignore
+    uint256 constant internal ACTIVE_MASK =                  0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFF; // prettier-ignore
+    uint256 constant internal FROZEN_MASK =                  0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFDFFFFFF; // prettier-ignore
+    uint256 constant internal BORROWING_ENABLE_MASK =        0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBFFFFFF; // prettier-ignore
+    uint256 constant internal INCOME_RATIO_MASK =            0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
+    uint256 constant internal LOAN_INTERVAL_MASK =           0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
+    uint256 constant internal LOAN_TERM_MASK =               0xFFFFFFFFFFFFFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
+    uint256 constant internal GRACE_PERIOD_MASK =            0xFFFFFFFFFFFFFFFFFFFFFFF00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
+    uint256 constant internal OPTIMAL_LIQUIDITY_RATIO_MASK = 0xFFFFFFFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
 
     uint256 internal constant DECIMAL_MASK_BIT_POSITION = 16;
     uint256 internal constant ACTIVE_MASK_BIT_POSITION = 24;
@@ -28,6 +29,7 @@ library LibReserveConfiguration {
     uint256 internal constant LOAN_INTERVAL_MASK_BIT_POSITION = 132;
     uint256 internal constant LOAN_TERM_MASK_BIT_POSITION = 140;
     uint256 internal constant GRACE_PERIOD_MASK_BIT_POSITION = 156;
+    uint256 internal constant OPTIMAL_LIQUIDITY_RATIO_MASK_BIT_POSITION = 164;
 
     uint256 internal constant MAX_VALID_LIQUIDATION_BONUS = 65535; // percentage
     uint256 internal constant MAX_VALID_DECIMALS = 255;
@@ -35,6 +37,7 @@ library LibReserveConfiguration {
     uint256 internal constant MAX_VALID_LOAN_INTERVAL = 255; // days
     uint256 internal constant MAX_VALID_LOAN_TERM = 65535; // days
     uint256 internal constant MAX_VALID_GRACE_PERIOD = 255; // days
+    uint256 internal constant MAX_VALID_OPTIMAL_RATIO = type(uint32).max; // percentage
 
     error InvalidLiquidationBonus();
     error InvalidDecimals();
@@ -42,6 +45,7 @@ library LibReserveConfiguration {
     error InvalidLoanInterval();
     error InvalidLoanTerm();
     error InvalidGracePeriod();
+    error InvalidOptimalRatio();
 
     event LiquidationConfigurationUpdated(
         address indexed _asset,
@@ -153,6 +157,29 @@ library LibReserveConfiguration {
     {
         return
             (self.data & ~INCOME_RATIO_MASK) >> INCOME_RATIO_MASK_BIT_POSITION;
+    }
+
+    function setOptimalLiquidityRatio(
+        ReserveConfigurationMap memory self,
+        uint256 ratio
+    ) internal pure {
+        if (ratio > MAX_VALID_OPTIMAL_RATIO) {
+            revert InvalidOptimalRatio();
+        }
+
+        self.data =
+            (self.data & OPTIMAL_LIQUIDITY_RATIO_MASK) |
+            (ratio << OPTIMAL_LIQUIDITY_RATIO_MASK_BIT_POSITION);
+    }
+
+    function getOptimalLiquidityRatio(ReserveConfigurationMap memory self)
+        internal
+        pure
+        returns (uint256)
+    {
+        return
+            (self.data & ~OPTIMAL_LIQUIDITY_RATIO_MASK) >>
+            OPTIMAL_LIQUIDITY_RATIO_MASK_BIT_POSITION;
     }
 
     function setLoanInterval(

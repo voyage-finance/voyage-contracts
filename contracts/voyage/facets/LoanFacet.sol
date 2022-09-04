@@ -163,7 +163,6 @@ contract LoanFacet is Storage, ReentrancyGuard {
         params.tokenId = _tokenId;
         params.vault = _vault;
         params.marketplace = _marketplace;
-
         ReserveData memory reserveData = LibLiquidity.getReserveData(
             params.collection
         );
@@ -215,18 +214,39 @@ contract LoanFacet is Storage, ReentrancyGuard {
             params.totalPrincipal /
             params.nper;
 
-        // 3. check if available liquidity sufficient
-        params.totalPending = IUnbondingToken(
-            reserveData.seniorDepositTokenAddress
-        ).totalUnbondingAsset();
-        params.totalBalance = IERC20(reserveData.currency).balanceOf(
+        // 3.0 get liquidity of senior tranche and junior tranche
+        params.totalSeniorBalance = IERC20(reserveData.currency).balanceOf(
             reserveData.seniorDepositTokenAddress
         );
 
-        if (params.totalPending >= params.totalBalance) {
+        params.totalJuniorBalance = IERC20(reserveData.currency).balanceOf(
+            reserveData.juniorDepositTokenAddress
+        );
+
+        // 3.1 junior tranche cannot be 0
+        if (params.totalJuniorBalance == 0) {
+            revert InvalidJuniorTrancheBalance();
+        }
+
+        if (
+            params.totalJuniorBalance.percentDiv(
+                reserveConf.getOptimalLiquidityRatio()
+            ) < params.outstandingPrincipal
+        ) {
+            revert InsufficientJuniorLiquidity();
+        }
+
+        // 3.2 check if available liquidity sufficient
+        params.totalPending = IUnbondingToken(
+            reserveData.seniorDepositTokenAddress
+        ).totalUnbondingAsset();
+
+        if (params.totalPending >= params.totalSeniorBalance) {
             revert InsufficientCash();
         }
-        params.availableLiquidity = params.totalBalance - params.totalPending;
+        params.availableLiquidity =
+            params.totalSeniorBalance -
+            params.totalPending;
 
         if (params.availableLiquidity < params.outstandingPrincipal) {
             revert InsufficientLiquidity();
@@ -673,10 +693,13 @@ contract LoanFacet is Storage, ReentrancyGuard {
 error Unauthorised();
 error InsufficientCash();
 error InsufficientLiquidity();
+error InsufficientJuniorLiquidity();
 error InsufficientVaultBalance();
 error InsufficientCreditLimit();
 error InvalidDebt();
 error InvalidLiquidate();
 error InvalidFloorPrice();
 error InvalidTokenid();
+error InvalidPrincipal();
+error InvalidJuniorTrancheBalance();
 error ExceedsFloorPrice();

@@ -45,7 +45,7 @@ describe('BuyNow', function () {
     ).to.be.revertedWithCustomError(voyage, 'InvalidTokenid');
   });
 
-  it('Buy with insufficient liquidity should revert', async function () {
+  it('Buy with insufficient senior liquidity should revert', async function () {
     const {
       crab,
       owner,
@@ -56,6 +56,8 @@ describe('BuyNow', function () {
     } = await setupTestSuite();
     await priceOracle.updateTwap(crab.address, toWad(10));
     const vault = await voyage.getVault(owner);
+    const juniorDeposit = toWad(50);
+    await voyage.deposit(crab.address, 0, juniorDeposit);
     await expect(
       voyage.buyNow(
         crab.address,
@@ -80,6 +82,41 @@ describe('BuyNow', function () {
         purchaseDataFromLooksRare
       )
     ).to.be.revertedWithCustomError(voyage, 'InvalidFloorPrice');
+  });
+
+  it('Buy with insufficient junior liquidity should revert', async function () {
+    const {
+      crab,
+      owner,
+      voyage,
+      priceOracle,
+      marketPlace,
+      purchaseDataFromLooksRare,
+    } = await setupTestSuite();
+    const depositAmount = toWad(120);
+    await voyage.deposit(crab.address, 1, depositAmount);
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    const vault = await voyage.getVault(owner);
+    await expect(
+      voyage.buyNow(
+        crab.address,
+        1,
+        vault,
+        marketPlace.address,
+        purchaseDataFromLooksRare
+      )
+    ).to.be.revertedWithCustomError(voyage, 'InvalidJuniorTrancheBalance');
+
+    await voyage.deposit(crab.address, 0, toWad(1));
+    await expect(
+      voyage.buyNow(
+        crab.address,
+        1,
+        vault,
+        marketPlace.address,
+        purchaseDataFromLooksRare
+      )
+    ).to.be.revertedWithCustomError(voyage, 'InsufficientJuniorLiquidity');
   });
 
   it('Buy with invalid principal should revert', async function () {
