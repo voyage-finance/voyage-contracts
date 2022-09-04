@@ -88,7 +88,7 @@ struct Loan {
     // interest paid
     uint256 totalInterestPaid;
     RepaymentData[] repayments;
-    // size pf repayments
+    // size of repayments
     uint40 paidTimes;
     uint256[] collateral;
 }
@@ -108,13 +108,18 @@ struct BorrowData {
     mapping(uint256 => Loan) loans;
 }
 
+struct RepayRecord {
+    uint256 repaidTimes;
+    uint256 defaultTimes;
+}
+
 struct BorrowState {
     uint256 totalDebt;
     uint256 totalInterest;
     uint256 totalSeniorInterest;
     uint256 totalJuniorInterest;
     uint256 avgBorrowRate;
-    mapping(address => uint256) repaidTimes;
+    mapping(address => RepayRecord) repayRecord;
 }
 
 struct ProtocolFee {

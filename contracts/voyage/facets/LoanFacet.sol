@@ -559,6 +559,9 @@ contract LoanFacet is Storage, ReentrancyGuard {
             param.loanId
         );
 
+        // 7. slash Rep
+        LibVault.slashRep(param.vault, param.collection, param.currency);
+
         emit Repayment(
             _msgSender(),
             param.vault,

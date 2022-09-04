@@ -347,8 +347,8 @@ library LibLoan {
             .nftIndex[param.collection][collaterals[i]].isCollateral = false;
         }
         delete debtData.loans[param.loanNumber];
-        borrowState.repaidTimes[param.vault] =
-            borrowState.repaidTimes[param.vault] +
+        borrowState.repayRecord[param.vault].repaidTimes =
+            borrowState.repayRecord[param.vault].repaidTimes +
             1;
     }
 
