@@ -75,7 +75,7 @@ describe('Liquidity Rate', function () {
     const vault = await voyage.getVault(owner);
 
     const seniorDepositAmount = '50000000000000000000';
-    const juniorDepositAmount = '10000000000000000000';
+    const juniorDepositAmount = '50000000000000000000';
 
     await voyage.deposit(crab.address, 0, juniorDepositAmount);
     await voyage.deposit(crab.address, 1, seniorDepositAmount);

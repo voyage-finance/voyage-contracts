@@ -14,6 +14,10 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
         uint256 _liquidationBonus
     );
     event IncomeRatioUpdated(address indexed _collection, uint256 _incomeRatio);
+    event OptimalLiquidityRatioUpdated(
+        address indexed _collection,
+        uint256 _optimalRatio
+    );
     event LoanParametersUpdated(
         address indexed _collection,
         uint256 _epoch,
@@ -47,6 +51,17 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
         conf.setIncomeRatio(_ratio);
         LibReserveConfiguration.saveConfiguration(_collection, conf);
         emit IncomeRatioUpdated(_collection, _ratio);
+    }
+
+    function setOptimalLiquidityRatio(address _collection, uint256 _ratio)
+        external
+        authorised
+    {
+        ReserveConfigurationMap memory conf = LibReserveConfiguration
+            .getConfiguration(_collection);
+        conf.setOptimalLiquidityRatio(_ratio);
+        LibReserveConfiguration.saveConfiguration(_collection, conf);
+        emit OptimalLiquidityRatioUpdated(_collection, _ratio);
     }
 
     function setLoanParams(
