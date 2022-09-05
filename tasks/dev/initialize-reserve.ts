@@ -29,6 +29,12 @@ task('dev:initialize-reserve', 'Initializes a reserve.')
     types.int
   )
   .addOptionalParam(
+    'protocolFee',
+    'The protocol fee expressed in basis points.',
+    100,
+    types.int
+  )
+  .addOptionalParam(
     'floorPrice',
     'The collection floor price',
     '0.5',
@@ -37,6 +43,7 @@ task('dev:initialize-reserve', 'Initializes a reserve.')
   .setAction(async (params, hre) => {
     await hre.run('set-hre');
     const { ethers } = hre;
+    const { owner } = await hre.getNamedAccounts();
     const voyage = await ethers.getContract<Voyage>('Voyage');
     const mc = await ethers.getContract('Crab');
     const weth = await ethers.getContract('WETH9');
@@ -52,6 +59,7 @@ task('dev:initialize-reserve', 'Initializes a reserve.')
       liquidationBonus,
       incomeRatio,
       optimalLiquidityRatio,
+      protocolFee,
       floorPrice,
     } = params;
     const [initialized, activated] = await voyage.getReserveStatus(collection);
@@ -84,12 +92,15 @@ task('dev:initialize-reserve', 'Initializes a reserve.')
       .setLoanParams(collection, epoch, tenure, grace)
       .then((tx) => tx.wait());
     await voyage.setOptimalLiquidityRatio(collection, optimalLiquidityRatio);
+    await voyage.updateProtocolFee(owner, protocolFee);
 
     console.log(`setLoanParams: 
 - epoch: ${epoch}
 - tenure: ${tenure}
 - gracePeriod: ${grace}
-- optimalLiquidityRatio: ${optimalLiquidityRatio}`);
+- optimalLiquidityRatio: ${optimalLiquidityRatio}
+- protocolFee: ${protocolFee}
+`);
 
     if (!activated) {
       await voyage.activateReserve(mc.address).then((tx) => tx.wait());
