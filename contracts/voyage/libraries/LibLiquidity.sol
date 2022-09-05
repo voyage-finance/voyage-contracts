@@ -116,6 +116,15 @@ library LibLiquidity {
         return s._reserveData[_collection];
     }
 
+    function getTakeRateAndTreasuryAddr()
+        internal
+        view
+        returns (uint256, address)
+    {
+        AppStorage storage s = LibAppStorage.ds();
+        return (s.protocolFee.takeRate, s.protocolFee.treasuryAddress);
+    }
+
     function getReserveList() internal view returns (address[] memory) {
         AppStorage storage s = LibAppStorage.ds();
         address[] memory reserveList = new address[](s._reservesCount);

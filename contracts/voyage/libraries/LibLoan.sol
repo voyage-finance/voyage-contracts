@@ -19,6 +19,8 @@ struct ExecuteBuyNowParams {
     uint256 totalPrincipal;
     uint256 totalInterest;
     uint256 incomeRatio;
+    uint256 takeRate;
+    address treasury;
     uint256 totalDebt;
     uint256 outstandingPrincipal;
     uint256 outstandingInterest;
@@ -479,11 +481,24 @@ library LibLoan {
 
     function distributeInterest(
         ReserveData memory reserveData,
-        uint256 interest,
+        uint256 interestAndFee,
         address sender,
-        uint256 incomeRatio
+        uint256 incomeRatio,
+        uint256 takeRatio,
+        address treasury
     ) internal {
-        uint256 seniorInterest = interest.percentMul(incomeRatio);
+        uint256 totalInterest = interestAndFee.percentMul(
+            PercentageMath.PERCENTAGE_FACTOR - takeRatio
+        );
+        uint256 protocolFee = interestAndFee - totalInterest;
+        uint256 seniorInterest = totalInterest.percentMul(incomeRatio);
+
+        IERC20(reserveData.currency).safeTransferFrom(
+            sender,
+            treasury,
+            protocolFee
+        );
+
         IERC20(reserveData.currency).safeTransferFrom(
             sender,
             reserveData.seniorDepositTokenAddress,
@@ -493,7 +508,7 @@ library LibLoan {
         IERC20(reserveData.currency).safeTransferFrom(
             sender,
             reserveData.juniorDepositTokenAddress,
-            interest - seniorInterest
+            totalInterest - seniorInterest
         );
     }
 
