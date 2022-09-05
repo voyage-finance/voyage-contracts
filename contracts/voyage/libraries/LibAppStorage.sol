@@ -76,6 +76,7 @@ struct Loan {
     uint40 nper;
     // cache of reserve data
     uint256 incomeRatio;
+    uint256 takeRatio;
     // the amount to be repaid per instalment (principal + interest)
     PMT pmt;
     // the borrow rate of this loan

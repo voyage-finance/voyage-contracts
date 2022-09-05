@@ -37,6 +37,8 @@ contract LoanFacet is Storage, ReentrancyGuard {
         uint256 total;
         uint256 totalDebt;
         uint256 incomeRatio;
+        uint256 takeRate;
+        address treasury;
     }
 
     struct PreviewBuyNowParams {
@@ -266,6 +268,8 @@ contract LoanFacet is Storage, ReentrancyGuard {
         params.incomeRatio = LibReserveConfiguration
             .getConfiguration(params.collection)
             .getIncomeRatio();
+        (params.takeRate, params.treasury) = LibLiquidity
+            .getTakeRateAndTreasuryAddr();
         (params.loanId, params.pmt, params.totalInterest) = LibLoan.initDebt(
             borrowState,
             borrowData,
@@ -297,31 +301,23 @@ contract LoanFacet is Storage, ReentrancyGuard {
             revert InsufficientVaultBalance();
         }
 
-        // 7.2 protocol fee
-        uint256 protocolFee = params.totalPrincipal.percentMul(
-            LibAppStorage.ds().protocolFee.takeRate
-        );
-        IERC20(reserveData.currency).safeTransferFrom(
-            _msgSender(),
-            LibAppStorage.ds().protocolFee.treasuryAddress,
-            protocolFee
-        );
-
-        // 8.1 transfer money to this
+        // 7. transfer money to this
         IVToken(reserveData.seniorDepositTokenAddress).transferUnderlyingTo(
             address(this),
             params.outstandingPrincipal
         );
 
-        // 8.2 distrubute interest before unwrap weth to eth
+        // 8. distrubute interest before unwrap weth to eth
         LibLoan.distributeInterest(
             reserveData,
             params.pmt.interest,
             _msgSender(),
-            params.incomeRatio
+            params.incomeRatio,
+            params.takeRate,
+            params.treasury
         );
 
-        // 8.3 unwrap weth
+        // 9. unwrap weth
         PaymentsFacet(address(this)).unwrapWETH9(
             params.outstandingPrincipal,
             address(this)
@@ -332,7 +328,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
             params.outstandingPrincipal
         );
 
-        // 9. purchase nft
+        // 10. purchase nft
         (params.pmt.principal, params.pmt.interest) = LibLoan.getPMT(
             params.collection,
             reserveData.currency,
@@ -346,7 +342,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
             _data
         );
 
-        // 10. first payment
+        // 11. first payment
         BorrowData storage debtData = LibLoan.getBorrowData(
             params.collection,
             reserveData.currency,
@@ -404,6 +400,8 @@ contract LoanFacet is Storage, ReentrancyGuard {
             _vault,
             _loan
         );
+        (params.takeRate, params.treasury) = LibLiquidity
+            .getTakeRateAndTreasuryAddr();
 
         // 2. update repay data
         (uint256 repaymentId, bool isFinal) = LibLoan.repay(
@@ -418,7 +416,9 @@ contract LoanFacet is Storage, ReentrancyGuard {
             reserveData,
             params.interest,
             _msgSender(),
-            params.incomeRatio
+            params.incomeRatio,
+            params.takeRate,
+            params.treasury
         );
 
         IERC20(reserveData.currency).safeTransferFrom(

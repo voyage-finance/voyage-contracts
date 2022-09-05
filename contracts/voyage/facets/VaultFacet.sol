@@ -157,7 +157,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         return LibVault.subVaultBeacon();
     }
 
-    function getVaultAddr(address _user) external view returns (address) {
+    function getVaultAddr(address _user) public view returns (address) {
         return LibVault.getVaultAddress(_user);
     }
 
