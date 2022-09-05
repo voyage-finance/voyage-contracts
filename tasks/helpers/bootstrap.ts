@@ -82,6 +82,12 @@ task('dev:bootstrap', 'Bootstraps a reserve, vault, and user balances')
       sender: user,
     });
 
+    console.log(`Wrapping WETH for user ${user}\n`);
+    await run('dev:deposit-weth', { sender: user });
+
+    console.log(`Approving Voyage to spend WETH for ${user}\n`);
+    await run('dev:approve-weth', { approver: user });
+
     console.log(`Creating vault for user ${user}\n`);
     await run('dev:create-vault', { user });
 
