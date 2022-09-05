@@ -103,11 +103,11 @@ contract LiquidityFacet is Storage, ReentrancyGuard {
         LibReserveConfiguration.saveConfiguration(_collection, config);
     }
 
-    function updateProtocolFee(address _treasuryAddr, uint40 _cutRatio)
+    function updateProtocolFee(address _treasuryAddr, uint40 _takeRate)
         external
         authorised
     {
-        LibLiquidity.updateProtocolFee(_treasuryAddr, _cutRatio);
+        LibLiquidity.updateProtocolFee(_treasuryAddr, _takeRate);
     }
 
     function upgradePriceOracleImpl(address _collection, address _priceOracle)
