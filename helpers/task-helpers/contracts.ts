@@ -29,6 +29,7 @@ export async function getExternalContracts() {
 export async function getMarketplaceAdapterConfiguration() {
   const { ethers } = HRE;
   const chainId = parseInt(await HRE.getChainId());
+  if (chainId === 31337 && !process.env.HARDHAT_DEPLOY_FORK) return [];
   const contracts = externalContracts[chainId];
   const looksAdapter = await ethers.getContract('LooksRareAdapter');
   const seaportAdapter = await ethers.getContract('SeaportAdapter');
