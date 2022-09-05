@@ -186,9 +186,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
             params.vault
         );
 
-        params.totalOutstandingDebt =
-            borrowData.totalPrincipal +
-            borrowData.totalInterest;
+        params.totalOutstandingDebt = borrowData.totalPrincipal;
 
         // 0. check if the user owns the vault
         if (LibVault.getVaultAddress(_msgSender()) != params.vault) {
@@ -287,9 +285,6 @@ contract LoanFacet is Storage, ReentrancyGuard {
         // 5. calculate downpayment and outstanding interest and debt
         params.downpayment = params.pmt.principal;
         params.outstandingInterest = params.totalInterest - params.pmt.interest;
-        params.outstandingDebt =
-            params.outstandingPrincipal +
-            params.outstandingInterest;
 
         // 6. check credit limit against with outstanding debt
         params.maxCreditLimit = LibVault.getCreditLimit(
@@ -307,7 +302,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
             params.maxCreditLimit -
             params.totalOutstandingDebt;
 
-        if (params.availableCreditLimit < params.outstandingDebt) {
+        if (params.availableCreditLimit < params.outstandingPrincipal) {
             revert InsufficientCreditLimit();
         }
 
