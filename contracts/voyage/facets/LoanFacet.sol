@@ -32,6 +32,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
     uint256 public immutable TEN_THOUSANDS = 10000;
 
     struct ExecuteRepayParams {
+        address vault;
         uint256 principal;
         uint256 interest;
         uint256 total;
@@ -311,7 +312,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
         LibLoan.distributeInterest(
             reserveData,
             params.pmt.interest,
-            _msgSender(),
+            params.vault,
             params.incomeRatio,
             params.takeRate,
             params.treasury
@@ -382,6 +383,8 @@ contract LoanFacet is Storage, ReentrancyGuard {
             revert Unauthorised();
         }
 
+        params.vault = _vault;
+
         // 1. check draw down to get principal and interest
         (params.principal, params.interest) = LibLoan.getPMT(
             _collection,
@@ -415,14 +418,14 @@ contract LoanFacet is Storage, ReentrancyGuard {
         LibLoan.distributeInterest(
             reserveData,
             params.interest,
-            _msgSender(),
+            params.vault,
             params.incomeRatio,
             params.takeRate,
             params.treasury
         );
 
         IERC20(reserveData.currency).safeTransferFrom(
-            _msgSender(),
+            params.vault,
             reserveData.seniorDepositTokenAddress,
             params.principal
         );
