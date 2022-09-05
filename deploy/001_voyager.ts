@@ -240,6 +240,7 @@ const deployFn: DeployFunction = async (hre) => {
       log: true,
       args: [existingProxyDeployment.address, weth9.address, treasury],
     });
+    const PAYMASTER = process.env.PAYMASTER || paymaster.address;
 
     const RELAY_HUB = process.env.RELAY_HUB || DEFAULT_RELAY_HUB;
     await execute(
@@ -288,7 +289,7 @@ const deployFn: DeployFunction = async (hre) => {
           ownershipFacet: ownershipFacet.address,
           weth9: weth9.address,
           trustedForwarder: FORWARDER,
-          paymaster: paymaster.address,
+          paymaster: PAYMASTER,
         },
       ]);
 
