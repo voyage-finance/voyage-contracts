@@ -22,6 +22,8 @@ struct Unbonding {
 contract SeniorDepositToken is VToken, IUnbondingToken {
     using SafeERC20 for IERC20Metadata;
 
+    event Claim(address indexed owner, uint256 assets, uint256 shares);
+
     mapping(address => Unbonding) public unbondings;
 
     uint256 public totalUnbonding;
@@ -72,27 +74,25 @@ contract SeniorDepositToken is VToken, IUnbondingToken {
     }
 
     function claim() public {
-        uint256 maxClaimable = claimable(msg.sender);
-        uint256 totalCash = asset.balanceOf(address(this));
-        if (totalCash >= maxClaimable) {
-            resetUnbondingPosition(msg.sender);
-            asset.safeTransfer(msg.sender, maxClaimable);
-        } else {
-            reduceUnbondingPosition(msg.sender, totalCash);
-            asset.safeTransfer(msg.sender, totalCash);
-        }
-    }
-
-    function maximumClaimable(address _user) public view returns (uint256) {
-        uint256 totalCash = asset.balanceOf(address(this));
-        uint256 claimable = claimable(_user);
-        return claimable < totalCash ? claimable : totalCash;
+        (uint256 assets, uint256 shares) = getAssetAndShareReductionForClaim(
+            msg.sender
+        );
+        reduceUnbondingPosition(msg.sender, assets, shares);
+        _burn(msg.sender, shares);
+        asset.safeTransfer(msg.sender, assets);
+        emit Claim(msg.sender, assets, shares);
     }
 
     function claimable(address _user) public view returns (uint256) {
         uint256 maxUnderlying = unbondings[_user].maxUnderlying;
         uint256 previewRedeem = previewRedeem(unbondings[_user].shares);
         return maxUnderlying < previewRedeem ? maxUnderlying : previewRedeem;
+    }
+
+    function maximumClaimable(address _user) public view returns (uint256) {
+        uint256 totalCash = asset.balanceOf(address(this));
+        uint256 claimable = claimable(_user);
+        return claimable < totalCash ? claimable : totalCash;
     }
 
     function balanceOf(address account)
@@ -135,19 +135,30 @@ contract SeniorDepositToken is VToken, IUnbondingToken {
         totalUnbonding += _shares;
     }
 
-    function resetUnbondingPosition(address _user) internal {
-        _burn(_user, unbondings[_user].shares);
-        totalUnbonding -= unbondings[_user].shares;
-        unbondings[_user].shares = 0;
-        unbondings[_user].maxUnderlying = 0;
+    function getAssetAndShareReductionForClaim(address _user)
+        internal
+        view
+        returns (uint256 assets, uint256 shares)
+    {
+        uint256 maxClaimable = claimable(msg.sender);
+        uint256 totalCash = asset.balanceOf(address(this));
+        if (totalCash >= maxClaimable) {
+            assets = maxClaimable;
+            shares = unbondings[_user].shares;
+        } else {
+            assets = totalCash;
+            shares = previewWithdraw(totalCash);
+        }
     }
 
-    function reduceUnbondingPosition(address _user, uint256 _amount) internal {
-        uint256 shares = previewWithdraw(_amount);
-        _burn(_user, shares);
-        unbondings[_user].shares -= shares;
-        totalUnbonding -= shares;
-        unbondings[_user].maxUnderlying -= _amount;
+    function reduceUnbondingPosition(
+        address _user,
+        uint256 _assets,
+        uint256 _shares
+    ) internal {
+        unbondings[_user].shares -= _shares;
+        unbondings[_user].maxUnderlying -= _assets;
+        totalUnbonding -= _shares;
     }
 
     /* --------------------------------- external functions -------------------------------- */
