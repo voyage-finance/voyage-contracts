@@ -3,7 +3,7 @@ import { task, types } from 'hardhat/config';
 
 task('dev:configure-oracle', 'Sets the twap for the given collection.')
   .addOptionalParam('collection', 'The collection to update twap for')
-  .addOptionalParam('twap', 'The twap to set', '1', types.string)
+  .addOptionalParam('twap', 'The twap to set', '0.1', types.string)
   .setAction(async (params, hre) => {
     await hre.run('set-hre');
     const { ethers } = hre;

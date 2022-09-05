@@ -68,7 +68,7 @@ const config: HardhatUserConfig = {
       accounts: {
         mnemonic: HARDHAT_MNEMONIC,
         accountsBalance: ethers.utils
-          .parseEther('10000000000000000')
+          .parseEther('10000000000000000000000')
           .toString(),
       },
       mining:

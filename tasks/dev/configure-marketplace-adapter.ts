@@ -13,6 +13,8 @@ task(
     if (!params.disableMock) {
       const mockMarketplace = await hre.ethers.getContract('MockMarketPlace');
       const looksAdapter = await hre.ethers.getContract('LooksRareAdapter');
+      console.log(`looks adapter: ${looksAdapter.address}`);
+      console.log(`mock marketplace: ${mockMarketplace.address}`);
       adapterConfiguration.push({
         marketplace: mockMarketplace.address,
         adapter: looksAdapter.address,
