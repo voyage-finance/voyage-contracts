@@ -53,6 +53,7 @@ struct ReserveConfigurationMap {
 struct PMT {
     uint256 principal;
     uint256 interest;
+    uint256 fee;
     uint256 pmt;
 }
 
@@ -68,6 +69,7 @@ struct RepaymentData {
 struct Loan {
     uint256 principal;
     uint256 interest;
+    uint256 protocolFee;
     // the total intended length of the loan in seconds - e.g., 90 days
     uint40 term;
     // the repayment interval - e.g., 30 days
