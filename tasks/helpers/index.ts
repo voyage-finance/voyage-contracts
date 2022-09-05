@@ -9,5 +9,6 @@ import './fund-vault';
 import './buy-now';
 import './loan-list';
 import './repay-loan';
+import './approve-weth';
 import './bootstrap';
 import './set-hre';
