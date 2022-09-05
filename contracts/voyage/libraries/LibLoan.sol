@@ -28,7 +28,6 @@ struct ExecuteBuyNowParams {
     uint256 totalDebt;
     uint256 outstandingPrincipal;
     uint256 outstandingInterest;
-    uint256 outstandingDebt;
     uint256 fv;
     uint256 timestamp;
     uint40 term;
