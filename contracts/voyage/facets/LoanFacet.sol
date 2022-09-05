@@ -35,6 +35,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
         address vault;
         uint256 principal;
         uint256 interest;
+        uint256 fee;
         uint256 total;
         uint256 totalDebt;
         uint256 incomeRatio;
@@ -143,14 +144,16 @@ contract LoanFacet is Storage, ReentrancyGuard {
             params.nper
         );
 
+        params.takeRate = LibAppStorage.ds().protocolFee.takeRate;
+        params.protocolFee = params.totalPrincipal.percentMul(params.takeRate);
+
         params.pmt = LibLoan.previewPMT(
             params.totalPrincipal,
             params.totalInterest,
+            params.protocolFee,
             params.nper
         );
 
-        params.takeRate = LibAppStorage.ds().protocolFee.takeRate;
-        params.protocolFee = params.totalPrincipal.percentMul(params.takeRate);
         return params;
     }
 
@@ -308,13 +311,18 @@ contract LoanFacet is Storage, ReentrancyGuard {
             params.outstandingPrincipal
         );
 
-        // 8. distrubute interest before unwrap weth to eth
+        // 8. distrubute interest and protocol fee before unwrap weth to eth
         LibLoan.distributeInterest(
             reserveData,
             params.pmt.interest,
             params.vault,
-            params.incomeRatio,
-            params.takeRate,
+            params.incomeRatio
+        );
+
+        LibLoan.distributeProtocolFee(
+            reserveData,
+            params.pmt.fee,
+            params.vault,
             params.treasury
         );
 
@@ -330,12 +338,14 @@ contract LoanFacet is Storage, ReentrancyGuard {
         );
 
         // 10. purchase nft
-        (params.pmt.principal, params.pmt.interest) = LibLoan.getPMT(
-            params.collection,
-            reserveData.currency,
-            params.vault,
-            params.loanId
-        );
+        (params.pmt.principal, params.pmt.interest, params.pmt.fee) = LibLoan
+            .getPMT(
+                params.collection,
+                reserveData.currency,
+                params.vault,
+                params.loanId
+            );
+
         MarketplaceAdapterFacet(address(this)).purchase(
             params.marketplace,
             params.vault,
@@ -386,7 +396,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
         params.vault = _vault;
 
         // 1. check draw down to get principal and interest
-        (params.principal, params.interest) = LibLoan.getPMT(
+        (params.principal, params.interest, params.fee) = LibLoan.getPMT(
             _collection,
             reserveData.currency,
             _vault,
@@ -419,8 +429,14 @@ contract LoanFacet is Storage, ReentrancyGuard {
             reserveData,
             params.interest,
             params.vault,
-            params.incomeRatio,
-            params.takeRate,
+            params.incomeRatio
+        );
+
+        // 4. distribute fee
+        LibLoan.distributeProtocolFee(
+            reserveData,
+            params.fee,
+            params.vault,
             params.treasury
         );
 
@@ -492,7 +508,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
         }
 
         // 3 get pmt info
-        (param.principal, param.interest) = LibLoan.getPMT(
+        (param.principal, param.interest, param.fee) = LibLoan.getPMT(
             param.collection,
             param.currency,
             param.vault,

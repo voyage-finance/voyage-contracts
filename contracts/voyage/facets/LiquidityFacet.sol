@@ -46,6 +46,8 @@ contract LiquidityFacet is Storage, ReentrancyGuard {
         uint256 amount
     );
 
+    event ProtocolFeeUpdated(address indexed _treasury, uint256 _fee);
+
     /* ----------------------------- admin interface ---------------------------- */
     function initReserve(
         address _collection,
@@ -108,6 +110,7 @@ contract LiquidityFacet is Storage, ReentrancyGuard {
         authorised
     {
         LibLiquidity.updateProtocolFee(_treasuryAddr, _takeRate);
+        emit ProtocolFeeUpdated(_treasuryAddr, _takeRate);
     }
 
     function upgradePriceOracleImpl(address _collection, address _priceOracle)

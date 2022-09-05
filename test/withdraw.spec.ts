@@ -179,13 +179,13 @@ describe('Withdraw', function () {
       .sub(underlyingAssetAfterBuyNow)
       .add(toWad(0.075));
 
-    expect(underlyingAssetBorrowed).to.equal('6668166666666666667');
+    expect(underlyingAssetBorrowed).to.equal('6666666666666666667');
 
     const maxWithdrawAfter = await seniorDepositToken.maxWithdraw(owner);
     // underlying balance + total outstanding principal + total outstanding senior interest
     // which is total principal + total interest
     // 100(principal) + 0.075(interest)
-    expect(maxWithdrawAfter).to.equal(toWad(100.0735));
+    expect(maxWithdrawAfter).to.equal(toWad(100.075));
 
     await seniorDepositToken.withdraw(maxWithdrawAfter, owner, owner);
     const sharesAfter = await seniorDepositToken.balanceOf(owner);
@@ -193,13 +193,13 @@ describe('Withdraw', function () {
 
     // 100 - 66.667 + 075
     const maxClaimable = await seniorDepositToken.maximumClaimable(owner);
-    expect(maxClaimable).to.equal('93406833333333333333');
+    expect(maxClaimable).to.equal('93408333333333333333');
 
     const balanceBeforeClaim = await weth.balanceOf(owner);
     await seniorDepositToken.claim();
     const balanceAfterClaim = await weth.balanceOf(owner);
     expect(balanceAfterClaim.sub(balanceBeforeClaim)).to.equal(
-      '93406833333333333333'
+      '93408333333333333333'
     );
     expect(await seniorDepositToken.maximumClaimable(owner)).to.equal(0);
   });
@@ -242,7 +242,7 @@ describe('Withdraw', function () {
     // underlying balance + total outstanding principal + (total outstanding interest)
     // which is total principal + total interest
     // 100(principal) + 0.075(interest)
-    expect(maxWithdrawAfter).to.equal(toWad(100.0735));
+    expect(maxWithdrawAfter).to.equal(toWad(100.075));
 
     await seniorDepositToken.withdraw(maxWithdrawAfter, owner, owner);
     const sharesAfter = await seniorDepositToken.balanceOf(owner);
@@ -250,7 +250,7 @@ describe('Withdraw', function () {
 
     // 100 - 66.667 + 0.075
     const maxClaimable = await seniorDepositToken.maximumClaimable(owner);
-    expect(maxClaimable).to.equal('93406833333333333333');
+    expect(maxClaimable).to.equal('93408333333333333333');
 
     const maxWithdrawBeforeTransfer = await seniorDepositToken.maxWithdraw(
       owner
@@ -264,16 +264,16 @@ describe('Withdraw', function () {
     expect(maxWithdrawAfterTransfer).to.equal(0);
 
     let maxClaimableAfter = await seniorDepositToken.maximumClaimable(owner);
-    expect(maxClaimableAfter).to.equal(toWad(100.0735));
+    expect(maxClaimableAfter).to.equal(toWad(100.075));
 
     // transfer again
     await weth.transfer(seniorDepositToken.address, toWad(100));
     maxClaimableAfter = await seniorDepositToken.maximumClaimable(owner);
-    expect(maxClaimableAfter).to.equal(toWad(100.0735));
+    expect(maxClaimableAfter).to.equal(toWad(100.075));
 
     const balanceBeforeClaim = await weth.balanceOf(owner);
     await seniorDepositToken.claim();
     const balanceAfterClaim = await weth.balanceOf(owner);
-    expect(balanceAfterClaim.sub(balanceBeforeClaim)).to.equal(toWad(100.0735));
+    expect(balanceAfterClaim.sub(balanceBeforeClaim)).to.equal(toWad(100.075));
   });
 });
