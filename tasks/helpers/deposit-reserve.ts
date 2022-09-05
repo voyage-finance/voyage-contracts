@@ -1,15 +1,17 @@
 import { deposit } from '@helpers/task-helpers/liquidity';
-import { task } from 'hardhat/config';
-
-enum Tranche {
-  Junior,
-  Senior,
-}
+import { Tranche } from '@helpers/types';
+import { task, types } from 'hardhat/config';
 
 task('dev:deposit-reserve', 'deposits to the specified reserve')
   .addOptionalParam('reserve', 'The reserve to deposit to.')
-  .addOptionalParam('tranche', 'The tranche to deposit to.')
+  .addOptionalParam(
+    'tranche',
+    'The tranche to deposit to.',
+    Tranche.Senior,
+    types.int
+  )
   .addOptionalParam('amount', 'The amount to be deposited in ETH.')
+  .addOptionalParam('sender', 'The sender to use. Defaults to first account.')
   .setAction(async (params, hre) => {
     await hre.run('set-hre');
     const { ethers } = hre;
@@ -17,9 +19,10 @@ task('dev:deposit-reserve', 'deposits to the specified reserve')
     const collection = await ethers.getContract('Crab');
     const {
       reserve = collection.address,
-      tranche = Tranche.Senior,
+      tranche,
+      sender = owner,
       amount,
     } = params;
-    await deposit(reserve, tranche, ethers.utils.parseEther(amount), owner);
+    await deposit(reserve, tranche, ethers.utils.parseEther(amount), sender);
     console.log(`Deposited ${amount} to tranche ${tranche}`);
   });

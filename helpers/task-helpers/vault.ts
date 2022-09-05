@@ -16,6 +16,7 @@ export async function fund(vault: string, amount: BigNumber, sender: string) {
   if (balance.lt(amount)) {
     await weth9.deposit({ value: amount.sub(balance) });
   }
+  await signer.sendTransaction({ to: vault, value: amount });
   const tx = await weth9.transferFrom(sender, vault, amount);
   const receipt = await tx.wait();
   return receipt;

@@ -22,6 +22,18 @@ task('dev:initialize-reserve', 'Initializes a reserve.')
     5000,
     types.int
   )
+  .addOptionalParam(
+    'optimalLiquidityRatio',
+    'The optimal senior:junior tranche liquidity in basis points.',
+    50000,
+    types.int
+  )
+  .addOptionalParam(
+    'floorPrice',
+    'The collection floor price',
+    '0.5',
+    types.string
+  )
   .setAction(async (params, hre) => {
     await hre.run('set-hre');
     const { ethers } = hre;
@@ -39,6 +51,8 @@ task('dev:initialize-reserve', 'Initializes a reserve.')
       grace,
       liquidationBonus,
       incomeRatio,
+      optimalLiquidityRatio,
+      floorPrice,
     } = params;
     const [initialized, activated] = await voyage.getReserveStatus(collection);
 
@@ -49,35 +63,42 @@ task('dev:initialize-reserve', 'Initializes a reserve.')
     if (!initialized) {
       await voyage
         .initReserve(
-          mc.address,
+          collection,
           weth.address,
           interestRateStrategy.address,
           oracle.address
         )
         .then((tx) => tx.wait());
-      console.log('initialized reserve');
+      console.log(`Initialized reserve ${collection}`);
     }
 
     await voyage
-      .setLiquidationBonus(mc.address, liquidationBonus)
+      .setLiquidationBonus(collection, liquidationBonus)
       .then((tx) => tx.wait());
     console.log(`setLiquidationBonus: ${liquidationBonus}`);
     await voyage
-      .setIncomeRatio(mc.address, incomeRatio)
+      .setIncomeRatio(collection, incomeRatio)
       .then((tx) => tx.wait());
     console.log(`setIncomeRatio: ${incomeRatio}`);
     await voyage
-      .setLoanParams(mc.address, epoch, tenure, grace)
+      .setLoanParams(collection, epoch, tenure, grace)
       .then((tx) => tx.wait());
+    await voyage.setOptimalLiquidityRatio(collection, optimalLiquidityRatio);
+
     console.log(`setLoanParams: 
 - epoch: ${epoch}
 - tenure: ${tenure}
-- gracePeriod: ${grace}`);
+- gracePeriod: ${grace}
+- optimalLiquidityRatio: ${optimalLiquidityRatio}`);
 
     if (!activated) {
       await voyage.activateReserve(mc.address).then((tx) => tx.wait());
     }
 
     // set twap
-    await setTwap({ collection, twap: hre.ethers.utils.parseEther('0.0001') });
+    await setTwap({
+      collection,
+      twap: hre.ethers.utils.parseEther(floorPrice),
+    });
+    console.log(`Set floor price for ${collection} to ${floorPrice}`);
   });

@@ -28,7 +28,7 @@
     "./tasks",
     "./test",
     "./typings/**/*.d.ts",
-    "./contract-types/**/*"
+    "./contract-types/**/*.ts"
   ],
   "ts-node": {
     "compilerOptions": {

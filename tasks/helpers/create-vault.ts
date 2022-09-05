@@ -16,7 +16,9 @@ task(
     let vaultAddress = await voyage.getVault(user);
     if (vaultAddress === ethers.constants.AddressZero) {
       console.log(
-        `${user} does not have a vault. Creating vault with salt ${salt}`
+        `${user} does not have a vault. Creating vault with salt ${ethers.utils.hexlify(
+          salt
+        )}`
       );
       const tx = await voyage.createVault(user, salt);
       await tx.wait();
