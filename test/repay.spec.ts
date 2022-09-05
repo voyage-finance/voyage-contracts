@@ -61,25 +61,15 @@ describe('Repay', function () {
       ']'
     );
 
-    await voyage.buyNow(
-      crab.address,
-      1,
-      vault,
-      marketPlace.address,
-      purchaseDataFromLooksRare
-    );
-    await crab.safeMint(vault, 2);
-
-    const vaultData2 = await voyage.getCreditLineData(vault, crab.address);
-
-    console.log('total debt: ', vaultData2.totalDebt.toString());
-    console.log(
-      'draw down list: [',
-      vaultData2.loanList.head.toString(),
-      ',',
-      vaultData2.loanList.tail.toString(),
-      ']'
-    );
+    await expect(
+      voyage.buyNow(
+        crab.address,
+        1,
+        vault,
+        marketPlace.address,
+        purchaseDataFromLooksRare
+      )
+    ).to.be.revertedWithCustomError(voyage, 'InsufficientCreditLimit');
 
     const loanDetail00 = await voyage.getLoanDetail(vault, crab.address, 0);
     console.log('draw down 00: ');

@@ -54,13 +54,6 @@ describe('Withdraw', function () {
       marketPlace.address,
       purchaseDataFromLooksRare
     );
-    await voyage.buyNow(
-      crab.address,
-      1,
-      vault,
-      marketPlace.address,
-      purchaseDataFromLooksRare
-    );
     const tenDay = 10 * 24 * 60 * 60;
 
     await ethers.provider.send('evm_increaseTime', [tenDay]);

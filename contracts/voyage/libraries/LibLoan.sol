@@ -22,6 +22,9 @@ struct ExecuteBuyNowParams {
     uint256 incomeRatio;
     uint256 takeRate;
     address treasury;
+    uint256 maxCreditLimit;
+    uint256 totalOutstandingDebt;
+    uint256 availableCreditLimit;
     uint256 totalDebt;
     uint256 outstandingPrincipal;
     uint256 outstandingInterest;

@@ -186,6 +186,10 @@ contract LoanFacet is Storage, ReentrancyGuard {
             params.vault
         );
 
+        params.totalOutstandingDebt =
+            borrowData.totalPrincipal +
+            borrowData.totalInterest;
+
         // 0. check if the user owns the vault
         if (LibVault.getVaultAddress(_msgSender()) != params.vault) {
             revert Unauthorised();
@@ -288,13 +292,22 @@ contract LoanFacet is Storage, ReentrancyGuard {
             params.outstandingInterest;
 
         // 6. check credit limit against with outstanding debt
-        uint256 availableCreditLimit = LibVault.getCreditLimit(
+        params.maxCreditLimit = LibVault.getCreditLimit(
             params.vault,
             params.collection,
             reserveData.currency,
             params.fv
         );
-        if (availableCreditLimit < params.outstandingDebt) {
+
+        if (params.maxCreditLimit < params.totalOutstandingDebt) {
+            revert InsufficientMaxCreditLimit();
+        }
+
+        params.availableCreditLimit =
+            params.maxCreditLimit -
+            params.totalOutstandingDebt;
+
+        if (params.availableCreditLimit < params.outstandingDebt) {
             revert InsufficientCreditLimit();
         }
 
@@ -717,6 +730,7 @@ error InsufficientCash();
 error InsufficientLiquidity();
 error InsufficientJuniorLiquidity();
 error InsufficientVaultBalance();
+error InsufficientMaxCreditLimit();
 error InsufficientCreditLimit();
 error InvalidDebt();
 error InvalidLiquidate();
