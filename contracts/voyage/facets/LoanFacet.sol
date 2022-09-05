@@ -46,7 +46,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
         uint256 totalPrincipal;
         uint256 totalInterest;
         uint256 borrowRate;
-        uint256 cutRatio;
+        uint256 takeRate;
         uint256 protocolFee;
         uint256 loanId;
         PMT pmt;
@@ -146,8 +146,8 @@ contract LoanFacet is Storage, ReentrancyGuard {
             params.nper
         );
 
-        params.cutRatio = LibAppStorage.ds().protocolFee.cutRatio;
-        params.protocolFee = params.totalPrincipal.percentMul(params.cutRatio);
+        params.takeRate = LibAppStorage.ds().protocolFee.takeRate;
+        params.protocolFee = params.totalPrincipal.percentMul(params.takeRate);
         return params;
     }
 
@@ -299,7 +299,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
 
         // 7.2 protocol fee
         uint256 protocolFee = params.totalPrincipal.percentMul(
-            LibAppStorage.ds().protocolFee.cutRatio
+            LibAppStorage.ds().protocolFee.takeRate
         );
         IERC20(reserveData.currency).safeTransferFrom(
             _msgSender(),

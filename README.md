@@ -63,7 +63,7 @@ Manage liquidity pool, provide interfaces for users to deposit and withdraw curr
 | ---------------------- | ---------------------------------------------------------------------------- | ----------- | ----------------------------------------------------------- |
 | `initReserve`      | Init a new reserve | `authorised` | `address _collection, address _currency, address _interestRateStrategyAddress, address _priceOracle` |
 | `activateReserve`      | Active a reserve | `authorised` | `address _collection` |
-| `updateProtocolFee`      | Update treasury address and cut ratio | `authorised` | `address _treasuryAddr, uint40 _cutRatio` |
+| `updateProtocolFee`      | Update treasury address and cut ratio | `authorised` | `address _treasuryAddr, uint40 _takeRate` |
 | `upgradePriceOracleImpl`      | Update the implementation address of PriceOracle contract, see [UpgradeableBeacon](https://docs.openzeppelin.com/contracts/3.x/api/proxy) pattern | `authorised` | `address _collection, address _priceOracle` |
 | `updateWETH9`      | Update weth9 contract address | `authorised` | `address _weth9` |
 | `deposit`      | Deposit liquidity to a specific pool base on collection address | `N/A` | `address _collection, Tranche _tranche, uint256 _amount` |

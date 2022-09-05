@@ -86,12 +86,12 @@ library LibLiquidity {
     }
 
     /* --------------------------- fee management --------------------------- */
-    function updateProtocolFee(address _treasuryAddr, uint40 _cutRatio)
+    function updateProtocolFee(address _treasuryAddr, uint40 _takeRate)
         internal
     {
         AppStorage storage s = LibAppStorage.ds();
         s.protocolFee.treasuryAddress = _treasuryAddr;
-        s.protocolFee.cutRatio = _cutRatio;
+        s.protocolFee.takeRate = _takeRate;
     }
 
     /* ------------------------ state mutation functions ------------------------ */
@@ -104,7 +104,7 @@ library LibLiquidity {
     /* ----------------------------- view functions ----------------------------- */
     function getProtocolFee() internal view returns (address, uint256) {
         AppStorage storage s = LibAppStorage.ds();
-        return (s.protocolFee.treasuryAddress, s.protocolFee.cutRatio);
+        return (s.protocolFee.treasuryAddress, s.protocolFee.takeRate);
     }
 
     function getReserveData(address _collection)

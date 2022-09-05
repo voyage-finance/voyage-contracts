@@ -225,6 +225,6 @@ contract DataProviderFacet {
 
     function getProtocolFeeParam() public view returns (address, uint256) {
         AppStorage storage s = LibAppStorage.ds();
-        return (s.protocolFee.treasuryAddress, s.protocolFee.cutRatio);
+        return (s.protocolFee.treasuryAddress, s.protocolFee.takeRate);
     }
 }

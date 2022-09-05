@@ -124,7 +124,7 @@ struct BorrowState {
 
 struct ProtocolFee {
     address treasuryAddress;
-    uint40 cutRatio; // express in Ray
+    uint40 takeRate; // express in Ray
 }
 
 struct Authorisation {
