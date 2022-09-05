@@ -18,6 +18,7 @@ struct ExecuteBuyNowParams {
     address vault;
     uint256 totalPrincipal;
     uint256 totalInterest;
+    uint256 fee;
     uint256 incomeRatio;
     uint256 takeRate;
     address treasury;
@@ -49,6 +50,7 @@ struct ExecuteLiquidateParams {
     uint256 repaymentId;
     uint256 principal;
     uint256 interest;
+    uint256 fee;
     uint256 totalDebt;
     uint256 remaningDebt;
     uint256 discount;
@@ -193,7 +195,12 @@ library LibLoan {
         Loan storage loan = borrowData.loans[currentLoanNumber];
         updateLoan(loan, param);
 
-        pmt = previewPMT(loan.principal, loan.interest, loan.nper);
+        pmt = previewPMT(
+            loan.principal,
+            loan.interest,
+            loan.protocolFee,
+            loan.nper
+        );
         loan.pmt = pmt;
 
         loan.collateral.push(param.tokenId);
@@ -386,6 +393,7 @@ library LibLoan {
             loan.epoch,
             loan.nper
         );
+        loan.protocolFee = loan.principal.percentMul(loan.takeRatio);
     }
 
     function previewInterest(
@@ -402,11 +410,13 @@ library LibLoan {
     function previewPMT(
         uint256 principal,
         uint256 interest,
+        uint256 fee,
         uint256 nper
     ) internal pure returns (PMT memory) {
         PMT memory pmt;
         pmt.principal = principal / nper;
         pmt.interest = interest / nper;
+        pmt.fee = fee / nper;
         pmt.pmt = pmt.principal + pmt.interest;
         return pmt;
     }
@@ -481,23 +491,11 @@ library LibLoan {
 
     function distributeInterest(
         ReserveData memory reserveData,
-        uint256 interestAndFee,
+        uint256 interest,
         address sender,
-        uint256 incomeRatio,
-        uint256 takeRatio,
-        address treasury
+        uint256 incomeRatio
     ) internal {
-        uint256 totalInterest = interestAndFee.percentMul(
-            PercentageMath.PERCENTAGE_FACTOR - takeRatio
-        );
-        uint256 protocolFee = interestAndFee - totalInterest;
-        uint256 seniorInterest = totalInterest.percentMul(incomeRatio);
-
-        IERC20(reserveData.currency).safeTransferFrom(
-            sender,
-            treasury,
-            protocolFee
-        );
+        uint256 seniorInterest = interest.percentMul(incomeRatio);
 
         IERC20(reserveData.currency).safeTransferFrom(
             sender,
@@ -508,8 +506,17 @@ library LibLoan {
         IERC20(reserveData.currency).safeTransferFrom(
             sender,
             reserveData.juniorDepositTokenAddress,
-            totalInterest - seniorInterest
+            interest - seniorInterest
         );
+    }
+
+    function distributeProtocolFee(
+        ReserveData memory reserveData,
+        uint256 fee,
+        address sender,
+        address treasury
+    ) internal {
+        IERC20(reserveData.currency).safeTransferFrom(sender, treasury, fee);
     }
 
     /* ----------------------------- view functions ----------------------------- */
@@ -591,12 +598,20 @@ library LibLoan {
         address _currency,
         address _vault,
         uint256 _loan
-    ) internal view returns (uint256, uint256) {
+    )
+        internal
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256
+        )
+    {
         AppStorage storage s = LibAppStorage.ds();
         Loan storage loan = s._borrowData[_collection][_currency][_vault].loans[
             _loan
         ];
-        return (loan.pmt.principal, loan.pmt.interest);
+        return (loan.pmt.principal, loan.pmt.interest, loan.pmt.fee);
     }
 
     function getIncomeRatio(
