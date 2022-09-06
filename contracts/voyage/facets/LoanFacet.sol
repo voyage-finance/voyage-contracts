@@ -205,6 +205,15 @@ contract LoanFacet is Storage, ReentrancyGuard {
             reserveData.priceOracle.implementation()
         ).getTwap(params.collection);
 
+        ReserveConfigurationMap memory reserveConf = LibReserveConfiguration
+            .getConfiguration(params.collection);
+        if (
+            (block.timestamp - params.timestamp) >
+            reserveConf.getMaxTwapStaleness()
+        ) {
+            revert BuyNowStaleTwap();
+        }
+
         if (params.fv == 0) {
             revert InvalidFloorPrice();
         }
@@ -214,8 +223,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
         }
 
         // 2. get borrow params and borrow rate
-        ReserveConfigurationMap memory reserveConf = LibReserveConfiguration
-            .getConfiguration(params.collection);
+
         (params.epoch, params.term) = reserveConf.getBorrowParams();
         params.nper = params.term / params.epoch;
         params.outstandingPrincipal =
@@ -733,3 +741,5 @@ error InvalidTokenid();
 error InvalidPrincipal();
 error InvalidJuniorTrancheBalance();
 error ExceedsFloorPrice();
+error BuyNowStaleTwap();
+error LiquidateStaleTwap();

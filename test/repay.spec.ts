@@ -36,6 +36,7 @@ describe('Repay', function () {
     console.log('senior liquidity: ', seniorLiquidity.toString());
     console.log('junior liquidity: ', juniorLiquidity.toString());
     await priceOracle.updateTwap(crab.address, toWad(10));
+    await voyage.setMaxTwapStaleness(crab.address, '100000000000');
     await voyage.buyNow(
       crab.address,
       1,

@@ -70,9 +70,16 @@ describe('BuyNow', function () {
   });
 
   it('Buy with invalid floor price should revert', async function () {
-    const { crab, owner, voyage, purchaseDataFromLooksRare, marketPlace } =
-      await setupTestSuite();
+    const {
+      crab,
+      owner,
+      voyage,
+      purchaseDataFromLooksRare,
+      marketPlace,
+      priceOracle,
+    } = await setupTestSuite();
     const vault = await voyage.getVault(owner);
+    await priceOracle.updateTwap(crab.address, 0);
     await expect(
       voyage.buyNow(
         crab.address,
