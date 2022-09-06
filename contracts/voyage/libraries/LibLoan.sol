@@ -190,12 +190,13 @@ library LibLoan {
         returns (
             uint256 loanId,
             PMT memory pmt,
-            uint256 totalInterest
+            uint256 totalInterest,
+            uint256 protocolFee
         )
     {
         uint256 currentLoanNumber = borrowData.nextLoanNumber;
         Loan storage loan = borrowData.loans[currentLoanNumber];
-        updateLoan(loan, param);
+        protocolFee = updateLoan(loan, param);
 
         pmt = previewPMT(
             loan.principal,
@@ -223,7 +224,7 @@ library LibLoan {
             param.incomeRatio
         );
 
-        return (currentLoanNumber, pmt, loan.interest);
+        return (currentLoanNumber, pmt, loan.interest, protocolFee);
     }
 
     function firstRepay(
@@ -380,6 +381,7 @@ library LibLoan {
 
     function updateLoan(Loan storage loan, ExecuteBuyNowParams memory param)
         internal
+        returns (uint256)
     {
         loan.principal = param.totalPrincipal;
         loan.term = param.term;
@@ -396,6 +398,7 @@ library LibLoan {
             loan.nper
         );
         loan.protocolFee = loan.principal.percentMul(loan.takeRatio);
+        return loan.protocolFee;
     }
 
     function previewInterest(
