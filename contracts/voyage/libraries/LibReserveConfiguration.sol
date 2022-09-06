@@ -19,6 +19,7 @@ library LibReserveConfiguration {
     uint256 constant internal LOAN_TERM_MASK =               0xFFFFFFFFFFFFFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
     uint256 constant internal GRACE_PERIOD_MASK =            0xFFFFFFFFFFFFFFFFFFFFFFF00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
     uint256 constant internal OPTIMAL_LIQUIDITY_RATIO_MASK = 0xFFFFFFFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
+    uint256 constant internal MAX_TWAP_STALENESS_MASK           = 0xFFFFFFFFF0000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
 
     uint256 internal constant DECIMAL_MASK_BIT_POSITION = 16;
     uint256 internal constant ACTIVE_MASK_BIT_POSITION = 24;
@@ -30,6 +31,7 @@ library LibReserveConfiguration {
     uint256 internal constant LOAN_TERM_MASK_BIT_POSITION = 140;
     uint256 internal constant GRACE_PERIOD_MASK_BIT_POSITION = 156;
     uint256 internal constant OPTIMAL_LIQUIDITY_RATIO_MASK_BIT_POSITION = 164;
+    uint256 internal constant MAX_TWAP_STALENESS_MASK_BIT_POSITION = 204;
 
     uint256 internal constant MAX_VALID_LIQUIDATION_BONUS = 65535; // percentage
     uint256 internal constant MAX_VALID_DECIMALS = 255;
@@ -38,6 +40,7 @@ library LibReserveConfiguration {
     uint256 internal constant MAX_VALID_LOAN_TERM = 65535; // days
     uint256 internal constant MAX_VALID_GRACE_PERIOD = 255; // days
     uint256 internal constant MAX_VALID_OPTIMAL_RATIO = type(uint32).max; // percentage
+    uint256 internal constant MAX_VALID_TWAP_STALENESS = type(uint40).max;
 
     error InvalidLiquidationBonus();
     error InvalidDecimals();
@@ -46,6 +49,7 @@ library LibReserveConfiguration {
     error InvalidLoanTerm();
     error InvalidGracePeriod();
     error InvalidOptimalRatio();
+    error InvalidMaxTwapStaleness();
 
     event LiquidationConfigurationUpdated(
         address indexed _asset,
@@ -204,6 +208,28 @@ library LibReserveConfiguration {
         self.data =
             (self.data & LOAN_TERM_MASK) |
             (term << LOAN_TERM_MASK_BIT_POSITION);
+    }
+
+    function setMaxTwapStaleness(
+        ReserveConfigurationMap memory self,
+        uint256 maxTwapStaleness
+    ) internal pure {
+        if (maxTwapStaleness > MAX_VALID_TWAP_STALENESS) {
+            revert InvalidMaxTwapStaleness();
+        }
+        self.data =
+            (self.data & MAX_TWAP_STALENESS_MASK) |
+            (maxTwapStaleness << MAX_TWAP_STALENESS_MASK_BIT_POSITION);
+    }
+
+    function getMaxTwapStaleness(ReserveConfigurationMap memory self)
+        internal
+        pure
+        returns (uint256)
+    {
+        return
+            (self.data & ~MAX_TWAP_STALENESS_MASK) >>
+            MAX_TWAP_STALENESS_MASK_BIT_POSITION;
     }
 
     function setGracePeriod(
