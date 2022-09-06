@@ -7,7 +7,12 @@ import { HRE } from './set-hre';
  * @param vault - address of the vault to fund
  * @param amount - amount to fund
  */
-export async function fund(vault: string, amount: BigNumber, sender: string) {
+export async function fund(
+  vault: string,
+  amount: BigNumber,
+  sender: string,
+  sendETH: boolean = false
+) {
   const { ethers } = HRE;
   const signer = await ethers.getSigner(sender);
   const weth9 = await ethers.getContract<WETH9>('WETH9', signer);
@@ -16,7 +21,13 @@ export async function fund(vault: string, amount: BigNumber, sender: string) {
   if (balance.lt(amount)) {
     await weth9.deposit({ value: amount.sub(balance) });
   }
-  await signer.sendTransaction({ to: vault, value: amount });
+  if (sendETH) {
+    const sendEthTx = await signer.sendTransaction({
+      to: vault,
+      value: amount,
+    });
+    await sendEthTx.wait();
+  }
   const tx = await weth9.transferFrom(sender, vault, amount);
   const receipt = await tx.wait();
   return receipt;
