@@ -64,7 +64,8 @@ contract LoanFacet is Storage, ReentrancyGuard {
         uint256 _loanId,
         uint256 _principal,
         uint256 _interest,
-        uint256 _apr
+        uint256 _apr,
+        uint256 _protocolFee
     );
 
     event Repayment(
@@ -276,11 +277,8 @@ contract LoanFacet is Storage, ReentrancyGuard {
             .getIncomeRatio();
         (params.takeRate, params.treasury) = LibLiquidity
             .getTakeRateAndTreasuryAddr();
-        (params.loanId, params.pmt, params.totalInterest) = LibLoan.initDebt(
-            borrowState,
-            borrowData,
-            params
-        );
+        (params.loanId, params.pmt, params.totalInterest, params.fee) = LibLoan
+            .initDebt(borrowState, borrowData, params);
 
         // 5. calculate downpayment and outstanding interest and debt
         params.downpayment = params.pmt.principal;
@@ -382,7 +380,8 @@ contract LoanFacet is Storage, ReentrancyGuard {
             params.loanId,
             params.totalPrincipal,
             params.totalInterest,
-            params.borrowRate
+            params.borrowRate,
+            params.fee
         );
     }
 
