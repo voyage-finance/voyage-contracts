@@ -18,6 +18,10 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
         address indexed _collection,
         uint256 _optimalRatio
     );
+    event MaxTwapStaleness(
+        address indexed _collection,
+        uint256 _maxTwapStaleness
+    );
     event LoanParametersUpdated(
         address indexed _collection,
         uint256 _epoch,
@@ -64,6 +68,17 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
         emit OptimalLiquidityRatioUpdated(_collection, _ratio);
     }
 
+    function setMaxTwapStaleness(address _collection, uint256 _maxTwapStaleness)
+        external
+        authorised
+    {
+        ReserveConfigurationMap memory conf = LibReserveConfiguration
+            .getConfiguration(_collection);
+        conf.setMaxTwapStaleness(_maxTwapStaleness);
+        LibReserveConfiguration.saveConfiguration(_collection, conf);
+        emit MaxTwapStaleness(_collection, _maxTwapStaleness);
+    }
+
     function setLoanParams(
         address _collection,
         uint256 _epoch,
@@ -86,5 +101,15 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
         ReserveConfigurationMap memory conf = LibReserveConfiguration
             .getConfiguration(_collection);
         return conf.getIncomeRatio();
+    }
+
+    function getMaxTwapStaleness(address _collection)
+        public
+        view
+        returns (uint256)
+    {
+        ReserveConfigurationMap memory conf = LibReserveConfiguration
+            .getConfiguration(_collection);
+        return conf.getMaxTwapStaleness();
     }
 }

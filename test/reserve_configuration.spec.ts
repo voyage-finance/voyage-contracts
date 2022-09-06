@@ -100,4 +100,14 @@ describe('Reserve configuration', async () => {
       voyage.setLoanParams(weth.address, epoch, term, grace)
     ).to.be.revertedWithCustomError(voyage, 'InvalidLoanTerm');
   });
+
+  it('should be able to set a valid max twap staleness ratio', async () => {
+    const { weth, voyage } = await setupTestSuite();
+    const maxTwapStaleness = ethers.BigNumber.from('1469021581');
+    await expect(voyage.setMaxTwapStaleness(weth.address, maxTwapStaleness))
+      .to.emit(voyage, 'MaxTwapStaleness')
+      .withArgs(weth.address, maxTwapStaleness);
+    const twapStaleness = await voyage.getMaxTwapStaleness(weth.address);
+    expect(twapStaleness).to.eq(maxTwapStaleness);
+  });
 });
