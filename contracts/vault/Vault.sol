@@ -160,6 +160,13 @@ contract Vault is Initializable, IERC1271, IVault {
         );
     }
 
+    /// @notice Approves Voyage to manage WETH for the Vault
+    /// @dev Anyone may call this function
+    function approveVoyage() public {
+        VaultStorageV1 storage ds = LibVaultStorage.ds();
+        IERC20(ds.weth).approve(ds.voyage, type(uint256).max);
+    }
+
     function callSubVault(
         address _subvault,
         address _target,
