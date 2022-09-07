@@ -13,4 +13,8 @@ import './approve-weth';
 import './bootstrap';
 import './decode-looks';
 import './decode-buy-now';
+import './vault-balance';
+import './vault-approve-weth';
+import './nft-owner';
+import './decode-relaycall';
 import './set-hre';
