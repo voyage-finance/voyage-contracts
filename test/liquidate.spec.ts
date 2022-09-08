@@ -68,6 +68,72 @@ describe('Liquidate', function () {
     ).to.be.revertedWithCustomError(voyage, 'InvalidFloorPrice');
   });
 
+  it('Outdated floor price should revert', async function () {
+    const {
+      owner,
+      voyage,
+      priceOracle,
+      crab,
+      purchaseDataFromLooksRare,
+      marketPlace,
+    } = await setupTestSuite();
+    const vault = await voyage.getVault(owner);
+
+    const depositAmount = toWad(120);
+    const juniorDeposit = toWad(50);
+    await voyage.deposit(crab.address, 0, juniorDeposit);
+    await voyage.deposit(crab.address, 1, depositAmount);
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    await voyage.buyNow(
+      crab.address,
+      1,
+      vault,
+      marketPlace.address,
+      purchaseDataFromLooksRare
+    );
+    await crab.safeMint(vault, 1);
+    await voyage.setMaxTwapStaleness(crab.address, 100);
+
+    // epoch + grace period
+    await increase(41);
+    await expect(
+      voyage.liquidate(crab.address, vault, 0)
+    ).to.be.revertedWithCustomError(voyage, 'LiquidateStaleTwap');
+  });
+
+  it('Just stabled floor price should revert', async function () {
+    const {
+      owner,
+      voyage,
+      priceOracle,
+      crab,
+      purchaseDataFromLooksRare,
+      marketPlace,
+    } = await setupTestSuite();
+    const vault = await voyage.getVault(owner);
+
+    const depositAmount = toWad(120);
+    const juniorDeposit = toWad(50);
+    await voyage.deposit(crab.address, 0, juniorDeposit);
+    await voyage.deposit(crab.address, 1, depositAmount);
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    await voyage.buyNow(
+      crab.address,
+      1,
+      vault,
+      marketPlace.address,
+      purchaseDataFromLooksRare
+    );
+    await crab.safeMint(vault, 1);
+    await voyage.setMaxTwapStaleness(crab.address, 41 * 24 * 60 * 60);
+
+    // epoch + grace period
+    await increase(41);
+    await expect(
+      voyage.liquidate(crab.address, vault, 0)
+    ).to.be.revertedWithCustomError(voyage, 'LiquidateStaleTwap');
+  });
+
   it('Valid liquidate with nft should return correct value', async function () {
     const {
       owner,
@@ -92,6 +158,8 @@ describe('Liquidate', function () {
       purchaseDataFromLooksRare
     );
     await crab.safeMint(vault, 1);
+    const days = 42 * 24 * 60 * 60;
+    await voyage.setMaxTwapStaleness(crab.address, days);
 
     // epoch + grace period
     await increase(41);
@@ -139,29 +207,5 @@ describe('Liquidate', function () {
     const days = n * 24 * 60 * 60;
     await ethers.provider.send('evm_increaseTime', [days]);
     await ethers.provider.send('evm_mine', []);
-  }
-
-  function log(receipt: any) {
-    if (receipt.events !== undefined) {
-      for (const event of receipt.events) {
-        if (event.event == 'Liquidate') {
-          console.log('Event Liquidate: ');
-          const ret = new Map<string, string>();
-          if (event.args) {
-            ret.set('liquidator', event.args[0]);
-            ret.set('vault', event.args[1]);
-            ret.set('asset', event.args[2]);
-            ret.set('draw down id', event.args[3].toString());
-            ret.set('repayment id', event.args[4].toString());
-            ret.set('debt', event.args[5].toString());
-            ret.set('margin', event.args[6].toString());
-            ret.set('collateral', event.args[7].toString());
-            ret.set('junior', event.args[8].toString());
-            ret.set('write down', event.args[9].toString());
-            console.table(ret);
-          }
-        }
-      }
-    }
   }
 });

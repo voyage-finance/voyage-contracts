@@ -14,3 +14,9 @@ export const mine = async (blocks: number, interval: number = 2) => {
   );
   await ethers.provider.send('hardhat_mine', [blocksHex, intervalHex]);
 };
+
+export const getCurrentTimestamp = async () => {
+  const blockNumBefore = await ethers.provider.getBlockNumber();
+  const blockBefore = await ethers.provider.getBlock(blockNumBefore);
+  return blockBefore.timestamp;
+};
