@@ -517,6 +517,12 @@ contract LoanFacet is Storage, ReentrancyGuard {
         (param.floorPrice, param.floorPriceTime) = priceOracle.getTwap(
             param.collection
         );
+        if (
+            (block.timestamp - param.floorPriceTime) >
+            reserveConf.getMaxTwapStaleness()
+        ) {
+            revert LiquidateStaleTwap();
+        }
 
         if (param.floorPrice == 0) {
             revert InvalidFloorPrice();
