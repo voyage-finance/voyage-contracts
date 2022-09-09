@@ -96,5 +96,9 @@ task('dev:bootstrap', 'Bootstraps a reserve, vault, and user balances')
     console.log(
       `Funding the vault ${vaultAddress} for ${user} for ${vaultBalance}\n`
     );
-    await run('dev:fund-vault', { amount: vaultBalance, sender: user });
+    await run('dev:fund-vault', {
+      amount: vaultBalance,
+      sender: user,
+      sendeth: true,
+    });
   });

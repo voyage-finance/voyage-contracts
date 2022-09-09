@@ -17,4 +17,5 @@ import './vault-balance';
 import './vault-approve-weth';
 import './nft-owner';
 import './decode-relaycall';
+import './decode-seaport-error';
 import './set-hre';

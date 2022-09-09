@@ -207,7 +207,7 @@ describe('BuyNow', function () {
     console.log(param);
     await voyage.buyNow(
       crab.address,
-      1,
+      6532,
       vault,
       seaport.address,
       purchaseDataFromOpensea
