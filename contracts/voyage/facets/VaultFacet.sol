@@ -15,6 +15,8 @@ import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol"
 import {IVault} from "../../vault/Vault.sol";
 import {IDiamondCut} from "../../shared/diamond/interfaces/IDiamondCut.sol";
 import {DiamondCutFacet} from "../../shared/diamond/facets/DiamondCutFacet.sol";
+import {IWETH9} from "../../shared/interfaces/IWETH9.sol";
+import "hardhat/console.sol";
 
 contract VaultFacet is Storage, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -75,7 +77,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         address _vault,
         address _collection,
         uint256 _tokenId
-    ) external nonReentrant {
+    ) public nonReentrant {
         checkVaultAddr(_vault);
         checkContractAddr(_collection);
         if (LibAppStorage.ds().nftIndex[_collection][_tokenId].isCollateral) {
@@ -94,7 +96,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         address _currency,
         address _to,
         uint256 _amount
-    ) external nonReentrant {
+    ) public nonReentrant {
         checkVaultAddr(_vault);
         checkContractAddr(_currency);
         // to prevent currency being a collection address
@@ -105,6 +107,23 @@ contract VaultFacet is Storage, ReentrancyGuard {
         bytes memory param = abi.encode(_vault, _to, _amount);
         bytes memory data = abi.encodePacked(selector, param);
         bytes memory encodedData = abi.encode(_currency, data);
+        IVault(_vault).execute(encodedData, 0);
+    }
+
+    function depositWETH(address _vault, uint256 _value) public nonReentrant {
+        checkVaultAddr(_vault);
+        bytes4 selector = IWETH9(address(0)).deposit.selector;
+        bytes memory data = abi.encodePacked(selector);
+        bytes memory encodedData = abi.encode(LibAppStorage.ds().WETH9, data);
+        IVault(_vault).execute(encodedData, _value);
+    }
+
+    function withdrawWETH(address _vault, uint256 _vaule) public nonReentrant {
+        checkVaultAddr(_vault);
+        bytes4 selector = IWETH9(address(0)).withdraw.selector;
+        bytes memory param = abi.encode(_vaule);
+        bytes memory data = abi.encodePacked(selector, param);
+        bytes memory encodedData = abi.encode(LibAppStorage.ds().WETH9, data);
         IVault(_vault).execute(encodedData, 0);
     }
 
