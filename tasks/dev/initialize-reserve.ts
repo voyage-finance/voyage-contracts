@@ -91,8 +91,10 @@ task('dev:initialize-reserve', 'Initializes a reserve.')
     await voyage
       .setLoanParams(collection, epoch, tenure, grace)
       .then((tx) => tx.wait());
-    await voyage.setOptimalLiquidityRatio(collection, optimalLiquidityRatio);
-    await voyage.updateProtocolFee(owner, protocolFee);
+    await voyage
+      .setOptimalLiquidityRatio(collection, optimalLiquidityRatio)
+      .then((tx) => tx.wait());
+    await voyage.updateProtocolFee(owner, protocolFee).then((tx) => tx.wait());
 
     console.log(`setLoanParams: 
 - epoch: ${epoch}
