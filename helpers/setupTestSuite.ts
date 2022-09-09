@@ -1,3 +1,8 @@
+import { SeaportABI } from '@opensea/seaport-js/lib/abi/Seaport';
+import {
+  Seaport,
+  BasicOrderParametersStruct,
+} from '@opensea/seaport-js/lib/typechain/Seaport';
 import { deployments as d } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { WETH9, Voyage, VoyagePaymaster } from '@contracts';
@@ -9,6 +14,7 @@ import {
   MakerOrderWithVRS,
   TakerOrderWithEncodedParams,
 } from '@looksrare/sdk';
+import { BigNumber } from 'ethers';
 
 const dec = decimals(18);
 
@@ -137,58 +143,38 @@ const setupBase = async ({
       looksRareMakerOrderData
     )
   ).data!;
-  const basicOrderParameters = abiCoder.encode(
-    [
-      'address',
-      'uint256',
-      'uint256',
-      'address',
-      'address',
-      'address',
-      'uint256',
-      'uint256',
-      'uint8',
-      'uint256',
-      'uint256',
-      'bytes32',
-      'uint256',
-      'bytes32',
-      'bytes32',
-      'uint256',
-      'tuple(uint256 amount,address recipient)[]',
-      'bytes',
-    ],
-    [
-      '0x0000000000000000000000000000000000000000',
-      1,
-      1,
-      owner,
-      owner,
-      weth.address,
-      1,
-      1,
-      1,
-      1,
-      1,
-      ethers.utils.arrayify(
-        '0x66fdd5e25ef9ddb305ba3c2aae1856ab9c6f2979000000000000000000000000'
-      ),
-      1,
-      ethers.utils.arrayify(
-        '0x66fdd5e25ef9ddb305ba3c2aae1856ab9c6f2979000000000000000000000000'
-      ),
-      ethers.utils.arrayify(
-        '0x66fdd5e25ef9ddb305ba3c2aae1856ab9c6f2979000000000000000000000000'
-      ),
-      1,
-      [{ amount: toWad(1), recipient: owner }],
-      ethers.utils.arrayify('0x1234'),
-    ]
-  );
-  const purchaseDataFromOpensea = abiCoder.encode(
-    ['address', 'address', 'bytes4', 'bytes'],
-    [deployedVault, seaport.address, '0xfb0f3ee1', basicOrderParameters]
-  );
+  const seaportInstance: Seaport = new ethers.Contract(
+    ethers.constants.AddressZero,
+    SeaportABI,
+    provider
+  ) as Seaport;
+  const basicOrder: BasicOrderParametersStruct = {
+    considerationToken: ethers.constants.AddressZero,
+    considerationIdentifier: ethers.BigNumber.from(0),
+    considerationAmount: ethers.BigNumber.from(1),
+    offerer: owner,
+    offerToken: '0xBd3531dA5CF5857e7CfAA92426877b022e612cf8',
+    offerIdentifier: ethers.BigNumber.from(6532),
+    offerAmount: BigNumber.from(1),
+    zone: '0x004C00500000aD104D7DBd00e3ae0A5C00560C00',
+    basicOrderType: ethers.BigNumber.from(2),
+    startTime: ethers.BigNumber.from('1662539571'),
+    endTime: ethers.BigNumber.from('1662798771'),
+    zoneHash:
+      '0x0000000000000000000000000000000000000000000000000000000000000000',
+    salt: ethers.BigNumber.from('21338839425849832'),
+    offererConduitKey:
+      '0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000',
+    fulfillerConduitKey:
+      '0x0000000000000000000000000000000000000000000000000000000000000000',
+    totalOriginalAdditionalRecipients: ethers.BigNumber.from(0),
+    additionalRecipients: [],
+    signature:
+      '0xaf15a1ecaf46d57aea6e14bbba1e5a2f3714e42a961c7668fd8c35bafb5ea4885f4c82f2eb7d7cf7125b61564931763c82877cdb67cb0f875d9d3449d71e53c71b',
+  };
+  const purchaseDataFromOpensea = (
+    await seaportInstance.populateTransaction.fulfillBasicOrder(basicOrder)
+  ).data!;
   // send the vault some ETH
   const weth9 = await ethers.getContract<WETH9>('WETH9');
   const signer = await ethers.getSigner(owner);

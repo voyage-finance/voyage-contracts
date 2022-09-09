@@ -196,14 +196,18 @@ contract SeaportAdapter is IMarketPlaceAdapter {
         pure
         returns (AssetInfo memory assetInfo)
     {
-        PurchaseParam memory param = _decode(_data);
-        BasicOrderParameters memory basicOrderParameters = abi.decode(
-            param.basicOrderParameters,
-            (BasicOrderParameters)
-        );
-        assetInfo.assetPrice = basicOrderParameters.considerationAmount;
-        assetInfo.tokenId = basicOrderParameters.considerationIdentifier;
-        return assetInfo;
+        (, BasicOrderParameters memory order) = _decode(_data);
+        assetInfo.tokenId = order.offerIdentifier;
+        assetInfo.assetPrice = order.considerationAmount;
+        // Iterate over each additional recipient.
+        for (uint256 i = 0; i < order.additionalRecipients.length; ) {
+            assetInfo.assetPrice += order.additionalRecipients[i].amount;
+
+            // Skip overflow check as for loop is indexed starting at zero.
+            unchecked {
+                ++i;
+            }
+        }
     }
 
     function validate(bytes calldata _data) external pure returns (bool) {
@@ -219,43 +223,33 @@ contract SeaportAdapter is IMarketPlaceAdapter {
             revert("invalid data");
         }
 
-        PurchaseParam memory param = _decode(_data);
+        (bytes4 selector, BasicOrderParameters memory order) = _decode(_data);
 
-        return abi.encodePacked(param.selector, param.basicOrderParameters);
+        return abi.encodePacked(selector, abi.encode(order));
     }
 
     function _decode(bytes calldata _data)
         internal
         pure
-        returns (PurchaseParam memory)
+        returns (bytes4 selector, BasicOrderParameters memory order)
     {
-        PurchaseParam memory param;
-        (
-            param.vault,
-            param.seaport,
-            param.selector,
-            param.basicOrderParameters
-        ) = abi.decode(_data, (address, address, bytes4, bytes));
-        return param;
+        selector = bytes4(_data[:4]);
+        order = abi.decode(_data[4:], (BasicOrderParameters));
     }
 
     function _validate(bytes calldata _data) private pure returns (bool) {
-        PurchaseParam memory param = _decode(_data);
+        (bytes4 selector, BasicOrderParameters memory order) = _decode(_data);
 
         // bytes4(keccak256(fulfillBasicOrder()))
         // 0xfb0f3ee1
         if (
-            param.selector !=
+            selector !=
             ConsiderationInterface(address(0)).fulfillBasicOrder.selector
         ) {
             return false;
         }
 
-        BasicOrderParameters memory basicOrderParameters = abi.decode(
-            param.basicOrderParameters,
-            (BasicOrderParameters)
-        );
-        BasicOrderType basicOrderType = basicOrderParameters.basicOrderType;
+        BasicOrderType basicOrderType = order.basicOrderType;
 
         BasicOrderRouteType route;
 
@@ -269,11 +263,11 @@ contract SeaportAdapter is IMarketPlaceAdapter {
             return false;
         }
 
-        if (basicOrderParameters.offerAmount != 1) {
+        if (order.offerAmount != 1) {
             return false;
         }
 
-        if (basicOrderParameters.considerationToken != address(0)) {
+        if (order.considerationToken != address(0)) {
             return false;
         }
 
