@@ -1,3 +1,4 @@
+import { toWad } from '@helpers/math';
 import { expect } from 'chai';
 import { randomBytes } from 'crypto';
 import { deployments, ethers } from 'hardhat';
@@ -72,5 +73,36 @@ describe('Vault', function () {
     await expect(
       voyage.transferCurrency(deployedVault, crab.address, owner, 1)
     ).to.be.revertedWithCustomError(voyage, 'InvalidCurrencyAddress');
+  });
+
+  it('Deposit eth should return correct weth value', async function () {
+    const { voyage, deployedVault, owner, weth } = await setupTestSuite();
+    const balanceBefore = await weth.balanceOf(deployedVault);
+    const tx = {
+      to: deployedVault,
+      value: ethers.utils.parseEther('2'),
+    };
+    const signer = await ethers.getSigner(owner);
+    const createReceipt = await signer.sendTransaction(tx);
+    await createReceipt.wait();
+    await voyage.depositWETH(deployedVault, toWad(1));
+    const balanceAfter = await weth.balanceOf(deployedVault);
+    expect(balanceAfter.sub(balanceBefore)).to.eq(toWad(1));
+  });
+
+  it('Withdraw weth should return correct value', async function () {
+    const { voyage, deployedVault, owner, weth } = await setupTestSuite();
+    const tx = {
+      to: deployedVault,
+      value: ethers.utils.parseEther('2'),
+    };
+    const signer = await ethers.getSigner(owner);
+    const createReceipt = await signer.sendTransaction(tx);
+    await createReceipt.wait();
+    await voyage.depositWETH(deployedVault, toWad(1));
+    const balanceBefore = await weth.balanceOf(deployedVault);
+    await voyage.withdrawWETH(deployedVault, toWad(0.5));
+    const balanceAfter = await weth.balanceOf(deployedVault);
+    expect(balanceBefore.sub(balanceAfter)).to.eq(toWad(0.5));
   });
 });
