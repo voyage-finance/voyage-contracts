@@ -93,6 +93,32 @@ describe('BuyNow', function () {
     ).to.be.revertedWithCustomError(voyage, 'InvalidFloorPrice');
   });
 
+  it('Buy with 0 max twap staleness should revert', async function () {
+    const {
+      crab,
+      owner,
+      voyage,
+      purchaseDataFromLooksRare,
+      marketPlace,
+      priceOracle,
+    } = await setupTestSuite();
+    const vault = await voyage.getVault(owner);
+    await voyage.setMaxTwapStaleness(crab.address, 0);
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    const timestampBefore = await getCurrentTimestamp();
+    await ethers.provider.send('evm_mine', [timestampBefore + 100]);
+
+    await expect(
+      voyage.buyNow(
+        crab.address,
+        1,
+        vault,
+        marketPlace.address,
+        purchaseDataFromLooksRare
+      )
+    ).to.be.revertedWithCustomError(voyage, 'BuyNowStaleTwap');
+  });
+
   it('Buy with just staled floor price should revert', async function () {
     const {
       crab,

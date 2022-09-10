@@ -101,7 +101,40 @@ describe('Liquidate', function () {
     ).to.be.revertedWithCustomError(voyage, 'LiquidateStaleTwap');
   });
 
-  it('Just stabled floor price should revert', async function () {
+  it('Liquidate with 0 max twap staleness should revert', async function () {
+    const {
+      owner,
+      voyage,
+      priceOracle,
+      crab,
+      purchaseDataFromLooksRare,
+      marketPlace,
+    } = await setupTestSuite();
+    const vault = await voyage.getVault(owner);
+
+    const depositAmount = toWad(120);
+    const juniorDeposit = toWad(50);
+    await voyage.deposit(crab.address, 0, juniorDeposit);
+    await voyage.deposit(crab.address, 1, depositAmount);
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    await voyage.buyNow(
+      crab.address,
+      1,
+      vault,
+      marketPlace.address,
+      purchaseDataFromLooksRare
+    );
+    await crab.safeMint(vault, 1);
+    await voyage.setMaxTwapStaleness(crab.address, 0);
+
+    // epoch + grace period
+    await increase(41);
+    await expect(
+      voyage.liquidate(crab.address, vault, 0)
+    ).to.be.revertedWithCustomError(voyage, 'LiquidateStaleTwap');
+  });
+
+  it('Just staled floor price should revert', async function () {
     const {
       owner,
       voyage,
