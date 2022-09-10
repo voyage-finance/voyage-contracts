@@ -36,6 +36,11 @@ contract VaultFacet is Storage, ReentrancyGuard {
         uint256 _amount
     );
 
+    modifier onlyVaultOnwer(address _vault) {
+        checkVaultAddr(_vault);
+        _;
+    }
+
     /* ----------------------------- admin interface ---------------------------- */
     function createVault(address _user, bytes20 _salt) external authorised {
         bytes memory data = getEncodedVaultInitData(_user);
@@ -77,8 +82,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         address _vault,
         address _collection,
         uint256 _tokenId
-    ) public nonReentrant {
-        checkVaultAddr(_vault);
+    ) public onlyVaultOnwer(_vault) nonReentrant {
         checkContractAddr(_collection);
         if (LibAppStorage.ds().nftIndex[_collection][_tokenId].isCollateral) {
             revert InvalidWithdrawal();
@@ -96,8 +100,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         address _currency,
         address _to,
         uint256 _amount
-    ) public nonReentrant {
-        checkVaultAddr(_vault);
+    ) public onlyVaultOnwer(_vault) nonReentrant {
         checkContractAddr(_currency);
         // to prevent currency being a collection address
         if (LibAppStorage.ds()._reserveData[_currency].currency != address(0)) {
@@ -110,16 +113,22 @@ contract VaultFacet is Storage, ReentrancyGuard {
         IVault(_vault).execute(encodedData, 0);
     }
 
-    function depositWETH(address _vault, uint256 _value) public nonReentrant {
-        checkVaultAddr(_vault);
+    function wrapVaultETH(address _vault, uint256 _value)
+        public
+        onlyVaultOnwer(_vault)
+        nonReentrant
+    {
         bytes4 selector = IWETH9(address(0)).deposit.selector;
         bytes memory data = abi.encodePacked(selector);
         bytes memory encodedData = abi.encode(LibAppStorage.ds().WETH9, data);
         IVault(_vault).execute(encodedData, _value);
     }
 
-    function withdrawWETH(address _vault, uint256 _vaule) public nonReentrant {
-        checkVaultAddr(_vault);
+    function unwrapVaultETH(address _vault, uint256 _vaule)
+        public
+        onlyVaultOnwer(_vault)
+        nonReentrant
+    {
         bytes4 selector = IWETH9(address(0)).withdraw.selector;
         bytes memory param = abi.encode(_vaule);
         bytes memory data = abi.encodePacked(selector, param);
