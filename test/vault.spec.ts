@@ -85,7 +85,7 @@ describe('Vault', function () {
     const signer = await ethers.getSigner(owner);
     const createReceipt = await signer.sendTransaction(tx);
     await createReceipt.wait();
-    await voyage.depositWETH(deployedVault, toWad(1));
+    await voyage.wrapVaultETH(deployedVault, toWad(1));
     const balanceAfter = await weth.balanceOf(deployedVault);
     expect(balanceAfter.sub(balanceBefore)).to.eq(toWad(1));
   });
@@ -99,9 +99,9 @@ describe('Vault', function () {
     const signer = await ethers.getSigner(owner);
     const createReceipt = await signer.sendTransaction(tx);
     await createReceipt.wait();
-    await voyage.depositWETH(deployedVault, toWad(1));
+    await voyage.wrapVaultETH(deployedVault, toWad(1));
     const balanceBefore = await weth.balanceOf(deployedVault);
-    await voyage.withdrawWETH(deployedVault, toWad(0.5));
+    await voyage.unwrapVaultETH(deployedVault, toWad(0.5));
     const balanceAfter = await weth.balanceOf(deployedVault);
     expect(balanceBefore.sub(balanceAfter)).to.eq(toWad(0.5));
   });
