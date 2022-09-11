@@ -3,11 +3,11 @@ pragma solidity ^0.8.9;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
-import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {LibAppStorage, AppStorage, Storage, NFTInfo, DiamondFacet, ReserveConfigurationMap} from "../libraries/LibAppStorage.sol";
 import {LibVault} from "../libraries/LibVault.sol";
 import {LibSecurity} from "../libraries/LibSecurity.sol";
@@ -16,7 +16,6 @@ import {IVault} from "../../vault/Vault.sol";
 import {IDiamondCut} from "../../shared/diamond/interfaces/IDiamondCut.sol";
 import {DiamondCutFacet} from "../../shared/diamond/facets/DiamondCutFacet.sol";
 import {IWETH9} from "../../shared/interfaces/IWETH9.sol";
-import "hardhat/console.sol";
 
 contract VaultFacet is Storage, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -35,11 +34,6 @@ contract VaultFacet is Storage, ReentrancyGuard {
         address _sponsor,
         uint256 _amount
     );
-
-    modifier onlyVaultOnwer(address _vault) {
-        checkVaultAddr(_vault);
-        _;
-    }
 
     /* ----------------------------- admin interface ---------------------------- */
     function createVault(address _user, bytes20 _salt) external authorised {
@@ -82,7 +76,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         address _vault,
         address _collection,
         uint256 _tokenId
-    ) public onlyVaultOnwer(_vault) nonReentrant {
+    ) public onlyVaultOnwer(_vault, _msgSender()) nonReentrant {
         checkContractAddr(_collection);
         if (LibAppStorage.ds().nftIndex[_collection][_tokenId].isCollateral) {
             revert InvalidWithdrawal();
@@ -100,7 +94,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         address _currency,
         address _to,
         uint256 _amount
-    ) public onlyVaultOnwer(_vault) nonReentrant {
+    ) public onlyVaultOnwer(_vault, _msgSender()) nonReentrant {
         checkContractAddr(_currency);
         // to prevent currency being a collection address
         if (LibAppStorage.ds()._reserveData[_currency].currency != address(0)) {
@@ -115,7 +109,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
 
     function wrapVaultETH(address _vault, uint256 _value)
         public
-        onlyVaultOnwer(_vault)
+        onlyVaultOnwer(_vault, _msgSender())
         nonReentrant
     {
         bytes4 selector = IWETH9(address(0)).deposit.selector;
@@ -126,7 +120,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
 
     function unwrapVaultETH(address _vault, uint256 _vaule)
         public
-        onlyVaultOnwer(_vault)
+        onlyVaultOnwer(_vault, _msgSender())
         nonReentrant
     {
         bytes4 selector = IWETH9(address(0)).withdraw.selector;
@@ -204,15 +198,6 @@ contract VaultFacet is Storage, ReentrancyGuard {
         return data;
     }
 
-    function checkVaultAddr(address _vault) internal view {
-        if (!Address.isContract(_vault)) {
-            revert InvalidVaultAddress();
-        }
-        if (LibVault.getVaultAddress(_msgSender()) != _vault) {
-            revert InvalidVaultCall();
-        }
-    }
-
     function checkContractAddr(address _collection) internal view {
         if (!Address.isContract(_collection)) {
             revert InvalidCollectionAddress();
@@ -222,8 +207,6 @@ contract VaultFacet is Storage, ReentrancyGuard {
 
 /* --------------------------------- errors -------------------------------- */
 error InvalidVaultImpl();
-error InvalidVaultCall();
-error InvalidVaultAddress();
 error InvalidCollectionAddress();
 error InvalidCurrencyAddress();
 error FailedDeployVault();

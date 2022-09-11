@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
+import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {DSRoles} from "../auth/DSRoles.sol";
 import {DSGuard} from "../auth/DSGuard.sol";
 import {LibSecurity} from "./LibSecurity.sol";
-import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import {IVaultFactory} from "../interfaces/IVaultFactory.sol";
+import {LibVault} from "./LibVault.sol";
 import {IDiamondCut} from "../../shared/diamond/interfaces/IDiamondCut.sol";
 import {IDiamondLoupe} from "../../shared/diamond/interfaces/IDiamondLoupe.sol";
 import {DiamondCutFacet} from "../../shared/diamond/facets/DiamondCutFacet.sol";
@@ -259,6 +261,11 @@ contract Storage {
         _;
     }
 
+    modifier onlyVaultOnwer(address _vault, address _sender) {
+        checkVaultAddr(_vault, _sender);
+        _;
+    }
+
     function auth() internal view returns (bool) {
         return
             LibSecurity.isAuthorisedInbound(
@@ -266,6 +273,15 @@ contract Storage {
                 _msgSender(),
                 msg.sig
             );
+    }
+
+    function checkVaultAddr(address _vault, address _sender) internal view {
+        if (!Address.isContract(_vault)) {
+            revert("InvalidVaultAddress");
+        }
+        if (LibVault.getVaultAddress(_sender) != _vault) {
+            revert("InvalidVaultCall");
+        }
     }
 
     /**
