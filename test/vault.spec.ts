@@ -58,7 +58,7 @@ describe('Vault', function () {
     const { voyage, crab } = await setupTestSuite();
     await expect(
       voyage.withdrawNFT(ZERO_ADDRESS, crab.address, 1)
-    ).to.be.revertedWithCustomError(voyage, 'InvalidVaultAddress');
+    ).to.be.rejectedWith('InvalidVaultAddress');
   });
 
   it('Pass zero collection address should be revert', async function () {
