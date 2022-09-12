@@ -14,38 +14,46 @@
 
 ## Getting started
 
-1. To run deploy and run the contracts against a local hardhat node:
+To run deploy and run the contracts against a local hardhat node:
 
 ```shell
-# runs hardhat in automine mode and runs all deployments.
-yarn node:deploy
-# or in interval mode
-yarn node:deploy:interval
+# in the first terminal
+yarn run node
+
+# in another terminal
+yarn hardhat:local deploy:dev
 ```
 
-This should listen on `localhost:8545` as expected.
+This should run all the deployments and setup scripts and listen on `localhost:8545`.
 
-2. To fork from a testnet (e.g. rinkeby) state, following the current steps:
+To fork from a testnet (e.g. rinkeby) state, following the current steps:
+
+Edit `.env` and change `HARDHAT_CHAIN_ID` to `4`. Then, execute the following:
 
 ```shell
-1. yarn run node --fork https://eth-rinkeby.alchemyapi.io/v2/2rkHcv3Pdg7j3iHPWUu9cDsEOtSoXtoB this command runs a node without deploying any contracts to it wiht the current Rinkeby state
+# run a fork from the latest Rinkeby block
+yarn run node --fork https://eth-rinkeby.alchemyapi.io/v2/2rkHcv3Pdg7j3iHPWUu9cDsEOtSoXtoB
 
-2. yarn run deploy:local to redeploy voyage contracts to the local node
+# run deployments using Rinkeby `deployments` folder
+HARDHAT_DEPLOY_FORK=rinkeby yarn hardhat:local deploy:dev
 ```
+
+Note that prepending `HARDHAT_DEPLOY_FORK` when running any tasks is necessary to re-use pre-existing Voyage contracts on the chain instead of generating new deployments locally.
 
 ## Run scripts
 
-There is a runner that helps run scripts automatically with nice logs.
+In order to be useful, the protocol needs a reserve and some vaults. To initialize the necessary dependencies for development, run:
 
 ```shell
-yarn hardhat run scripts 
+yarn hardhat:local dev:bootstrap
 ```
 
-If you need to run these scripts against a network that is not `localhost`, ensure to set your private key by executing:
+This will:
 
-```shell
-DEPLOYER_PRIVATE_KEY=<0xsecret> yarn scripts
-```
+* create a reserve for MockedCrab
+* deposit into its senior and junior tranches
+* create a vault
+* fund the vault with ETH and WETH
 
 ## Specification
 
@@ -59,35 +67,35 @@ Base on EIP-2535, Voyage is the contract that uses functions from its facets (se
 
 Manage liquidity pool, provide interfaces for users to deposit and withdraw currency to/from liquidity pools.
 
-| Name                   | Description                                                                  | Modifier    | Parameters                                                  |
-| ---------------------- | ---------------------------------------------------------------------------- | ----------- | ----------------------------------------------------------- |
-| `initReserve`      | Init a new reserve | `authorised` | `address _collection, address _currency, address _interestRateStrategyAddress, address _priceOracle` |
-| `activateReserve`      | Active a reserve | `authorised` | `address _collection` |
-| `updateProtocolFee`      | Update treasury address and cut ratio | `authorised` | `address _treasuryAddr, uint40 _takeRate` |
-| `upgradePriceOracleImpl`      | Update the implementation address of PriceOracle contract, see [UpgradeableBeacon](https://docs.openzeppelin.com/contracts/3.x/api/proxy) pattern | `authorised` | `address _collection, address _priceOracle` |
-| `updateWETH9`      | Update weth9 contract address | `authorised` | `address _weth9` |
-| `deposit`      | Deposit liquidity to a specific pool base on collection address | `N/A` | `address _collection, Tranche _tranche, uint256 _amount` |
-| `withdraw`      | Withdraw liquidity from a specific pool base on collection address | `N/A` | `address _collection, Tranche _tranche, uint256 _amount` |
+| Name                     | Description                                                                                                                                       | Modifier     | Parameters                                                                                           |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------- |
+| `initReserve`            | Init a new reserve                                                                                                                                | `authorised` | `address _collection, address _currency, address _interestRateStrategyAddress, address _priceOracle` |
+| `activateReserve`        | Active a reserve                                                                                                                                  | `authorised` | `address _collection`                                                                                |
+| `updateProtocolFee`      | Update treasury address and cut ratio                                                                                                             | `authorised` | `address _treasuryAddr, uint40 _takeRate`                                                            |
+| `upgradePriceOracleImpl` | Update the implementation address of PriceOracle contract, see [UpgradeableBeacon](https://docs.openzeppelin.com/contracts/3.x/api/proxy) pattern | `authorised` | `address _collection, address _priceOracle`                                                          |
+| `updateWETH9`            | Update weth9 contract address                                                                                                                     | `authorised` | `address _weth9`                                                                                     |
+| `deposit`                | Deposit liquidity to a specific pool base on collection address                                                                                   | `N/A`        | `address _collection, Tranche _tranche, uint256 _amount`                                             |
+| `withdraw`               | Withdraw liquidity from a specific pool base on collection address                                                                                | `N/A`        | `address _collection, Tranche _tranche, uint256 _amount`                                             |
 
 #### LoanFacet
 
 Manage NFT purchasing, debt repayment and liquidation.
 
-| Name                   | Description                                                                  | Modifier    | Parameters                                                  |
-| ---------------------- | ---------------------------------------------------------------------------- | ----------- | ----------------------------------------------------------- |
-| `buyNow`      | Buy a specific NFT from a choosing marketplace | `nonReentrant` | `address _collection, uint256 _tokenId, address payable _vault, bytes calldata _data` |
-| `repay`      | Repay a specific debt | `nonReentrant` | `address _collection, uint256 _loan, address payable _vault` |
-| `liquidate`      | Liquidate a bad debt | `nonReentrant` | `address _collection, address _vault, uint256 _loanId` |
+| Name        | Description                                    | Modifier       | Parameters                                                                            |
+| ----------- | ---------------------------------------------- | -------------- | ------------------------------------------------------------------------------------- |
+| `buyNow`    | Buy a specific NFT from a choosing marketplace | `nonReentrant` | `address _collection, uint256 _tokenId, address payable _vault, bytes calldata _data` |
+| `repay`     | Repay a specific debt                          | `nonReentrant` | `address _collection, uint256 _loan, address payable _vault`                          |
+| `liquidate` | Liquidate a bad debt                           | `nonReentrant` | `address _collection, address _vault, uint256 _loanId`                                |
 
 #### VaultFacet
 
 Manage vault creation, delegate calls to vaults.
 
-| Name                   | Description                                                                  | Modifier    | Parameters                                                  |
-| ---------------------- | ---------------------------------------------------------------------------- | ----------- | ----------------------------------------------------------- |
-| `createVault`      | Create a vault using create2 | `authorised` | `address _user, bytes20 _salt` |
-| `withdrawNFT`      | Delegate call to vault contract to withdraw a specific NFT | `nonReentrant` | `address _vault, address _collection, uint256 _tokenId` |
-| `transferReserve`      | Delegate call to vault contract to transfer reserve | `nonReentrant` | `address _vault, address _currency, address _to, uint256 _amount` |
+| Name              | Description                                                | Modifier       | Parameters                                                        |
+| ----------------- | ---------------------------------------------------------- | -------------- | ----------------------------------------------------------------- |
+| `createVault`     | Create a vault using create2                               | `authorised`   | `address _user, bytes20 _salt`                                    |
+| `withdrawNFT`     | Delegate call to vault contract to withdraw a specific NFT | `nonReentrant` | `address _vault, address _collection, uint256 _tokenId`           |
+| `transferReserve` | Delegate call to vault contract to transfer reserve        | `nonReentrant` | `address _vault, address _currency, address _to, uint256 _amount` |
 
 #### SecurityFacet
 
@@ -97,19 +105,19 @@ Provides a flexible and updatable auth pattern which is completely separate from
 
 Set protocol variables.
 
-| Name                   | Description                                                                  | Modifier    | Parameters                                                  |
-| ---------------------- | ---------------------------------------------------------------------------- | ----------- | ----------------------------------------------------------- |
-| `setLiquidationBonus`      | Set liquidation bonus using by liquidate function | `authorised` | `address _collection, uint256 _liquidationBonus` |
-| `setIncomeRatio`      | Set income ration for allocating incoming interest | `authorised` | `address _collection, uint256 _ratio` |
-| `setLoanParams`      | Set loan params such as epoch, term and grace period | `authorised` | `address _collection, uint256 _epoch, uint256  _term, uint256 _gracePeriod` |
+| Name                  | Description                                          | Modifier     | Parameters                                                                  |
+| --------------------- | ---------------------------------------------------- | ------------ | --------------------------------------------------------------------------- |
+| `setLiquidationBonus` | Set liquidation bonus using by liquidate function    | `authorised` | `address _collection, uint256 _liquidationBonus`                            |
+| `setIncomeRatio`      | Set income ration for allocating incoming interest   | `authorised` | `address _collection, uint256 _ratio`                                       |
+| `setLoanParams`       | Set loan params such as epoch, term and grace period | `authorised` | `address _collection, uint256 _epoch, uint256  _term, uint256 _gracePeriod` |
 
 #### MarketplaceAdapterFacet
 
 Delegate NFT purchasing to different marketplace. See Adapters section.
 
-| Name                   | Description                                                                  | Modifier    | Parameters                                                  |
-| ---------------------- | ---------------------------------------------------------------------------- | ----------- | ----------------------------------------------------------- |
-| `purchase`      | Purchase a NFT from a supported marketplace | `N/A` | `address _marketplace, address _vault, bytes calldata _data` |
+| Name       | Description                                 | Modifier | Parameters                                                   |
+| ---------- | ------------------------------------------- | -------- | ------------------------------------------------------------ |
+| `purchase` | Purchase a NFT from a supported marketplace | `N/A`    | `address _marketplace, address _vault, bytes calldata _data` |
 
 ### Adapters
 

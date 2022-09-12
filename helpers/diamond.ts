@@ -103,13 +103,13 @@ type FacetDeploymentOptions = { name: string } & Partial<
   Pick<DeployOptions, 'contract' | 'args' | 'libraries' | 'from' | 'log'>
 >;
 
-export const DEFAULT_FACETS: string[] = [
+const DEFAULT_FACETS: string[] = [
   'DiamondCutFacet',
   'DiamondLoupeFacet',
   'OwnershipFacet',
 ];
 
-async function getDefaultABIs() {
+export async function getDefaultABIs() {
   const artifacts = await Promise.all(
     DEFAULT_FACETS.map((facetName) => deployments.getArtifact(facetName))
   );
@@ -121,7 +121,7 @@ export async function deployFacets(
 ): Promise<[Facet[], DeployResult[], ABI[]]> {
   const { owner } = await getNamedAccounts();
   const cuts: Facet[] = [];
-  const abis: any[][] = await getDefaultABIs();
+  const abis: any[][] = [];
   const deployments: DeployResult[] = [];
 
   for (const facet of facetDeployments) {

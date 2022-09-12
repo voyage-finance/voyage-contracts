@@ -1,6 +1,6 @@
 import { WETH9 } from '@contracts';
 import { BigNumber } from 'ethers';
-import { HRE } from './set-hre';
+import { HRE } from './hre';
 
 /**
  * Funds a vault

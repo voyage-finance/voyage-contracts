@@ -261,7 +261,9 @@ describe('BuyNow', function () {
 
     // check loan detail
     const loanDetail = await voyage.getLoanDetail(vault, crab.address, 0);
-    const firstPmt = loanDetail.principal.add(loanDetail.interest).div(3);
+    const principalPmt = loanDetail.interest.div(3);
+    const interestPmt = loanDetail.principal.div(3);
+    const firstPmt = principalPmt.add(interestPmt);
     const totalDebtExpected = firstPmt.add(creditLine.totalDebt);
     expect(totalDebtExpected).to.eq(
       loanDetail.principal.add(loanDetail.interest)

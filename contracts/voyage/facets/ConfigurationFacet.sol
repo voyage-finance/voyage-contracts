@@ -2,7 +2,9 @@
 pragma solidity ^0.8.9;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import {LibAppStorage, Storage, ReserveConfigurationMap} from "../libraries/LibAppStorage.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
+import {IPaymaster} from "@opengsn/contracts/src/BasePaymaster.sol";
+import {LibAppStorage, AppStorage, Storage, ReserveConfigurationMap} from "../libraries/LibAppStorage.sol";
 import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
 import {LibVault} from "../libraries/LibVault.sol";
 
@@ -28,9 +30,16 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
         uint256 _term,
         uint256 _gracePeriod
     );
+    event GSNConfigurationUpdated(
+        address _paymaster,
+        address _trustedForwarder
+    );
 
     /* --------------------------------- errors --------------------------------- */
     error IllegalLoanParameters();
+    error InvalidGSNConfiguration();
+
+    /* --------------------------------- setters -------------------------------- */
 
     /// @dev maximum size of _liquidationBonus is 2^16, ~600%
     /// @param _collection address of the underlying NFT collection
@@ -95,6 +104,30 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
         conf.setGracePeriod(_gracePeriod);
         LibReserveConfiguration.saveConfiguration(_collection, conf);
         emit LoanParametersUpdated(_collection, _epoch, _term, _gracePeriod);
+    }
+
+    /// @dev Sets the Voyage paymaster
+    /// @param _paymaster the address of the paymaster contract.
+    /// @param _trustedForwarder the address of the GSN forwarder contract. Deployed by GSN.
+    function setGSNConfiguration(address _paymaster, address _trustedForwarder)
+        external
+        authorised
+    {
+        if (_paymaster == address(0) || !Address.isContract(_paymaster)) {
+            revert InvalidGSNConfiguration();
+        }
+
+        if (
+            _trustedForwarder == address(0) ||
+            _trustedForwarder != IPaymaster(_paymaster).trustedForwarder()
+        ) {
+            revert InvalidGSNConfiguration();
+        }
+
+        AppStorage storage s = LibAppStorage.ds();
+        s.paymaster = _paymaster;
+        s.trustedForwarder = _trustedForwarder;
+        emit GSNConfigurationUpdated(_paymaster, _trustedForwarder);
     }
 
     function getIncomeRatio(address _collection) public view returns (uint256) {

@@ -49,9 +49,6 @@ task('dev:bootstrap', 'Bootstraps a reserve, vault, and user balances')
       vaultBalance,
     } = params;
 
-    console.log('Setting up markeptlace adapters');
-    await run('dev:configure-marketplace-adapters');
-
     console.log(`Creating/initializing reserve for collection ${collection}`);
     await run('dev:initialize-reserve', { collection });
 
