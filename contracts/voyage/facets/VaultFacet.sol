@@ -76,7 +76,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         address _vault,
         address _collection,
         uint256 _tokenId
-    ) public onlyVaultOnwer(_vault, _msgSender()) nonReentrant {
+    ) public onlyVaultOwner(_vault, _msgSender()) nonReentrant {
         checkContractAddr(_collection);
         if (LibAppStorage.ds().nftIndex[_collection][_tokenId].isCollateral) {
             revert InvalidWithdrawal();
@@ -94,7 +94,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         address _currency,
         address _to,
         uint256 _amount
-    ) public onlyVaultOnwer(_vault, _msgSender()) nonReentrant {
+    ) public onlyVaultOwner(_vault, _msgSender()) nonReentrant {
         checkContractAddr(_currency);
         // to prevent currency being a collection address
         if (LibAppStorage.ds()._reserveData[_currency].currency != address(0)) {
@@ -109,7 +109,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
 
     function wrapVaultETH(address _vault, uint256 _value)
         public
-        onlyVaultOnwer(_vault, _msgSender())
+        onlyVaultOwner(_vault, _msgSender())
         nonReentrant
     {
         bytes4 selector = IWETH9(address(0)).deposit.selector;
@@ -120,7 +120,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
 
     function unwrapVaultETH(address _vault, uint256 _vaule)
         public
-        onlyVaultOnwer(_vault, _msgSender())
+        onlyVaultOwner(_vault, _msgSender())
         nonReentrant
     {
         bytes4 selector = IWETH9(address(0)).withdraw.selector;
