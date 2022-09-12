@@ -34,6 +34,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         address _sponsor,
         uint256 _amount
     );
+    event VaultImplementationUpdated(address _impl);
 
     /* ----------------------------- admin interface ---------------------------- */
     function createVault(address _user, bytes20 _salt) external authorised {
@@ -69,6 +70,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
             revert InvalidVaultImpl();
         }
         LibVault.setVaultImpl(_impl);
+        emit VaultImplementationUpdated(_impl);
     }
 
     /* ---------------------- user interface --------------------- */

@@ -18,6 +18,7 @@ import { ethers } from 'ethers';
 if (process.env.SKIP_TASKS !== 'true') {
   require('./tasks/helpers');
   require('./tasks/dev');
+  require('./tasks/migration');
 }
 
 dotenvConfig({ path: resolve(__dirname, './.env') });

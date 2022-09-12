@@ -5,7 +5,7 @@ import {
 } from '@opensea/seaport-js/lib/typechain/Seaport';
 import { deployments as d } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { WETH9, Voyage, VoyagePaymaster } from '@contracts';
+import { WETH9, Voyage, VoyagePaymaster, MockForwarder } from '@contracts';
 import { deployFacets, FacetCutAction } from './diamond';
 import { decimals, MAX_UINT_256, toWad } from './math';
 import './wadraymath';
@@ -15,16 +15,25 @@ import {
   TakerOrderWithEncodedParams,
 } from '@looksrare/sdk';
 import { BigNumber } from 'ethers';
+import { setHRE } from './task-helpers/hre';
 
 const dec = decimals(18);
 
-const setupBase = async ({
-  deployments,
-  getNamedAccounts,
-  ethers,
-}: HardhatRuntimeEnvironment) => {
-  await deployments.fixture(['Voyage', 'Vault', 'Tokenization']);
-  const { owner, alice, bob, treasury, forwarder } = await getNamedAccounts();
+const setupBase = async (hre: HardhatRuntimeEnvironment) => {
+  setHRE(hre);
+  const { deployments, getNamedAccounts, ethers } = hre;
+  await deployments.fixture([
+    'Mocks',
+    'VToken',
+    'Vault',
+    'Adapters',
+    'InterestRateStrategy',
+    'Oracle',
+    'Diamond',
+    'Facets',
+    'Paymaster',
+  ]);
+  const { owner, alice, bob, forwarder, treasury } = await getNamedAccounts();
 
   /* --------------------------------- voyage -------------------------------- */
   const voyage = await ethers.getContract<Voyage>('Voyage');
@@ -36,6 +45,7 @@ const setupBase = async ({
   const priceOracle = await ethers.getContract('PriceOracle');
   const weth = await ethers.getContract<WETH9>('WETH9');
   await weth.deposit({ value: ethers.utils.parseEther('10000000') });
+  await voyage.setGSNConfiguration(paymaster.address, forwarder);
   /* ---------------------------------- adapter --------------------------------- */
   const looksRareAdapter = await ethers.getContract('LooksRareAdapter');
   const seaportAdapter = await ethers.getContract('SeaportAdapter');

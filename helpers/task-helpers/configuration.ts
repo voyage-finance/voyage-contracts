@@ -1,6 +1,6 @@
 import { BigNumber } from 'ethers';
 import { Voyage, PriceOracle } from '@contracts';
-import { HRE } from './set-hre';
+import { HRE } from './hre';
 
 export interface AdapterConfiguration {
   marketplace: string;

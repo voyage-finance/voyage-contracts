@@ -1,13 +1,8 @@
+import { getWETH9 } from '@helpers/task-helpers/addresses';
 import { ethers } from 'hardhat';
 import { DeployFunction, Facet, FacetCut } from 'hardhat-deploy/types';
-import { Voyage } from '@contracts';
 import { deployFacets, FacetCutAction, mergeABIs } from '../helpers/diamond';
 import { log } from '../helpers/logger';
-
-// rinkeby relay hub
-const DEFAULT_RELAY_HUB = '0x6650d69225CA31049DB7Bd210aE4671c0B1ca132';
-// rinkeby forwarder
-const DEFAULT_TRUSTED_FORWARDER = '0x83A54884bE4657706785D7309cf46B58FE5f6e8a';
 
 // These selectors are for DiamondCutFacet, DiamondLoupeFacet, and OwnershipFacet.
 // When deciding which facets to remove, these should be excluded as they are part of the diamond standard.
@@ -25,69 +20,18 @@ const DEFAULT_SELECTORS = [
 
 const deployFn: DeployFunction = async (hre) => {
   const { deployments, getNamedAccounts } = hre;
-  const { deploy, execute, getOrNull, save, getArtifact } = deployments;
-  const { owner, treasury, forwarder } = await getNamedAccounts();
+  const { get, deploy, execute, save } = deployments;
+  const { owner } = await getNamedAccounts();
 
-  const seniorDepositImpl = await deploy('SeniorDepositToken', {
-    from: owner,
-    log: true,
-  });
-  const juniorDepositImpl = await deploy('JuniorDepositToken', {
-    from: owner,
-    log: true,
-  });
-  await deploy('PriceOracle', {
-    from: owner,
-    log: true,
-  });
-  await deploy('LooksRareAdapter', {
-    from: owner,
-    log: true,
-  });
-
-  const diamondCutFacet = await deploy('DiamondCutFacet', {
-    from: owner,
-    log: true,
-  });
-  const diamondLoupeFacet = await deploy('DiamondLoupeFacet', {
-    from: owner,
-    log: true,
-  });
-  const ownershipFacet = await deploy('OwnershipFacet', {
-    from: owner,
-    log: true,
-  });
-  const weth9 = await deploy('WETH9', {
-    from: owner,
-    log: true,
-  });
-  await deploy('SeaportAdapter', {
-    from: owner,
-    log: true,
-    args: [weth9.address],
-  });
-  const diamondABI: any[] = [];
-  const diamondProxyArtifact = await getArtifact('Diamond');
-  diamondABI.push(diamondProxyArtifact.abi);
-
+  let changesDetected = false;
   // This only returns the bare diamond proxy.
-  let existingProxyDeployment = await getOrNull('VoyageDiamondProxy');
-  let existingFacets: Facet[] = [];
+  const diamond = await ethers.getContract('Voyage');
+  const deployment = await get('Voyage');
+  log.debug('diamond address: ', diamond.address);
+  const existingFacets: Facet[] = await diamond.facets();
+  log.debug('existing facets: %o', existingFacets);
   const existingSelectors: string[] = [];
   const selectorFacetMap: { [selector: string]: Facet } = {};
-  if (existingProxyDeployment) {
-    log.debug(
-      'existing voyage diamond proxy %s: ',
-      existingProxyDeployment?.address
-    );
-    // this returns the diamond with merged ABI.
-    const diamond = await ethers.getContract('Voyage');
-    log.debug('diamond address: ', diamond.address);
-    existingFacets = await diamond.facets();
-    log.debug('existing facets: %o', existingFacets);
-  }
-
-  let changesDetected = !existingProxyDeployment;
   for (const facet of existingFacets) {
     for (const selector of facet.functionSelectors) {
       existingSelectors.push(selector);
@@ -201,73 +145,15 @@ const deployFn: DeployFunction = async (hre) => {
   }
 
   if (changesDetected) {
-    if (!existingProxyDeployment) {
-      log.debug('No existing diamond proxy found. Deploying a fresh diamond.');
-      log.debug('Initialising with diamond cuts: %o', cuts);
-      // TODO: check if there is already a diamond at this address, e.g., in case `deployments` folder was wiped.
-      // if there is one, it can actually be re-used
-      try {
-        existingProxyDeployment = await deploy('VoyageDiamondProxy', {
-          contract: 'contracts/voyage/Voyage.sol:Voyage',
-          from: owner,
-          log: true,
-          args: [owner],
-        });
-        log.debug(
-          'Deployed fresh diamond proxy at: ',
-          existingProxyDeployment.address
-        );
-      } catch (err) {
-        log.error(err);
-        log.fatal('Failed to deploy diamond proxy.');
-        process.exit(1);
-      }
-    }
-
-    const mergedABI = mergeABIs([existingProxyDeployment!.abi, ...facetABIs], {
+    const mergedABI = mergeABIs([deployment.abi, ...facetABIs], {
       check: true,
       skipSupportsInterface: false,
     });
-
-    save('Voyage', {
-      ...existingProxyDeployment,
+    await save('Voyage', {
+      ...diamond,
       abi: mergedABI,
       facets,
     });
-
-    const paymaster = await deploy('VoyagePaymaster', {
-      from: owner,
-      log: true,
-      args: [existingProxyDeployment.address, weth9.address, treasury],
-    });
-    const PAYMASTER = process.env.PAYMASTER || paymaster.address;
-
-    const RELAY_HUB = process.env.RELAY_HUB || DEFAULT_RELAY_HUB;
-    await execute(
-      'VoyagePaymaster',
-      { from: owner, log: true },
-      'setRelayHub',
-      RELAY_HUB
-    );
-    log.info('set paymaster relay hub to %s', RELAY_HUB);
-
-    const vaultImpl = await deploy('Vault', {
-      from: owner,
-      log: true,
-      args: [],
-    });
-
-    const FORWARDER =
-      process.env.NODE_ENV === 'test'
-        ? forwarder
-        : process.env.TRUSTED_FORWARDER || DEFAULT_TRUSTED_FORWARDER;
-    await execute(
-      'VoyagePaymaster',
-      { from: owner, log: true },
-      'setTrustedForwarder',
-      FORWARDER
-    );
-    log.info('set paymaster forwarder to %s', FORWARDER);
 
     if (cuts.length > 0) {
       log.debug('Deploying InitDiamond');
@@ -276,6 +162,12 @@ const deployFn: DeployFunction = async (hre) => {
         log: true,
         args: [],
       });
+
+      const vaultImpl = await ethers.getContract('Vault');
+      const seniorDepositImpl = await ethers.getContract('SeniorDepositToken');
+      const juniorDepositImpl = await ethers.getContract('JuniorDepositToken');
+      const weth9 = await getWETH9();
+
       const initDiamond = await ethers.getContract('InitDiamond');
       log.debug('Preparing InitDiamond call data');
       const initArgs = initDiamond.interface.encodeFunctionData('init', [
@@ -284,12 +176,7 @@ const deployFn: DeployFunction = async (hre) => {
           seniorDepositTokenImpl: seniorDepositImpl.address,
           juniorDepositTokenImpl: juniorDepositImpl.address,
           vaultImpl: vaultImpl.address,
-          diamondCutFacet: diamondCutFacet.address,
-          diamondLoupeFacet: diamondLoupeFacet.address,
-          ownershipFacet: ownershipFacet.address,
-          weth9: weth9.address,
-          trustedForwarder: FORWARDER,
-          paymaster: PAYMASTER,
+          weth9,
         },
       ]);
 
@@ -306,23 +193,11 @@ const deployFn: DeployFunction = async (hre) => {
         initArgs
       );
     } else {
-      log.debug(
-        'No facets to update for diamond at %s',
-        existingProxyDeployment.address
-      );
-    }
-
-    if (vaultImpl.newlyDeployed) {
-      await execute(
-        'Voyage',
-        { from: owner, log: true },
-        'setVaultImpl',
-        vaultImpl.address
-      );
+      log.debug('No facets to update for diamond');
     }
   }
 };
 
-deployFn.tags = ['Voyage'];
+deployFn.tags = ['Facets'];
 
 export default deployFn;
