@@ -86,10 +86,10 @@ describe('Repay', function () {
     console.log('draw down 01: ');
     showLoan(loanDetail01);
     expect(loanDetail01.totalPrincipalPaid.toString()).to.equal(
-      '6666666666666666666'
+      loanDetail01.principal.div(3).mul(2)
     );
     expect(loanDetail01.totalInterestPaid.toString()).to.equal(
-      '300000000000000000'
+      loanDetail01.interest.div(3).mul(2)
     );
 
     // repay draw down 0 again

@@ -2,7 +2,7 @@ import { MAX_UINT_256 } from '@helpers/math';
 import { BigNumber } from 'ethers';
 import { Voyage, WETH9 } from '@contracts';
 import { Tranche } from '../types';
-import { HRE } from './set-hre';
+import { HRE } from './hre';
 
 export async function deposit(
   collection: string,

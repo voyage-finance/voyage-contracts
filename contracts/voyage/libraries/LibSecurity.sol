@@ -102,10 +102,6 @@ library LibSecurity {
         return LibAppStorage.ds().trustedForwarder;
     }
 
-    function setTrustedForwarder(address _forwarder) internal {
-        LibAppStorage.ds().trustedForwarder = _forwarder;
-    }
-
     function isTrustedForwarder(address _forwarder)
         internal
         view

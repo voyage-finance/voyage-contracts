@@ -1,5 +1,5 @@
 import { ChainID, Token, Marketplace } from '@helpers/types';
-import { HRE } from './set-hre';
+import { HRE } from './hre';
 import { CROSS_CHAIN_SEAPORT_ADDRESS } from '@opensea/seaport-js/lib/constants';
 
 export const externalContracts: Record<number, Record<string, string>> = {
