@@ -20,5 +20,5 @@ task(
         adapter: looksAdapter.address,
       });
     }
-    await setMarketplaceAdapters(adapterConfiguration);
+    const tx = await setMarketplaceAdapters(adapterConfiguration);
   });
