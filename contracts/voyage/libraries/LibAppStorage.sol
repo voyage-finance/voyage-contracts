@@ -261,7 +261,7 @@ contract Storage {
         _;
     }
 
-    modifier onlyVaultOnwer(address _vault, address _sender) {
+    modifier onlyVaultOwner(address _vault, address _sender) {
         checkVaultAddr(_vault, _sender);
         _;
     }
