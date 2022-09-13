@@ -192,7 +192,7 @@ const deployFn: DeployFunction = async (hre) => {
     skipSupportsInterface: false,
   });
   await save('Voyage', {
-    ...diamond,
+    ...deployment,
     abi: mergedABI,
     facets,
   });

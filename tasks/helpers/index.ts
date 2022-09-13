@@ -17,6 +17,7 @@ import './decode-buy-now';
 import './vault-balance';
 import './vault-approve-weth';
 import './nft-owner';
+import './set-twap-staleness';
 import './decode-relaycall';
 import './decode-seaport-error';
 import './set-hre';
