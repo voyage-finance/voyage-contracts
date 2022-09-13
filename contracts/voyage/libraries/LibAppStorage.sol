@@ -109,6 +109,7 @@ struct BorrowData {
     uint40 nextLoanNumber;
     uint256 totalPrincipal;
     uint256 totalInterest;
+    uint256 totalFee;
     uint256 mapSize;
     mapping(uint256 => Loan) loans;
 }

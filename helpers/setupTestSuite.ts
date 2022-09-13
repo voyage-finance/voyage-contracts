@@ -106,7 +106,7 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     crab.address,
     reserveConfiguration.maxStaleness
   );
-  await voyage.updateProtocolFee(owner, reserveConfiguration.protocolFee);
+  await voyage.updateProtocolFee(treasury, reserveConfiguration.protocolFee);
   await voyage.updateMarketPlaceData(
     marketPlace.address,
     looksRareAdapter.address
