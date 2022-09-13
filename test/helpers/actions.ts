@@ -258,7 +258,11 @@ export const buyNow = async (
   );
 
   const principal = BigNumber.from('10000000000000000000');
-  const expectedLoanDetail = calcExpectedLoanDetailAfterBuyNow(principal);
+  const expectedLoanDetail = calcExpectedLoanDetailAfterBuyNow(
+    principal,
+    90,
+    30
+  );
 
   expectEqual(reserveDataAfter, expectedReserveData);
   expectEqual(creditLineAfter, expectedCreditLineData);

@@ -9,6 +9,11 @@ export const toRay = (n: BigNumber) => {
   return n.multipliedBy(RAY);
 };
 
+export const toRay2 = (value: number) => {
+  const n = new BigNumber(value);
+  return n.multipliedBy(RAY).toFixed();
+};
+
 export const toWad = (value: number) => {
   const n = new BigNumber(value);
   return n.multipliedBy(WAD).toFixed();
