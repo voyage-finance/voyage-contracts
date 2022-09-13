@@ -1,8 +1,16 @@
+import { BigNumber } from 'ethers';
 import { expect } from 'chai';
 import { Contract } from 'ethers';
 import { ethers } from 'hardhat';
-import { toWad } from '../helpers/math';
+import { toRay2, toWad } from '../helpers/math';
 import { setupTestSuite } from '../helpers/setupTestSuite';
+import {
+  calculateEffectiveInterestRate,
+  getDownpaymentJuniorInterest,
+  getOutstandingJuniorInterest,
+  getOutstandingProtocolFee,
+  getOutstandingSeniorInterest,
+} from './helpers/utils/calculations';
 
 describe('Liquidate', function () {
   it('Liquidate a invalid debt should revert', async function () {
@@ -211,6 +219,7 @@ describe('Liquidate', function () {
       marketPlace,
       seniorDepositToken,
       juniorDepositToken,
+      reserveConfiguration,
     } = await setupTestSuite();
     const vault = await voyage.getVault(owner);
 
@@ -228,39 +237,71 @@ describe('Liquidate', function () {
     );
     await crab.safeMint(vault, 1);
 
-    await voyage.setLiquidationBonus(crab.address, 13300);
     await increase(41);
-    await priceOracle.updateTwap(crab.address, toWad(10));
+    const nftPrice = BigNumber.from(toWad(10));
+    await priceOracle.updateTwap(crab.address, nftPrice.toString());
 
     // before liquidate
     const seniorTotalAssetBefore = await getTotalAsset(seniorDepositToken);
     const juniorTotalAssetBefore = await getTotalAsset(juniorDepositToken);
-    console.log('seniorTotalAssetBefore: ', seniorTotalAssetBefore.toString());
-    console.log('juniorTotalAssetBefore: ', juniorTotalAssetBefore.toString());
 
-    await priceOracle.updateTwap(crab.address, toWad(1));
+    const updatedNftPrice = toWad(1);
+    await priceOracle.updateTwap(crab.address, updatedNftPrice);
     await voyage.liquidate(crab.address, vault, 0);
 
     // after liquidate
     const seniorTotalAssetAfter = await getTotalAsset(seniorDepositToken);
     const juniorTotalAssetAfter = await getTotalAsset(juniorDepositToken);
-    console.log('seniorTotalAssetAfter: ', seniorTotalAssetAfter.toString());
-    console.log('juniorTotalAssetAfter: ', juniorTotalAssetAfter.toString());
 
-    // total debt: 6666666666666666667
-    // discounted floor price: 670000000000000000
-    // outstanding senior interest: 150000000000000000
-    // need to repay from junior tranche 5996666666666666667
-    // outstanding junior interest: 150000000000000000
-    // writedown senior interest: 150000000000000000
-    // weitedown junior interest: 150000000000000000
-    // junior tranche subtract 5996666666666666667 + 150000000000000000 == 6146666666666666667
-    expect(seniorTotalAssetBefore.toString()).to.eq(
-      seniorTotalAssetAfter.add('150000000000000000')
+    const nper = reserveConfiguration.term / reserveConfiguration.epoch;
+    const downpayment = nftPrice.div(nper);
+    const totalDebt = nftPrice.sub(downpayment);
+    const discountedFloorPrice = await getDiscountedFloorPrice(
+      BigNumber.from(updatedNftPrice),
+      reserveConfiguration.liquidationBonus
+    );
+    expect(discountedFloorPrice).to.lt(totalDebt);
+
+    // calculate effective interest rate
+    const effectiveInterestRate = calculateEffectiveInterestRate(
+      BigNumber.from(reserveConfiguration.epoch),
+      BigNumber.from(nper),
+      BigNumber.from(toRay2(reserveConfiguration.baseRate))
+    );
+    const outstandingSeniorInterest = getOutstandingSeniorInterest(
+      nftPrice,
+      effectiveInterestRate,
+      reserveConfiguration.incomeRatio,
+      nper
+    );
+    const outstandingJuniorInterest = getOutstandingJuniorInterest(
+      nftPrice,
+      effectiveInterestRate,
+      reserveConfiguration.incomeRatio,
+      nper
+    );
+    const juniorDownpaymentInterest = getDownpaymentJuniorInterest(
+      nftPrice,
+      effectiveInterestRate,
+      reserveConfiguration.incomeRatio,
+      nper
+    );
+    const maybeWritedownPrincipalAmount = totalDebt.sub(discountedFloorPrice);
+    const juniorBalanceAtTheMonmentOfLiquidate = BigNumber.from(
+      juniorDeposit
+    ).add(juniorDownpaymentInterest);
+    expect(maybeWritedownPrincipalAmount).to.lt(
+      juniorBalanceAtTheMonmentOfLiquidate
     );
 
-    expect(juniorTotalAssetBefore.toString()).to.eq(
-      juniorTotalAssetAfter.add('6146666666666666667')
+    expect(seniorTotalAssetBefore.toString()).to.eq(
+      seniorTotalAssetAfter.add(outstandingSeniorInterest)
+    );
+    const subtractJuniorTrancheAmount = maybeWritedownPrincipalAmount.add(
+      outstandingJuniorInterest
+    );
+    expect(juniorTotalAssetAfter.add(subtractJuniorTrancheAmount)).to.eq(
+      juniorTotalAssetBefore
     );
   });
 
@@ -274,6 +315,7 @@ describe('Liquidate', function () {
       marketPlace,
       seniorDepositToken,
       juniorDepositToken,
+      reserveConfiguration,
     } = await setupTestSuite();
     const vault = await voyage.getVault(owner);
 
@@ -291,38 +333,71 @@ describe('Liquidate', function () {
     );
     await crab.safeMint(vault, 1);
 
-    await voyage.setLiquidationBonus(crab.address, 13300);
     await increase(41);
-    await priceOracle.updateTwap(crab.address, toWad(10));
+    const nftPrice = BigNumber.from(toWad(10));
+    await priceOracle.updateTwap(crab.address, nftPrice.toString());
 
     // before liquidate
     const seniorTotalAssetBefore = await getTotalAsset(seniorDepositToken);
     const juniorTotalAssetBefore = await getTotalAsset(juniorDepositToken);
-    console.log('seniorTotalAssetBefore: ', seniorTotalAssetBefore.toString());
-    console.log('juniorTotalAssetBefore: ', juniorTotalAssetBefore.toString());
 
-    await priceOracle.updateTwap(crab.address, toWad(1));
+    const updatedNftPrice = toWad(1);
+    await priceOracle.updateTwap(crab.address, updatedNftPrice);
     await voyage.liquidate(crab.address, vault, 0);
 
     // after liquidate
     const seniorTotalAssetAfter = await getTotalAsset(seniorDepositToken);
     const juniorTotalAssetAfter = await getTotalAsset(juniorDepositToken);
-    console.log('seniorTotalAssetAfter: ', seniorTotalAssetAfter.toString());
-    console.log('juniorTotalAssetAfter: ', juniorTotalAssetAfter.toString());
 
-    // junior tranche: 5075000000000000000 (princiapl + first interest repayment from buyNow)
-    // total debt: 6666666666666666667
-    // discounted floor price: 670000000000000000
-    // outstanding senior interest: 150000000000000000
-    // need to repay from junior tranche 5000000000000000000
-    // outstanding junior interest: 150000000000000000
-    // writedown senior interest: 150000000000000000
-    // weitedown junior interest: 150000000000000000
-    // senior tranche subtract: 150000000000000000 + 6666666666666666667 - 5075000000000000000 - 670000000000000000 == 1071666666666666667
-    expect(seniorTotalAssetBefore.toString()).to.eq(
-      seniorTotalAssetAfter.add('1071666666666666667')
+    const nper = reserveConfiguration.term / reserveConfiguration.epoch;
+    const downpayment = nftPrice.div(nper);
+    const totalDebt = nftPrice.sub(downpayment);
+    const discountedFloorPrice = await getDiscountedFloorPrice(
+      BigNumber.from(updatedNftPrice),
+      reserveConfiguration.liquidationBonus
     );
-    expect(juniorTotalAssetAfter.toString()).to.eq('0');
+    expect(discountedFloorPrice).to.lt(totalDebt);
+
+    const effectiveInterestRate = calculateEffectiveInterestRate(
+      BigNumber.from(reserveConfiguration.epoch),
+      BigNumber.from(nper),
+      BigNumber.from(toRay2(reserveConfiguration.baseRate))
+    );
+    const outstandingSeniorInterest = getOutstandingSeniorInterest(
+      nftPrice,
+      effectiveInterestRate,
+      reserveConfiguration.incomeRatio,
+      nper
+    );
+    const outstandingJuniorInterest = getOutstandingJuniorInterest(
+      nftPrice,
+      effectiveInterestRate,
+      reserveConfiguration.incomeRatio,
+      nper
+    );
+    const juniorDownpaymentInterest = getDownpaymentJuniorInterest(
+      nftPrice,
+      effectiveInterestRate,
+      reserveConfiguration.incomeRatio,
+      nper
+    );
+    const maybeWritedownPrincipalAmount = totalDebt.sub(discountedFloorPrice);
+    const juniorBalanceAtTheMonmentOfLiquidate = BigNumber.from(
+      juniorDeposit
+    ).add(juniorDownpaymentInterest);
+    expect(maybeWritedownPrincipalAmount).to.gt(
+      juniorBalanceAtTheMonmentOfLiquidate
+    );
+    const writeDownPrincipaAmount = maybeWritedownPrincipalAmount.sub(
+      juniorBalanceAtTheMonmentOfLiquidate
+    );
+
+    expect(seniorTotalAssetBefore.toString()).to.eq(
+      seniorTotalAssetAfter
+        .add(outstandingSeniorInterest)
+        .add(writeDownPrincipaAmount)
+    );
+    expect(juniorTotalAssetAfter).to.eq(0);
   });
 
   it('Liquidation proceeds enough to repay principal partially should return correct value', async function () {
@@ -335,6 +410,7 @@ describe('Liquidate', function () {
       marketPlace,
       seniorDepositToken,
       juniorDepositToken,
+      reserveConfiguration,
     } = await setupTestSuite();
     const vault = await voyage.getVault(owner);
 
@@ -352,44 +428,58 @@ describe('Liquidate', function () {
     );
     await crab.safeMint(vault, 1);
 
-    // discountedFloorPrice = 10 - [(bonus - 1)  * 10] / 10
-    // discountedFloorPrice = 6.67
-    // 6.67 = 10 - [(bonus - 1)  * 10] / 10
-    // [(bonus - 1)  * 10] / 10 = 0.33
-    // (bonus - 1)  * 10 = 3.3
-    // bonus - 1 = 0.33
-    // bonus = 1.33
-    await voyage.setLiquidationBonus(crab.address, 13300);
     await increase(41);
-    await priceOracle.updateTwap(crab.address, toWad(100));
+    const nftPrice = BigNumber.from(toWad(10));
+    await priceOracle.updateTwap(crab.address, nftPrice);
 
     // before liquidate
     const seniorTotalAssetBefore = await getTotalAsset(seniorDepositToken);
     const juniorTotalAssetBefore = await getTotalAsset(juniorDepositToken);
-    console.log('seniorTotalAssetBefore: ', seniorTotalAssetBefore.toString());
-    console.log('juniorTotalAssetBefore: ', juniorTotalAssetBefore.toString());
-
-    await priceOracle.updateTwap(crab.address, toWad(10));
+    const updatedNftPrice = toWad(7.1);
+    await priceOracle.updateTwap(crab.address, updatedNftPrice);
     await voyage.liquidate(crab.address, vault, 0);
 
     // after liquidate
     const seniorTotalAssetAfter = await getTotalAsset(seniorDepositToken);
     const juniorTotalAssetAfter = await getTotalAsset(juniorDepositToken);
-    console.log('seniorTotalAssetAfter: ', seniorTotalAssetAfter.toString());
-    console.log('juniorTotalAssetAfter: ', juniorTotalAssetAfter.toString());
 
-    // total debt: 6666666666666666667
-    // discounted floor price: 6700000000000000000
-    // outstanding senior interest: 150000000000000000
-    // outstanding junior interest: 150000000000000000
-    // repay senior interest: 33333333333333333
-    // writedown senior interest: 116666666666666667
-    // weitedown junior interest: 150000000000000000
+    const nper = reserveConfiguration.term / reserveConfiguration.epoch;
+    const downpayment = nftPrice.div(nper);
+    const totalDebt = nftPrice.sub(downpayment);
+    const discountedFloorPrice = await getDiscountedFloorPrice(
+      BigNumber.from(updatedNftPrice),
+      reserveConfiguration.liquidationBonus
+    );
+
+    // calculate effective interest rate
+    const effectiveInterestRate = calculateEffectiveInterestRate(
+      BigNumber.from(reserveConfiguration.epoch),
+      BigNumber.from(nper),
+      BigNumber.from(toRay2(reserveConfiguration.baseRate))
+    );
+    const outstandingSeniorInterest = getOutstandingSeniorInterest(
+      nftPrice,
+      effectiveInterestRate,
+      reserveConfiguration.incomeRatio,
+      nper
+    );
+    const outstandingJuniorInterest = getOutstandingJuniorInterest(
+      nftPrice,
+      effectiveInterestRate,
+      reserveConfiguration.incomeRatio,
+      nper
+    );
+    const maybeRepayToSeniorInterest = discountedFloorPrice.sub(totalDebt);
+    expect(maybeRepayToSeniorInterest).to.lt(outstandingSeniorInterest);
+    const writedownSeniorInterest = outstandingSeniorInterest.sub(
+      maybeRepayToSeniorInterest
+    );
+
     expect(seniorTotalAssetBefore.toString()).to.eq(
-      seniorTotalAssetAfter.add('116666666666666667')
+      seniorTotalAssetAfter.add(writedownSeniorInterest)
     );
     expect(juniorTotalAssetBefore.toString()).to.eq(
-      juniorTotalAssetAfter.add('150000000000000000')
+      juniorTotalAssetAfter.add(outstandingJuniorInterest)
     );
   });
 
@@ -403,6 +493,7 @@ describe('Liquidate', function () {
       marketPlace,
       seniorDepositToken,
       juniorDepositToken,
+      reserveConfiguration,
     } = await setupTestSuite();
     const vault = await voyage.getVault(owner);
 
@@ -420,34 +511,60 @@ describe('Liquidate', function () {
     );
     await crab.safeMint(vault, 1);
 
-    await voyage.setLiquidationBonus(crab.address, 10000);
     await increase(41);
-    await priceOracle.updateTwap(crab.address, toWad(100));
+    const nftPrice = BigNumber.from(toWad(10));
+    await priceOracle.updateTwap(crab.address, nftPrice);
 
     // before liquidate
     const seniorTotalAssetBefore = await getTotalAsset(seniorDepositToken);
     const juniorTotalAssetBefore = await getTotalAsset(juniorDepositToken);
-    console.log('seniorTotalAssetBefore: ', seniorTotalAssetBefore.toString());
-    console.log('juniorTotalAssetBefore: ', juniorTotalAssetBefore.toString());
-
-    await priceOracle.updateTwap(crab.address, toWad(6.9));
+    const updatedNftPrice = toWad(7.2);
+    await priceOracle.updateTwap(crab.address, updatedNftPrice);
     await voyage.liquidate(crab.address, vault, 0);
 
     // after liquidate
     const seniorTotalAssetAfter = await getTotalAsset(seniorDepositToken);
     const juniorTotalAssetAfter = await getTotalAsset(juniorDepositToken);
-    console.log('seniorTotalAssetAfter: ', seniorTotalAssetAfter.toString());
-    console.log('juniorTotalAssetAfter: ', juniorTotalAssetAfter.toString());
 
-    // total debt: 6666666666666666667
-    // discounted floor price: 6900000000000000000
-    // outstanding senior interest: 150000000000000000
-    // outstanding junior interest: 150000000000000000
-    // writedown senior interest: 0
-    // weitedown junior interest: 66666666666666667
+    const nper = reserveConfiguration.term / reserveConfiguration.epoch;
+    const downpayment = nftPrice.div(nper);
+    const totalDebt = nftPrice.sub(downpayment);
+    const discountedFloorPrice = await getDiscountedFloorPrice(
+      BigNumber.from(updatedNftPrice),
+      reserveConfiguration.liquidationBonus
+    );
+
+    // calculate effective interest rate
+    const effectiveInterestRate = calculateEffectiveInterestRate(
+      BigNumber.from(reserveConfiguration.epoch),
+      BigNumber.from(nper),
+      BigNumber.from(toRay2(reserveConfiguration.baseRate))
+    );
+    const outstandingSeniorInterest = getOutstandingSeniorInterest(
+      nftPrice,
+      effectiveInterestRate,
+      reserveConfiguration.incomeRatio,
+      nper
+    );
+    const outstandingJuniorInterest = getOutstandingJuniorInterest(
+      nftPrice,
+      effectiveInterestRate,
+      reserveConfiguration.incomeRatio,
+      nper
+    );
+    const maybeRepayToSeniorInterest = discountedFloorPrice.sub(totalDebt);
+    expect(maybeRepayToSeniorInterest).to.gt(outstandingSeniorInterest);
+    const maybeRepayToJuniorInterest = maybeRepayToSeniorInterest.sub(
+      outstandingJuniorInterest
+    );
+    expect(maybeRepayToJuniorInterest).to.gt(0);
+    const writedownJuniorInterest = outstandingJuniorInterest.sub(
+      maybeRepayToJuniorInterest
+    );
+
     expect(seniorTotalAssetBefore.toString()).to.eq(seniorTotalAssetAfter);
     expect(juniorTotalAssetBefore.toString()).to.eq(
-      juniorTotalAssetAfter.add('66666666666666667')
+      juniorTotalAssetAfter.add(writedownJuniorInterest)
     );
   });
 
@@ -461,7 +578,6 @@ describe('Liquidate', function () {
       marketPlace,
       seniorDepositToken,
       juniorDepositToken,
-      weth,
     } = await setupTestSuite();
     const vault = await voyage.getVault(owner);
 
@@ -479,42 +595,23 @@ describe('Liquidate', function () {
     );
     await crab.safeMint(vault, 1);
 
-    await voyage.setLiquidationBonus(crab.address, 10000);
     await increase(41);
-    await priceOracle.updateTwap(crab.address, toWad(100));
+    const nftPrice = BigNumber.from(toWad(10));
+    await priceOracle.updateTwap(crab.address, nftPrice);
 
     // before liquidate
     const seniorTotalAssetBefore = await getTotalAsset(seniorDepositToken);
     const juniorTotalAssetBefore = await getTotalAsset(juniorDepositToken);
-    const treasuryInfo = await voyage.getProtocolFeeParam();
-    const treasuryBalanceBefore = await weth.balanceOf(treasuryInfo[0]);
-    console.log('seniorTotalAssetBefore: ', seniorTotalAssetBefore.toString());
-    console.log('juniorTotalAssetBefore: ', juniorTotalAssetBefore.toString());
-    console.log('treasuryBalanceBefore: ', treasuryBalanceBefore.toString());
-
-    await priceOracle.updateTwap(crab.address, toWad(7));
+    const updatedNftPrice = toWad(7.4);
+    await priceOracle.updateTwap(crab.address, updatedNftPrice);
     await voyage.liquidate(crab.address, vault, 0);
 
     // after liquidate
     const seniorTotalAssetAfter = await getTotalAsset(seniorDepositToken);
     const juniorTotalAssetAfter = await getTotalAsset(juniorDepositToken);
-    const tresauryBalanceAfter = await weth.balanceOf(treasuryInfo[0]);
-    console.log('seniorTotalAssetAfter: ', seniorTotalAssetAfter.toString());
-    console.log('juniorTotalAssetAfter: ', juniorTotalAssetAfter.toString());
-    console.log('tresauryBalanceAfter: ', tresauryBalanceAfter.toString());
 
-    // total debt: 6666666666666666667
-    // discounted floor price: 7000000000000000000
-    // outstanding senior interest: 150000000000000000
-    // outstanding junior interest: 150000000000000000
-    // writedown senior interest: 0
-    // weitedown junior interest: 0
-    // protocol fee: 7000000000000000000 - 6666666666666666667 - 150000000000000000 - 150000000000000000 == 33333333333333333
-    expect(seniorTotalAssetBefore).to.eq(seniorTotalAssetAfter);
-    expect(juniorTotalAssetBefore).to.eq(juniorTotalAssetAfter);
-    expect(tresauryBalanceAfter).to.eq(
-      treasuryBalanceBefore.add('33333333333333333')
-    );
+    expect(seniorTotalAssetBefore.toString()).to.eq(seniorTotalAssetAfter);
+    expect(juniorTotalAssetBefore.toString()).to.eq(juniorTotalAssetAfter);
   });
 
   it('Liquidation proceeds enough to repay everything with remaining funds > 0 -- should transfer remainder to the vault', async function () {
@@ -528,6 +625,7 @@ describe('Liquidate', function () {
       seniorDepositToken,
       juniorDepositToken,
       weth,
+      reserveConfiguration,
     } = await setupTestSuite();
     const vault = await voyage.getVault(owner);
 
@@ -545,9 +643,9 @@ describe('Liquidate', function () {
     );
     await crab.safeMint(vault, 1);
 
-    await voyage.setLiquidationBonus(crab.address, 10000);
     await increase(41);
-    await priceOracle.updateTwap(crab.address, toWad(100));
+    const nftPrice = BigNumber.from(toWad(10));
+    await priceOracle.updateTwap(crab.address, nftPrice);
 
     // before liquidate
     const seniorTotalAssetBefore = await getTotalAsset(seniorDepositToken);
@@ -555,12 +653,9 @@ describe('Liquidate', function () {
     const treasuryInfo = await voyage.getProtocolFeeParam();
     const treasuryBalanceBefore = await weth.balanceOf(treasuryInfo[0]);
     const vaultBalanceBefore = await weth.balanceOf(vault);
-    console.log('seniorTotalAssetBefore: ', seniorTotalAssetBefore.toString());
-    console.log('juniorTotalAssetBefore: ', juniorTotalAssetBefore.toString());
-    console.log('treasuryBalanceBefore: ', treasuryBalanceBefore.toString());
-    console.log('vaultBalanceBefore: ', vaultBalanceBefore.toString());
 
-    await priceOracle.updateTwap(crab.address, toWad(10));
+    const updatedNftPrice = toWad(20);
+    await priceOracle.updateTwap(crab.address, updatedNftPrice);
     await voyage.liquidate(crab.address, vault, 0);
 
     // after liquidate
@@ -568,27 +663,49 @@ describe('Liquidate', function () {
     const juniorTotalAssetAfter = await getTotalAsset(juniorDepositToken);
     const tresauryBalanceAfter = await weth.balanceOf(treasuryInfo[0]);
     const vaultBalanceAfter = await weth.balanceOf(vault);
-    console.log('seniorTotalAssetAfter: ', seniorTotalAssetAfter.toString());
-    console.log('juniorTotalAssetAfter: ', juniorTotalAssetAfter.toString());
-    console.log('tresauryBalanceAfter: ', tresauryBalanceAfter.toString());
-    console.log('vaultBalanceAfter: ', vaultBalanceAfter.toString());
+    const nper = reserveConfiguration.term / reserveConfiguration.epoch;
+    const downpayment = nftPrice.div(nper);
+    const totalDebt = nftPrice.sub(downpayment);
+    const discountedFloorPrice = await getDiscountedFloorPrice(
+      BigNumber.from(updatedNftPrice),
+      reserveConfiguration.liquidationBonus
+    );
 
-    // total debt: 6666666666666666667
-    // discounted floor price: 10000000000000000000
-    // outstanding senior interest: 150000000000000000
-    // outstanding junior interest: 150000000000000000
-    // writedown senior interest: 0
-    // weitedown junior interest: 0
-    // protocol fee: 133333333333333334
-    // transfer back to vault: 10000000000000000000 - 150000000000000000 - 150000000000000000 - 6666666666666666667 - 133333333333333334 == 2899999999999999999
+    const effectiveInterestRate = calculateEffectiveInterestRate(
+      BigNumber.from(reserveConfiguration.epoch),
+      BigNumber.from(nper),
+      BigNumber.from(toRay2(reserveConfiguration.baseRate))
+    );
+
+    const outstandingSeniorInterest = getOutstandingSeniorInterest(
+      nftPrice,
+      effectiveInterestRate,
+      reserveConfiguration.incomeRatio,
+      nper
+    );
+    const outstandingJuniorInterest = getOutstandingJuniorInterest(
+      nftPrice,
+      effectiveInterestRate,
+      reserveConfiguration.incomeRatio,
+      nper
+    );
+
+    const outstandingProtocolFee = getOutstandingProtocolFee(
+      nftPrice,
+      reserveConfiguration.protocolFee,
+      nper
+    );
+    const repayToVault = discountedFloorPrice
+      .sub(totalDebt)
+      .sub(outstandingSeniorInterest)
+      .sub(outstandingJuniorInterest)
+      .sub(outstandingProtocolFee);
     expect(seniorTotalAssetBefore).to.eq(seniorTotalAssetAfter);
     expect(juniorTotalAssetBefore).to.eq(juniorTotalAssetAfter);
     expect(tresauryBalanceAfter).to.eq(
-      treasuryBalanceBefore.add('133333333333333334')
+      treasuryBalanceBefore.add(outstandingProtocolFee)
     );
-    expect(vaultBalanceAfter).to.eq(
-      vaultBalanceBefore.add('2899999999999999999')
-    );
+    expect(vaultBalanceAfter).to.eq(vaultBalanceBefore.add(repayToVault));
   });
 
   async function increase(n: number) {
@@ -599,5 +716,14 @@ describe('Liquidate', function () {
 
   async function getTotalAsset(vToken: Contract) {
     return vToken.totalAssets();
+  }
+
+  async function getDiscountedFloorPrice(
+    nftPrice: BigNumber,
+    liquidationBonus: number
+  ) {
+    const withBonus = nftPrice.percentMul(liquidationBonus);
+    const discount = withBonus.sub(nftPrice);
+    return nftPrice.sub(discount);
   }
 });
