@@ -11,6 +11,7 @@ import './loan-list';
 import './repay-loan';
 import './approve-weth';
 import './bootstrap';
+import './bootstrap-user';
 import './decode-looks';
 import './decode-buy-now';
 import './vault-balance';
