@@ -30,7 +30,7 @@ contract TestWrapper is Agent {
         voyage = new Voyage(owner);
 
         // infra
-        paymaster = new VoyagePaymaster();
+        paymaster = new VoyagePaymaster(); //TODO: add params
         paymaster.setTrustedForwarder(address(this));
         priceOracle = new PriceOracle();
         weth = new WETH9();
@@ -42,12 +42,12 @@ contract TestWrapper is Agent {
         crab = new Crab("Crab", "CRAB");
         marketPlace = new MockMarketPlace();
         seaport = new MockSeaport();
-        defaultReserveInterestRateStrategy = new DefaultReserveInterestRateStrategy();
+        defaultReserveInterestRateStrategy = new DefaultReserveInterestRateStrategy(); //TODO: add params
         
         // reserve initialization
         voyage.initReserve(crab, weth, defaultReserveInterestRateStrategy, priceOracle);
 
-        // 105%
+        // --- 105%
         voyage.setLiquidationBonus(crab, 10500);
         voyage.setIncomeRatio(crab, 0.5 * 1e4);
         voyage.setLoanParams(crab, 30, 90, 10);
@@ -62,5 +62,19 @@ contract TestWrapper is Agent {
         seniorDepositToken = new SeniorDepositToken(senior);
         juniorDepositToken = new JuniorDepositToken(junior);
         weth.approve(voyage, type(uint256).max);
+
+        // vault initialization
+        // --- create an empty vault
+        bytes20 salt = bytes20(keccak256(abi.encodePacked("PwnedNoMore")));
+        voyage.createVault(owner, salt);
+        address deployedVault = voyage.getVault(owner);
+        // --- fund vault for the first payment
+        deal(owner, 10000 wei);
+        prank(owner);
+        deployedVault.send(100 wei);
+        weth.transfer(deployedVault, 10 wei);
+        weth.approve(deployedVault, type(uint256).max);
+
+        // the todo delete section, won't transcribe it till we need it.
     }
 }
