@@ -3,12 +3,14 @@ pragma solidity ^0.8.9;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {AssetInfo} from "../interfaces/IMarketPlaceAdapter.sol";
 import {LibAppStorage, AppStorage, BorrowData, BorrowState, Loan, PMT, RepaymentData, ReserveData, RepaymentData, NFTInfo, ReserveConfigurationMap} from "./LibAppStorage.sol";
 import {LibLiquidity} from "./LibLiquidity.sol";
 import {LibReserveConfiguration} from "./LibReserveConfiguration.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
+import {IVault} from "../../vault/Vault.sol";
 
 struct ExecuteBuyNowParams {
     address collection;
@@ -50,25 +52,18 @@ struct ExecuteLiquidateParams {
     address vault;
     uint256 loanId;
     uint256 repaymentId;
-    uint256 principal;
-    uint256 interest;
-    uint256 fee;
+    uint256 remainingPrincipal;
+    uint256 remainingInterest;
+    uint256 remainingFee;
     uint256 totalDebt;
-    uint256 remaningDebt;
-    uint256 discount;
-    uint256 discountedFloorPrice;
-    uint256 amountNeedExtra;
+    uint256 collateralVaule;
     uint256 juniorTrancheAmount;
-    uint256 receivedAmount;
     address liquidator;
-    uint256 floorPrice;
-    uint256 floorPriceTime;
-    uint256 gracePeriod;
     uint256 liquidationBonus;
-    uint256 marginRequirement;
     uint256 writeDownAmount;
-    uint256 totalAssetFromJuniorTranche;
-    bool isFinal;
+    uint256 incomeRatio;
+    uint256 reducedAmount;
+    uint256 writedownAmount;
 }
 
 library LibLoan {
@@ -109,6 +104,13 @@ library LibLoan {
         uint256 apr;
         uint256 loanNumber;
     }
+
+    event CollateralTransferred(
+        address collection,
+        address from,
+        address to,
+        uint256[] collaterals
+    );
 
     /* ----------------------------- state mutations ---------------------------- */
 
@@ -235,7 +237,7 @@ library LibLoan {
     ) internal {
         Loan storage loan = debtData.loans[_loanNumber];
         loan.paidTimes += 1;
-        insertLoan(loan);
+        insertRapayment(loan);
         updateDebtData(debtData, loan);
         uint256 numer = borrowState.totalDebt.rayMul(
             borrowState.avgBorrowRate
@@ -255,6 +257,31 @@ library LibLoan {
         borrowState.totalJuniorInterest =
             borrowState.totalJuniorInterest -
             (loan.pmt.interest - seniorInterest);
+    }
+
+    function closeDebt(
+        address _collection,
+        address _currency,
+        address _vault,
+        uint256 _loanNumber
+    ) internal {
+        ExecuteDebtParam memory param;
+        param.collection = _collection;
+        param.currency = _currency;
+        param.vault = _vault;
+        param.loanNumber = _loanNumber;
+        (
+            BorrowState storage borrowState,
+            BorrowData storage debtData
+        ) = getBorrowDataAndState(
+                param.collection,
+                param.currency,
+                param.vault
+            );
+        Loan storage loan = debtData.loans[_loanNumber];
+        clearLoan(debtData, borrowState, loan, param);
+        updateDebtData(debtData, loan);
+        updateGlobalBorrowState(borrowState, loan);
     }
 
     function repay(
@@ -285,7 +312,7 @@ library LibLoan {
             isFinal = true;
             clearLoan(debtData, borrowState, loan, param);
         } else {
-            insertLoan(loan);
+            insertRapayment(loan);
         }
 
         updateDebtData(debtData, loan);
@@ -300,8 +327,9 @@ library LibLoan {
     function updateDebtData(BorrowData storage debtData, Loan storage loan)
         internal
     {
-        debtData.totalPrincipal = debtData.totalPrincipal - loan.pmt.principal;
-        debtData.totalInterest = debtData.totalInterest - loan.pmt.interest;
+        debtData.totalPrincipal -= loan.pmt.principal;
+        debtData.totalInterest -= loan.pmt.interest;
+        debtData.totalFee -= loan.pmt.fee;
     }
 
     function updateGlobalBorrowState(
@@ -330,7 +358,34 @@ library LibLoan {
             (loan.pmt.interest - seniorInterest);
     }
 
-    function insertLoan(Loan storage loan) internal {
+    function writedownSeniorInterest(
+        BorrowState storage borrowState,
+        uint256 interest
+    ) internal {
+        borrowState.totalSeniorInterest =
+            borrowState.totalSeniorInterest -
+            interest;
+        borrowState.totalInterest = borrowState.totalInterest - interest;
+    }
+
+    function writedownJuniorInterest(
+        BorrowState storage borrowState,
+        uint256 interest
+    ) internal {
+        borrowState.totalJuniorInterest =
+            borrowState.totalJuniorInterest -
+            interest;
+        borrowState.totalInterest = borrowState.totalInterest - interest;
+    }
+
+    function writedownSeniorPrincipal(
+        BorrowState storage borrowState,
+        uint256 principal
+    ) internal {
+        borrowState.totalDebt = borrowState.totalDebt - principal;
+    }
+
+    function insertRapayment(Loan storage loan) internal {
         loan.totalPrincipalPaid = loan.totalPrincipalPaid + loan.pmt.principal;
         loan.totalInterestPaid = loan.totalInterestPaid + loan.pmt.interest;
         RepaymentData memory repayment;
@@ -397,7 +452,8 @@ library LibLoan {
             loan.epoch,
             loan.nper
         );
-        loan.protocolFee = loan.principal.percentMul(loan.takeRatio);
+        loan.protocolFee = loan.principal.percentMul(param.takeRate);
+        loan.incomeRatio = param.incomeRatio;
         return loan.protocolFee;
     }
 
@@ -469,9 +525,9 @@ library LibLoan {
     ) internal {
         borrowData.nextLoanNumber++;
         borrowData.mapSize++;
-        borrowData.totalPrincipal = borrowData.totalPrincipal + principal;
-        borrowData.totalInterest = borrowData.totalInterest + loan.interest;
-
+        borrowData.totalPrincipal += principal;
+        borrowData.totalInterest += loan.interest;
+        borrowData.totalFee += loan.protocolFee;
         /// @dev most of the time, principal and totalDebt are denominated in wad
         /// we use ray operations as we are seeking avgBorrowRate, which is supposed to be epxressed in ray.
         /// in the vast majority of cases, as the underlying asset has 18 DPs, we end up just padding the LSBs with 0 to make avgBorrowRate a ray.
@@ -515,6 +571,53 @@ library LibLoan {
         );
     }
 
+    function tryRepay(
+        uint256 remainingAmount,
+        uint256 amount,
+        address currency,
+        address depositTokenAddr
+    ) internal returns (uint256 reducedAmount, uint256 writedownAmount) {
+        if (remainingAmount == 0) {
+            return (0, amount);
+        }
+        if (remainingAmount > amount) {
+            IERC20(currency).safeTransfer(depositTokenAddr, amount);
+            reducedAmount = amount;
+        } else {
+            IERC20(currency).safeTransfer(depositTokenAddr, remainingAmount);
+            reducedAmount = remainingAmount;
+            writedownAmount = amount - remainingAmount;
+        }
+        return (reducedAmount, writedownAmount);
+    }
+
+    function getInterest(
+        ReserveData memory reserveData,
+        uint256 interest,
+        uint256 incomeRatio
+    ) internal view returns (uint256, uint256) {
+        uint256 seniorInterest = interest.percentMul(incomeRatio);
+        return (seniorInterest, interest - seniorInterest);
+    }
+
+    function transferCollateral(
+        uint256[] memory collaterals,
+        address collection,
+        address liquidator,
+        address vault
+    ) internal {
+        for (uint256 i = 0; i < collaterals.length; i++) {
+            bytes4 selector = IERC721(collection).transferFrom.selector;
+            bytes memory data = abi.encodePacked(
+                selector,
+                abi.encode(vault, liquidator, collaterals[i])
+            );
+            bytes memory encodedData = abi.encode(collection, data);
+            IVault(vault).execute(encodedData, 0);
+        }
+        emit CollateralTransferred(collection, vault, liquidator, collaterals);
+    }
+
     function distributeProtocolFee(
         ReserveData memory reserveData,
         uint256 fee,
@@ -545,15 +648,10 @@ library LibLoan {
     }
 
     function getLoanDetail(
-        address _collection,
+        BorrowData storage borrowData,
         address _currency,
-        address _vault,
         uint256 _loanId
     ) internal view returns (LoanDetail memory) {
-        AppStorage storage s = LibAppStorage.ds();
-        BorrowData storage borrowData = s._borrowData[_collection][_currency][
-            _vault
-        ];
         Loan storage loan = borrowData.loans[_loanId];
         LoanDetail memory loanDetail;
         loanDetail.principal = loan.principal;
@@ -617,6 +715,33 @@ library LibLoan {
             _loan
         ];
         return (loan.pmt.principal, loan.pmt.interest, loan.pmt.fee);
+    }
+
+    function getRemainingDebt(
+        address _collection,
+        address _currency,
+        address _vault,
+        uint256 _loanId
+    )
+        internal
+        view
+        returns (
+            uint256 remaningPrincipal,
+            uint256 remaningInterest,
+            uint256 remaningFee,
+            uint256 incomeRatio
+        )
+    {
+        AppStorage storage s = LibAppStorage.ds();
+        BorrowData storage borrowData = s._borrowData[_collection][_currency][
+            _vault
+        ];
+        return (
+            borrowData.totalPrincipal,
+            borrowData.totalInterest,
+            borrowData.totalFee,
+            borrowData.loans[_loanId].incomeRatio
+        );
     }
 
     function getIncomeRatio(
