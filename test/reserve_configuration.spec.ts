@@ -31,6 +31,8 @@ describe('Reserve configuration', async () => {
     await expect(voyage.setIncomeRatio(weth.address, incomeRatio))
       .to.emit(voyage, 'IncomeRatioUpdated')
       .withArgs(weth.address, incomeRatio);
+    const updatedIncomeRatio = await voyage.getIncomeRatio(weth.address);
+    console.log('income ratio: ', updatedIncomeRatio);
   });
 
   it('should be able to set a valid optimal ratio', async () => {
