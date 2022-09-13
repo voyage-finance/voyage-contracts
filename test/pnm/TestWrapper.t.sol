@@ -6,6 +6,8 @@ import "../../contracts/voyage/infra/PriceOracle.sol";
 import "../../contracts/voyage/strategy/DefaultReserveInterestRateStrategy.sol";
 import "../../contracts/voyage/tokenization/SeniorDepositToken.sol";
 import "../../contracts/voyage/tokenization/JuniorDepositToken.sol";
+import "../../contracts/voyage/adapter/LooksRareAdapter.sol";
+import "../../contracts/voyage/adapter/SeaportAdapter.sol";
 import "../../contracts/mock/WETH9.sol";
 import "../../contracts/mock/Crab.sol";
 import "../../contracts/mock/MockMarketplace.sol";
@@ -13,13 +15,23 @@ import "../../contracts/mock/MockSeaport.sol";
 import "../../contracts/shared/gsn/VoyagePaymaster.sol";
 
 contract TestWrapper is Agent {
-    address owner = address(0x1);
+    address owner = address(0x0);
+    address alice = address(0x1);
+    address bob = address(0x2);
+    address treasury = address(0x9);
+    address forwarder = address(0xa);
+    
+    const WAD = 10 ** 18;
+    const RAY = 10 ** 27;
+    
     Voyage internal voyage;
     Crab internal crab;
     PriceOracle internal priceOracle;
     WETH9 internal weth;
     VoyagePaymaster internal paymaster;
     MockMarketPlace internal marketPlace;
+    LooksRareAdapter internal looksRareAdapter;
+    SeaportAdapter internal seaportAdapter;
     MockSeaport internal seaport;
     DefaultReserveInterestRateStrategy internal defaultReserveInterestRateStrategy;
     SeniorDepositToken internal seniorDepositToken;
@@ -30,19 +42,32 @@ contract TestWrapper is Agent {
         voyage = new Voyage(owner);
 
         // infra
-        paymaster = new VoyagePaymaster(); //TODO: add params
-        paymaster.setTrustedForwarder(address(this));
-        priceOracle = new PriceOracle();
         weth = new WETH9();
-        weth.deposit({value: 100000 wei});
+        deal(weth, 100000 wei);
+
+        paymaster = new VoyagePaymaster(voyage, weth, treasury);
+        paymaster.setTrustedForwarder(forwarder);
+
+        priceOracle = new PriceOracle();
 
         // adapter
+        looksRareAdapter = new LooksRareAdapter();
+        seaportAdapter = new SeaportAdapter(weth);
 
         // tokenization
         crab = new Crab("Crab", "CRAB");
         marketPlace = new MockMarketPlace();
         seaport = new MockSeaport();
-        defaultReserveInterestRateStrategy = new DefaultReserveInterestRateStrategy(); //TODO: add params
+
+        uint256 utilisationRate = 0.8 * RAY;
+        uint256 slope = 0.04 * RAY;
+        uint256 baseInterest = 0.18 * RAY;
+
+        defaultReserveInterestRateStrategy = new DefaultReserveInterestRateStrategy(
+            utilisationRate,
+            slope,
+            baseInterest
+        );
         
         // reserve initialization
         voyage.initReserve(crab, weth, defaultReserveInterestRateStrategy, priceOracle);
@@ -57,7 +82,7 @@ contract TestWrapper is Agent {
         voyage.updateMarketPlaceData(marketPlace, looksRareAdapter);
         voyage.updateMarketPlaceData(seaport, seaportAdapter);
 
-        address (senior, junior) = voyage.getDepositTokens(crab.address);
+        address (senior, junior) = voyage.getDepositTokens(crab);
 
         seniorDepositToken = new SeniorDepositToken(senior);
         juniorDepositToken = new JuniorDepositToken(junior);
