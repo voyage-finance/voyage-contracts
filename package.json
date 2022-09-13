@@ -73,6 +73,7 @@
     "@opengsn/contracts": "^2.2.6",
     "@openzeppelin/contracts": "^4.7.2",
     "@openzeppelin/contracts-upgradeable": "^4.7.2",
+    "@pwnednomore/contracts": "^1.0.7",
     "@rari-capital/solmate": "^6.4.0",
     "@tenderly/hardhat-tenderly": "^1.1.4",
     "hardhat-prettier": "^0.0.1",
