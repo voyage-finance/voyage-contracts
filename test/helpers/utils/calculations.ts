@@ -81,12 +81,14 @@ export const calcExpectedReserveDataAfterBorrow = (
 };
 
 export const calcExpectedLoanDetailAfterBuyNow = (
-  principal: BigNumber
+  principal: BigNumber,
+  term: number,
+  epoch: number
 ): LoanDetail => {
   const loanDetail: LoanDetail = <LoanDetail>{};
   // hard code for now, should be reading from contract
-  loanDetail.term = BigNumber.from(90);
-  loanDetail.epoch = BigNumber.from(30);
+  loanDetail.term = BigNumber.from(term);
+  loanDetail.epoch = BigNumber.from(epoch);
   loanDetail.principal = principal;
   loanDetail.nper = calcNper(loanDetail);
   loanDetail.apr = BigNumber.from(18).mul(RAY).div(100);
@@ -149,13 +151,67 @@ export const calcNper = (loanDetail: LoanDetail): BigNumber => {
 export const calcEffectiveInterestRate = (
   loanDetail: LoanDetail
 ): BigNumber => {
-  const periodPerYear = SECOND_PER_YEAR.div(
-    loanDetail.epoch.mul(SECOND_PER_DAY)
+  return calculateEffectiveInterestRate(
+    loanDetail.epoch,
+    loanDetail.nper,
+    loanDetail.apr
   );
-  const effectiveInterestRate = loanDetail.apr
-    .mul(loanDetail.nper)
-    .div(periodPerYear);
+};
+
+export const calculateEffectiveInterestRate = (
+  epoch: BigNumber,
+  nper: BigNumber,
+  apr: BigNumber
+): BigNumber => {
+  const periodPerYear = SECOND_PER_YEAR.div(epoch.mul(SECOND_PER_DAY));
+  const effectiveInterestRate = apr.mul(nper).div(periodPerYear);
   return effectiveInterestRate;
+};
+
+export const getOutstandingSeniorInterest = (
+  principal: BigNumber,
+  apr: BigNumber,
+  incomeRatio: number,
+  nper: number
+): BigNumber => {
+  const totalInterest = principal.rayMul(apr);
+  const seniorInterest = totalInterest.percentMul(incomeRatio);
+  const downpayment = seniorInterest.div(nper);
+  return seniorInterest.sub(downpayment);
+};
+
+export const getOutstandingJuniorInterest = (
+  principal: BigNumber,
+  apr: BigNumber,
+  incomeRatio: number,
+  nper: number
+): BigNumber => {
+  const totalInterest = principal.rayMul(apr);
+  const seniorInterest = totalInterest.percentMul(incomeRatio);
+  const juniorInterest = totalInterest.sub(seniorInterest);
+  const downpayment = juniorInterest.div(nper);
+  return juniorInterest.sub(downpayment);
+};
+
+export const getDownpaymentJuniorInterest = (
+  principal: BigNumber,
+  apr: BigNumber,
+  incomeRatio: number,
+  nper: number
+): BigNumber => {
+  const totalInterest = principal.rayMul(apr);
+  const seniorInterest = totalInterest.percentMul(incomeRatio);
+  const juniorInterest = totalInterest.sub(seniorInterest);
+  return juniorInterest.div(nper);
+};
+
+export const getOutstandingProtocolFee = (
+  principal: BigNumber,
+  takeRate: number,
+  nper: number
+): BigNumber => {
+  const totalFee = principal.percentMul(takeRate);
+  return totalFee.sub(totalFee.div(nper));
 };
 
 export const calcPMT = (loanDetail: LoanDetail): PMT => {

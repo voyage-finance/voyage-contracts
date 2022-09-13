@@ -462,7 +462,7 @@ library LibLoan {
         uint256 apr,
         uint256 epoch,
         uint256 nper
-    ) internal pure returns (uint256) {
+    ) internal view returns (uint256) {
         uint256 periodsPerYear = SECONDS_PER_YEAR / (epoch * SECOND_PER_DAY);
         uint256 effectiveInterestRate = (apr * nper) / periodsPerYear;
         return principal.rayMul(effectiveInterestRate);

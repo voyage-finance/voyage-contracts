@@ -28,6 +28,7 @@ interface ReserveConfiguration {
   gracePeriod: number;
   protocolFee: number;
   maxStaleness: number;
+  baseRate: number;
 }
 
 const setupBase = async (hre: HardhatRuntimeEnvironment) => {
@@ -77,6 +78,7 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     gracePeriod: 10,
     protocolFee: 200,
     maxStaleness: 10000,
+    baseRate: 0.2,
   };
 
   await voyage.initReserve(
