@@ -94,6 +94,10 @@ task('dev:initialize-reserve', 'Initializes a reserve.')
     await voyage
       .setOptimalLiquidityRatio(collection, optimalLiquidityRatio)
       .then((tx) => tx.wait());
+    await voyage.setMaxTwapStaleness(
+      collection,
+      ethers.BigNumber.from(24 * 60 * 60)
+    );
     await voyage.updateProtocolFee(owner, protocolFee).then((tx) => tx.wait());
 
     console.log(`setLoanParams: 
