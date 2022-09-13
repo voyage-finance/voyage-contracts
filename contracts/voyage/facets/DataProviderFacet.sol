@@ -228,23 +228,22 @@ contract DataProviderFacet {
         return (s.protocolFee.treasuryAddress, s.protocolFee.takeRate);
     }
 
-    function getAvailableCreditLimit(
-        address _vault, address _collection
-    ) external view returns (uint256){
+    function getAvailableCreditLimit(address _vault, address _collection)
+        external
+        view
+        returns (uint256)
+    {
         uint256 twap;
         uint256 _fv;
         uint256 creditLimit;
         uint256 totalPrincipal;
         ReserveData memory reserve = LibLiquidity.getReserveData(_collection);
-        (_fv, twap) = IPriceOracle(
-            reserve.priceOracle.implementation()
-        ).getTwap(_collection);
+        (_fv, twap) = IPriceOracle(reserve.priceOracle.implementation())
+            .getTwap(_collection);
 
-        totalPrincipal = LibLoan.getBorrowData(
-            _collection,
-            reserve.currency,
-            _vault
-        ).totalPrincipal;
+        totalPrincipal = LibLoan
+            .getBorrowData(_collection, reserve.currency, _vault)
+            .totalPrincipal;
 
         creditLimit = LibVault.getCreditLimit(
             _vault,

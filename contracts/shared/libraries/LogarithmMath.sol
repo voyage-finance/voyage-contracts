@@ -24,7 +24,7 @@ library LogarithmMath {
     /// @return result The binary logarithm as an unsigned 60.18-decimal fixed-point number.
     function log2(uint256 x) internal pure returns (uint256 result) {
         if (x < SCALE) {
-            revert PRBMathUD60x18__LogInputTooSmall(x);
+            revert("Log input too small");
         }
         unchecked {
             // Calculate the integer part of the logarithm and add it to the result and finally calculate y = x * 2^(-n).
@@ -97,6 +97,4 @@ library LogarithmMath {
             msb += 1;
         }
     }
-
-    error PRBMathUD60x18__LogInputTooSmall(uint256);
 }
