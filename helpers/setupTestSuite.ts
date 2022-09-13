@@ -1,23 +1,34 @@
-import { SeaportABI } from '@opensea/seaport-js/lib/abi/Seaport';
-import {
-  Seaport,
-  BasicOrderParametersStruct,
-} from '@opensea/seaport-js/lib/typechain/Seaport';
-import { deployments as d } from 'hardhat';
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { WETH9, Voyage, VoyagePaymaster, MockForwarder } from '@contracts';
-import { deployFacets, FacetCutAction } from './diamond';
-import { decimals, MAX_UINT_256, toWad } from './math';
-import './wadraymath';
+import { Voyage, VoyagePaymaster, WETH9 } from '@contracts';
 import {
   LooksRareExchangeAbi,
   MakerOrderWithVRS,
   TakerOrderWithEncodedParams,
 } from '@looksrare/sdk';
+import { SeaportABI } from '@opensea/seaport-js/lib/abi/Seaport';
+import {
+  BasicOrderParametersStruct,
+  Seaport,
+} from '@opensea/seaport-js/lib/typechain/Seaport';
 import { BigNumber } from 'ethers';
+import { deployments as d } from 'hardhat';
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { deployFacets, FacetCutAction } from './diamond';
+import { decimals, MAX_UINT_256, toWad } from './math';
 import { setHRE } from './task-helpers/hre';
+import './wadraymath';
 
 const dec = decimals(18);
+
+interface ReserveConfiguration {
+  liquidationBonus: number;
+  incomeRatio: number;
+  optimalLiquidityRatio: number;
+  epoch: number;
+  term: number;
+  gracePeriod: number;
+  protocolFee: number;
+  maxStaleness: number;
+}
 
 const setupBase = async (hre: HardhatRuntimeEnvironment) => {
   setHRE(hre);
@@ -57,6 +68,17 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     'DefaultReserveInterestRateStrategy'
   );
   /* ------------------------- reserve initialisation ------------------------- */
+  const reserveConfiguration: ReserveConfiguration = {
+    liquidationBonus: 10500,
+    incomeRatio: 0.5 * 1e4,
+    optimalLiquidityRatio: 0.5 * 1e4,
+    epoch: 30,
+    term: 90,
+    gracePeriod: 10,
+    protocolFee: 200,
+    maxStaleness: 10000,
+  };
+
   await voyage.initReserve(
     crab.address,
     weth.address,
@@ -64,14 +86,27 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     priceOracle.address
   );
   // 105%
-  await voyage.setLiquidationBonus(crab.address, 10500);
-  await voyage.setIncomeRatio(crab.address, 0.5 * 1e4);
-  await voyage.setOptimalLiquidityRatio(crab.address, 0.5 * 1e4);
-  await voyage.setLoanParams(crab.address, 30, 90, 10);
+  await voyage.setLiquidationBonus(
+    crab.address,
+    reserveConfiguration.liquidationBonus
+  );
+  await voyage.setIncomeRatio(crab.address, reserveConfiguration.incomeRatio);
+  await voyage.setOptimalLiquidityRatio(
+    crab.address,
+    reserveConfiguration.optimalLiquidityRatio
+  );
+  await voyage.setLoanParams(
+    crab.address,
+    reserveConfiguration.epoch,
+    reserveConfiguration.term,
+    reserveConfiguration.gracePeriod
+  );
   await voyage.activateReserve(crab.address);
-  await voyage.setMaxTwapStaleness(crab.address, 10000);
-  const cutPercentage = '200'; //2%
-  await voyage.updateProtocolFee(owner, cutPercentage);
+  await voyage.setMaxTwapStaleness(
+    crab.address,
+    reserveConfiguration.maxStaleness
+  );
+  await voyage.updateProtocolFee(owner, reserveConfiguration.protocolFee);
   await voyage.updateMarketPlaceData(
     marketPlace.address,
     looksRareAdapter.address
@@ -103,7 +138,6 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
   await createReceipt.wait();
   await weth.transfer(deployedVault, toWad(10));
   await weth.approve(deployedVault, MAX_UINT_256);
-  const abiCoder = ethers.utils.defaultAbiCoder;
 
   /// todo delete
   var input =
@@ -220,6 +254,7 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     purchaseDataFromLooksRare,
     purchaseDataFromOpensea,
     weth,
+    reserveConfiguration,
   };
 };
 
