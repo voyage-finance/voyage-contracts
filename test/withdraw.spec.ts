@@ -3,6 +3,7 @@ import { ethers } from 'hardhat';
 import { decimals, MAX_UINT_256 } from '../helpers/math';
 import { setupTestSuite } from '../helpers/setupTestSuite';
 import { toWad } from '../helpers/math';
+import { WAD } from '@helpers/constants';
 
 describe('Withdraw', function () {
   it('Withdraw with no interest should return correct value', async function () {
@@ -134,6 +135,7 @@ describe('Withdraw', function () {
       priceOracle,
       marketPlace,
       purchaseDataFromLooksRare,
+      reserveConfiguration,
     } = await setupTestSuite();
     await seniorDepositToken.approve(voyage.address, MAX_UINT_256);
     await juniorDepositToken.approve(voyage.address, MAX_UINT_256);
@@ -147,7 +149,8 @@ describe('Withdraw', function () {
     expect(sharesBefore).to.equal(amount);
 
     // to reduce underlying asset
-    await priceOracle.updateTwap(crab.address, toWad(10));
+    const floor = ethers.BigNumber.from(10).mul(WAD);
+    await priceOracle.updateTwap(crab.address, floor);
     const vault = await voyage.getVault(owner);
     const underlyingAssetBeforeBuyNow = await weth.balanceOf(
       seniorDepositToken.address
@@ -164,21 +167,25 @@ describe('Withdraw', function () {
       seniorDepositToken.address
     );
 
-    // principal: 33.333
-    // interest: 0.15（* 0.5）
-    // underlyingAssetAfterBuyNow = underlyingAssetBeforeBuyNow - outsanding principal + interest
-    // outsanding principal = underlyingAssetBeforeBuyNow + interest - underlyingAssetAfterBuyNow
-    const underlyingAssetBorrowed = underlyingAssetBeforeBuyNow
-      .sub(underlyingAssetAfterBuyNow)
-      .add(toWad(0.075));
+    const actualUnderlyingBorrowed = underlyingAssetBeforeBuyNow.sub(
+      underlyingAssetAfterBuyNow
+    );
 
-    expect(underlyingAssetBorrowed).to.equal('6666666666666666667');
+    const { term, epoch, incomeRatio } = reserveConfiguration;
+    const nper = term / epoch;
+
+    const loan = await voyage.getLoanDetail(vault, crab.address, 0);
+    const seniorInterest = loan.pmt.interest.percentMul(incomeRatio);
+    const expectedBorrow = loan.principal
+      .sub(loan.principal.div(nper))
+      .sub(seniorInterest);
+
+    expect(actualUnderlyingBorrowed).to.equal(expectedBorrow);
 
     const maxWithdrawAfter = await seniorDepositToken.maxWithdraw(owner);
-    // underlying balance + total outstanding principal + total outstanding senior interest
-    // which is total principal + total interest
-    // 100(principal) + 0.075(interest)
-    expect(maxWithdrawAfter).to.equal(toWad(100.075));
+    expect(maxWithdrawAfter).to.equal(
+      amount.add(loan.interest.percentMul(incomeRatio))
+    );
 
     await seniorDepositToken.withdraw(maxWithdrawAfter, owner, owner);
     const sharesAfter = await seniorDepositToken.balanceOf(owner);
@@ -186,14 +193,12 @@ describe('Withdraw', function () {
 
     // 100 - 66.667 + 075
     const maxClaimable = await seniorDepositToken.maximumClaimable(owner);
-    expect(maxClaimable).to.equal('93408333333333333333');
+    expect(maxClaimable).to.equal(underlyingAssetAfterBuyNow);
 
     const balanceBeforeClaim = await weth.balanceOf(owner);
     await seniorDepositToken.claim();
     const balanceAfterClaim = await weth.balanceOf(owner);
-    expect(balanceAfterClaim.sub(balanceBeforeClaim)).to.equal(
-      '93408333333333333333'
-    );
+    expect(balanceAfterClaim.sub(balanceBeforeClaim)).to.equal(maxClaimable);
     expect(await seniorDepositToken.maximumClaimable(owner)).to.equal(0);
   });
 
@@ -208,6 +213,7 @@ describe('Withdraw', function () {
       priceOracle,
       marketPlace,
       purchaseDataFromLooksRare,
+      reserveConfiguration,
     } = await setupTestSuite();
     await seniorDepositToken.approve(voyage.address, MAX_UINT_256);
     await juniorDepositToken.approve(voyage.address, MAX_UINT_256);
@@ -231,11 +237,15 @@ describe('Withdraw', function () {
       purchaseDataFromLooksRare
     );
 
+    const { incomeRatio } = reserveConfiguration;
+    const loan = await voyage.getLoanDetail(vault, crab.address, 0);
     const maxWithdrawAfter = await seniorDepositToken.maxWithdraw(owner);
     // underlying balance + total outstanding principal + (total outstanding interest)
     // which is total principal + total interest
     // 100(principal) + 0.075(interest)
-    expect(maxWithdrawAfter).to.equal(toWad(100.075));
+    const totalSeniorInterest = loan.interest.percentMul(incomeRatio);
+    const totalAssetsExpected = amount.add(totalSeniorInterest);
+    expect(maxWithdrawAfter).to.equal(totalAssetsExpected);
 
     await seniorDepositToken.withdraw(maxWithdrawAfter, owner, owner);
     const sharesAfter = await seniorDepositToken.balanceOf(owner);
@@ -243,7 +253,8 @@ describe('Withdraw', function () {
 
     // 100 - 66.667 + 0.075
     const maxClaimable = await seniorDepositToken.maximumClaimable(owner);
-    expect(maxClaimable).to.equal('93408333333333333333');
+    const cashBalance = await weth.balanceOf(seniorDepositToken.address);
+    expect(maxClaimable).to.equal(cashBalance);
 
     const maxWithdrawBeforeTransfer = await seniorDepositToken.maxWithdraw(
       owner
@@ -257,16 +268,18 @@ describe('Withdraw', function () {
     expect(maxWithdrawAfterTransfer).to.equal(0);
 
     let maxClaimableAfter = await seniorDepositToken.maximumClaimable(owner);
-    expect(maxClaimableAfter).to.equal(toWad(100.075));
+    expect(maxClaimableAfter).to.equal(totalAssetsExpected);
 
     // transfer again
     await weth.transfer(seniorDepositToken.address, toWad(100));
     maxClaimableAfter = await seniorDepositToken.maximumClaimable(owner);
-    expect(maxClaimableAfter).to.equal(toWad(100.075));
+    expect(maxClaimableAfter).to.equal(totalAssetsExpected);
 
     const balanceBeforeClaim = await weth.balanceOf(owner);
     await seniorDepositToken.claim();
     const balanceAfterClaim = await weth.balanceOf(owner);
-    expect(balanceAfterClaim.sub(balanceBeforeClaim)).to.equal(toWad(100.075));
+    expect(balanceAfterClaim.sub(balanceBeforeClaim)).to.equal(
+      totalAssetsExpected
+    );
   });
 });
