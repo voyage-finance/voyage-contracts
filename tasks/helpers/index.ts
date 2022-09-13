@@ -19,3 +19,6 @@ import './nft-owner';
 import './decode-relaycall';
 import './decode-seaport-error';
 import './set-hre';
+
+import './tenderly/fund-accounts';
+import './tenderly/bootstrap';

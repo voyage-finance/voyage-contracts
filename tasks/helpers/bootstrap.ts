@@ -18,19 +18,21 @@ task('dev:bootstrap', 'Bootstraps a reserve, vault, and user balances')
     types.string
   )
   .addOptionalParam(
-    'seniorTrancheBalance',
+    'senior',
     'Amount to fund the senior tranche for, in WETH.',
     '50000',
     types.string
   )
   .addOptionalParam(
-    'juniorTrancheBalance',
+    'junior',
     'Amount to fund the junior tranche for, in WETH.',
     '10000',
     types.string
   )
+  .addOptionalParam('floor', 'Amount to set TWAP to.', '0.001', types.string)
+  .addOptionalParam('wrap', 'Amount of ETH to wrap.', '10000', types.string)
   .addOptionalParam(
-    'vaultBalance',
+    'vault',
     'Amount to fund the user vault with',
     '10000',
     types.string
@@ -44,13 +46,15 @@ task('dev:bootstrap', 'Bootstraps a reserve, vault, and user balances')
       collection = defaultCollection.address,
       user = defaultUser,
       balance,
-      seniorTrancheBalance,
-      juniorTrancheBalance,
-      vaultBalance,
+      senior,
+      junior,
+      floor,
+      vault,
+      wrap,
     } = params;
 
     console.log(`Creating/initializing reserve for collection ${collection}`);
-    await run('dev:initialize-reserve', { collection });
+    await run('dev:initialize-reserve', { collection, floorPrice: floor });
 
     console.log(`Funding user ${user} with ${balance} WETH`);
     const weth = await ethers.getContract<WETH9>('WETH9');
@@ -64,23 +68,23 @@ task('dev:bootstrap', 'Bootstraps a reserve, vault, and user balances')
       });
     }
 
-    console.log(`Depositing ${juniorTrancheBalance} into junior tranche\n`);
+    console.log(`Depositing ${junior} into junior tranche\n`);
     await run('dev:deposit-reserve', {
       reserve: collection,
       tranche: Tranche.Junior,
-      amount: juniorTrancheBalance,
+      amount: junior,
       sender: user,
     });
-    console.log(`Depositing ${seniorTrancheBalance} into senior tranche\n`);
+    console.log(`Depositing ${senior} into senior tranche\n`);
     await run('dev:deposit-reserve', {
       reserve: collection,
       tranche: Tranche.Senior,
-      amount: seniorTrancheBalance,
+      amount: senior,
       sender: user,
     });
 
     console.log(`Wrapping WETH for user ${user}\n`);
-    await run('dev:deposit-weth', { sender: user });
+    await run('dev:deposit-weth', { sender: user, amount: wrap });
 
     console.log(`Approving Voyage to spend WETH for ${user}\n`);
     await run('dev:approve-weth', { approver: user });
@@ -90,11 +94,9 @@ task('dev:bootstrap', 'Bootstraps a reserve, vault, and user balances')
 
     const voyage = await ethers.getContract<Voyage>('Voyage');
     const vaultAddress = await voyage.getVault(user);
-    console.log(
-      `Funding the vault ${vaultAddress} for ${user} for ${vaultBalance}\n`
-    );
+    console.log(`Funding the vault ${vaultAddress} for ${user} for ${vault}\n`);
     await run('dev:fund-vault', {
-      amount: vaultBalance,
+      amount: vault,
       sender: user,
       sendeth: true,
     });
