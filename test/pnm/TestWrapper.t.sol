@@ -75,6 +75,6 @@ contract TestWrapper is Agent {
         weth.transfer(deployedVault, 10 wei);
         weth.approve(deployedVault, type(uint256).max);
 
-        // the todo delete section, won't transcribe it till we need it.
+        // the "todo delete" section, won't transcribe it till we need it.
     }
 }
