@@ -11,6 +11,7 @@ import {LibLoan} from "../libraries/LibLoan.sol";
 import {LibVault} from "../libraries/LibVault.sol";
 import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
 import {IUnbondingToken} from "../tokenization/SeniorDepositToken.sol";
+import {IPriceOracle} from "../interfaces/IPriceOracle.sol";
 
 struct CreditLineData {
     uint256 totalDebt;
@@ -225,5 +226,32 @@ contract DataProviderFacet {
     function getProtocolFeeParam() public view returns (address, uint256) {
         AppStorage storage s = LibAppStorage.ds();
         return (s.protocolFee.treasuryAddress, s.protocolFee.takeRate);
+    }
+
+    function getAvailableCreditLimit(
+        address _vault, address _collection
+    ) external view returns (uint256){
+        uint256 twap;
+        uint256 _fv;
+        uint256 creditLimit;
+        uint256 totalPrincipal;
+        ReserveData memory reserve = LibLiquidity.getReserveData(_collection);
+        (_fv, twap) = IPriceOracle(
+            reserve.priceOracle.implementation()
+        ).getTwap(_collection);
+
+        totalPrincipal = LibLoan.getBorrowData(
+            _collection,
+            reserve.currency,
+            _vault
+        ).totalPrincipal;
+
+        creditLimit = LibVault.getCreditLimit(
+            _vault,
+            _collection,
+            reserve.currency,
+            _fv
+        );
+        return (creditLimit - totalPrincipal);
     }
 }
