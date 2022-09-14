@@ -179,6 +179,21 @@ contract TestDepositInvariants is TestWrapper {
       )
     );
 
+    Loan loan = voyage.getLoanDetail(vault, crab.address, 0);
+
+    require(
+      loan.epoch <= loan.term,
+      string(
+        abi.encodePacked(
+          "[!!!] Invariant violation: loan epoch (",
+          Strings.toString(loan.epoch),
+          ") is greater than loan term (",
+          Strings.toString(loan.term),
+          ")"
+        )
+      )
+    );
+
     voyage.withdraw(crab.address, 0, juniorAmount);
 
     require(
