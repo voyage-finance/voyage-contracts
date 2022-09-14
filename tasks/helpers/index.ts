@@ -1,6 +1,8 @@
 import './balance';
 import './deposit-reserve';
 import './deposit-weth';
+import './unwrap-weth';
+import './approve-weth';
 import './unbonding';
 import './withdraw';
 import './claim';
@@ -9,7 +11,6 @@ import './fund-vault';
 import './buy-now';
 import './loan-list';
 import './repay-loan';
-import './approve-weth';
 import './bootstrap';
 import './bootstrap-user';
 import './decode-looks';
