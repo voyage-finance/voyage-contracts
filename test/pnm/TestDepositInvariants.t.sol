@@ -134,8 +134,9 @@ contract TestDepositInvariants is TestWrapper {
         abi.encodePacked(
           "[!!!] Invariant violation: max redeem junior token amount (",
           Strings.toString(maxRedeemJunior),
-          ") differs from deposited amount ",
-          Strings.toString(juniorAmount)
+          ") differs from deposited amount (",
+          Strings.toString(juniorAmount),
+          ")"
         )
       )
     );
@@ -145,8 +146,9 @@ contract TestDepositInvariants is TestWrapper {
         abi.encodePacked(
           "[!!!] Invariant violation: max redeem senior token amount (",
           Strings.toString(maxRedeemSenior),
-          ") differs from deposited amount ",
-          Strings.toString(seniorAmount)
+          ") differs from deposited amount (",
+          Strings.toString(seniorAmount),
+          ")"
         )
       )
     );
@@ -173,6 +175,36 @@ contract TestDepositInvariants is TestWrapper {
           Strings.toString(unbondingSenior),
           ") differs from 0 after depositing ",
           Strings.toString(seniorAmount)
+        )
+      )
+    );
+
+    voyage.withdraw(crab.address, 0, juniorAmount);
+
+    require(
+      crab.address.balance == juniorAmount,
+      string(
+        abi.encodePacked(
+          "[!!!] Invariant violation: junior token withdrawn amount (",
+          Strings.toString(crab.address.balance),
+          ") differs from deposited amount (",
+          Strings.toString(junior),
+          ")"
+        )
+      )
+    );
+
+    voyage.withdraw(crab.address, 1, seniorAmount);
+
+    require(
+      crab.address.balance == juniorAmount + seniorAmount,
+      string(
+        abi.encodePacked(
+          "[!!!] Invariant violation: senior token withdrawn amount (",
+          Strings.toString(crab.address.balance - juniorAmount),
+          ") differs from deposited amount (",
+          Strings.toString(seniorAmount),
+          ")"
         )
       )
     );
