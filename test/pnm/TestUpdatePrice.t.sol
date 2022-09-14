@@ -9,13 +9,10 @@ contract TestCredit is TestWrapper {
     }
 
     function check() public {
+        priceOracle.updateTwap(crab, 3.1415926);
         require(
-            priceOracle
-            .updateTwap(
-                crab.address,
-                1,
-        ),
-        "[!!!] Invariant violation: owner should be able to update price.",
+            PriceOracle.getTwap(crab) == 3.1415926,
+            "[!!!] Invariant violation: only owner or operator is able to update price."
         );
     }
 }
