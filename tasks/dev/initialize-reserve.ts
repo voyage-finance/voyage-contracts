@@ -1,4 +1,5 @@
 import { Voyage } from '@contracts';
+import { getWETH9 } from '@helpers/task-helpers/addresses';
 import { setTwap } from '@helpers/task-helpers/configuration';
 import { task, types } from 'hardhat/config';
 
@@ -46,7 +47,7 @@ task('dev:initialize-reserve', 'Initializes a reserve.')
     const { owner } = await hre.getNamedAccounts();
     const voyage = await ethers.getContract<Voyage>('Voyage');
     const mc = await ethers.getContract('Crab');
-    const weth = await ethers.getContract('WETH9');
+    const weth = await getWETH9();
     const interestRateStrategy = await ethers.getContract(
       'DefaultReserveInterestRateStrategy'
     );
@@ -72,7 +73,7 @@ task('dev:initialize-reserve', 'Initializes a reserve.')
       await voyage
         .initReserve(
           collection,
-          weth.address,
+          weth,
           interestRateStrategy.address,
           oracle.address
         )
@@ -100,13 +101,13 @@ task('dev:initialize-reserve', 'Initializes a reserve.')
     );
     await voyage.updateProtocolFee(owner, protocolFee).then((tx) => tx.wait());
 
-    console.log(`setLoanParams: 
-- epoch: ${epoch}
-- tenure: ${tenure}
-- gracePeriod: ${grace}
-- optimalLiquidityRatio: ${optimalLiquidityRatio}
-- protocolFee: ${protocolFee}
-`);
+    console.log(`setLoanParams:
+    - epoch: ${epoch}
+    - tenure: ${tenure}
+    - gracePeriod: ${grace}
+    - optimalLiquidityRatio: ${optimalLiquidityRatio}
+    - protocolFee: ${protocolFee}
+    `);
 
     if (!activated) {
       await voyage.activateReserve(mc.address).then((tx) => tx.wait());

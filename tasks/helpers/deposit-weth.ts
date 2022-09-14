@@ -1,4 +1,5 @@
 import { WETH9 } from '@contracts';
+import { getWETH9 } from '@helpers/task-helpers/addresses';
 import { task, types } from 'hardhat/config';
 
 task('dev:deposit-weth', 'Deposits WETH')
@@ -15,7 +16,12 @@ task('dev:deposit-weth', 'Deposits WETH')
     const { owner } = await hre.getNamedAccounts();
     const { amount, sender } = params;
     const signer = await ethers.getSigner(sender ?? owner);
-    const weth9 = await ethers.getContract<WETH9>('WETH9', signer);
+    const weth9Address = await getWETH9();
+    const weth9 = await ethers.getContractAt<WETH9>(
+      'WETH9',
+      weth9Address,
+      signer
+    );
     const tx = await weth9.deposit({ value: ethers.utils.parseEther(amount) });
     const receipt = await tx.wait();
     console.log(`${signer.address} Deposited ${amount} ETH to WETH`);
