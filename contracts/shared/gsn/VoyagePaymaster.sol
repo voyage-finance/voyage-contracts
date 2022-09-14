@@ -91,7 +91,7 @@ contract VoyagePaymaster is BasePaymaster {
         bool success,
         uint256 gasUseWithoutPost,
         GsnTypes.RelayData calldata relayData
-    ) external virtual override {
+    ) external virtual override relayHubOnly {
         address vault = abi.decode(context, (address));
         // calldata overhead = 21k + non_zero_bytes * 16 + zero_bytes * 4
         //            ~= 21k + calldata.length * [1/3 * 16 + 2/3 * 4]
