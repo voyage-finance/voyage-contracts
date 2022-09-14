@@ -1088,37 +1088,6 @@
       "anonymous": false,
       "inputs": [
         {
-          "indexed": false,
-          "internalType": "address",
-          "name": "collection",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "from",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "to",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256[]",
-          "name": "collaterals",
-          "type": "uint256[]"
-        }
-      ],
-      "name": "CollateralTransferred",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
           "indexed": true,
           "internalType": "address",
           "name": "_liquidator",
@@ -3103,10 +3072,10 @@
       "type": "function"
     }
   ],
-  "numDeployments": 6,
+  "numDeployments": 12,
   "facets": [
     {
-      "facetAddress": "0x58bC9E2f284d2167ae5C9D151188D7FebA85C9CC",
+      "facetAddress": "0x5753Af9EFE30B4CDF6C773aFDa1E20fC59a25524",
       "functionSelectors": [
         "0xe51edecd",
         "0xca351b84",
@@ -3123,7 +3092,7 @@
       ]
     },
     {
-      "facetAddress": "0x7E9f1699027fBc0fda717AA348207B87915B8870",
+      "facetAddress": "0xf6D27b5562CE5C3a6741683b186CD1eF53eE5cD1",
       "functionSelectors": [
         "0xb75d6f34",
         "0x4f71c597",
@@ -3141,7 +3110,7 @@
       ]
     },
     {
-      "facetAddress": "0xAf7ED26310803840F22817c700571aeB80aAef25",
+      "facetAddress": "0x2650a496d79cdbb870D9691Fa5be09300137a8F2",
       "functionSelectors": [
         "0x7a935d6e",
         "0xf5fe1bb4",
@@ -3156,7 +3125,7 @@
       ]
     },
     {
-      "facetAddress": "0xd9C9a2e2D78F1BbEde9f7Ce336DBa917E9C6Adbe",
+      "facetAddress": "0x19BC3629bb1934943741Dd11eb89E3bB3Fb4Be35",
       "functionSelectors": [
         "0xd0d33887",
         "0x89586a25",
@@ -3173,7 +3142,7 @@
       ]
     },
     {
-      "facetAddress": "0xD146DCDc2F7790BB0FcFae8063a016123F218a25",
+      "facetAddress": "0xED0e5A3C53009D4C74dd70652065870E466BB6dd",
       "functionSelectors": [
         "0x8a52d2b0",
         "0x4248bb44",
@@ -3186,7 +3155,7 @@
       ]
     },
     {
-      "facetAddress": "0xe57361e128690F985fC9bdCBc9720A1524620826",
+      "facetAddress": "0x242Fe0f07e3804080Ad8A673851326BEAd8e9AbF",
       "functionSelectors": [
         "0x46e63586",
         "0x7ae0078c",
@@ -3202,7 +3171,7 @@
       ]
     },
     {
-      "facetAddress": "0x3e874a88ee5bD4186C2E735d6b9f1fF9da47c905",
+      "facetAddress": "0xBD1BB76291eD5ccB64C3d97F632A3C0247Bb40C3",
       "functionSelectors": [
         "0xe1f21c67",
         "0xac9650d8",
@@ -3218,7 +3187,7 @@
       ]
     },
     {
-      "facetAddress": "0x44E74CbeCb4c068DD3cb0BB07237965042409C4e",
+      "facetAddress": "0xE46151B7a10c860Fd68ECF1a9D1109912fDE2a87",
       "functionSelectors": [
         "0x582244ae",
         "0x32be0a6b",
