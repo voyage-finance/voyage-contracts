@@ -145,16 +145,6 @@ const deployFn: DeployFunction = async (hre) => {
   }
 
   if (changesDetected) {
-    const mergedABI = mergeABIs([deployment.abi, ...facetABIs], {
-      check: true,
-      skipSupportsInterface: false,
-    });
-    await save('Voyage', {
-      ...diamond,
-      abi: mergedABI,
-      facets,
-    });
-
     if (cuts.length > 0) {
       log.debug('Deploying InitDiamond');
       await deploy('InitDiamond', {
@@ -196,8 +186,19 @@ const deployFn: DeployFunction = async (hre) => {
       log.debug('No facets to update for diamond');
     }
   }
+
+  const mergedABI = mergeABIs([deployment.abi, ...facetABIs], {
+    check: true,
+    skipSupportsInterface: false,
+  });
+  await save('Voyage', {
+    ...diamond,
+    abi: mergedABI,
+    facets,
+  });
 };
 
+deployFn.dependencies = ['Diamond'];
 deployFn.tags = ['Facets'];
 
 export default deployFn;
