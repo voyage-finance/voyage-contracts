@@ -220,30 +220,6 @@ library LibAppStorage {
             ds.slot := storagePosition
         }
     }
-
-    function cleanUpgradeParam() internal {
-        UpgradeParam storage s = ds().upgradeParam;
-        for (uint256 i = 0; i < s.existingSelectors[msg.sender].length; ) {
-            delete s.existingSelectorFacetMap[msg.sender][
-                s.existingSelectors[msg.sender][i]
-            ];
-            unchecked {
-                ++i;
-            }
-        }
-        delete s.existingSelectors[msg.sender];
-
-        for (uint256 i = 0; i < s.newSelectors[msg.sender].length; ) {
-            delete s.newSelectorSet[msg.sender][s.newSelectors[msg.sender][i]];
-            unchecked {
-                ++i;
-            }
-        }
-        delete s.newSelectors[msg.sender];
-
-        delete s.facetCuts[msg.sender];
-        delete s.facetCutSize[msg.sender];
-    }
 }
 
 contract Storage {
