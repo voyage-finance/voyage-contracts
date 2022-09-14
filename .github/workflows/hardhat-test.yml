@@ -15,6 +15,6 @@ jobs:
           node-version: 'lts/*'
           cache: 'yarn'
       - run: yarn install
-      - run:  GOERLI_MNEMONIC=`${{ secrets.GOERLI_MNEMONIC }}` yarn compile
-      - run:  GOERLI_MNEMONIC=`${{ secrets.GOERLI_MNEMONIC }}` yarn check:hh
-      - run:  GOERLI_MNEMONIC=`${{ secrets.GOERLI_MNEMONIC }}` RELAY_HUB=`${{ secrets.RELAY_HUB }}` TRUSTED_FORWARDER=`${{ secrets.TRUSTED_FORWARDER }}` yarn cov 
+      - run:  GOERLI_MNEMONIC=`${{ secrets.GOERLI_MNEMONIC }}` TENDERLY_MNEMONIC=`${{ secrets.TENDERLY_MNEMONIC }}` yarn compile
+      - run:  GOERLI_MNEMONIC=`${{ secrets.GOERLI_MNEMONIC }}` TENDERLY_MNEMONIC=`${{ secrets.TENDERLY_MNEMONIC }}` yarn check:hh
+      - run:  GOERLI_MNEMONIC=`${{ secrets.GOERLI_MNEMONIC }}` TENDERLY_MNEMONIC=`${{ secrets.TENDERLY_MNEMONIC }}` RELAY_HUB=`${{ secrets.RELAY_HUB }}` TRUSTED_FORWARDER=`${{ secrets.TRUSTED_FORWARDER }}` yarn cov 
