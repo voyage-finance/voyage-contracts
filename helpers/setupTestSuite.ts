@@ -14,6 +14,7 @@ import { deployments as d } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { deployFacets, FacetCutAction } from './diamond';
 import { decimals, MAX_UINT_256, toWad } from './math';
+import { getRelayHub } from './task-helpers/addresses';
 import { setHRE } from './task-helpers/hre';
 import './wadraymath';
 
@@ -50,6 +51,7 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
   /* --------------------------------- voyage -------------------------------- */
   const voyage = await ethers.getContract<Voyage>('Voyage');
   /* ---------------------------------- infra --------------------------------- */
+  const relayHub = await getRelayHub();
   const paymaster = await ethers.getContract<VoyagePaymaster>(
     'VoyagePaymaster'
   );
@@ -246,6 +248,7 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     defaultReserveInterestRateStrategy,
     priceOracle,
     paymaster,
+    relayHub,
     crab,
     marketPlace,
     seaport,
