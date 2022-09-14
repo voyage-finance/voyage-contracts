@@ -14,8 +14,8 @@ contract TestDepositInvariants is TestWrapper {
   }
 
   function check() public override {
-    const juniorTokenBalance = juniorDepositToken.balanceOf(owner);
-    const seniorTokenBalance = seniorDepositToken.balanceOf(owner);
+    uint juniorTokenBalance = juniorDepositToken.balanceOf(owner);
+    uint seniorTokenBalance = seniorDepositToken.balanceOf(owner);
 
     require(
       juniorTokenBalance == JUNIOR_AMOUNT,
@@ -43,8 +43,8 @@ contract TestDepositInvariants is TestWrapper {
     );
 
     
-    const maxWithdrawJuniorTokenAmount = juniorDepositToken.maxWithdraw(owner);
-    const maxWithdrawSeniorTokenAmount = seniorDepositToken.maxWithdraw(owner);
+    uint maxWithdrawJuniorTokenAmount = juniorDepositToken.maxWithdraw(owner);
+    uint maxWithdrawSeniorTokenAmount = seniorDepositToken.maxWithdraw(owner);
 
     require(
       maxWithdrawJuniorTokenAmount == JUNIOR_AMOUNT,
@@ -71,8 +71,8 @@ contract TestDepositInvariants is TestWrapper {
       )
     );
 
-    const totalAssetJunior = juniorDepositToken.totalAssets();
-    const totalAssetSenior = seniorDepositToken.totalAssets();
+    uint totalAssetJunior = juniorDepositToken.totalAssets();
+    uint totalAssetSenior = seniorDepositToken.totalAssets();
 
     require(
       totalAssetJunior == JUNIOR_AMOUNT,
@@ -99,8 +99,8 @@ contract TestDepositInvariants is TestWrapper {
       )
     );
 
-    const maxClaimableJunior = juniorDepositToken.maximumClaimable(owner);
-    const maxClaimableSenior = seniorDepositToken.maximumClaimable(owner);
+    uint maxClaimableJunior = juniorDepositToken.maximumClaimable(owner);
+    uint maxClaimableSenior = seniorDepositToken.maximumClaimable(owner);
 
     require(
       maxClaimableJunior == 0,
@@ -125,8 +125,8 @@ contract TestDepositInvariants is TestWrapper {
       )
     );
 
-    const maxRedeemJunior = juniorDepositToken.maxRedeem(owner);
-    const maxRedeemSenior = seniorDepositToken.maxRedeem(owner);
+    uint maxRedeemJunior = juniorDepositToken.maxRedeem(owner);
+    uint maxRedeemSenior = seniorDepositToken.maxRedeem(owner);
 
     require(
       maxRedeemJunior == JUNIOR_AMOUNT,
@@ -151,8 +151,8 @@ contract TestDepositInvariants is TestWrapper {
       )
     );
 
-    const unbondingJunior = juniorDepositToken.unbonding(owner);
-    const unbondingSenior = seniorDepositToken.unbonding(owner);
+    uint unbondingJunior = juniorDepositToken.unbonding(owner);
+    uint unbondingSenior = seniorDepositToken.unbonding(owner);
 
     require(
       unbondingJunior == 0,
