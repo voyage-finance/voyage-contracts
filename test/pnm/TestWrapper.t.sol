@@ -36,6 +36,7 @@ contract TestWrapper is Agent {
     DefaultReserveInterestRateStrategy internal defaultReserveInterestRateStrategy;
     SeniorDepositToken internal seniorDepositToken;
     JuniorDepositToken internal juniorDepositToken;
+    Address internal vault;
 
     function deploy() internal {
         // voyage
@@ -92,13 +93,13 @@ contract TestWrapper is Agent {
         // --- create an empty vault
         bytes20 salt = bytes20(keccak256(abi.encodePacked("PwnedNoMore")));
         voyage.createVault(owner, salt);
-        address deployedVault = voyage.getVault(owner);
+        vault = voyage.getVault(owner);
         // --- fund vault for the first payment
         deal(owner, 10000 wei);
         prank(owner);
-        deployedVault.send(100 wei);
-        weth.transfer(deployedVault, 10 wei);
-        weth.approve(deployedVault, type(uint256).max);
+        vault.send(100 wei);
+        weth.transfer(vault, 10 wei);
+        weth.approve(vault, type(uint256).max);
 
         // the "todo delete" section, won't transcribe it till we need it.
     }
