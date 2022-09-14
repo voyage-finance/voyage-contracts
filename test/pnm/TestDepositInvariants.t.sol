@@ -169,7 +169,7 @@ contract TestDepositInvariants is TestWrapper {
       unbondingSenior == 0,
       string(
         abi.encodePacked(
-          "[!!!] Invariant violation: claimable senior token amount (",
+          "[!!!] Invariant violation: unbounding senior token amount (",
           Strings.toString(unbondingSenior),
           ") differs from 0 after depositing ",
           Strings.toString(seniorAmount)
