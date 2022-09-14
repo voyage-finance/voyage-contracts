@@ -1,4 +1,5 @@
 import { getDefaultABIs, mergeABIs } from '@helpers/diamond';
+import { log } from '@helpers/logger';
 import { DeployFunction } from 'hardhat-deploy/types';
 
 const main: DeployFunction = async (hre) => {
@@ -6,15 +7,17 @@ const main: DeployFunction = async (hre) => {
   const { deploy, save } = deployments;
   const { owner } = await getNamedAccounts();
 
-  const diamond = await deploy('Voyage', {
-    contract: 'contracts/voyage/Voyage.sol:Voyage',
-    deterministicDeployment: true,
-    from: owner,
-    log: true,
-    args: [owner],
-  });
+  const deployment = await deployments.getOrNull('Voyage');
+  if (!deployment) {
+    log.info('No diamond deployment found. Redeploying...\n');
+    const diamond = await deploy('Voyage', {
+      contract: 'contracts/voyage/Voyage.sol:Voyage',
+      deterministicDeployment: true,
+      from: owner,
+      log: true,
+      args: [owner],
+    });
 
-  if (diamond.newlyDeployed) {
     const coreFacetABIs = await getDefaultABIs();
     const diamondABI = mergeABIs(coreFacetABIs, {
       check: true,
