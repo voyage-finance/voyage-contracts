@@ -20,6 +20,8 @@ contract TestWrapper is Agent {
     address bob = address(0x2);
     address treasury = address(0x9);
     address forwarder = address(0xa);
+
+    address internal vault;
     
     const WAD = 10 ** 18;
     const RAY = 10 ** 27;
@@ -36,7 +38,6 @@ contract TestWrapper is Agent {
     DefaultReserveInterestRateStrategy internal defaultReserveInterestRateStrategy;
     SeniorDepositToken internal seniorDepositToken;
     JuniorDepositToken internal juniorDepositToken;
-    Address internal vault;
 
     function deploy() internal {
         // voyage
