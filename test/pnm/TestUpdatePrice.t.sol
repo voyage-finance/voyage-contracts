@@ -1,9 +1,8 @@
 pragma solidity 0.8.9;
 
-import TestWrapper from "test/pnm/TestWrapper.t.sol";
-import "./TestWrapper.t.sol";
+import "./TestBase.t.sol";
 
-contract TestCredit is TestWrapper {
+contract TestCredit is TestBase {
     function setUp() public {
         deploy();
     }

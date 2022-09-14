@@ -14,7 +14,7 @@ import "../../contracts/mock/MockMarketplace.sol";
 import "../../contracts/mock/MockSeaport.sol";
 import "../../contracts/shared/gsn/VoyagePaymaster.sol";
 
-contract TestWrapper is Agent {
+contract TestBase is Agent {
     address owner = address(0x0);
     address alice = address(0x1);
     address bob = address(0x2);

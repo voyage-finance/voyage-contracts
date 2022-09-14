@@ -1,8 +1,8 @@
 pragma solidity ^0.8.9;
 
-import { TestWrapper } from "test/pnm/TestWrapper.t.sol";
+import "./TestBase.t.sol";
 
-contract TestDepositInvariants is TestWrapper {
+contract TestDepositInvariants is TestBase {
   uint juniorAmount = 1 * 10 ** 18;
   uint seniorAmount = 2 * 10 ** 18;
 

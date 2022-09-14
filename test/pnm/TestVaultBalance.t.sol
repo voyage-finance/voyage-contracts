@@ -1,9 +1,8 @@
 pragma solidity 0.8.9;
 
-import TestWrapper from "test/pnm/TestWrapper.t.sol";
-import "./TestWrapper.t.sol";
+import "./TestBase.t.sol";
 
-contract TestCredit is TestWrapper {
+contract TestVaultBalance is TestBase {
     function setUp() public {
         deploy();
     }
@@ -18,7 +17,7 @@ contract TestCredit is TestWrapper {
                 marketplace.address,
                 ""
         ).to.be.revertedWithCustomError(voyage, 'InsufficientCash'),
-        "[!!!] Invariant violation: buyNow should be fail if vault balance is 0.",
+        "[!!!] Invariant violation: buyNow should be fail if vault balance is 0."
         );
     }
 }
