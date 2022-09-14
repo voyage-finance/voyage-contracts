@@ -22,19 +22,24 @@ task('dev:withdraw', 'Withdraws from the specified pool.')
       amount,
     } = params;
     const [sr, jr] = await voyage.getDepositTokens(reserve);
+
     const srVToken = await ethers.getContractAt('SeniorDepositToken', sr);
+    const srVTokenAllowance = await srVToken.allowance(owner, voyage.address);
+    if (srVTokenAllowance.lt(MAX_UINT_256)) {
+      const tx = await srVToken.approve(voyage.address, MAX_UINT_256);
+      await tx.wait();
+    }
+
     const jrVToken = await ethers.getContractAt('JuniorDepositToken', jr);
-    await Promise.all([
-      srVToken.approve(voyage.address, MAX_UINT_256),
-      jrVToken.approve(voyage.address, MAX_UINT_256),
-    ]);
+    const jrVTokenAllowance = await srVToken.allowance(owner, voyage.address);
+    if (jrVTokenAllowance.lt(MAX_UINT_256)) {
+      const tx = await jrVToken.approve(voyage.address, MAX_UINT_256);
+      await tx.wait();
+    }
     const balance = await voyage.balance(reserve, owner, tranche);
-    const withdrawAmount = ethers.utils.parseEther(amount) ?? balance;
-    const tx = await voyage.withdraw(
-      reserve,
-      tranche,
-      ethers.utils.parseEther(amount) ?? balance
-    );
+    const withdrawAmount = amount ? ethers.utils.parseEther(amount) : balance;
+    const signer = await ethers.getSigner(owner);
+    const tx = await voyage.withdraw(reserve, tranche, withdrawAmount);
     await tx.wait();
     console.log(
       `Withdrew ${formatWad(withdrawAmount)} from tranche ${tranche}`
