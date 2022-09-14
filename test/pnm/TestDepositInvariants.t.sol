@@ -3,14 +3,14 @@ pragma solidity ^0.8.9;
 import { TestWrapper } from "test/pnm/TestWrapper.t.sol";
 
 contract TestDepositInvariants is TestWrapper {
-  const JUNIOR_AMOUNT = 1 * 10 ** 18;
-  const SENIOR_AMOUNT = 2 * 10 ** 18;
+  uint juniorAmount = 1 * 10 ** 18;
+  uint seniorAmount = 2 * 10 ** 18;
 
   function setUp() public {
     deploy();
 
-    voyage.deposit(crab.address, 0, JUNIOR_AMOUNT);
-    voyage.deposit(crab.address, 1, SENIOR_AMOUNT);
+    voyage.deposit(crab.address, 0, juniorAmount);
+    voyage.deposit(crab.address, 1, seniorAmount);
   }
 
   function check() public override {
@@ -18,25 +18,25 @@ contract TestDepositInvariants is TestWrapper {
     uint seniorTokenBalance = seniorDepositToken.balanceOf(owner);
 
     require(
-      juniorTokenBalance == JUNIOR_AMOUNT,
+      juniorTokenBalance == juniorAmount,
       string(
         abi.encodePacked(
           "[!!!] Invariant violation: junior token balance (",
           Strings.toString(juniorTokenBalance),
           ") differs from deposited amount (",
-          Strings.toString(JUNIOR_AMOUNT),
+          Strings.toString(juniorAmount),
           ")"
         )
       )
     );
     require(
-      seniorTokenBalance == SENIOR_AMOUNT,
+      seniorTokenBalance == seniorAmount,
       string(
         abi.encodePacked(
           "[!!!] Invariant violation: senior token balance (",
           Strings.toString(seniorTokenBalance),
           ") differs from deposited amount (",
-          Strings.toString(SENIOR_AMOUNT),
+          Strings.toString(seniorAmount),
           ")"
         )
       )
@@ -47,25 +47,25 @@ contract TestDepositInvariants is TestWrapper {
     uint maxWithdrawSeniorTokenAmount = seniorDepositToken.maxWithdraw(owner);
 
     require(
-      maxWithdrawJuniorTokenAmount == JUNIOR_AMOUNT,
+      maxWithdrawJuniorTokenAmount == juniorAmount,
       string(
         abi.encodePacked(
           "[!!!] Invariant violation: junior token max withdraw (",
           Strings.toString(maxWithdrawJuniorTokenAmount),
           ") differs from deposited amount (",
-          Strings.toString(JUNIOR_AMOUNT),
+          Strings.toString(juniorAmount),
           ")"
         )
       )
     );
     require(
-      maxWithdrawSeniorTokenAmount == SENIOR_AMOUNT,
+      maxWithdrawSeniorTokenAmount == seniorAmount,
       string(
         abi.encodePacked(
           "[!!!] Invariant violation: senior token max withdraw (",
           Strings.toString(maxWithdrawSeniorTokenAmount),
           ") differs from deposited amount (",
-          Strings.toString(SENIOR_AMOUNT),
+          Strings.toString(seniorAmount),
           ")"
         )
       )
@@ -75,25 +75,25 @@ contract TestDepositInvariants is TestWrapper {
     uint totalAssetSenior = seniorDepositToken.totalAssets();
 
     require(
-      totalAssetJunior == JUNIOR_AMOUNT,
+      totalAssetJunior == juniorAmount,
       string(
         abi.encodePacked(
           "[!!!] Invariant violation: junior token total asset (",
           Strings.toString(totalAssetJunior),
           ") differs from deposited amount (",
-          Strings.toString(JUNIOR_AMOUNT),
+          Strings.toString(juniorAmount),
           ")"
         )
       )
     );
     require(
-      totalAssetSenior == SENIOR_AMOUNT,
+      totalAssetSenior == seniorAmount,
       string(
         abi.encodePacked(
           "[!!!] IInvariant violation: senior token total asset (",
           Strings.toString(totalAssetSenior),
           ") differs from deposited amount (",
-          Strings.toString(SENIOR_AMOUNT),
+          Strings.toString(seniorAmount),
           ")"
         )
       )
@@ -109,7 +109,7 @@ contract TestDepositInvariants is TestWrapper {
           "[!!!] Invariant violation: claimable junior token amount (",
           Strings.toString(maxClaimableJunior),
           ") differs from 0 after depositing ",
-          Strings.toString(JUNIOR_AMOUNT)
+          Strings.toString(juniorAmount)
         )
       )
     );
@@ -120,7 +120,7 @@ contract TestDepositInvariants is TestWrapper {
           "[!!!] Invariant violation: claimable senior token amount (",
           Strings.toString(maxClaimableSenior),
           ") differs from 0 after depositing ",
-          Strings.toString(SENIOR_AMOUNT)
+          Strings.toString(seniorAmount)
         )
       )
     );
@@ -129,24 +129,24 @@ contract TestDepositInvariants is TestWrapper {
     uint maxRedeemSenior = seniorDepositToken.maxRedeem(owner);
 
     require(
-      maxRedeemJunior == JUNIOR_AMOUNT,
+      maxRedeemJunior == juniorAmount,
       string(
         abi.encodePacked(
           "[!!!] Invariant violation: max redeem junior token amount (",
           Strings.toString(maxRedeemJunior),
           ") differs from deposited amount ",
-          Strings.toString(JUNIOR_AMOUNT)
+          Strings.toString(juniorAmount)
         )
       )
     );
     require(
-      maxRedeemSenior == SENIOR_AMOUNT,
+      maxRedeemSenior == seniorAmount,
       string(
         abi.encodePacked(
           "[!!!] Invariant violation: max redeem senior token amount (",
           Strings.toString(maxRedeemSenior),
           ") differs from deposited amount ",
-          Strings.toString(SENIOR_AMOUNT)
+          Strings.toString(seniorAmount)
         )
       )
     );
@@ -161,7 +161,7 @@ contract TestDepositInvariants is TestWrapper {
           "[!!!] Invariant violation: unbounding junior token amount (",
           Strings.toString(unbondingJunior),
           ") differs from 0 after depositing ",
-          Strings.toString(JUNIOR_AMOUNT)
+          Strings.toString(juniorAmount)
         )
       )
     );
@@ -172,7 +172,7 @@ contract TestDepositInvariants is TestWrapper {
           "[!!!] Invariant violation: claimable senior token amount (",
           Strings.toString(unbondingSenior),
           ") differs from 0 after depositing ",
-          Strings.toString(SENIOR_AMOUNT)
+          Strings.toString(seniorAmount)
         )
       )
     );
