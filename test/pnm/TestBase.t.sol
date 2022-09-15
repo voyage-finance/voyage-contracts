@@ -95,15 +95,16 @@ contract TestBase is Agent {
         MarketplaceAdapterFacet marketplaceAdapterFacet = new MarketplaceAdapterFacet();
         vm.stopPrank();
 
+        bytes4[] memory functionSelectors;
         IDiamondCut.FacetCut[8] memory diamondCut = [
-            IDiamondCut.FacetCut(address(securityFacet), IDiamondCut.FacetCutAction.Add),
-            IDiamondCut.FacetCut(address(liquidityFacet), IDiamondCut.FacetCutAction.Add),
-            IDiamondCut.FacetCut(address(loanFacet), IDiamondCut.FacetCutAction.Add),
-            IDiamondCut.FacetCut(address(vaultFacet), IDiamondCut.FacetCutAction.Add),
-            IDiamondCut.FacetCut(address(configurationFacet), IDiamondCut.FacetCutAction.Add),
-            IDiamondCut.FacetCut(address(dataProviderFacet), IDiamondCut.FacetCutAction.Add),
-            IDiamondCut.FacetCut(address(paymentsFacet), IDiamondCut.FacetCutAction.Add),
-            IDiamondCut.FacetCut(address(marketplaceAdapterFacet), IDiamondCut.FacetCutAction.Add)
+            IDiamondCut.FacetCut(address(securityFacet), IDiamondCut.FacetCutAction.Add, functionSelectors),
+            IDiamondCut.FacetCut(address(liquidityFacet), IDiamondCut.FacetCutAction.Add, functionSelectors),
+            IDiamondCut.FacetCut(address(loanFacet), IDiamondCut.FacetCutAction.Add, functionSelectors),
+            IDiamondCut.FacetCut(address(vaultFacet), IDiamondCut.FacetCutAction.Add, functionSelectors),
+            IDiamondCut.FacetCut(address(configurationFacet), IDiamondCut.FacetCutAction.Add, functionSelectors),
+            IDiamondCut.FacetCut(address(dataProviderFacet), IDiamondCut.FacetCutAction.Add, functionSelectors),
+            IDiamondCut.FacetCut(address(paymentsFacet), IDiamondCut.FacetCutAction.Add, functionSelectors),
+            IDiamondCut.FacetCut(address(marketplaceAdapterFacet), IDiamondCut.FacetCutAction.Add, functionSelectors)
         ];
 
         voyage.diamondCut(
