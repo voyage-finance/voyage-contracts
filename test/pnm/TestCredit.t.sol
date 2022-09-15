@@ -9,7 +9,7 @@ contract TestCredit is TestBase {
         // set my credit limit to 0
     }
 
-    function check() public {
+    function check() public override {
         // call buyNow with 0 credit limit
         // check that it fails
     }
