@@ -164,7 +164,7 @@ contract SeniorDepositToken is VToken, IUnbondingToken {
     /* --------------------------------- external functions -------------------------------- */
 
     function totalUnbondingAsset() external view returns (uint256) {
-        return previewWithdraw(totalUnbonding);
+        return convertToAssets(totalUnbonding);
     }
 
     function unbonding(address _user) external view returns (uint256) {
