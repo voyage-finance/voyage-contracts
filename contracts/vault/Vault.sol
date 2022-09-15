@@ -7,7 +7,6 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {VaultFacet} from "../voyage/facets/VaultFacet.sol";
 import {SecurityFacet} from "../voyage/facets/SecurityFacet.sol";
 import {IWETH9} from "../shared/interfaces/IWETH9.sol";
-import {ISubvault} from "./SubVault.sol";
 
 struct VaultStorageV1 {
     address voyage;
@@ -167,25 +166,6 @@ contract Vault is Initializable, IERC1271, IVault {
         IERC20(ds.weth).approve(ds.voyage, type(uint256).max);
     }
 
-    function callSubVault(
-        address _subvault,
-        address _target,
-        bytes calldata _data
-    ) external onlyAuthorised {
-        SecurityFacet sf = SecurityFacet(LibVaultStorage.ds().voyage);
-        if (
-            !sf.isAuthorised(
-                msg.sender,
-                _subvault,
-                ISubvault(address(0)).execute.selector
-            )
-        ) {
-            revert UnAuthorised();
-        }
-
-        ISubvault(_subvault).execute(_target, _data);
-    }
-
     function collectionInitialized(address _collection)
         external
         view
@@ -193,41 +173,6 @@ contract Vault is Initializable, IERC1271, IVault {
     {
         VaultFacet vf = VaultFacet(LibVaultStorage.ds().voyage);
         return vf.collectionInitialized(_collection);
-    }
-
-    /// @notice Update subvault's owner
-    /// @param _subvault The address of the subvaault
-    /// @param _newOwner The address of the new owner
-    function updateSubvaultOwner(address _subvault, address _newOwner)
-        external
-        onlyAuthorised
-    {
-        address oldOwner = LibVaultStorage.ds().subvaultOwnerIndex[_subvault];
-        if (oldOwner == address(0)) {
-            revert InvalidSubvaultAddress(_subvault);
-        }
-        ISubvault(_subvault).updateOwner(_newOwner);
-        LibVaultStorage.ds().subvaultOwnerIndex[_subvault] = _newOwner;
-        LibVaultStorage.ds().ownerSubvaultIndex[_newOwner] = _subvault;
-        delete LibVaultStorage.ds().ownerSubvaultIndex[oldOwner];
-    }
-
-    /// @notice Pause sub vault
-    /// @param _subvault The address of the subvault
-    function pauseSubvault(address _subvault) external {
-        if (LibVaultStorage.ds().subvaultOwnerIndex[_subvault] == address(0)) {
-            revert InvalidSubvaultAddress(_subvault);
-        }
-        LibVaultStorage.ds().subvaultStatusIndex[_subvault] = true;
-    }
-
-    /// @notice Uppause the sub vault
-    /// @param _subvault The address of the subvault
-    function unpauseSubvault(address _subvault) external {
-        if (LibVaultStorage.ds().subvaultOwnerIndex[_subvault] == address(0)) {
-            revert InvalidSubvaultAddress(_subvault);
-        }
-        LibVaultStorage.ds().subvaultStatusIndex[_subvault] = false;
     }
 
     function onERC721Transferred(
