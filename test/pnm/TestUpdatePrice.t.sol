@@ -10,7 +10,7 @@ contract TestCredit is TestBase {
     function check() public {
         priceOracle.updateTwap(crab, 31415926);
         require(
-            PriceOracle.getTwap(crab) == 31415926,
+            priceOracle.getTwap(crab) == 31415926,
             "[!!!] Invariant violation: only owner or operator is able to update price."
         );
     }
