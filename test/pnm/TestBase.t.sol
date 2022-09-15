@@ -95,7 +95,7 @@ contract TestBase is Agent {
         MarketplaceAdapterFacet marketplaceAdapterFacet = new MarketplaceAdapterFacet();
         vm.stopPrank();
 
-        FacetCut[] diamondCut;
+        IDiamondCut.FacetCut[] memory diamondCut;
         diamondCut.push(securityFacet);
         diamondCut.push(liquidityFacet);
         diamondCut.push(loanFacet);
