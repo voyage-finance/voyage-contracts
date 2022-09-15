@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IVault} from "../../vault/Vault.sol";
 import {IMarketPlaceAdapter, AssetInfo} from "../interfaces/IMarketPlaceAdapter.sol";
 import {Storage, LibAppStorage} from "./LibAppStorage.sol";
+import {Storage, LibAppStorage} from "../libraries/LibAppStorage.sol";
 
 library LibMarketplace {
     function purchase(
