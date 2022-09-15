@@ -95,15 +95,16 @@ contract TestBase is Agent {
         MarketplaceAdapterFacet marketplaceAdapterFacet = new MarketplaceAdapterFacet();
         vm.stopPrank();
 
-        IDiamondCut.FacetCut[] memory diamondCut;
-        diamondCut.push(securityFacet);
-        diamondCut.push(liquidityFacet);
-        diamondCut.push(loanFacet);
-        diamondCut.push(vaultFacet);
-        diamondCut.push(configurationFacet);
-        diamondCut.push(dataProviderFacet);
-        diamondCut.push(paymentsFacet);
-        diamondCut.push(marketplaceAdapterFacet);
+        IDiamondCut.FacetCut[8] memory diamondCut = [
+            IDiamondCut.FacetCut(address(securityFacet), IDiamondCut.FacetCutAction.Add),
+            IDiamondCut.FacetCut(address(liquidityFacet), IDiamondCut.FacetCutAction.Add),
+            IDiamondCut.FacetCut(address(loanFacet), IDiamondCut.FacetCutAction.Add),
+            IDiamondCut.FacetCut(address(vaultFacet), IDiamondCut.FacetCutAction.Add),
+            IDiamondCut.FacetCut(address(configurationFacet), IDiamondCut.FacetCutAction.Add),
+            IDiamondCut.FacetCut(address(dataProviderFacet), IDiamondCut.FacetCutAction.Add),
+            IDiamondCut.FacetCut(address(paymentsFacet), IDiamondCut.FacetCutAction.Add),
+            IDiamondCut.FacetCut(address(marketplaceAdapterFacet), IDiamondCut.FacetCutAction.Add)
+        ];
 
         voyage.diamondCut(
             diamondCut,
