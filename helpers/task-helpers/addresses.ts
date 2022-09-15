@@ -1,10 +1,10 @@
 import {
-  ChainID,
   FORWARDER_ADDRESS,
   RELAY_HUB_ADDRESS,
   TREASURY_ADDRESS,
   WETH_ADDRESS,
 } from '@helpers/constants';
+import { ChainID, ExternalChainID } from '@helpers/types';
 import { isFork, isHardhat } from './chain';
 import { HRE as hre } from './hre';
 
@@ -14,7 +14,7 @@ export async function getWETH9() {
     return address;
   }
 
-  return WETH_ADDRESS[hre.network.config.chainId as ChainID];
+  return WETH_ADDRESS[hre.network.config.chainId as ExternalChainID];
 }
 
 export async function getTreasury() {
@@ -24,7 +24,7 @@ export async function getTreasury() {
     return treasury;
   }
 
-  return TREASURY_ADDRESS[hre.network.config.chainId as ChainID];
+  return TREASURY_ADDRESS[hre.network.config.chainId as ExternalChainID];
 }
 
 export async function getTrustedForwarder() {
@@ -33,7 +33,7 @@ export async function getTrustedForwarder() {
     return forwarder;
   }
 
-  return FORWARDER_ADDRESS[hre.network.config.chainId as ChainID];
+  return FORWARDER_ADDRESS[hre.network.config.chainId as ExternalChainID];
 }
 
 export async function getRelayHub() {
@@ -43,5 +43,5 @@ export async function getRelayHub() {
     return forwarder;
   }
 
-  return RELAY_HUB_ADDRESS[hre.network.config.chainId as ChainID];
+  return RELAY_HUB_ADDRESS[hre.network.config.chainId as ExternalChainID];
 }

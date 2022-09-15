@@ -7,8 +7,10 @@ export enum ChainID {
   Mainnet = 1,
   Rinkeby = 4,
   Goerli = 5,
-  Hardhat = 41337,
+  Hardhat = 31337,
 }
+
+export type ExternalChainID = Exclude<ChainID, ChainID.Hardhat>;
 
 export const Networks: Record<ChainID, string> = {
   [ChainID.Mainnet]: 'mainnet',
