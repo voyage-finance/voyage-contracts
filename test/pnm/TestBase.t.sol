@@ -66,7 +66,7 @@ contract TestBase is Agent {
     function _deploy_voyager() internal {
         voyage = new Voyage(owner);
 
-        vm.startBroadcast();
+        vm.startPrank(owner);
         seniorDepositToken = new SeniorDepositToken();
         juniorDepositToken = new JuniorDepositToken();
         Vault vault = new Vault();
@@ -96,7 +96,7 @@ contract TestBase is Agent {
         vm.stopPrank();
 
         bytes4[] memory functionSelectors;
-        IDiamondCut.FacetCut[8] memory diamondCut = [
+        IDiamondCut.FacetCut[8] memory diamondCuts = [
             IDiamondCut.FacetCut(address(securityFacet), IDiamondCut.FacetCutAction.Add, functionSelectors),
             IDiamondCut.FacetCut(address(liquidityFacet), IDiamondCut.FacetCutAction.Add, functionSelectors),
             IDiamondCut.FacetCut(address(loanFacet), IDiamondCut.FacetCutAction.Add, functionSelectors),
@@ -108,7 +108,7 @@ contract TestBase is Agent {
         ];
 
         voyage.diamondCut(
-            diamondCut,
+            diamondCuts,
             address(initDiamond),
             initDiamond.init(
                 InitDiamond.Args(
@@ -128,7 +128,7 @@ contract TestBase is Agent {
     }
 
     function _deploy_external() internal {
-        vm.startPrank();
+        vm.startPrank(owner);
         crab = new Crab("Mock Crab", "MC");
         mockMarketPlace = new MockMarketPlace();
         mockSeaport = new MockSeaport();
@@ -189,5 +189,9 @@ contract TestBase is Agent {
         weth.approve(vault, type(uint256).max);
 
         // the "todo delete" section, won't transcribe it till we need it.
+    }
+
+    function _make_cut(address facet) internal returns (IDiamondCut.FacetCut memory) {
+        
     }
 }
