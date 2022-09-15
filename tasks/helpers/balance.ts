@@ -1,6 +1,6 @@
-import { task } from 'hardhat/config';
-import { formatWad } from '@helpers/math';
 import { Voyage } from '@contracts';
+import { formatWad } from '@helpers/math';
+import { task } from 'hardhat/config';
 
 enum Tranche {
   Junior,
