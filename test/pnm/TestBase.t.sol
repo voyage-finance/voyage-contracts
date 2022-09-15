@@ -38,10 +38,10 @@ contract TestBase is Agent {
     address forwarder = address(0xa);
 
     address internal vault;
-    
-    uint256 WAD = 10 ** 18;
-    uint256 RAY = 10 ** 27;
-    
+
+    uint256 WAD = 10**18;
+    uint256 RAY = 10**27;
+
     Voyage internal voyage;
     SeniorDepositToken internal seniorDepositToken;
     JuniorDepositToken internal juniorDepositToken;
@@ -54,7 +54,8 @@ contract TestBase is Agent {
     Crab internal crab;
     MockMarketPlace internal mockMarketPlace;
     MockSeaport internal mockSeaport;
-    DefaultReserveInterestRateStrategy internal defaultReserveInterestRateStrategy;
+    DefaultReserveInterestRateStrategy
+        internal defaultReserveInterestRateStrategy;
 
     function deploy() internal {
         _deploy_voyager();
@@ -77,7 +78,9 @@ contract TestBase is Agent {
         weth = new WETH9();
         seaportAdapter = new SeaportAdapter(address(weth));
         paymaster = new VoyagePaymaster(
-            address(voyage), address(weth), treasury
+            address(voyage),
+            address(weth),
+            treasury
         );
 
         InitDiamond initDiamond = new InitDiamond();
@@ -92,31 +95,34 @@ contract TestBase is Agent {
         MarketplaceAdapterFacet marketplaceAdapterFacet = new MarketplaceAdapterFacet();
         vm.stopPrank();
 
-        voyage.diamondCut([ // TODO: need to use `FacetCut` struct
-            securityFacet,
-            liquidityFacet,
-            loanFacet,
-            vaultFacet,
-            configurationFacet,
-            dataProviderFacet,
-            paymentsFacet,
-            marketplaceAdapterFacet
-        ], 
-        address(initDiamond), 
-        initDiamond.init(
-            InitDiamond.Args(
-                address(owner),
-                address(seniorDepositToken),
-                address(juniorDepositToken),
-                address(vault),
-                address(diamondCutFacet),
-                address(diamondLoupeFacet),
-                address(ownershipFacet),
-                address(weth),
-                address(forwarder),
-                address(paymaster)
+        FacetCut[] diamondCut;
+        diamondCut.push(securityFacet);
+        diamondCut.push(liquidityFacet);
+        diamondCut.push(loanFacet);
+        diamondCut.push(vaultFacet);
+        diamondCut.push(configurationFacet);
+        diamondCut.push(dataProviderFacet);
+        diamondCut.push(paymentsFacet);
+        diamondCut.push(marketplaceAdapterFacet);
+
+        voyage.diamondCut(
+            diamondCut,
+            address(initDiamond),
+            initDiamond.init(
+                InitDiamond.Args(
+                    address(owner),
+                    address(seniorDepositToken),
+                    address(juniorDepositToken),
+                    address(vault),
+                    address(diamondCutFacet),
+                    address(diamondLoupeFacet),
+                    address(ownershipFacet),
+                    address(weth),
+                    address(forwarder),
+                    address(paymaster)
+                )
             )
-        ));
+        );
     }
 
     function _deploy_external() internal {
@@ -125,9 +131,9 @@ contract TestBase is Agent {
         mockMarketPlace = new MockMarketPlace();
         mockSeaport = new MockSeaport();
 
-        uint256 utilisationRate = 8 * RAY / 10;
-        uint256 slope = 4 * RAY / 100;
-        uint256 baseInterest = 18 * RAY / 100;
+        uint256 utilisationRate = (8 * RAY) / 10;
+        uint256 slope = (4 * RAY) / 100;
+        uint256 baseInterest = (18 * RAY) / 100;
 
         defaultReserveInterestRateStrategy = new DefaultReserveInterestRateStrategy(
             utilisationRate,
@@ -146,12 +152,11 @@ contract TestBase is Agent {
 
         // tokenization
 
-        
         // reserve initialization
         voyage.initReserve(
-            crab, 
-            weth, 
-            defaultReserveInterestRateStrategy, 
+            crab,
+            weth,
+            defaultReserveInterestRateStrategy,
             priceOracle
         );
 
