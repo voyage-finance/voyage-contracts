@@ -43,13 +43,13 @@ export const TREASURY_ADDRESS: ExternalContractMapping = {
 export const RELAY_HUB_ADDRESS: ExternalContractMapping = {
   [ChainID.Mainnet]: '0x9e59Ea5333cD4f402dAc320a04fafA023fe3810D',
   [ChainID.Rinkeby]: '0x6650d69225CA31049DB7Bd210aE4671c0B1ca132',
-  [ChainID.Goerli]: '0x0000000000000000000000000000000000000000',
+  [ChainID.Goerli]: '0x03Daa4a9Cd10DADb2FEA1E21E0dB9752BefC812E',
 };
 
 export const FORWARDER_ADDRESS: ExternalContractMapping = {
   [ChainID.Mainnet]: '0xAa3E82b4c4093b4bA13Cb5714382C99ADBf750cA',
   [ChainID.Rinkeby]: '0x83A54884bE4657706785D7309cf46B58FE5f6e8a',
-  [ChainID.Goerli]: '0x0000000000000000000000000000000000000000',
+  [ChainID.Goerli]: '0x489819D856439C8b2a3a2608C8EE62dC388E9378',
 };
 
 export const LOOKS_ADDRESS: ExternalContractMapping = {
