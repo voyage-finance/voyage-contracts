@@ -1,6 +1,7 @@
-import { ChainID, Token, Marketplace } from '@helpers/types';
-import { HRE } from './hre';
+import { LOOKS_ADDRESS } from '@helpers/constants';
+import { ChainID, ExternalChainID, Marketplace, Token } from '@helpers/types';
 import { CROSS_CHAIN_SEAPORT_ADDRESS } from '@opensea/seaport-js/lib/constants';
+import { HRE } from './hre';
 
 export const externalContracts: Record<number, Record<string, string>> = {
   [ChainID.Mainnet]: {
@@ -28,17 +29,17 @@ export async function getExternalContracts() {
 export async function getMarketplaceAdapterConfiguration() {
   const { ethers } = HRE;
   const chainId = parseInt(await HRE.getChainId());
-  if (chainId === 31337 && !process.env.HARDHAT_DEPLOY_FORK) return [];
-  const contracts = externalContracts[chainId];
+  if (chainId === ChainID.Hardhat && !process.env.HARDHAT_DEPLOY_FORK)
+    return [];
   const looksAdapter = await ethers.getContract('LooksRareAdapter');
   const seaportAdapter = await ethers.getContract('SeaportAdapter');
   return [
     {
-      marketplace: contracts[Marketplace.Looks],
+      marketplace: LOOKS_ADDRESS[chainId as ExternalChainID],
       adapter: looksAdapter.address,
     },
     {
-      marketplace: contracts[Marketplace.Seaport],
+      marketplace: CROSS_CHAIN_SEAPORT_ADDRESS,
       adapter: seaportAdapter.address,
     },
   ];
