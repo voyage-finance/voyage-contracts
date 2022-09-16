@@ -9,6 +9,7 @@ import {ERC4626} from "@rari-capital/solmate/src/mixins/ERC4626.sol";
 import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {LibLoan, ExecuteBuyNowParams, ExecuteLiquidateParams} from "../libraries/LibLoan.sol";
 import {LibVault} from "../libraries/LibVault.sol";
+import {LibMarketplaceAdapter} from "../libraries/LibMarketplaceAdapter.sol";
 import {IReserveInterestRateStrategy} from "../interfaces/IReserveInterestRateStrategy.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
 import {AssetInfo} from "../interfaces/IMarketPlaceAdapter.sol";
@@ -20,7 +21,6 @@ import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
 import {PaymentsFacet} from "../../shared/facets/PaymentsFacet.sol";
 import {SafeTransferLib} from "../../shared/libraries/SafeTransferLib.sol";
 import {IVault} from "../../vault/Vault.sol";
-import {MarketplaceAdapterFacet} from "./MarketplaceAdapterFacet.sol";
 import {IUnbondingToken} from "../tokenization/SeniorDepositToken.sol";
 
 contract LoanFacet is Storage, ReentrancyGuard {
@@ -188,8 +188,10 @@ contract LoanFacet is Storage, ReentrancyGuard {
         }
 
         // 1. get price for params.tokenId  and floor price pv
-        params.assetInfo = MarketplaceAdapterFacet(address(this))
-            .extractAssetInfo(_marketplace, _data);
+        params.assetInfo = LibMarketplaceAdapter.extractAssetInfo(
+            _marketplace,
+            _data
+        );
         params.totalPrincipal = params.assetInfo.assetPrice;
         if (params.tokenId != params.assetInfo.tokenId) {
             revert InvalidTokenid();
@@ -353,7 +355,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
                 params.loanId
             );
 
-        MarketplaceAdapterFacet(address(this)).purchase(
+        LibMarketplaceAdapter.purchase(
             params.marketplace,
             params.vault,
             params.totalPrincipal,

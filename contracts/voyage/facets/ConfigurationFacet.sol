@@ -34,6 +34,10 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
         address _paymaster,
         address _trustedForwarder
     );
+    event MarketplaceAdapterUpdated(
+        address indexed _marketplace,
+        address _strategy
+    );
 
     /* --------------------------------- errors --------------------------------- */
     error IllegalLoanParameters();
@@ -128,6 +132,17 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
         s.paymaster = _paymaster;
         s.trustedForwarder = _trustedForwarder;
         emit GSNConfigurationUpdated(_paymaster, _trustedForwarder);
+    }
+
+    function updateMarketPlaceData(address _marketplace, address _strategy)
+        external
+        authorised
+    {
+        LibAppStorage
+            .ds()
+            .marketPlaceData[_marketplace]
+            .adapterAddr = _strategy;
+        emit MarketplaceAdapterUpdated(_marketplace, _strategy);
     }
 
     function getIncomeRatio(address _collection) public view returns (uint256) {
