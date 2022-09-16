@@ -5,7 +5,7 @@ import {IVault} from "../../vault/Vault.sol";
 import {IMarketPlaceAdapter, AssetInfo} from "../interfaces/IMarketPlaceAdapter.sol";
 import {Storage, LibAppStorage} from "./LibAppStorage.sol";
 
-library LibMarketplaceAdapter {
+library LibMarketplace {
     function purchase(
         address _marketplace,
         address _vault,
