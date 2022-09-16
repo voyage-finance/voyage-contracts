@@ -171,7 +171,7 @@ contract LiquidityFacet is Storage, ReentrancyGuard {
             : IVToken(reserve.seniorDepositTokenAddress);
         uint256 userBalance = vToken.maxWithdraw(_msgSender());
         uint256 amountToWithdraw = _amount;
-        if (_amount == type(uint256).max) {
+        if (_amount == type(uint256).max || _amount > userBalance) {
             amountToWithdraw = userBalance;
         }
         require(amountToWithdraw <= userBalance, "InvalidWithdrawal");
