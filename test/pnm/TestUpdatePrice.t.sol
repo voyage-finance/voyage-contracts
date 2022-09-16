@@ -7,7 +7,7 @@ contract TestCredit is TestBase {
         deploy();
     }
 
-    function check() public {
+    function check() public override {
         priceOracle.updateTwap(crab, 31415926);
         require(
             priceOracle.getTwap(crab) == 31415926,

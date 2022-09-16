@@ -7,16 +7,15 @@ contract TestVaultBalance is TestBase {
         deploy();
     }
 
-    function check() public {
+    function check() public override {
         require(
-            voyage
-            .buyNow(
-                crab.address,
-                crab,
+            voyage.buyNow(
+                address(crab),
+                1,
                 vault,
-                marketplace.address,
+                address(mockMarketPlace),
                 ""
-        ).to.be.revertedWithCustomError(voyage, 'InsufficientCash'),
+            ).to.be.revertedWithCustomError(voyage, "InsufficientCash"),
         "[!!!] Invariant violation: buyNow should be fail if vault balance is 0."
         );
     }
