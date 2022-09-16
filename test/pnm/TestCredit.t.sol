@@ -1,6 +1,6 @@
 pragma solidity 0.8.9;
 
-import "test/pnm/TestBase.t.sol";
+import "./TestBase.t.sol";
 
 contract TestCredit is TestBase {
     function setUp() public {
