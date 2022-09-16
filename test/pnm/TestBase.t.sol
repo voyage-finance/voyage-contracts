@@ -32,7 +32,7 @@ import "contracts/voyage/facets/DataProviderFacet.sol";
 import {PaymentsFacet} from "contracts/shared/facets/PaymentsFacet.sol";
 import "contracts/voyage/facets/MarketplaceAdapterFacet.sol";
 
-contract TestBase is Agent, IDiamondCut {
+contract TestBase is Agent {
     address owner = address(0x0);
     address alice = address(0x1);
     address bob = address(0x2);
@@ -142,62 +142,80 @@ contract TestBase is Agent, IDiamondCut {
         PaymentsFacet paymentsFacet = new PaymentsFacet();
         MarketplaceAdapterFacet marketplaceAdapterFacet = new MarketplaceAdapterFacet();
 
-        FacetCut[] memory diamondCut = [
-            FacetCut({
+        IDiamondCut.FacetCut[] memory diamondCut = new IDiamondCut.FacetCut[](8);
+        diamondCut[0] = (
+            IDiamondCut.FacetCut({
                 facetAddress: address(securityFacet), 
-                action: FacetCutAction.Add, 
+                action: IDiamondCut.FacetCutAction.Add, 
                 functionSelectors: _generateSelectors("SecurityFacet")
-            }),
-            FacetCut({
+            })
+        );
+        diamondCut[1] = (
+            IDiamondCut.FacetCut({
                 facetAddress: address(liquidityFacet), 
-                action: FacetCutAction.Add, 
+                action: IDiamondCut.FacetCutAction.Add, 
                 functionSelectors: _generateSelectors("LiquidityFacet")
-            }),
-            FacetCut({
+            })
+        );
+        diamondCut[2] = (
+            IDiamondCut.FacetCut({
                 facetAddress: address(loanFacet), 
-                action: FacetCutAction.Add, 
+                action: IDiamondCut.FacetCutAction.Add, 
                 functionSelectors: _generateSelectors("LoanFacet")
-            }),
-            FacetCut({
+            })
+        );
+        diamondCut[3] = (
+            IDiamondCut.FacetCut({
                 facetAddress: address(vaultFacet), 
-                action: FacetCutAction.Add, 
+                action: IDiamondCut.FacetCutAction.Add, 
                 functionSelectors: _generateSelectors("VaultFacet")
-            }),
-            FacetCut({
+            })
+        );
+        diamondCut[4] = (
+            IDiamondCut.FacetCut({
                 facetAddress: address(configurationFacet), 
-                action: FacetCutAction.Add, 
+                action: IDiamondCut.FacetCutAction.Add, 
                 functionSelectors: _generateSelectors("ConfigurationFacet")
-            }),
-            FacetCut({
+            })
+        );
+        diamondCut[5] = (
+            IDiamondCut.FacetCut({
                 facetAddress: address(dataProviderFacet), 
-                action: FacetCutAction.Add, 
+                action: IDiamondCut.FacetCutAction.Add, 
                 functionSelectors: _generateSelectors("DataProviderFacet")
-            }),
-            FacetCut({
+            })
+        );
+        diamondCut[6] = (
+            IDiamondCut.FacetCut({
                 facetAddress: address(paymentsFacet), 
-                action: FacetCutAction.Add, 
+                action: IDiamondCut.FacetCutAction.Add, 
                 functionSelectors: _generateSelectors("PaymentsFacet")
-            }),
-            FacetCut({
+            })
+        );
+        diamondCut[7] = (
+            IDiamondCut.FacetCut({
                 facetAddress: address(marketplaceAdapterFacet), 
-                action: FacetCutAction.Add, 
+                action: IDiamondCut.FacetCutAction.Add, 
                 functionSelectors: _generateSelectors("MarketplaceAdapterFacet")
-           } )
-        ];
+            })
+        );
 
+        InitDiamond.Args memory args = InitDiamond.Args({
+            initOwner: owner,
+            seniorDepositTokenImpl: address(seniorDepositToken),
+            juniorDepositTokenImpl: address(juniorDepositToken),
+            vaultImpl: address(vault),
+            weth9: address(weth)
+        });
+        
         IDiamondCut(address(voyage)).diamondCut(
             diamondCut,
             address(initDiamond),
-            initDiamond.init(
-                InitDiamond.Args({
-                    initOwner: address(owner),
-                    seniorDepositTokenImpl: address(seniorDepositToken),
-                    juniorDepositTokenImpl: address(juniorDepositToken),
-                    vaultImpl: address(vault),
-                    weth9: address(weth)
-                })
-            )
+            ""
         );
+
+        initDiamond.init(args);
+        
         vm.stopPrank();
     }
 
@@ -208,8 +226,8 @@ contract TestBase is Agent, IDiamondCut {
             address(weth),
             treasury
         );
-        paymaster.setTrustedForwarder(forwarder);
-        paymaster.setRelayHub(forwarder);
+        paymaster.setTrustedForwarder(address(mockForwarder));
+        // paymaster.setRelayHub(mockRelayHub);
         vm.stopPrank();
     }
 
@@ -225,56 +243,50 @@ contract TestBase is Agent, IDiamondCut {
         selectors = abi.decode(res, (bytes4[]));
     }
 
-    function _setup_test() internal {
-        // infra
-        vm.deal(address(weth), 100000 wei);
-        paymaster.setTrustedForwarder(forwarder);
+    // function _setup_test() internal {
+    //     // infra
+    //     vm.deal(address(weth), 10000000 wei);
+    //     paymaster.setTrustedForwarder(address(mockForwarder));
 
-        // adapter
+    //     // adapter
 
-        // tokenization
+    //     // tokenization
 
-        // reserve initialization
-        voyage.initReserve(
-            crab,
-            weth,
-            defaultReserveInterestRateStrategy,
-            priceOracle
-        );
+    //     // reserve initialization
+    //     voyage.initReserve(
+    //         crab,
+    //         weth,
+    //         defaultReserveInterestRateStrategy,
+    //         priceOracle
+    //     );
 
-        // --- 105%
-        voyage.setLiquidationBonus(crab, 10500);
-        voyage.setIncomeRatio(crab, 0.5 * 1e4);
-        voyage.setLoanParams(crab, 30, 90, 10);
-        voyage.activateReserve(crab);
-        uint40 cutPercentage = 200; //2%
-        voyage.updateProtocolFee(owner, cutPercentage);
-        // voyage.updateMarketPlaceData(marketPlace, looksRareAdapter);
-        // voyage.updateMarketPlaceData(seaport, seaportAdapter);
+    //     // --- 105%
+    //     voyage.setLiquidationBonus(crab, 10500);
+    //     voyage.setIncomeRatio(crab, 0.5 * 1e4);
+    //     voyage.setLoanParams(crab, 30, 90, 10);
+    //     voyage.activateReserve(crab);
+    //     uint40 cutPercentage = 200; //2%
+    //     voyage.updateProtocolFee(owner, cutPercentage);
+    //     // voyage.updateMarketPlaceData(marketPlace, looksRareAdapter);
+    //     // voyage.updateMarketPlaceData(seaport, seaportAdapter);
 
-        (address senior, uint256 junior) = voyage.getDepositTokens(crab);
+    //     (address senior, uint256 junior) = voyage.getDepositTokens(crab);
 
-        weth.approve(voyage, type(uint256).max);
+    //     weth.approve(voyage, type(uint256).max);
 
-        // vault initialization
-        // --- create an empty vault
-        bytes20 salt = bytes20(keccak256(abi.encodePacked("PwnedNoMore")));
-        voyage.createVault(owner, salt);
-        vault = voyage.getVault(owner);
-        // --- fund vault for the first payment
-        vm.deal(owner, 10000 wei);
-        vm.prank(owner);
-        vault.send(100 wei);
-        weth.transfer(vault, 10 wei);
-        weth.approve(vault, type(uint256).max);
+    //     // vault initialization
+    //     // --- create an empty vault
+    //     bytes20 salt = bytes20(keccak256(abi.encodePacked("PwnedNoMore")));
+    //     voyage.createVault(owner, salt);
+    //     vault = voyage.getVault(owner);
+    //     // --- fund vault for the first payment
+    //     vm.deal(owner, 10000 wei);
+    //     vm.prank(owner);
+    //     vault.send(100 wei);
+    //     weth.transfer(vault, 10 wei);
+    //     weth.approve(vault, type(uint256).max);
 
-        // the "todo delete" section, won't transcribe it till we need it.
-    }
-
-    function diamondCut(
-        FacetCut[] calldata _diamondCut,
-        address _init,
-        bytes calldata _calldata
-    ) external override {}
+    //     // the "todo delete" section, won't transcribe it till we need it.
+    // }
 
 }
