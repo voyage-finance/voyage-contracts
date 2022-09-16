@@ -8,9 +8,10 @@ contract TestCredit is TestBase {
     }
 
     function check() public override {
-        priceOracle.updateTwap(crab, 31415926);
+        priceOracle.updateTwap(address(crab), 31415926);
+        (uint price, ) = priceOracle.getTwap(address(crab));
         require(
-            priceOracle.getTwap(crab) == 31415926,
+            price == 31415926,
             "[!!!] Invariant violation: only owner or operator is able to update price."
         );
     }
