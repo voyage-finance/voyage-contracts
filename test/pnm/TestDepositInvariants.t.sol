@@ -206,11 +206,11 @@ contract TestDepositInvariants is TestBase {
     // voyage.withdraw(address(crab), 0, juniorAmount);
 
     require(
-      crab.address.balance == juniorAmount,
+      address(crab).balance == juniorAmount,
       string(
         abi.encodePacked(
           "[!!!] Invariant violation: junior token withdrawn amount (",
-          Strings.toString(crab.address.balance),
+          Strings.toString(address(crab).balance),
           ") differs from deposited amount (",
           Strings.toString(juniorAmount),
           ")"
@@ -218,14 +218,15 @@ contract TestDepositInvariants is TestBase {
       )
     );
 
-    voyage.withdraw(crab.address, 1, seniorAmount);
+    LiquidityFacet(address(voyage)).withdraw(address(crab), Tranche.SENIOR, seniorAmount);
+//    voyage.withdraw(crab, 1, seniorAmount);
 
     require(
-      crab.address.balance == juniorAmount + seniorAmount,
+        address(crab).balance == juniorAmount + seniorAmount,
       string(
         abi.encodePacked(
           "[!!!] Invariant violation: senior token withdrawn amount (",
-          Strings.toString(crab.address.balance - juniorAmount),
+          Strings.toString(address(crab).balance - juniorAmount),
           ") differs from deposited amount (",
           Strings.toString(seniorAmount),
           ")"
