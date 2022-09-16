@@ -1,4 +1,3 @@
-import { Voyage, WETH9 } from '@contracts';
 import { Tranche } from '@helpers/types';
 import { task, types } from 'hardhat/config';
 
@@ -8,33 +7,22 @@ task('dev:bootstrap', 'Bootstraps a reserve, vault, and user balances')
     'The collection to use to bootstrap the reserve. Defaults to Mocked Crab.'
   )
   .addOptionalParam(
-    'user',
-    'The user to create a vault for, and fund with WETH. Defaults to first account of mnemonic.'
+    'sender',
+    'The address to use to fund the reserve. Defaults to first account of mnemonic.'
   )
   .addOptionalParam(
-    'balance',
-    'Amount to fund the user in WETH.',
-    '1000000',
-    types.string
-  )
-  .addOptionalParam(
-    'seniorTrancheBalance',
+    'senior',
     'Amount to fund the senior tranche for, in WETH.',
     '50000',
     types.string
   )
   .addOptionalParam(
-    'juniorTrancheBalance',
+    'junior',
     'Amount to fund the junior tranche for, in WETH.',
     '10000',
     types.string
   )
-  .addOptionalParam(
-    'vaultBalance',
-    'Amount to fund the user vault with',
-    '10000',
-    types.string
-  )
+  .addOptionalParam('floor', 'Amount to set TWAP to.', '0.5', types.string)
   .setAction(async (params, hre) => {
     const { ethers, getNamedAccounts, run } = hre;
     await hre.run('set-hre');
@@ -42,63 +30,32 @@ task('dev:bootstrap', 'Bootstraps a reserve, vault, and user balances')
     const { owner: defaultUser } = await getNamedAccounts();
     const {
       collection = defaultCollection.address,
-      user = defaultUser,
-      balance,
-      seniorTrancheBalance,
-      juniorTrancheBalance,
-      vaultBalance,
+      sender = defaultUser,
+      senior,
+      junior,
+      floor,
     } = params;
 
-    console.log('Setting up markeptlace adapters');
-    await run('dev:configure-marketplace-adapters');
+    console.log(
+      `Creating/initializing reserve for collection ${collection}.\n`
+    );
+    await run('dev:initialize-reserve', { collection, floorPrice: floor });
 
-    console.log(`Creating/initializing reserve for collection ${collection}`);
-    await run('dev:initialize-reserve', { collection });
+    console.log(`Approving Voyage to spend WETH for sender ${sender}\n`);
+    await run('dev:approve-weth', { approver: sender });
 
-    console.log(`Funding user ${user} with ${balance} WETH`);
-    const weth = await ethers.getContract<WETH9>('WETH9');
-    const targetBalance = ethers.utils.parseEther(balance);
-    const wethBalance = await weth.balanceOf(user);
-    if (wethBalance.lt(targetBalance)) {
-      const wethDeposit = targetBalance.sub(wethBalance);
-      await run('dev:deposit-weth', {
-        amount: ethers.utils.formatEther(wethDeposit),
-        sender: user,
-      });
-    }
-
-    console.log(`Depositing ${juniorTrancheBalance} into junior tranche\n`);
+    console.log(`Depositing ${junior} into junior tranche\n`);
     await run('dev:deposit-reserve', {
       reserve: collection,
       tranche: Tranche.Junior,
-      amount: juniorTrancheBalance,
-      sender: user,
+      amount: junior,
+      sender,
     });
-    console.log(`Depositing ${seniorTrancheBalance} into senior tranche\n`);
+    console.log(`Depositing ${senior} into senior tranche\n`);
     await run('dev:deposit-reserve', {
       reserve: collection,
       tranche: Tranche.Senior,
-      amount: seniorTrancheBalance,
-      sender: user,
-    });
-
-    console.log(`Wrapping WETH for user ${user}\n`);
-    await run('dev:deposit-weth', { sender: user });
-
-    console.log(`Approving Voyage to spend WETH for ${user}\n`);
-    await run('dev:approve-weth', { approver: user });
-
-    console.log(`Creating vault for user ${user}\n`);
-    await run('dev:create-vault', { user });
-
-    const voyage = await ethers.getContract<Voyage>('Voyage');
-    const vaultAddress = await voyage.getVault(user);
-    console.log(
-      `Funding the vault ${vaultAddress} for ${user} for ${vaultBalance}\n`
-    );
-    await run('dev:fund-vault', {
-      amount: vaultBalance,
-      sender: user,
-      sendeth: true,
+      amount: senior,
+      sender,
     });
   });

@@ -1,4 +1,4 @@
-import { setHRE } from '@helpers/task-helpers/set-hre';
+import { setHRE } from '@helpers/task-helpers/hre';
 import { ChainID, Networks } from '@helpers/types';
 import { task } from 'hardhat/config';
 

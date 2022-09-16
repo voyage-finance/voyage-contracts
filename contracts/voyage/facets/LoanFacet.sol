@@ -90,13 +90,6 @@ contract LoanFacet is Storage, ReentrancyGuard {
         uint256 _amountToWriteDown
     );
 
-    event CollateralTransferred(
-        address collection,
-        address from,
-        address to,
-        uint256[] collaterals
-    );
-
     function previewBuyNowParams(
         address _collection,
         address _vault,
@@ -491,157 +484,256 @@ contract LoanFacet is Storage, ReentrancyGuard {
         param.vault = _vault;
         param.loanId = _loanId;
         param.liquidator = _msgSender();
-        (param.liquidationBonus, param.gracePeriod) = reserveConf
-            .getLiquidationParams();
 
-        LibLoan.LoanDetail memory loanDetail = LibLoan.getLoanDetail(
+        BorrowData storage borrowData = LibLoan.getBorrowData(
             param.collection,
             param.currency,
-            param.vault,
+            param.vault
+        );
+
+        LibLoan.LoanDetail memory loanDetail = LibLoan.getLoanDetail(
+            borrowData,
+            param.currency,
             param.loanId
         );
 
         // 2. check if the debt is qualified to be liquidated
-        if (
-            block.timestamp <= loanDetail.nextPaymentDue ||
-            block.timestamp - loanDetail.nextPaymentDue <=
-            param.gracePeriod * LibLoan.SECOND_PER_DAY
-        ) {
-            revert InvalidLiquidate();
+        {
+            uint256 gracePeriod;
+            (param.liquidationBonus, gracePeriod) = reserveConf
+                .getLiquidationParams();
+            if (
+                block.timestamp <= loanDetail.nextPaymentDue ||
+                block.timestamp - loanDetail.nextPaymentDue <=
+                gracePeriod * LibLoan.SECOND_PER_DAY
+            ) {
+                revert InvalidLiquidate();
+            }
         }
 
-        // 3 get floor price from oracle contract
-        IPriceOracle priceOracle = IPriceOracle(
-            reserveData.priceOracle.implementation()
-        );
-        (param.floorPrice, param.floorPriceTime) = priceOracle.getTwap(
-            param.collection
-        );
-        if (
-            (block.timestamp - param.floorPriceTime) >
-            reserveConf.getMaxTwapStaleness()
-        ) {
-            revert LiquidateStaleTwap();
-        }
-
-        if (param.floorPrice == 0) {
-            revert InvalidFloorPrice();
-        }
-
-        // 3 get pmt info
-        (param.principal, param.interest, param.fee) = LibLoan.getPMT(
-            param.collection,
-            param.currency,
-            param.vault,
-            param.loanId
-        );
-        param.totalDebt = param.principal;
-        if (param.totalDebt == 0) {
-            revert InvalidDebt();
-        }
-        param.remaningDebt = param.totalDebt;
-        param.discount = getDiscount(param.floorPrice, param.liquidationBonus);
-        param.discountedFloorPrice = param.floorPrice - param.discount;
-
-        // 4 transfer all nfts to liquidator
-        uint256[] memory collaterals = LibLoan.releaseLien(
-            param.collection,
-            param.currency,
-            param.vault,
-            param.loanId
-        );
-
-        uint256 discountedFloorPriceInTotal = param.discountedFloorPrice *
-            collaterals.length;
-        IERC20(param.currency).safeTransferFrom(
-            param.liquidator,
-            address(this),
-            discountedFloorPriceInTotal
-        );
-        param.receivedAmount += discountedFloorPriceInTotal;
-
-        for (uint256 i = 0; i < collaterals.length; i++) {
-            bytes4 selector = IERC721(param.collection).transferFrom.selector;
-            bytes memory data = abi.encodePacked(
-                selector,
-                abi.encode(param.vault, param.liquidator, collaterals[i])
+        // 3. get floor price from oracle contract
+        {
+            IPriceOracle priceOracle = IPriceOracle(
+                reserveData.priceOracle.implementation()
             );
-            bytes memory encodedData = abi.encode(param.collection, data);
-            IVault(_vault).execute(encodedData, 0);
+
+            (uint256 floorPrice, uint256 floorPriceTime) = priceOracle.getTwap(
+                param.collection
+            );
+
+            if (
+                (block.timestamp - floorPriceTime) >
+                reserveConf.getMaxTwapStaleness()
+            ) {
+                revert LiquidateStaleTwap();
+            }
+
+            if (floorPrice == 0) {
+                revert InvalidFloorPrice();
+            }
+
+            // 4. get remaining debt info
+            (
+                param.remainingPrincipal,
+                param.remainingInterest,
+                param.remainingFee,
+                param.incomeRatio
+            ) = LibLoan.getRemainingDebt(
+                param.collection,
+                param.currency,
+                param.vault,
+                param.loanId
+            );
+            param.totalDebt = param.remainingPrincipal;
+            if (param.totalDebt == 0) {
+                revert InvalidDebt();
+            }
+            uint256 discount = getDiscount(floorPrice, param.liquidationBonus);
+            uint256 discountedFloorPrice = floorPrice - discount;
+
+            // 5. transfer all nfts to liquidator
+            uint256[] memory collaterals = LibLoan.releaseLien(
+                param.collection,
+                param.currency,
+                param.vault,
+                param.loanId
+            );
+
+            param.collateralVaule = discountedFloorPrice * collaterals.length;
+
+            IERC20(param.currency).safeTransferFrom(
+                param.liquidator,
+                address(this),
+                param.collateralVaule
+            );
+
+            LibLoan.transferCollateral(
+                collaterals,
+                param.collection,
+                param.liquidator,
+                param.vault
+            );
         }
 
-        emit CollateralTransferred(
+        BorrowState storage borrowState = LibLoan.getBorrowState(
             param.collection,
-            param.vault,
-            param.liquidator,
-            collaterals
+            reserveData.currency
         );
+        // 6. if collaterals cannot cover debt
+        if (param.totalDebt > param.collateralVaule) {
+            // repay senior tranche principal and writedown
+            uint256 remainingDebt = param.totalDebt - param.collateralVaule;
+            uint256 totalLiquidityFromJuniorTranche = IERC20(param.currency)
+                .balanceOf(reserveData.juniorDepositTokenAddress);
 
-        if (param.totalDebt > discountedFloorPriceInTotal) {
-            param.remaningDebt = param.totalDebt - discountedFloorPriceInTotal;
-        } else {
-            uint256 refundAmount = discountedFloorPriceInTotal -
-                param.totalDebt;
-            IERC20(param.currency).transfer(param.vault, refundAmount);
-            param.receivedAmount -= refundAmount;
-        }
-
-        // 5. transfer from junior tranche if there is still remaning debt
-        if (param.remaningDebt > 0) {
-            param.totalAssetFromJuniorTranche = ERC4626(
-                reserveData.juniorDepositTokenAddress
-            ).totalAssets();
-
-            if (param.totalAssetFromJuniorTranche >= param.remaningDebt) {
+            if (totalLiquidityFromJuniorTranche >= remainingDebt) {
                 IVToken(reserveData.juniorDepositTokenAddress)
-                    .transferUnderlyingTo(address(this), param.remaningDebt);
-                param.juniorTrancheAmount = param.remaningDebt;
-                param.receivedAmount += param.remaningDebt;
+                    .transferUnderlyingTo(address(this), remainingDebt);
+                IERC20(param.currency).safeTransfer(
+                    reserveData.seniorDepositTokenAddress,
+                    param.totalDebt
+                );
+                param.juniorTrancheAmount = remainingDebt;
+                borrowState.totalDebt -= param.totalDebt;
             } else {
                 IVToken(reserveData.juniorDepositTokenAddress)
                     .transferUnderlyingTo(
                         address(this),
-                        param.totalAssetFromJuniorTranche
+                        totalLiquidityFromJuniorTranche
                     );
-                param.juniorTrancheAmount = param.totalAssetFromJuniorTranche;
-                param.receivedAmount += param.totalAssetFromJuniorTranche;
+                IERC20(param.currency).safeTransfer(
+                    reserveData.seniorDepositTokenAddress,
+                    param.collateralVaule + totalLiquidityFromJuniorTranche
+                );
+                param.juniorTrancheAmount = totalLiquidityFromJuniorTranche;
+                borrowState.totalDebt -=
+                    param.collateralVaule +
+                    totalLiquidityFromJuniorTranche;
+
                 param.writeDownAmount =
-                    param.remaningDebt -
-                    param.totalAssetFromJuniorTranche;
+                    remainingDebt -
+                    totalLiquidityFromJuniorTranche;
+                LibLoan.writedownSeniorPrincipal(
+                    borrowState,
+                    param.writeDownAmount
+                );
+            }
+
+            // writedown senior intereset and junior interest
+            {
+                (
+                    uint256 outstandingSeniorInterest,
+                    uint256 outstandingJuniorInterest
+                ) = LibLoan.getInterest(
+                        reserveData,
+                        param.remainingInterest,
+                        param.incomeRatio
+                    );
+                LibLoan.writedownSeniorInterest(
+                    borrowState,
+                    outstandingSeniorInterest
+                );
+                LibLoan.writedownJuniorInterest(
+                    borrowState,
+                    outstandingJuniorInterest
+                );
+            }
+        } else {
+            // 7. if collaterals can cover debt
+
+            // repay senior tranche principal
+            IERC20(param.currency).safeTransfer(
+                reserveData.seniorDepositTokenAddress,
+                param.totalDebt
+            );
+            borrowState.totalDebt -= param.totalDebt;
+
+            uint256 availableFunds = param.collateralVaule - param.totalDebt;
+            {
+                (
+                    uint256 outstandingSeniorInterest,
+                    uint256 outstandingJuniorInterest
+                ) = LibLoan.getInterest(
+                        reserveData,
+                        param.remainingInterest,
+                        param.incomeRatio
+                    );
+
+                // try to repay senior tranche interest
+                (param.reducedAmount, param.writedownAmount) = LibLoan.tryRepay(
+                    availableFunds,
+                    outstandingSeniorInterest,
+                    param.currency,
+                    reserveData.seniorDepositTokenAddress
+                );
+
+                availableFunds -= param.reducedAmount;
+                borrowState.totalSeniorInterest -= param.reducedAmount;
+                borrowState.totalInterest -= param.reducedAmount;
+                // writedown senior interest
+                if (param.writedownAmount != 0) {
+                    LibLoan.writedownSeniorInterest(
+                        borrowState,
+                        param.writedownAmount
+                    );
+                    param.writedownAmount = 0;
+                }
+                // try to repay junior tranche interesst
+                (param.reducedAmount, param.writedownAmount) = LibLoan.tryRepay(
+                    availableFunds,
+                    outstandingJuniorInterest,
+                    param.currency,
+                    reserveData.juniorDepositTokenAddress
+                );
+                availableFunds -= param.reducedAmount;
+                borrowState.totalJuniorInterest -= param.reducedAmount;
+                borrowState.totalInterest -= param.reducedAmount;
+
+                // writedown junior interest
+                if (param.writedownAmount != 0) {
+                    LibLoan.writedownJuniorInterest(
+                        borrowState,
+                        param.writedownAmount
+                    );
+                    param.writedownAmount = 0;
+                }
+            }
+
+            (uint256 takeRate, address treasury) = LibLiquidity
+                .getTakeRateAndTreasuryAddr();
+
+            // try to repay protocol fee
+            (param.reducedAmount, param.writedownAmount) = LibLoan.tryRepay(
+                availableFunds,
+                param.remainingFee,
+                param.currency,
+                treasury
+            );
+            availableFunds -= param.reducedAmount;
+
+            // transfer back to vault
+            if (availableFunds > 0) {
+                IERC20(param.currency).safeTransfer(
+                    param.vault,
+                    availableFunds
+                );
             }
         }
 
-        // 6. record repay info
-        (param.repaymentId, param.isFinal) = LibLoan.repay(
+        // 7. record repay info
+        LibLoan.closeDebt(
             param.collection,
             param.currency,
             param.vault,
             param.loanId
         );
 
-        // 7. slash Rep
+        // 8. slash Rep
         LibVault.slashRep(param.vault, param.collection, param.currency);
 
-        emit Repayment(
-            _msgSender(),
-            param.vault,
-            param.collection,
-            param.currency,
-            param.loanId,
-            param.repaymentId,
-            param.totalDebt,
-            param.isFinal
-        );
-
-        // 7. transfer to senior deposit token
-        IERC20(param.currency).safeTransfer(
-            reserveData.seniorDepositTokenAddress,
-            param.receivedAmount
-        );
-
         emit Liquidate(
-            _msgSender(),
-            _vault,
+            param.liquidator,
+            param.vault,
             param.currency,
             param.loanId,
             param.repaymentId,

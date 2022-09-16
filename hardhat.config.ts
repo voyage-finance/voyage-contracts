@@ -1,23 +1,23 @@
+import '@nomicfoundation/hardhat-chai-matchers';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
-import '@nomicfoundation/hardhat-chai-matchers';
 import * as tdly from '@tenderly/hardhat-tenderly';
 import 'hardhat-diamond-abi';
 import '@typechain/hardhat';
 import { config as dotenvConfig } from 'dotenv';
+import { ethers } from 'ethers';
 import 'hardhat-deploy';
 import 'hardhat-gas-reporter';
 import 'hardhat-prettier';
 import 'hardhat-watcher';
-import 'tsconfig-paths/register';
-import { task } from 'hardhat/config';
 import { HardhatUserConfig } from 'hardhat/types';
 import { resolve } from 'path';
-import { ethers } from 'ethers';
+import 'tsconfig-paths/register';
 
 if (process.env.SKIP_TASKS !== 'true') {
   require('./tasks/helpers');
   require('./tasks/dev');
+  require('./tasks/migration');
 }
 
 dotenvConfig({ path: resolve(__dirname, './.env') });
@@ -41,15 +41,8 @@ if (cov) {
 
 const reportGas = process.env.REPORT_GAS === 'true';
 
-// This is a sample Hardhat task. To learn how to create your own go to
-// https://hardhat.org/guides/create-task.html
-task('accounts', 'Prints the list of accounts', async (_, hre) => {
-  const accounts = await hre.ethers.getSigners();
-
-  for (const account of accounts) {
-    console.log(await account.getAddress());
-  }
-});
+const TENDERLY_CHAIN_ID = parseInt(process.env.TENDERLY_CHAIN_ID ?? '1');
+const TENDERLY_FORK_URL = process.env.TENDERLY_FORK_URL ?? '';
 
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
@@ -78,14 +71,16 @@ const config: HardhatUserConfig = {
               interval: parseInt(process.env.MIN_INTERVAL || '500', 10),
             },
     },
-    goerli: {
-      url: `https://eth-goerli.g.alchemy.com/v2/${process.env.ALCHEMY_GOERLI_API_KEY}`,
+    tenderly: {
+      chainId: TENDERLY_CHAIN_ID,
+      url: TENDERLY_FORK_URL,
       accounts: {
-        mnemonic: process.env.GOERLI_MNEMONIC,
+        mnemonic: process.env.TENDERLY_MNEMONIC,
       },
     },
-    rinkeby: {
-      url: `https://eth-rinkeby.alchemyapi.io/v2/${process.env.ALCHEMY_RINKEBY_API_KEY}`,
+    goerli: {
+      chainId: 5,
+      url: `https://eth-goerli.g.alchemy.com/v2/${process.env.ALCHEMY_GOERLI_API_KEY}`,
       accounts: {
         mnemonic: process.env.GOERLI_MNEMONIC,
       },
@@ -135,7 +130,7 @@ const config: HardhatUserConfig = {
   etherscan: {
     apiKey: {
       mainnet: ETHERSCAN_API_KEY,
-      rinkeby: ETHERSCAN_API_KEY,
+      goerli: ETHERSCAN_API_KEY,
     },
   },
   gasReporter: {

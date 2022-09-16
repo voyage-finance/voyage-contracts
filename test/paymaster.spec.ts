@@ -215,7 +215,7 @@ describe('VoyagePaymaster', function () {
   });
 
   it('postRelayedCalled should get a refund from the Vault', async () => {
-    const { alice, forwarder, paymaster, treasury, voyage } =
+    const { alice, forwarder, paymaster, relayHub, treasury, voyage } =
       await setupTestSuite();
     // vault has no ETH or WETH balance.
     await voyage.createVault(
@@ -244,21 +244,23 @@ describe('VoyagePaymaster', function () {
     const vault = await (
       await ethers.getContractFactory('Vault')
     ).attach(deployedVault);
-    const tx = await paymaster.postRelayedCall(
-      ethers.utils.defaultAbiCoder.encode(['address'], [deployedVault]),
-      true,
-      gasUseWithoutPost,
-      {
-        gasPrice: gasPrice.toString(),
-        pctRelayFee: '0',
-        baseRelayFee: '0',
-        paymaster: paymaster.address,
-        paymasterData: '0x',
-        relayWorker,
-        forwarder,
-        clientId: '8',
-      }
-    );
+    const tx = await paymaster
+      .connect(await ethers.getSigner(relayHub))
+      .postRelayedCall(
+        ethers.utils.defaultAbiCoder.encode(['address'], [deployedVault]),
+        true,
+        gasUseWithoutPost,
+        {
+          gasPrice: gasPrice.toString(),
+          pctRelayFee: '0',
+          baseRelayFee: '0',
+          paymaster: paymaster.address,
+          paymasterData: '0x',
+          relayWorker,
+          forwarder,
+          clientId: '8',
+        }
+      );
 
     await expect(tx)
       .to.emit(vault, 'GasRefunded')
@@ -278,7 +280,7 @@ describe('VoyagePaymaster', function () {
   });
 
   it('should unwrap WETH and refund', async () => {
-    const { alice, forwarder, paymaster, treasury, voyage } =
+    const { alice, forwarder, paymaster, relayHub, treasury, voyage } =
       await setupTestSuite();
     // vault has no ETH or WETH balance.
     await voyage.createVault(
@@ -319,21 +321,23 @@ describe('VoyagePaymaster', function () {
     const vault = await (
       await ethers.getContractFactory('Vault')
     ).attach(deployedVault);
-    const tx = await paymaster.postRelayedCall(
-      ethers.utils.defaultAbiCoder.encode(['address'], [deployedVault]),
-      true,
-      gasUseWithoutPost,
-      {
-        gasPrice: gasPrice.toString(),
-        pctRelayFee: '0',
-        baseRelayFee: '0',
-        paymaster: paymaster.address,
-        paymasterData: '0x',
-        relayWorker,
-        forwarder,
-        clientId: '8',
-      }
-    );
+    const tx = await paymaster
+      .connect(await ethers.getSigner(relayHub))
+      .postRelayedCall(
+        ethers.utils.defaultAbiCoder.encode(['address'], [deployedVault]),
+        true,
+        gasUseWithoutPost,
+        {
+          gasPrice: gasPrice.toString(),
+          pctRelayFee: '0',
+          baseRelayFee: '0',
+          paymaster: paymaster.address,
+          paymasterData: '0x',
+          relayWorker,
+          forwarder,
+          clientId: '8',
+        }
+      );
 
     await expect(tx)
       .to.emit(vault, 'GasRefunded')

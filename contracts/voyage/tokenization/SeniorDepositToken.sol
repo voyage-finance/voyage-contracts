@@ -37,7 +37,7 @@ contract SeniorDepositToken is VToken, IUnbondingToken {
             collection,
             address(asset)
         );
-        return underlyingBalance + outstandingPrincipal;
+        return underlyingBalance + outstandingPrincipal + outstandingInterest;
     }
 
     function withdraw(

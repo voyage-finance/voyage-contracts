@@ -240,6 +240,7 @@ describe('BuyNow', function () {
       priceOracle,
       purchaseDataFromLooksRare,
       marketPlace,
+      reserveConfiguration,
     } = await setupTestSuite();
     await voyage.deposit(crab.address, 0, toWad(50));
     await voyage.deposit(crab.address, 1, toWad(120));
@@ -259,9 +260,14 @@ describe('BuyNow', function () {
     expect(creditLine.loanList.head).to.eq(0);
     expect(creditLine.loanList.tail).to.eq(1);
 
+    const { term, epoch } = reserveConfiguration;
+    const nper = ethers.BigNumber.from(term).div(epoch);
+
     // check loan detail
     const loanDetail = await voyage.getLoanDetail(vault, crab.address, 0);
-    const firstPmt = loanDetail.principal.add(loanDetail.interest).div(3);
+    const principalPmt = loanDetail.interest.div(nper);
+    const interestPmt = loanDetail.principal.div(nper);
+    const firstPmt = principalPmt.add(interestPmt);
     const totalDebtExpected = firstPmt.add(creditLine.totalDebt);
     expect(totalDebtExpected).to.eq(
       loanDetail.principal.add(loanDetail.interest)

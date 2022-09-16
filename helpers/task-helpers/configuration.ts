@@ -1,20 +1,23 @@
 import { BigNumber } from 'ethers';
 import { Voyage, PriceOracle } from '@contracts';
-import { HRE } from './set-hre';
+import { HRE } from './hre';
 
 export interface AdapterConfiguration {
   marketplace: string;
   adapter: string;
 }
 
-export async function setMarketplaceAdapters(config: AdapterConfiguration[]) {
+export async function setMarketplaceAdapters(configs: AdapterConfiguration[]) {
   const voyage = await HRE.ethers.getContract<Voyage>('Voyage');
-  await Promise.all(
-    config.map(async ({ marketplace, adapter }) => {
-      const tx = await voyage.updateMarketPlaceData(marketplace, adapter);
-      await tx.wait();
-    })
-  );
+  const receipts = [];
+  for (const config of configs) {
+    const { marketplace, adapter } = config;
+    const tx = await voyage.updateMarketPlaceData(marketplace, adapter);
+    const receipt = await tx.wait();
+    receipts.push(receipt);
+  }
+
+  return receipts;
 }
 
 export interface TwapConfiguration {

@@ -109,6 +109,7 @@ struct BorrowData {
     uint40 nextLoanNumber;
     uint256 totalPrincipal;
     uint256 totalInterest;
+    uint256 totalFee;
     uint256 mapSize;
     mapping(uint256 => Loan) loans;
 }
@@ -218,30 +219,6 @@ library LibAppStorage {
         assembly {
             ds.slot := storagePosition
         }
-    }
-
-    function cleanUpgradeParam() internal {
-        UpgradeParam storage s = ds().upgradeParam;
-        for (uint256 i = 0; i < s.existingSelectors[msg.sender].length; ) {
-            delete s.existingSelectorFacetMap[msg.sender][
-                s.existingSelectors[msg.sender][i]
-            ];
-            unchecked {
-                ++i;
-            }
-        }
-        delete s.existingSelectors[msg.sender];
-
-        for (uint256 i = 0; i < s.newSelectors[msg.sender].length; ) {
-            delete s.newSelectorSet[msg.sender][s.newSelectors[msg.sender][i]];
-            unchecked {
-                ++i;
-            }
-        }
-        delete s.newSelectors[msg.sender];
-
-        delete s.facetCuts[msg.sender];
-        delete s.facetCutSize[msg.sender];
     }
 }
 

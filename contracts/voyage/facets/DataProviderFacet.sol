@@ -5,7 +5,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
-import {AppStorage, ReserveData, ReserveConfigurationMap, Tranche, LoanList, RepaymentData, LibAppStorage} from "../libraries/LibAppStorage.sol";
+import {AppStorage, ReserveData, BorrowData, ReserveConfigurationMap, Tranche, LoanList, RepaymentData, LibAppStorage} from "../libraries/LibAppStorage.sol";
 import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {LibLoan} from "../libraries/LibLoan.sol";
 import {LibVault} from "../libraries/LibVault.sol";
@@ -188,13 +188,12 @@ contract DataProviderFacet {
         uint256 _loanId
     ) external view returns (LibLoan.LoanDetail memory) {
         ReserveData memory reserve = LibLiquidity.getReserveData(_collection);
-        return
-            LibLoan.getLoanDetail(
-                _collection,
-                reserve.currency,
-                _vault,
-                _loanId
-            );
+        BorrowData storage borrowData = LibLoan.getBorrowData(
+            _collection,
+            reserve.currency,
+            _vault
+        );
+        return LibLoan.getLoanDetail(borrowData, reserve.currency, _loanId);
     }
 
     function getRepayment(

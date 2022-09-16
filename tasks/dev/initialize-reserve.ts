@@ -1,4 +1,5 @@
 import { Voyage } from '@contracts';
+import { getWETH9 } from '@helpers/task-helpers/addresses';
 import { setTwap } from '@helpers/task-helpers/configuration';
 import { task, types } from 'hardhat/config';
 
@@ -40,13 +41,19 @@ task('dev:initialize-reserve', 'Initializes a reserve.')
     '0.5',
     types.string
   )
+  .addOptionalParam(
+    'staleness',
+    'The maximum staleness. Defaults to 48 hours.',
+    48 * 60 * 60,
+    types.int
+  )
   .setAction(async (params, hre) => {
     await hre.run('set-hre');
     const { ethers } = hre;
     const { owner } = await hre.getNamedAccounts();
     const voyage = await ethers.getContract<Voyage>('Voyage');
     const mc = await ethers.getContract('Crab');
-    const weth = await ethers.getContract('WETH9');
+    const weth = await getWETH9();
     const interestRateStrategy = await ethers.getContract(
       'DefaultReserveInterestRateStrategy'
     );
@@ -61,6 +68,7 @@ task('dev:initialize-reserve', 'Initializes a reserve.')
       optimalLiquidityRatio,
       protocolFee,
       floorPrice,
+      staleness,
     } = params;
     const [initialized, activated] = await voyage.getReserveStatus(collection);
 
@@ -72,7 +80,7 @@ task('dev:initialize-reserve', 'Initializes a reserve.')
       await voyage
         .initReserve(
           collection,
-          weth.address,
+          weth,
           interestRateStrategy.address,
           oracle.address
         )
@@ -94,24 +102,30 @@ task('dev:initialize-reserve', 'Initializes a reserve.')
     await voyage
       .setOptimalLiquidityRatio(collection, optimalLiquidityRatio)
       .then((tx) => tx.wait());
-    await voyage.updateProtocolFee(owner, protocolFee).then((tx) => tx.wait());
+    await voyage.setMaxTwapStaleness(
+      collection,
+      ethers.BigNumber.from(staleness)
+    );
 
-    console.log(`setLoanParams: 
-- epoch: ${epoch}
-- tenure: ${tenure}
-- gracePeriod: ${grace}
-- optimalLiquidityRatio: ${optimalLiquidityRatio}
-- protocolFee: ${protocolFee}
-`);
+    console.log(`set reserve params:
+    - epoch: ${epoch}
+    - tenure: ${tenure}
+    - gracePeriod: ${grace}
+    - optimalLiquidityRatio: ${optimalLiquidityRatio}
+    - max staleness: ${staleness}
+    `);
 
     if (!activated) {
       await voyage.activateReserve(mc.address).then((tx) => tx.wait());
     }
+
+    await voyage.updateProtocolFee(owner, protocolFee).then((tx) => tx.wait());
+    console.log(`Set ${collection} protocol fee to ${protocolFee}.\n`);
 
     // set twap
     await setTwap({
       collection,
       twap: hre.ethers.utils.parseEther(floorPrice),
     });
-    console.log(`Set floor price for ${collection} to ${floorPrice}`);
+    console.log(`Set ${collection} floor price to ${floorPrice}. \n`);
   });
