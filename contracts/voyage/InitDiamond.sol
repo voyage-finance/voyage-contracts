@@ -3,10 +3,10 @@ pragma solidity ^0.8.9;
 
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import {AppStorage, LibAppStorage} from "./libraries/LibAppStorage.sol";
-import {IWETH9} from "../shared/facets/PaymentsFacet.sol";
 import {DSRoles} from "../voyage/auth/DSRoles.sol";
 import {DSGuard} from "../voyage/auth/DSGuard.sol";
 import {IVaultFactory} from "./interfaces/IVaultFactory.sol";
+import {IWETH9} from "../shared/libraries/LibPayments.sol";
 
 contract InitDiamond {
     struct Args {

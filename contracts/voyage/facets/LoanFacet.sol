@@ -17,8 +17,8 @@ import {IPriceOracle} from "../interfaces/IPriceOracle.sol";
 import {LibAppStorage, AppStorage, Storage, BorrowData, BorrowState, Loan, ReserveConfigurationMap, ReserveData, PMT} from "../libraries/LibAppStorage.sol";
 import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
+import {LibPayments} from "../../shared/libraries/LibPayments.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
-import {PaymentsFacet} from "../../shared/facets/PaymentsFacet.sol";
 import {SafeTransferLib} from "../../shared/libraries/SafeTransferLib.sol";
 import {IVault} from "../../vault/Vault.sol";
 import {IUnbondingToken} from "../tokenization/SeniorDepositToken.sol";
@@ -336,10 +336,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
         );
 
         // 9. unwrap weth
-        PaymentsFacet(address(this)).unwrapWETH9(
-            params.outstandingPrincipal,
-            address(this)
-        );
+        LibPayments.unwrapWETH9(params.outstandingPrincipal, address(this));
 
         SafeTransferLib.safeTransferETH(
             params.vault,

@@ -8,10 +8,10 @@ import {DSGuard} from "../auth/DSGuard.sol";
 import {LibSecurity} from "./LibSecurity.sol";
 import {IVaultFactory} from "../interfaces/IVaultFactory.sol";
 import {LibVault} from "./LibVault.sol";
+import {IWETH9} from "../../shared/libraries/LibPayments.sol";
 import {IDiamondCut} from "../../shared/diamond/interfaces/IDiamondCut.sol";
 import {IDiamondLoupe} from "../../shared/diamond/interfaces/IDiamondLoupe.sol";
 import {DiamondCutFacet} from "../../shared/diamond/facets/DiamondCutFacet.sol";
-import {IWETH9} from "../../shared/facets/PaymentsFacet.sol";
 
 enum Tranche {
     JUNIOR,
