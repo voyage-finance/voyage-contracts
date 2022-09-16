@@ -237,7 +237,7 @@ contract TestBase is Agent {
     {
         string[] memory cmd = new string[](3);
         cmd[0] = "node";
-        cmd[1] = "scripts/genSelectors.js";
+        cmd[1] = "scripts/gen_selectors.js";
         cmd[2] = _facetName;
         bytes memory res = vm.ffi(cmd);
         selectors = abi.decode(res, (bytes4[]));
