@@ -9,11 +9,11 @@ import {LibReserveConfiguration} from "./LibReserveConfiguration.sol";
 import {IReserveInterestRateStrategy} from "../interfaces/IReserveInterestRateStrategy.sol";
 import {LibAppStorage, AppStorage, ReserveData, ReserveConfigurationMap, BorrowData, BorrowState, Tranche} from "./LibAppStorage.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
-import {IWETH9} from "../../shared/facets/PaymentsFacet.sol";
 import {VToken} from "../tokenization/VToken.sol";
 import {IUnbondingToken} from "../tokenization/SeniorDepositToken.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
+import {IWETH9} from "../../shared/libraries/LibPayments.sol";
 
 library LibLiquidity {
     using WadRayMath for uint256;
