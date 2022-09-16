@@ -3,23 +3,15 @@ pragma solidity ^0.8.9;
 
 import {IVault} from "../../vault/Vault.sol";
 import {IMarketPlaceAdapter, AssetInfo} from "../interfaces/IMarketPlaceAdapter.sol";
-import {Storage, LibAppStorage} from "../libraries/LibAppStorage.sol";
+import {Storage, LibAppStorage} from "./LibAppStorage.sol";
 
-contract MarketplaceAdapterFacet is Storage {
-    event MarketplaceAdapterUpdated(
-        address indexed _marketplace,
-        address _strategy
-    );
-
+library LibMarketplaceAdapter {
     function purchase(
         address _marketplace,
         address _vault,
         uint256 _value,
         bytes calldata _data
-    ) external {
-        if (msg.sender != address(this)) {
-            revert InvalidCaller();
-        }
+    ) internal {
         address adapterAddr = LibAppStorage
             .ds()
             .marketPlaceData[_marketplace]
@@ -30,7 +22,7 @@ contract MarketplaceAdapterFacet is Storage {
     }
 
     function extractAssetInfo(address _marketplace, bytes calldata _data)
-        external
+        internal
         view
         returns (AssetInfo memory)
     {
@@ -41,17 +33,4 @@ contract MarketplaceAdapterFacet is Storage {
 
         return IMarketPlaceAdapter(adapterAddr).extractAssetInfo(_data);
     }
-
-    function updateMarketPlaceData(address _marketplace, address _strategy)
-        external
-        authorised
-    {
-        LibAppStorage
-            .ds()
-            .marketPlaceData[_marketplace]
-            .adapterAddr = _strategy;
-        emit MarketplaceAdapterUpdated(_marketplace, _strategy);
-    }
-
-    error InvalidCaller();
 }

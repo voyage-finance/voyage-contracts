@@ -74,11 +74,6 @@ const deployFn: DeployFunction = async (hre) => {
       name: 'PaymentsFacet',
       from: owner,
       log: true,
-    },
-    {
-      name: 'MarketplaceAdapterFacet',
-      from: owner,
-      log: true,
     }
   );
   const newSelectors: string[] = facets.reduce<string[]>(
