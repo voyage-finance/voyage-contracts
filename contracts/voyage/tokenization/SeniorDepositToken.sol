@@ -130,7 +130,6 @@ contract SeniorDepositToken is VToken, IUnbondingToken {
         uint256 _amount
     ) internal {
         unbondings[_user].shares += _shares;
-        // unbondings[_user].maxUnderlying += convertToAssets(_shares);
         unbondings[_user].maxUnderlying += _amount;
         totalUnbonding += _shares;
     }
