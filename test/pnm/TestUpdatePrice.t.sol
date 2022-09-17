@@ -2,7 +2,7 @@ pragma solidity 0.8.9;
 
 import "./TestBase.t.sol";
 
-contract TestCredit is TestBase {
+contract TestUpdatePrice is TestBase {
     function setUp() public {
         deploy();
     }

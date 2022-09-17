@@ -87,3 +87,4 @@ artifacts
 .tenderly
 
 out/
+crashes/

@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "contracts/voyage/libraries/LibLoan.sol";
 import {Tranche} from "contracts/voyage/libraries/LibAppStorage.sol";
 
-contract TestDepositInvariants is TestBase {
+contract TestDeposit is TestBase {
     uint256 juniorAmount = 1 * 10**18;
     uint256 seniorAmount = 2 * 10**18;
 
