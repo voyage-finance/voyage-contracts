@@ -211,11 +211,9 @@ contract TestBase is Agent {
         IDiamondCut(address(voyage)).diamondCut(
             diamondCut,
             address(initDiamond),
-            ""
+            abi.encodeWithSelector(initDiamond.init.selector, args)
         );
 
-        initDiamond.init(args);
-        
         vm.stopPrank();
     }
 
