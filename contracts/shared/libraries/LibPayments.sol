@@ -45,8 +45,6 @@ library LibPayments {
         }
     }
 
-    /// @notice Forwards calls to ERC-4626 compliant Vaults, but with the actual depositor appended to the encoded call data.
-    /// @dev This does not work if the receiving contract does not implement ERC-4626!
     function pullToken(
         IERC20 token,
         uint256 amount,
