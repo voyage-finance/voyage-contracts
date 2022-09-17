@@ -7,7 +7,6 @@ import {ERC4626, IERC4626} from "../../shared/tokenization/ERC4626.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 interface IUnbondingToken {
     function unbonding(address _user) external view returns (uint256);
@@ -20,7 +19,7 @@ struct Unbonding {
     uint256 maxUnderlying;
 }
 
-contract SeniorDepositToken is VToken, IUnbondingToken, ReentrancyGuard {
+contract SeniorDepositToken is VToken, IUnbondingToken {
     using SafeERC20 for IERC20Metadata;
 
     event Claim(address indexed owner, uint256 assets, uint256 shares);
@@ -45,7 +44,7 @@ contract SeniorDepositToken is VToken, IUnbondingToken, ReentrancyGuard {
         uint256 _asset,
         address _receiver,
         address _owner
-    ) public override(ERC4626) nonReentrant returns (uint256 shares) {
+    ) public override(ERC4626) returns (uint256 shares) {
         shares = previewWithdraw(_asset); // No need to check for rounding error, previewWithdraw rounds up.
         if (msg.sender != _owner) {
             _spendAllowance(_owner, msg.sender, shares);
@@ -62,7 +61,7 @@ contract SeniorDepositToken is VToken, IUnbondingToken, ReentrancyGuard {
         uint256 _shares,
         address _receiver,
         address _owner
-    ) public override(ERC4626) nonReentrant returns (uint256 asset) {
+    ) public override(ERC4626) returns (uint256 asset) {
         if (msg.sender != _owner) {
             _spendAllowance(_owner, msg.sender, _shares);
         }
