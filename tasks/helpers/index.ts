@@ -21,6 +21,8 @@ import './nft-owner';
 import './set-twap-staleness';
 import './decode-relaycall';
 import './decode-seaport-error';
+import './decode-seaport';
+import './mint-nft';
 import './set-hre';
 
 import './tenderly/fund-accounts';

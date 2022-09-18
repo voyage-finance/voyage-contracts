@@ -130,7 +130,6 @@ contract SeniorDepositToken is VToken, IUnbondingToken {
         uint256 _amount
     ) internal {
         unbondings[_user].shares += _shares;
-        // unbondings[_user].maxUnderlying += convertToAssets(_shares);
         unbondings[_user].maxUnderlying += _amount;
         totalUnbonding += _shares;
     }
@@ -164,7 +163,7 @@ contract SeniorDepositToken is VToken, IUnbondingToken {
     /* --------------------------------- external functions -------------------------------- */
 
     function totalUnbondingAsset() external view returns (uint256) {
-        return previewWithdraw(totalUnbonding);
+        return convertToAssets(totalUnbonding);
     }
 
     function unbonding(address _user) external view returns (uint256) {

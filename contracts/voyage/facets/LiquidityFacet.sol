@@ -12,8 +12,8 @@ import {LibAppStorage, AppStorage, Storage, Tranche, ReserveData, BorrowState, R
 import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
 import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
-import {PaymentsFacet} from "../../shared/facets/PaymentsFacet.sol";
 import {IERC4626} from "../../shared/interfaces/IERC4626.sol";
+import {IWETH9, LibPayments} from "../../shared/libraries/LibPayments.sol";
 import {IUnbondingToken} from "../tokenization/SeniorDepositToken.sol";
 
 contract LiquidityFacet is Storage, ReentrancyGuard {
@@ -142,7 +142,7 @@ contract LiquidityFacet is Storage, ReentrancyGuard {
             ? IVToken(reserve.juniorDepositTokenAddress)
             : IVToken(reserve.seniorDepositTokenAddress);
         // transfer the underlying tokens to liquidity manager, then do deposit.
-        PaymentsFacet(address(this)).pullToken(
+        LibPayments.pullToken(
             vToken.asset(),
             _amount,
             msg.sender,
@@ -171,7 +171,7 @@ contract LiquidityFacet is Storage, ReentrancyGuard {
             : IVToken(reserve.seniorDepositTokenAddress);
         uint256 userBalance = vToken.maxWithdraw(_msgSender());
         uint256 amountToWithdraw = _amount;
-        if (_amount == type(uint256).max) {
+        if (_amount == type(uint256).max || _amount > userBalance) {
             amountToWithdraw = userBalance;
         }
         require(amountToWithdraw <= userBalance, "InvalidWithdrawal");

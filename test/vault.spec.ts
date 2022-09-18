@@ -105,4 +105,62 @@ describe('Vault', function () {
     const balanceAfter = await weth.balanceOf(deployedVault);
     expect(balanceBefore.sub(balanceAfter)).to.eq(toWad(0.5));
   });
+
+  it('Withdraw a collateral NFT should revert', async function () {
+    const {
+      crab,
+      owner,
+      voyage,
+      deployedVault,
+      priceOracle,
+      purchaseDataFromLooksRare,
+      marketPlace,
+    } = await setupTestSuite();
+    await voyage.deposit(crab.address, 0, toWad(50));
+    await voyage.deposit(crab.address, 1, toWad(120));
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    const vault = await voyage.getVault(owner);
+    await voyage.buyNow(
+      crab.address,
+      1,
+      vault,
+      marketPlace.address,
+      purchaseDataFromLooksRare
+    );
+    await crab.safeMint(vault, 1);
+    await expect(
+      voyage.withdrawNFT(deployedVault, crab.address, 1)
+    ).to.be.revertedWithCustomError(voyage, 'InvalidWithdrawal');
+  });
+
+  it('Withdraw a non-collateral NFT should revert', async function () {
+    const {
+      crab,
+      owner,
+      voyage,
+      deployedVault,
+      priceOracle,
+      purchaseDataFromLooksRare,
+      marketPlace,
+    } = await setupTestSuite();
+    await voyage.deposit(crab.address, 0, toWad(50));
+    await voyage.deposit(crab.address, 1, toWad(120));
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    const vault = await voyage.getVault(owner);
+    await voyage.buyNow(
+      crab.address,
+      1,
+      vault,
+      marketPlace.address,
+      purchaseDataFromLooksRare
+    );
+    await crab.safeMint(vault, 1);
+    await voyage.repay(crab.address, 0, vault);
+    await voyage.repay(crab.address, 0, vault);
+    const onwerBefore = await crab.ownerOf(1);
+    expect(onwerBefore).to.eq(deployedVault);
+    await voyage.withdrawNFT(deployedVault, crab.address, 1);
+    const onwerAfter = await crab.ownerOf(1);
+    expect(onwerAfter).to.eq(owner);
+  });
 });

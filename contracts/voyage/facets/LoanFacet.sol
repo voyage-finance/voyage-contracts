@@ -9,6 +9,7 @@ import {ERC4626} from "@rari-capital/solmate/src/mixins/ERC4626.sol";
 import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {LibLoan, ExecuteBuyNowParams, ExecuteLiquidateParams} from "../libraries/LibLoan.sol";
 import {LibVault} from "../libraries/LibVault.sol";
+import {LibMarketplace} from "../libraries/LibMarketplace.sol";
 import {IReserveInterestRateStrategy} from "../interfaces/IReserveInterestRateStrategy.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
 import {AssetInfo} from "../interfaces/IMarketPlaceAdapter.sol";
@@ -16,11 +17,10 @@ import {IPriceOracle} from "../interfaces/IPriceOracle.sol";
 import {LibAppStorage, AppStorage, Storage, BorrowData, BorrowState, Loan, ReserveConfigurationMap, ReserveData, PMT} from "../libraries/LibAppStorage.sol";
 import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
+import {LibPayments} from "../../shared/libraries/LibPayments.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
-import {PaymentsFacet} from "../../shared/facets/PaymentsFacet.sol";
 import {SafeTransferLib} from "../../shared/libraries/SafeTransferLib.sol";
 import {IVault} from "../../vault/Vault.sol";
-import {MarketplaceAdapterFacet} from "./MarketplaceAdapterFacet.sol";
 import {IUnbondingToken} from "../tokenization/SeniorDepositToken.sol";
 
 contract LoanFacet is Storage, ReentrancyGuard {
@@ -188,8 +188,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
         }
 
         // 1. get price for params.tokenId  and floor price pv
-        params.assetInfo = MarketplaceAdapterFacet(address(this))
-            .extractAssetInfo(_marketplace, _data);
+        params.assetInfo = LibMarketplace.extractAssetInfo(_marketplace, _data);
         params.totalPrincipal = params.assetInfo.assetPrice;
         if (params.tokenId != params.assetInfo.tokenId) {
             revert InvalidTokenid();
@@ -334,10 +333,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
         );
 
         // 9. unwrap weth
-        PaymentsFacet(address(this)).unwrapWETH9(
-            params.outstandingPrincipal,
-            address(this)
-        );
+        LibPayments.unwrapWETH9(params.outstandingPrincipal, address(this));
 
         SafeTransferLib.safeTransferETH(
             params.vault,
@@ -353,7 +349,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
                 params.loanId
             );
 
-        MarketplaceAdapterFacet(address(this)).purchase(
+        LibMarketplace.purchase(
             params.marketplace,
             params.vault,
             params.totalPrincipal,

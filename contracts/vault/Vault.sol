@@ -138,7 +138,7 @@ contract Vault is Initializable, IERC1271, IVault {
             // this should not happen, but if it does, we should take what we can instead of reverting
             if (toUnwrap > balanceWETH9) {
                 weth9.withdraw(balanceWETH9);
-                amountRefundable = amountRefundable - toUnwrap - balanceWETH9;
+                amountRefundable = amountRefundable - (toUnwrap - balanceWETH9);
             } else {
                 weth9.withdraw(toUnwrap);
             }
