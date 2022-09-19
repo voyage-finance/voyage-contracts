@@ -150,7 +150,13 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     LooksRareExchangeAbi,
     provider
   );
-  const looksRareMakerOrderData: MakerOrderWithVRS = {
+
+  const WETH_GOERLI_ADDRESS = '0xc778417E063141139Fce010982780140Aa0cD5Ab';
+  const WRONG_GOERLI_ADDRESS = '0xd0A1E359811322d97991E03f863a0C30C2cF029C';
+
+  const generateLooksRareMakerOrderData: (
+    currency: string
+  ) => MakerOrderWithVRS = (currency) => ({
     isOrderAsk: true,
     signer: '0xAc786F3E609eeBC3830A26881bd026B6b9211ae2',
     collection: '0xd10E39Afe133eF729aE7f4266B26d173BC5AD1B1',
@@ -158,7 +164,7 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     tokenId: '1',
     amount: 1,
     strategy: '0x732319A3590E4fA838C111826f9584a9A2fDEa1a',
-    currency: '0xc778417E063141139Fce010982780140Aa0cD5Ab',
+    currency: currency,
     nonce: ethers.constants.Zero,
     startTime: 1661852317,
     endTime: 1662457076,
@@ -167,7 +173,13 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     v: 27,
     r: '0x66f2bf329cf885420596359ed1b435ef3ffe3b35efcbf10854b393724482369b',
     s: '0x6db5028edf4f90eba89576e8181a4b4051ae9053b08b0dfb5c0fd6c580b73f66',
-  };
+  });
+
+  const looksRareMakerOrderData =
+    generateLooksRareMakerOrderData(WETH_GOERLI_ADDRESS);
+  const looksRareMakerOrderDataWithWrongCurrency =
+    generateLooksRareMakerOrderData(WRONG_GOERLI_ADDRESS);
+
   const looksRareTakerOrderData: TakerOrderWithEncodedParams = {
     isOrderAsk: false,
     taker: deployedVault,
@@ -176,10 +188,18 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     minPercentageToAsk: 9800,
     params: ethers.utils.defaultAbiCoder.encode([], []),
   };
+
   const purchaseDataFromLooksRare = (
     await looks.populateTransaction.matchAskWithTakerBidUsingETHAndWETH(
       looksRareTakerOrderData,
       looksRareMakerOrderData
+    )
+  ).data!;
+
+  const purchaseDataFromLooksRareWithWrongCurrency = (
+    await looks.populateTransaction.matchAskWithTakerBidUsingETHAndWETH(
+      looksRareTakerOrderData,
+      looksRareMakerOrderDataWithWrongCurrency
     )
   ).data!;
 
@@ -255,6 +275,7 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     deployedVault,
     voyage,
     purchaseDataFromLooksRare,
+    purchaseDataFromLooksRareWithWrongCurrency,
     purchaseDataFromLooksRareWithWETH,
     purchaseDataFromOpensea,
     weth,

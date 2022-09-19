@@ -25,6 +25,26 @@ describe('BuyNow', function () {
     ).to.be.revertedWithCustomError(voyage, 'Unauthorised');
   });
 
+  it('Buy with wrong currency should revert', async function () {
+    const {
+      crab,
+      voyage,
+      priceOracle,
+      purchaseDataFromLooksRareWithWrongCurrency,
+      marketPlace,
+    } = await setupTestSuite();
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    await expect(
+      voyage.buyNow(
+        crab.address,
+        1,
+        voyage.address,
+        marketPlace.address,
+        purchaseDataFromLooksRareWithWrongCurrency
+      )
+    ).to.be.revertedWithCustomError(voyage, 'Unauthorised');
+  });
+
   it('Buy with wrong tokenId should revert', async function () {
     const {
       crab,
