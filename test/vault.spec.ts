@@ -2,7 +2,7 @@ import { toWad } from '@helpers/math';
 import { expect } from 'chai';
 import { randomBytes } from 'crypto';
 import { deployments, ethers } from 'hardhat';
-import { ZERO_ADDRESS } from '../helpers/constants';
+import { MAX_UINT256, ZERO_ADDRESS } from '../helpers/constants';
 import { setupTestSuite } from '../helpers/setupTestSuite';
 
 describe('Vault', function () {
@@ -162,5 +162,27 @@ describe('Vault', function () {
     await voyage.withdrawNFT(deployedVault, crab.address, 1);
     const onwerAfter = await crab.ownerOf(1);
     expect(onwerAfter).to.eq(owner);
+  });
+
+  it('Approve a valid marketplace should return correct vaule', async function () {
+    const { voyage, deployedVault, marketPlace, weth } = await setupTestSuite();
+    const allowanceBefore = await weth.allowance(
+      deployedVault,
+      marketPlace.address
+    );
+    expect(allowanceBefore).to.eq(0);
+    await voyage.approveMarketplace(deployedVault, marketPlace.address);
+    const allowanceAfter = await weth.allowance(
+      deployedVault,
+      marketPlace.address
+    );
+    expect(allowanceAfter).to.eq(MAX_UINT256);
+  });
+
+  it('Approve a invalid marketplace should revert', async function () {
+    const { voyage, deployedVault } = await setupTestSuite();
+    await expect(
+      voyage.approveMarketplace(deployedVault, voyage.address)
+    ).to.be.revertedWithCustomError(voyage, 'InvalidMarketplace');
   });
 });

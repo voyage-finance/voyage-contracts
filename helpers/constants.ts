@@ -21,6 +21,8 @@ export const oneRay = parseUnits('1', 27);
 export const ONE_YEAR = '31536000';
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 export const ONE_ADDRESS = '0x0000000000000000000000000000000000000001';
+export const MAX_UINT256 =
+  '115792089237316195423570985008687907853269984665640564039457584007913129639935';
 
 type ContractMapping = { [K in ChainID]: string };
 type ExternalContractMapping = Omit<ContractMapping, ChainID.Hardhat>;

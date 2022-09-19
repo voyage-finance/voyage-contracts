@@ -132,6 +132,26 @@ contract VaultFacet is Storage, ReentrancyGuard {
         IVault(_vault).execute(encodedData, 0);
     }
 
+    function approveMarketplace(address _vault, address _marketplace)
+        public
+        onlyVaultOwner(_vault, _msgSender())
+        nonReentrant
+    {
+        address adapterAddr = LibAppStorage
+            .ds()
+            .marketPlaceData[_marketplace]
+            .adapterAddr;
+        if (adapterAddr == address(0)) {
+            revert InvalidMarketplace();
+        }
+        bytes4 selector = IERC20(address(0)).approve.selector;
+        bytes memory param = abi.encode(_marketplace, type(uint256).max);
+        bytes memory data = abi.encodePacked(selector, param);
+        address currency = address(LibAppStorage.ds().WETH9);
+        bytes memory encodedData = abi.encode(currency, data);
+        IVault(_vault).execute(encodedData, 0);
+    }
+
     /* ---------------------- view functions --------------------- */
     function computeCounterfactualAddress(address _user, bytes20 _salt)
         external
@@ -213,3 +233,4 @@ error InvalidCollectionAddress();
 error InvalidCurrencyAddress();
 error FailedDeployVault();
 error InvalidWithdrawal();
+error InvalidMarketplace();
