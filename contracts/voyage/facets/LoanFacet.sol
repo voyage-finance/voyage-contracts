@@ -65,7 +65,8 @@ contract LoanFacet is Storage, ReentrancyGuard {
         uint256 _principal,
         uint256 _interest,
         uint256 _apr,
-        uint256 _protocolFee
+        uint256 _protocolFee,
+        address _marketplace
     );
 
     event Repayment(
@@ -382,7 +383,8 @@ contract LoanFacet is Storage, ReentrancyGuard {
             params.totalPrincipal,
             params.totalInterest,
             params.borrowRate,
-            params.fee
+            params.fee,
+            params.marketplace
         );
     }
 
