@@ -124,9 +124,7 @@ contract LooksRareAdapter is IMarketPlaceAdapter {
                 .matchAskWithTakerBidUsingETHAndWETH
                 .selector &&
             selector !=
-            ILooksRareExchange(address(0))
-                .matchAskWithTakerBid
-                .selector
+            ILooksRareExchange(address(0)).matchAskWithTakerBid.selector
         ) {
             return false;
         }
