@@ -239,6 +239,53 @@ describe('BuyNow', function () {
       voyage,
       priceOracle,
       purchaseDataFromLooksRare,
+      purchaseDataFromLooksRareWithWETH,
+      marketPlace,
+      reserveConfiguration,
+    } = await setupTestSuite();
+    await voyage.deposit(crab.address, 0, toWad(50));
+    await voyage.deposit(crab.address, 1, toWad(120));
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    const vault = await voyage.getVault(owner);
+
+    await voyage.buyNow(
+      crab.address,
+      1,
+      vault,
+      marketPlace.address,
+      purchaseDataFromLooksRare
+    );
+
+    // check pool data
+    const creditLine = await voyage.getCreditLineData(vault, crab.address);
+    console.log('total debt: ', creditLine.totalDebt.toString());
+    expect(creditLine.loanList.head).to.eq(0);
+    expect(creditLine.loanList.tail).to.eq(1);
+
+    const { term, epoch } = reserveConfiguration;
+    const nper = ethers.BigNumber.from(term).div(epoch);
+
+    // check loan detail
+    const loanDetail = await voyage.getLoanDetail(vault, crab.address, 0);
+    const principalPmt = loanDetail.interest.div(nper);
+    const interestPmt = loanDetail.principal.div(nper);
+    const firstPmt = principalPmt.add(interestPmt);
+    const totalDebtExpected = firstPmt.add(creditLine.totalDebt);
+    expect(totalDebtExpected).to.eq(
+      loanDetail.principal.add(loanDetail.interest)
+    );
+    expect(
+      loanDetail.totalPrincipalPaid.add(loanDetail.totalInterestPaid)
+    ).to.eq(firstPmt);
+  });
+
+  it('Buy with sufficient credit limit with WETH from looks should pass', async function () {
+    const {
+      crab,
+      owner,
+      voyage,
+      priceOracle,
+      purchaseDataFromLooksRareWithWETH,
       marketPlace,
       reserveConfiguration,
     } = await setupTestSuite();
@@ -251,7 +298,7 @@ describe('BuyNow', function () {
       1,
       vault,
       marketPlace.address,
-      purchaseDataFromLooksRare
+      purchaseDataFromLooksRareWithWETH
     );
 
     // check pool data
