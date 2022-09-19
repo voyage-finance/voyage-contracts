@@ -182,6 +182,14 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
       looksRareMakerOrderData
     )
   ).data!;
+
+  const purchaseDataFromLooksRareWithWETH = (
+    await looks.populateTransaction.matchAskWithTakerBid(
+      looksRareTakerOrderData,
+      looksRareMakerOrderData
+    )
+  ).data!;
+
   const seaportInstance: Seaport = new ethers.Contract(
     ethers.constants.AddressZero,
     SeaportABI,
@@ -247,6 +255,7 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     deployedVault,
     voyage,
     purchaseDataFromLooksRare,
+    purchaseDataFromLooksRareWithWETH,
     purchaseDataFromOpensea,
     weth,
     reserveConfiguration,

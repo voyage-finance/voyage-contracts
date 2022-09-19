@@ -116,12 +116,16 @@ contract LooksRareAdapter is IMarketPlaceAdapter {
 
     function _validate(bytes calldata _data) private pure returns (bool) {
         (bytes4 selector, , ) = _decodeCalldata(_data);
-        // bytes4(keccak256(matchAskWithTakerBidUsingETHAndWETH()))
-        // 0xb4e4b296
+        // bytes4(keccak256(matchAskWithTakerBidUsingETHAndWETH())) -> 0xb4e4b296
+        // bytes4(keccak256(matchAskWithTakerBid())) -> 0x38e29209
         if (
             selector !=
             ILooksRareExchange(address(0))
                 .matchAskWithTakerBidUsingETHAndWETH
+                .selector &&
+            selector !=
+            ILooksRareExchange(address(0))
+                .matchAskWithTakerBid
                 .selector
         ) {
             return false;
