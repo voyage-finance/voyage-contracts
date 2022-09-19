@@ -2,6 +2,7 @@
 pragma solidity ^0.8.9;
 
 import {IMarketPlaceAdapter, AssetInfo} from "../interfaces/IMarketPlaceAdapter.sol";
+import {LibAppStorage} from "../libraries/LibAppStorage.sol";
 
 struct MakerOrder {
     bool isOrderAsk; // true --> ask / false --> bid
@@ -91,13 +92,13 @@ contract LooksRareAdapter is IMarketPlaceAdapter {
         return assetInfo;
     }
 
-    function validate(bytes calldata _data) external pure returns (bool) {
+    function validate(bytes calldata _data) external view returns (bool) {
         return _validate(_data);
     }
 
     function execute(bytes calldata _data)
         external
-        pure
+        view
         returns (bytes memory)
     {
         if (_validate(_data)) {
@@ -114,8 +115,8 @@ contract LooksRareAdapter is IMarketPlaceAdapter {
         revert("invalid data");
     }
 
-    function _validate(bytes calldata _data) private pure returns (bool) {
-        (bytes4 selector, , ) = _decodeCalldata(_data);
+    function _validate(bytes calldata _data) private view returns (bool) {
+        (bytes4 selector, , MakerOrder memory makerOrder) = _decodeCalldata(_data);
         // bytes4(keccak256(matchAskWithTakerBidUsingETHAndWETH())) -> 0xb4e4b296
         // bytes4(keccak256(matchAskWithTakerBid())) -> 0x38e29209
         if (
@@ -128,6 +129,13 @@ contract LooksRareAdapter is IMarketPlaceAdapter {
         ) {
             return false;
         }
+
+        if (
+            makerOrder.currency != address(LibAppStorage.ds().WETH9) || makerOrder.currency != address(0)
+        ) {
+            return false;
+        }
+
         return true;
     }
 
