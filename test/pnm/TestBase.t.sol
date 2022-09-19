@@ -26,11 +26,9 @@ import "contracts/shared/diamond/facets/OwnershipFacet.sol";
 import {InitDiamond} from "contracts/voyage/InitDiamond.sol";
 import "contracts/shared/diamond/interfaces/IDiamondCut.sol";
 
-import "contracts/voyage/facets/LiquidityFacet.sol";
+import {LiquidityFacet} from "contracts/voyage/facets/LiquidityFacet.sol";
 import "contracts/voyage/facets/ConfigurationFacet.sol";
 import "contracts/voyage/facets/DataProviderFacet.sol";
-import {PaymentsFacet} from "contracts/shared/facets/PaymentsFacet.sol";
-import "contracts/voyage/facets/MarketplaceAdapterFacet.sol";
 
 contract TestBase is Agent {
     address owner = address(0x0);
@@ -75,7 +73,7 @@ contract TestBase is Agent {
         vm.startPrank(owner);
         weth = new WETH9();
         mockForwarder = new MockForwarder();
-        
+
         crab = new Crab("Mocked Crab", "MC");
         mockMarketPlace = new MockMarketPlace();
         mockSeaport = new MockSeaport();
@@ -139,64 +137,50 @@ contract TestBase is Agent {
         VaultFacet vaultFacet = new VaultFacet();
         ConfigurationFacet configurationFacet = new ConfigurationFacet();
         DataProviderFacet dataProviderFacet = new DataProviderFacet();
-        PaymentsFacet paymentsFacet = new PaymentsFacet();
-        MarketplaceAdapterFacet marketplaceAdapterFacet = new MarketplaceAdapterFacet();
 
-        IDiamondCut.FacetCut[] memory diamondCut = new IDiamondCut.FacetCut[](8);
+        IDiamondCut.FacetCut[] memory diamondCut = new IDiamondCut.FacetCut[](
+            6
+        );
         diamondCut[0] = (
             IDiamondCut.FacetCut({
-                facetAddress: address(securityFacet), 
-                action: IDiamondCut.FacetCutAction.Add, 
+                facetAddress: address(securityFacet),
+                action: IDiamondCut.FacetCutAction.Add,
                 functionSelectors: _generateSelectors("SecurityFacet")
             })
         );
         diamondCut[1] = (
             IDiamondCut.FacetCut({
-                facetAddress: address(liquidityFacet), 
-                action: IDiamondCut.FacetCutAction.Add, 
+                facetAddress: address(liquidityFacet),
+                action: IDiamondCut.FacetCutAction.Add,
                 functionSelectors: _generateSelectors("LiquidityFacet")
             })
         );
         diamondCut[2] = (
             IDiamondCut.FacetCut({
-                facetAddress: address(loanFacet), 
-                action: IDiamondCut.FacetCutAction.Add, 
+                facetAddress: address(loanFacet),
+                action: IDiamondCut.FacetCutAction.Add,
                 functionSelectors: _generateSelectors("LoanFacet")
             })
         );
         diamondCut[3] = (
             IDiamondCut.FacetCut({
-                facetAddress: address(vaultFacet), 
-                action: IDiamondCut.FacetCutAction.Add, 
+                facetAddress: address(vaultFacet),
+                action: IDiamondCut.FacetCutAction.Add,
                 functionSelectors: _generateSelectors("VaultFacet")
             })
         );
         diamondCut[4] = (
             IDiamondCut.FacetCut({
-                facetAddress: address(configurationFacet), 
-                action: IDiamondCut.FacetCutAction.Add, 
+                facetAddress: address(configurationFacet),
+                action: IDiamondCut.FacetCutAction.Add,
                 functionSelectors: _generateSelectors("ConfigurationFacet")
             })
         );
         diamondCut[5] = (
             IDiamondCut.FacetCut({
-                facetAddress: address(dataProviderFacet), 
-                action: IDiamondCut.FacetCutAction.Add, 
+                facetAddress: address(dataProviderFacet),
+                action: IDiamondCut.FacetCutAction.Add,
                 functionSelectors: _generateSelectors("DataProviderFacet")
-            })
-        );
-        diamondCut[6] = (
-            IDiamondCut.FacetCut({
-                facetAddress: address(paymentsFacet), 
-                action: IDiamondCut.FacetCutAction.Add, 
-                functionSelectors: _generateSelectors("PaymentsFacet")
-            })
-        );
-        diamondCut[7] = (
-            IDiamondCut.FacetCut({
-                facetAddress: address(marketplaceAdapterFacet), 
-                action: IDiamondCut.FacetCutAction.Add, 
-                functionSelectors: _generateSelectors("MarketplaceAdapterFacet")
             })
         );
 
@@ -207,7 +191,7 @@ contract TestBase is Agent {
             vaultImpl: address(vault),
             weth9: address(weth)
         });
-        
+
         IDiamondCut(address(voyage)).diamondCut(
             diamondCut,
             address(initDiamond),
@@ -286,5 +270,4 @@ contract TestBase is Agent {
 
     //     // the "todo delete" section, won't transcribe it till we need it.
     // }
-
 }
