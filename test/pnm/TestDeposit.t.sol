@@ -1,13 +1,13 @@
-pragma solidity ^0.8.9;
+pragma solidity 0.8.9;
 
 import "./TestBase.t.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
-import "contracts/voyage/libraries/LibLoan.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {LibLoan} from "contracts/voyage/libraries/LibLoan.sol";
 import {Tranche} from "contracts/voyage/libraries/LibAppStorage.sol";
 
 contract TestDeposit is TestBase {
-    uint256 juniorAmount = 1 * 10**18;
-    uint256 seniorAmount = 2 * 10**18;
+    uint256 juniorDepositAmount = 1 * 10**18;
+    uint256 seniorDepositAmount = 2 * 10**18;
 
     function setUp() public {
         deploy();
@@ -15,12 +15,12 @@ contract TestDeposit is TestBase {
         LiquidityFacet(address(voyage)).deposit(
             address(crab),
             Tranche.JUNIOR,
-            juniorAmount
+            juniorDepositAmount
         );
         LiquidityFacet(address(voyage)).deposit(
             address(crab),
             Tranche.SENIOR,
-            seniorAmount
+            seniorDepositAmount
         );
     }
 
@@ -29,25 +29,25 @@ contract TestDeposit is TestBase {
         uint256 seniorTokenBalance = seniorDepositToken.balanceOf(owner);
 
         require(
-            juniorTokenBalance == juniorAmount,
+            juniorTokenBalance == juniorDepositAmount,
             string(
                 abi.encodePacked(
                     "[!!!] Invariant violation: junior token balance (",
                     Strings.toString(juniorTokenBalance),
                     ") differs from deposited amount (",
-                    Strings.toString(juniorAmount),
+                    Strings.toString(juniorDepositAmount),
                     ")"
                 )
             )
         );
         require(
-            seniorTokenBalance == seniorAmount,
+            seniorTokenBalance == seniorDepositAmount,
             string(
                 abi.encodePacked(
                     "[!!!] Invariant violation: senior token balance (",
                     Strings.toString(seniorTokenBalance),
                     ") differs from deposited amount (",
-                    Strings.toString(seniorAmount),
+                    Strings.toString(seniorDepositAmount),
                     ")"
                 )
             )
@@ -61,25 +61,25 @@ contract TestDeposit is TestBase {
         );
 
         require(
-            maxWithdrawJuniorTokenAmount == juniorAmount,
+            maxWithdrawJuniorTokenAmount == juniorDepositAmount,
             string(
                 abi.encodePacked(
                     "[!!!] Invariant violation: junior token max withdraw (",
                     Strings.toString(maxWithdrawJuniorTokenAmount),
                     ") differs from deposited amount (",
-                    Strings.toString(juniorAmount),
+                    Strings.toString(juniorDepositAmount),
                     ")"
                 )
             )
         );
         require(
-            maxWithdrawSeniorTokenAmount == seniorAmount,
+            maxWithdrawSeniorTokenAmount == seniorDepositAmount,
             string(
                 abi.encodePacked(
                     "[!!!] Invariant violation: senior token max withdraw (",
                     Strings.toString(maxWithdrawSeniorTokenAmount),
                     ") differs from deposited amount (",
-                    Strings.toString(seniorAmount),
+                    Strings.toString(seniorDepositAmount),
                     ")"
                 )
             )
@@ -89,25 +89,25 @@ contract TestDeposit is TestBase {
         uint256 totalAssetSenior = seniorDepositToken.totalAssets();
 
         require(
-            totalAssetJunior == juniorAmount,
+            totalAssetJunior == juniorDepositAmount,
             string(
                 abi.encodePacked(
                     "[!!!] Invariant violation: junior token total asset (",
                     Strings.toString(totalAssetJunior),
                     ") differs from deposited amount (",
-                    Strings.toString(juniorAmount),
+                    Strings.toString(juniorDepositAmount),
                     ")"
                 )
             )
         );
         require(
-            totalAssetSenior == seniorAmount,
+            totalAssetSenior == seniorDepositAmount,
             string(
                 abi.encodePacked(
                     "[!!!] IInvariant violation: senior token total asset (",
                     Strings.toString(totalAssetSenior),
                     ") differs from deposited amount (",
-                    Strings.toString(seniorAmount),
+                    Strings.toString(seniorDepositAmount),
                     ")"
                 )
             )
@@ -123,7 +123,7 @@ contract TestDeposit is TestBase {
                     "[!!!] Invariant violation: claimable senior token amount (",
                     Strings.toString(maxClaimableSenior),
                     ") differs from 0 after depositing ",
-                    Strings.toString(seniorAmount)
+                    Strings.toString(seniorDepositAmount)
                 )
             )
         );
@@ -132,25 +132,25 @@ contract TestDeposit is TestBase {
         uint256 maxRedeemSenior = seniorDepositToken.maxRedeem(owner);
 
         require(
-            maxRedeemJunior == juniorAmount,
+            maxRedeemJunior == juniorDepositAmount,
             string(
                 abi.encodePacked(
                     "[!!!] Invariant violation: max redeem junior token amount (",
                     Strings.toString(maxRedeemJunior),
                     ") differs from deposited amount (",
-                    Strings.toString(juniorAmount),
+                    Strings.toString(juniorDepositAmount),
                     ")"
                 )
             )
         );
         require(
-            maxRedeemSenior == seniorAmount,
+            maxRedeemSenior == seniorDepositAmount,
             string(
                 abi.encodePacked(
                     "[!!!] Invariant violation: max redeem senior token amount (",
                     Strings.toString(maxRedeemSenior),
                     ") differs from deposited amount (",
-                    Strings.toString(seniorAmount),
+                    Strings.toString(seniorDepositAmount),
                     ")"
                 )
             )
@@ -166,7 +166,7 @@ contract TestDeposit is TestBase {
                     "[!!!] Invariant violation: unbounding senior token amount (",
                     Strings.toString(unbondingSenior),
                     ") differs from 0 after depositing ",
-                    Strings.toString(seniorAmount)
+                    Strings.toString(seniorDepositAmount)
                 )
             )
         );
@@ -190,17 +190,17 @@ contract TestDeposit is TestBase {
         LiquidityFacet(address(voyage)).withdraw(
             address(crab),
             Tranche.JUNIOR,
-            juniorAmount
+            juniorDepositAmount
         );
 
         require(
-            address(crab).balance == juniorAmount,
+            address(crab).balance == juniorDepositAmount,
             string(
                 abi.encodePacked(
                     "[!!!] Invariant violation: junior token withdrawn amount (",
                     Strings.toString(address(crab).balance),
                     ") differs from deposited amount (",
-                    Strings.toString(juniorAmount),
+                    Strings.toString(juniorDepositAmount),
                     ")"
                 )
             )
@@ -209,17 +209,19 @@ contract TestDeposit is TestBase {
         LiquidityFacet(address(voyage)).withdraw(
             address(crab),
             Tranche.SENIOR,
-            seniorAmount
+            seniorDepositAmount
         );
 
         require(
-            address(crab).balance == juniorAmount + seniorAmount,
+            address(crab).balance == juniorDepositAmount + seniorDepositAmount,
             string(
                 abi.encodePacked(
                     "[!!!] Invariant violation: senior token withdrawn amount (",
-                    Strings.toString(address(crab).balance - juniorAmount),
+                    Strings.toString(
+                        address(crab).balance - juniorDepositAmount
+                    ),
                     ") differs from deposited amount (",
-                    Strings.toString(seniorAmount),
+                    Strings.toString(seniorDepositAmount),
                     ")"
                 )
             )
