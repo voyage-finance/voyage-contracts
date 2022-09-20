@@ -1,4 +1,10 @@
-import { Voyage, VoyagePaymaster, WETH9 } from '@contracts';
+import {
+  JuniorDepositToken,
+  SeniorDepositToken,
+  Voyage,
+  VoyagePaymaster,
+  WETH9,
+} from '@contracts';
 import {
   LooksRareExchangeAbi,
   MakerOrderWithVRS,
@@ -20,7 +26,7 @@ import './wadraymath';
 
 const dec = decimals(18);
 
-interface ReserveConfiguration {
+export interface ReserveConfiguration {
   liquidationBonus: number;
   incomeRatio: number;
   optimalLiquidityRatio: number;
@@ -117,11 +123,11 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
   );
   await voyage.updateMarketPlaceData(seaport.address, seaportAdapter.address);
   const [senior, junior] = await voyage.getDepositTokens(crab.address);
-  const seniorDepositToken = await ethers.getContractAt(
+  const seniorDepositToken = await ethers.getContractAt<SeniorDepositToken>(
     'SeniorDepositToken',
     senior
   );
-  const juniorDepositToken = await ethers.getContractAt(
+  const juniorDepositToken = await ethers.getContractAt<JuniorDepositToken>(
     'JuniorDepositToken',
     junior
   );

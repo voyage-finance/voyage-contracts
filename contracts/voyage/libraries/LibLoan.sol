@@ -280,9 +280,9 @@ library LibLoan {
                 param.vault
             );
         Loan storage loan = debtData.loans[_loanNumber];
-        clearLoan(debtData, borrowState, loan, param);
         updateDebtData(debtData, loan);
         updateGlobalBorrowState(borrowState, loan);
+        clearLoan(debtData, borrowState, loan, param);
     }
 
     function repay(
@@ -309,20 +309,17 @@ library LibLoan {
         Loan storage loan = debtData.loans[_loanNumber];
         debtData.paidLoanNumber += 1;
         loan.paidTimes += 1;
-        if (loan.paidTimes == loan.nper) {
-            isFinal = true;
+
+        updateDebtData(debtData, loan);
+        updateGlobalBorrowState(borrowState, loan);
+        isFinal = loan.paidTimes == loan.nper;
+        if (isFinal) {
             clearLoan(debtData, borrowState, loan, param);
         } else {
             insertRapayment(loan);
         }
 
-        updateDebtData(debtData, loan);
-        updateGlobalBorrowState(borrowState, loan);
-
-        return (
-            loan.repayments.length == 0 ? 0 : loan.repayments.length - 1,
-            isFinal
-        );
+        return (isFinal ? 0 : loan.repayments.length - 1, isFinal);
     }
 
     function updateDebtData(BorrowData storage debtData, Loan storage loan)
@@ -337,14 +334,23 @@ library LibLoan {
         BorrowState storage borrowState,
         Loan storage loan
     ) internal {
-        if (borrowState.totalDebt == loan.pmt.principal) {
+        if (borrowState.totalDebt <= loan.pmt.principal) {
             borrowState.avgBorrowRate = 0;
         } else {
-            uint256 numer = borrowState.totalDebt.rayMul(
+            uint256 term1 = borrowState.totalDebt.rayMul(
                 borrowState.avgBorrowRate
-            ) - loan.pmt.principal.rayMul(loan.apr);
-            uint256 denom = borrowState.totalDebt - loan.pmt.principal;
-            borrowState.avgBorrowRate = numer.rayDiv(denom);
+            );
+            uint256 term2 = loan.pmt.principal.rayMul(loan.apr);
+            // when the final open loan is being closed, integer arithmetic rounding issues can cause term1 to be <= term2
+            // this occurs when principal is not factored by nper: e.g. principal of 100 and nper of 3
+            // when taking the weighted rates, this can cause the computation to underflow by 1 wei
+            if (term1 <= term2) {
+                borrowState.avgBorrowRate = 0;
+            } else {
+                uint256 numer = term1 - term2;
+                uint256 denom = borrowState.totalDebt - loan.pmt.principal;
+                borrowState.avgBorrowRate = numer.rayDiv(denom);
+            }
         }
         borrowState.totalDebt = borrowState.totalDebt - loan.pmt.principal;
         borrowState.totalInterest =
