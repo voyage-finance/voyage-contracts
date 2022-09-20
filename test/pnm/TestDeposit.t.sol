@@ -24,7 +24,7 @@ contract TestDeposit is TestBase {
         );
     }
 
-    function check() public override {
+    function invariantDeposit() public {
         uint256 juniorTokenBalance = juniorDepositToken.balanceOf(owner);
         uint256 seniorTokenBalance = seniorDepositToken.balanceOf(owner);
 

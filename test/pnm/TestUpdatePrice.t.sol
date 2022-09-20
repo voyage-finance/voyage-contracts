@@ -7,7 +7,7 @@ contract TestUpdatePrice is TestBase {
         deploy();
     }
 
-    function check() public override {
+    function invariantUpdatePrice() public {
         priceOracle.updateTwap(address(crab), 31415926);
         (uint price, ) = priceOracle.getTwap(address(crab));
         require(

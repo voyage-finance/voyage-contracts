@@ -1335,10 +1335,10 @@
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.7.2.tgz#7587416fe2d35abf574193515b8971bfe9f64bc7"
   integrity sha512-4n/JL9izql8303mPqPdubuna/DWEMbmOzWYUWyCPhjhiEr2w3nQrjE7vZz1fBF+wzzP6dZbIcsgqACk53c9FGA==
 
-"@pwnednomore/contracts@^1.0.7":
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/@pwnednomore/contracts/-/contracts-1.0.7.tgz#602da2770d7fb42906a84b882a482b33c5fce598"
-  integrity sha512-2VipY3Crl/aUepcFjXkqioF0gv1UCiWZkAsuahgJUe/hrNLoZuO0DjD73YFr2FRirgBWuJyVa75kd+rGcQpCyA==
+"@pwnednomore/contracts@^1.0.12":
+  version "1.0.12"
+  resolved "https://registry.yarnpkg.com/@pwnednomore/contracts/-/contracts-1.0.12.tgz#97eee44622950531ff64980f88cbe0181720a8e7"
+  integrity sha512-wDVrLdTjjNtul9+IAmA5OQHVJSOYBwW8sGy0ca8ghp9SwFmacOLZxDc28eJH9KWkYk62r88TRcnZDnKQ0txvPA==
 
 "@rari-capital/solmate@^6.4.0":
   version "6.4.0"

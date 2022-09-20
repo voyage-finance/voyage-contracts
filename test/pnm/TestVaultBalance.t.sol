@@ -7,7 +7,7 @@ contract TestVaultBalance is TestBase {
         deploy();
     }
 
-    function check() public override {
+    function invariantVaultBalance() public {
         (bool success,) = address(voyage).call(
             abi.encodeWithSignature("buyNow(address,uint256,address,address,bytes)", 
             address(crab),
