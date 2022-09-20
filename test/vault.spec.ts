@@ -171,7 +171,7 @@ describe('Vault', function () {
       marketPlace.address
     );
     expect(allowanceBefore).to.eq(0);
-    await voyage.approveMarketplace(deployedVault, marketPlace.address);
+    await voyage.approveMarketplace(deployedVault, marketPlace.address, false);
     const allowanceAfter = await weth.allowance(
       deployedVault,
       marketPlace.address
@@ -179,10 +179,25 @@ describe('Vault', function () {
     expect(allowanceAfter).to.eq(MAX_UINT256);
   });
 
+  it("Revoking marketplace's approval should return correct vaule", async function () {
+    const { voyage, deployedVault, marketPlace, weth } = await setupTestSuite();
+    const allowanceBefore = await weth.allowance(
+      deployedVault,
+      marketPlace.address
+    );
+    expect(allowanceBefore).to.eq(0);
+    await voyage.approveMarketplace(deployedVault, marketPlace.address, true);
+    const allowanceAfter = await weth.allowance(
+      deployedVault,
+      marketPlace.address
+    );
+    expect(allowanceAfter).to.eq(0);
+  });
+
   it('Approve a invalid marketplace should revert', async function () {
     const { voyage, deployedVault } = await setupTestSuite();
     await expect(
-      voyage.approveMarketplace(deployedVault, voyage.address)
+      voyage.approveMarketplace(deployedVault, voyage.address, false)
     ).to.be.revertedWithCustomError(voyage, 'InvalidMarketplace');
   });
 });
