@@ -358,6 +358,45 @@ describe('Withdraw', function () {
     console.log('balanceOfAfter: ', balanceOfAfter.toString());
     expect(totalUnbongdingAssetAfter).to.lt(totalUnbondingAssetBefore);
   });
+
+  it('totalUnbondingAsset should return correct vaule when liquidation vaule grate than debt', async function () {
+    const {
+      owner,
+      voyage,
+      priceOracle,
+      crab,
+      purchaseDataFromLooksRare,
+      marketPlace,
+      seniorDepositToken,
+    } = await setupTestSuite();
+    const vault = await voyage.getVault(owner);
+
+    const depositAmount = toWad(120);
+    const juniorDeposit = toWad(5);
+    await voyage.deposit(crab.address, 0, juniorDeposit);
+    await voyage.deposit(crab.address, 1, depositAmount);
+    await priceOracle.updateTwap(crab.address, toWad(100));
+    await voyage.buyNow(
+      crab.address,
+      1,
+      vault,
+      marketPlace.address,
+      purchaseDataFromLooksRare
+    );
+    await crab.safeMint(vault, 1);
+
+    await increase(41);
+    const updatedNftPrice = toWad(200);
+    await priceOracle.updateTwap(crab.address, updatedNftPrice);
+    await seniorDepositToken.withdraw(toWad(120), owner, owner);
+    const totalUnbondingAssetBefore =
+      await seniorDepositToken.totalUnbondingAsset();
+    // liquidate and no write down
+    await voyage.liquidate(crab.address, vault, 0);
+    const totalUnbongdingAssetAfter =
+      await seniorDepositToken.totalUnbondingAsset();
+    expect(totalUnbongdingAssetAfter).to.eq(totalUnbondingAssetBefore);
+  });
 });
 
 async function increase(n: number) {
