@@ -229,15 +229,12 @@ contract TestBase is Agent {
         // infra
         vm.startPrank(owner);
         paymaster.setTrustedForwarder(address(mockForwarder));
-        // vm.deal(address(weth), 10000000 ether);
         vm.deal(owner, 20000000 ether);
         weth.deposit{value: 10000000 ether}();
         ConfigurationFacet(address(voyage)).setGSNConfiguration(
             address(paymaster),
             address(mockForwarder)
         );
-        // require(weth.totalSupply() == 10000000 ether, "weth supply not 10m");
-
         // adapter
 
         // tokenization
