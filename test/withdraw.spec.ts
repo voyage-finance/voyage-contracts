@@ -1,3 +1,4 @@
+import { BigNumber } from 'ethers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { decimals, MAX_UINT_256 } from '../helpers/math';
@@ -6,6 +7,26 @@ import { toWad } from '../helpers/math';
 import { WAD } from '@helpers/constants';
 
 describe('Withdraw', function () {
+  it('Withdraw with invalid amount should revert', async function () {
+    const { voyage, seniorDepositToken, crab, owner } = await setupTestSuite();
+    await seniorDepositToken.approve(voyage.address, MAX_UINT_256);
+    const amount = ethers.BigNumber.from(100).mul(decimals(18));
+    await voyage.deposit(crab.address, 1, amount);
+    await expect(
+      seniorDepositToken.withdraw(toWad(200), owner, owner)
+    ).to.revertedWithCustomError(seniorDepositToken, 'InsufficientBalance');
+  });
+
+  it('Redeem with invalid amount should revert', async function () {
+    const { voyage, seniorDepositToken, crab, owner } = await setupTestSuite();
+    await seniorDepositToken.approve(voyage.address, MAX_UINT_256);
+    const amount = ethers.BigNumber.from(100).mul(decimals(18));
+    await voyage.deposit(crab.address, 1, amount);
+    await expect(
+      seniorDepositToken.redeem(toWad(200), owner, owner)
+    ).to.revertedWithCustomError(seniorDepositToken, 'InsufficientBalance');
+  });
+
   it('Withdraw with no interest should return correct value', async function () {
     const { voyage, seniorDepositToken, juniorDepositToken, crab, owner } =
       await setupTestSuite();
@@ -282,4 +303,65 @@ describe('Withdraw', function () {
       totalAssetsExpected
     );
   });
+
+  it('totalUnbondingAsset should return correct vaule in the case of default', async function () {
+    const {
+      owner,
+      voyage,
+      priceOracle,
+      crab,
+      purchaseDataFromLooksRare,
+      marketPlace,
+      seniorDepositToken,
+    } = await setupTestSuite();
+    const vault = await voyage.getVault(owner);
+
+    const depositAmount = toWad(120);
+    const juniorDeposit = toWad(5);
+    await voyage.deposit(crab.address, 0, juniorDeposit);
+    await voyage.deposit(crab.address, 1, depositAmount);
+    await priceOracle.updateTwap(crab.address, toWad(100));
+    await voyage.buyNow(
+      crab.address,
+      1,
+      vault,
+      marketPlace.address,
+      purchaseDataFromLooksRare
+    );
+    await crab.safeMint(vault, 1);
+
+    await increase(41);
+    const updatedNftPrice = toWad(1);
+    await priceOracle.updateTwap(crab.address, updatedNftPrice);
+    await seniorDepositToken.withdraw(toWad(120), owner, owner);
+    const totalUnbondingAssetBefore =
+      await seniorDepositToken.totalUnbondingAsset();
+    const totalAssetBefore = await seniorDepositToken.totalAssets();
+    console.log('totalAssetBefore: ', totalAssetBefore.toString());
+    console.log(
+      'totalUnbondingAssetBefore: ',
+      totalUnbondingAssetBefore.toString()
+    );
+    const balanceOfBefore = await seniorDepositToken.balanceOf(owner);
+    console.log('balanceOfBefore: ', balanceOfBefore.toString());
+    // liquidate and write down
+    await voyage.liquidate(crab.address, vault, 0);
+    const totalAssetAfter = await seniorDepositToken.totalAssets();
+    const totalUnbongdingAssetAfter =
+      await seniorDepositToken.totalUnbondingAsset();
+    const balanceOfAfter = await seniorDepositToken.balanceOf(owner);
+    console.log('totalAssetAfter: ', totalAssetAfter.toString());
+    console.log(
+      'totalUnbongdingAssetAfter: ',
+      totalUnbongdingAssetAfter.toString()
+    );
+    console.log('balanceOfAfter: ', balanceOfAfter.toString());
+    expect(totalUnbongdingAssetAfter).to.lt(totalUnbondingAssetBefore);
+  });
 });
+
+async function increase(n: number) {
+  const days = n * 24 * 60 * 60;
+  await ethers.provider.send('evm_increaseTime', [days]);
+  await ethers.provider.send('evm_mine', []);
+}
