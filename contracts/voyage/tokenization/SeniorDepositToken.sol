@@ -26,6 +26,8 @@ contract SeniorDepositToken is VToken, IUnbondingToken {
 
     mapping(address => Unbonding) public unbondings;
 
+    uint256 public totalMaxUnderlying;
+
     uint256 public totalUnbonding;
 
     function totalAssets() public view override returns (uint256) {
@@ -49,7 +51,9 @@ contract SeniorDepositToken is VToken, IUnbondingToken {
         if (msg.sender != _owner) {
             _spendAllowance(_owner, msg.sender, shares);
         }
-
+        if (shares > balanceOf(_owner)) {
+            revert InsufficientBalance();
+        }
         beforeWithdraw(_asset, shares);
 
         pushWithdraw(_owner, shares, _asset);
@@ -62,6 +66,9 @@ contract SeniorDepositToken is VToken, IUnbondingToken {
         address _receiver,
         address _owner
     ) public override(ERC4626) returns (uint256 asset) {
+        if (_shares > balanceOf(_owner)) {
+            revert InsufficientBalance();
+        }
         if (msg.sender != _owner) {
             _spendAllowance(_owner, msg.sender, _shares);
         }
@@ -131,6 +138,7 @@ contract SeniorDepositToken is VToken, IUnbondingToken {
     ) internal {
         unbondings[_user].shares += _shares;
         unbondings[_user].maxUnderlying += _amount;
+        totalMaxUnderlying += _amount;
         totalUnbonding += _shares;
     }
 
@@ -157,16 +165,28 @@ contract SeniorDepositToken is VToken, IUnbondingToken {
     ) internal {
         unbondings[_user].shares -= _shares;
         unbondings[_user].maxUnderlying -= _assets;
+        totalMaxUnderlying -= _assets;
         totalUnbonding -= _shares;
     }
 
     /* --------------------------------- external functions -------------------------------- */
 
     function totalUnbondingAsset() external view returns (uint256) {
-        return convertToAssets(totalUnbonding);
+        uint256 totalUnbondingAmount = convertToAssets(totalUnbonding);
+        if (totalMaxUnderlying < totalUnbondingAmount) {
+            totalUnbondingAmount = totalMaxUnderlying;
+        }
+        return totalUnbondingAmount;
     }
 
     function unbonding(address _user) external view returns (uint256) {
-        return convertToAssets(unbondings[_user].shares);
+        uint256 unbondingAmount = convertToAssets(unbondings[_user].shares);
+        uint256 maxUnderlying = unbondings[_user].maxUnderlying;
+        if (maxUnderlying < unbondingAmount) {
+            unbondingAmount = maxUnderlying;
+        }
+        return unbondingAmount;
     }
 }
+
+error InsufficientBalance();
