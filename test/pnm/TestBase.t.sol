@@ -31,7 +31,7 @@ import "contracts/voyage/facets/ConfigurationFacet.sol";
 import "contracts/voyage/facets/DataProviderFacet.sol";
 
 contract TestBase is Agent {
-    address owner = address(0x0);
+    address owner = address(0x42);
     address alice = address(0x1);
     address bob = address(0x2);
     address treasury = address(0x9);
@@ -225,49 +225,92 @@ contract TestBase is Agent {
         selectors = abi.decode(res, (bytes4[]));
     }
 
-    // function _setup_test() internal {
-    //     // infra
-    //     vm.deal(address(weth), 10000000 wei);
-    //     paymaster.setTrustedForwarder(address(mockForwarder));
+    function setupTest() internal {
+        // infra
+        vm.startPrank(owner);
+        paymaster.setTrustedForwarder(address(mockForwarder));
+        // vm.deal(address(weth), 10000000 ether);
+        vm.deal(owner, 20000000 ether);
+        weth.deposit{value: 10000000 ether}();
+        ConfigurationFacet(address(voyage)).setGSNConfiguration(
+            address(paymaster),
+            address(mockForwarder)
+        );
+        // require(weth.totalSupply() == 10000000 ether, "weth supply not 10m");
 
-    //     // adapter
+        // adapter
 
-    //     // tokenization
+        // tokenization
 
-    //     // reserve initialization
-    //     voyage.initReserve(
-    //         crab,
-    //         weth,
-    //         defaultReserveInterestRateStrategy,
-    //         priceOracle
-    //     );
+        // reserve initialization
+        LiquidityFacet(address(voyage)).initReserve(
+            address(crab),
+            address(weth),
+            address(defaultReserveInterestRateStrategy),
+            address(priceOracle)
+        );
 
-    //     // --- 105%
-    //     voyage.setLiquidationBonus(crab, 10500);
-    //     voyage.setIncomeRatio(crab, 0.5 * 1e4);
-    //     voyage.setLoanParams(crab, 30, 90, 10);
-    //     voyage.activateReserve(crab);
-    //     uint40 cutPercentage = 200; //2%
-    //     voyage.updateProtocolFee(owner, cutPercentage);
-    //     // voyage.updateMarketPlaceData(marketPlace, looksRareAdapter);
-    //     // voyage.updateMarketPlaceData(seaport, seaportAdapter);
+        uint liquidationBonus = 10500;
+        uint incomeRatio = 0.5 * 1e4;
+        uint optimalLiquidityRatio = 0.5 * 1e4;
+        uint epoch = 30;
+        uint term = 90;
+        uint gracePeriod = 10;
+        uint40 protocolFee = 200;
+        uint maxStaleness = 10000;
+        // uint baseRate = 0.2;
 
-    //     (address senior, uint256 junior) = voyage.getDepositTokens(crab);
+        // --- 105%
+        ConfigurationFacet(address(voyage)).setLiquidationBonus(
+            address(crab), 
+            liquidationBonus
+        );
+        ConfigurationFacet(address(voyage)).setIncomeRatio(
+            address(crab), 
+            incomeRatio
+        );
+        ConfigurationFacet(address(voyage)).setOptimalLiquidityRatio(
+            address(crab), 
+            optimalLiquidityRatio
+        );
+        ConfigurationFacet(address(voyage)).setLoanParams(
+            address(crab), 
+            epoch, 
+            term, 
+            gracePeriod
+        );
+        LiquidityFacet(address(voyage)).activateReserve(address(crab));
+        ConfigurationFacet(address(voyage)).setMaxTwapStaleness(
+            address(crab), 
+            maxStaleness
+        );
 
-    //     weth.approve(voyage, type(uint256).max);
+        LiquidityFacet(address(voyage)).updateProtocolFee(owner, protocolFee);
+        ConfigurationFacet(address(voyage)).updateMarketPlaceData(
+            address(mockMarketPlace), 
+            address(looksRareAdapter)
+        );
+        ConfigurationFacet(address(voyage)).updateMarketPlaceData(
+            address(mockSeaport), 
+            address(seaportAdapter)
+        );
 
-    //     // vault initialization
-    //     // --- create an empty vault
-    //     bytes20 salt = bytes20(keccak256(abi.encodePacked("PwnedNoMore")));
-    //     voyage.createVault(owner, salt);
-    //     vault = voyage.getVault(owner);
-    //     // --- fund vault for the first payment
-    //     vm.deal(owner, 10000 wei);
-    //     vm.prank(owner);
-    //     vault.send(100 wei);
-    //     weth.transfer(vault, 10 wei);
-    //     weth.approve(vault, type(uint256).max);
+        (address senior, address junior) = DataProviderFacet(address(voyage)).getDepositTokens(address(crab));
 
-    //     // the "todo delete" section, won't transcribe it till we need it.
-    // }
+        weth.approve(address(voyage), type(uint256).max);
+
+        // vault initialization
+        // --- create an empty vault
+        bytes20 salt = bytes20(keccak256(abi.encodePacked("PwnedNoMore")));
+        VaultFacet(address(voyage)).createVault(owner, salt);
+        address deployedVault = DataProviderFacet(address(voyage)).getVault(owner);
+        // --- fund vault for the first payment
+        deployedVault.call{value: 100 ether}("");
+        weth.transfer(deployedVault, 10 wei);
+        weth.approve(deployedVault, type(uint256).max);
+
+        // // the "todo delete" section, won't transcribe it till we need it.
+
+        vm.stopPrank();
+    }
 }

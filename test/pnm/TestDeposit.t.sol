@@ -11,7 +11,9 @@ contract TestDeposit is TestBase {
 
     function setUp() public {
         deploy();
+        setupTest();
 
+        vm.startPrank(owner);
         LiquidityFacet(address(voyage)).deposit(
             address(crab),
             Tranche.JUNIOR,
@@ -22,6 +24,7 @@ contract TestDeposit is TestBase {
             Tranche.SENIOR,
             seniorDepositAmount
         );
+        vm.stopPrank();
     }
 
     function invariantDeposit() public {
