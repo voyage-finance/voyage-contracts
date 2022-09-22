@@ -85,8 +85,10 @@ library LibVault {
             rep = repayRecord.repaidTimes - repayRecord.defaultTimes;
         }
         uint256 scaledRep = (rep + 1) * 1e18;
-        uint256 multiplier = LogarithmMath.log2(scaledRep) + 1;
-        return _fv * multiplier;
+        uint256 multiplier = rep == 0
+            ? 1e18 + 1
+            : LogarithmMath.log2(scaledRep) + 1;
+        return (_fv * multiplier) / 1e18;
     }
 
     function slashRep(

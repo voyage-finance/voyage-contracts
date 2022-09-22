@@ -25,6 +25,7 @@ export interface TestEnv {
   // user address => Vault
   // in case we need more vault in the furute
   vaults: Map<string, string>;
+  weth: Contract;
 }
 
 const testEnv: TestEnv = {
@@ -42,6 +43,7 @@ export function makeSuite(name: string, tests: (testEnv: TestEnv) => void) {
 declare var hre: HardhatRuntimeEnvironment;
 
 export async function initializeMakeSuite() {
+  console.log('init makesuite');
   const { getNamedAccounts } = hre;
   const { owner, alice } = await getNamedAccounts();
   const signerOfOwner = await ethers.getSigner(owner);
@@ -55,6 +57,7 @@ export async function initializeMakeSuite() {
     priceOracle,
     purchaseDataFromLooksRare,
     marketPlace,
+    weth,
   } = await setupTestSuite();
   testEnv.users.push({
     signer: signerOfOwner,
@@ -75,4 +78,6 @@ export async function initializeMakeSuite() {
   testEnv.vaults.set(owner, deployedVault);
   // for negative case, alice does not  deployedVault
   testEnv.vaults.set(alice, deployedVault);
+  testEnv.weth = weth;
+  return testEnv;
 }

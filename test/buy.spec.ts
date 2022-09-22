@@ -320,6 +320,10 @@ describe('BuyNow', function () {
       marketPlace.address,
       purchaseDataFromLooksRareWithWETH
     );
+    console.log(
+      'purchaseDataFromLooksRareWithWETH: ',
+      purchaseDataFromLooksRareWithWETH
+    );
 
     // check pool data
     const creditLine = await voyage.getCreditLineData(vault, crab.address);
@@ -364,6 +368,7 @@ describe('BuyNow', function () {
       vault,
       10000000000
     );
+    console.log('purchaseDataFromOpensea: ', purchaseDataFromOpensea);
     console.log(param);
     await voyage.buyNow(
       crab.address,
