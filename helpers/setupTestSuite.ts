@@ -27,6 +27,10 @@ import './wadraymath';
 const dec = decimals(18);
 
 export interface ReserveConfiguration {
+  collection: string;
+  currency: string;
+  interestRateStrategyAddress: string;
+  priceOracle: string;
   liquidationBonus: number;
   incomeRatio: number;
   optimalLiquidityRatio: number;
@@ -34,8 +38,11 @@ export interface ReserveConfiguration {
   term: number;
   gracePeriod: number;
   protocolFee: number;
-  maxStaleness: number;
+  maxTwapStaleness: number;
   baseRate: number;
+  treasury: string;
+  marketplaces: string[];
+  adapters: string[];
 }
 
 const setupBase = async (hre: HardhatRuntimeEnvironment) => {
@@ -51,6 +58,7 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     'Diamond',
     'Facets',
     'Paymaster',
+    'Configurator',
   ]);
   const { owner, alice, bob, forwarder, treasury } = await getNamedAccounts();
 
@@ -77,7 +85,13 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     'DefaultReserveInterestRateStrategy'
   );
   /* ------------------------- reserve initialisation ------------------------- */
+  const configurator = await ethers.getContract('VoyageReserveConfigurator');
+  await voyage.authorizeConfigurator(configurator.address);
   const reserveConfiguration: ReserveConfiguration = {
+    collection: crab.address,
+    currency: weth.address,
+    interestRateStrategyAddress: defaultReserveInterestRateStrategy.address,
+    priceOracle: priceOracle.address,
     liquidationBonus: 10500,
     incomeRatio: 0.5 * 1e4,
     optimalLiquidityRatio: 0.5 * 1e4,
@@ -85,43 +99,13 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     term: 90,
     gracePeriod: 10,
     protocolFee: 200,
-    maxStaleness: 10000,
+    maxTwapStaleness: 10000,
     baseRate: 0.2,
+    treasury: treasury,
+    marketplaces: [seaport.address, marketPlace.address],
+    adapters: [seaportAdapter.address, looksRareAdapter.address],
   };
-
-  await voyage.initReserve(
-    crab.address,
-    weth.address,
-    defaultReserveInterestRateStrategy.address,
-    priceOracle.address
-  );
-  // 105%
-  await voyage.setLiquidationBonus(
-    crab.address,
-    reserveConfiguration.liquidationBonus
-  );
-  await voyage.setIncomeRatio(crab.address, reserveConfiguration.incomeRatio);
-  await voyage.setOptimalLiquidityRatio(
-    crab.address,
-    reserveConfiguration.optimalLiquidityRatio
-  );
-  await voyage.setLoanParams(
-    crab.address,
-    reserveConfiguration.epoch,
-    reserveConfiguration.term,
-    reserveConfiguration.gracePeriod
-  );
-  await voyage.activateReserve(crab.address);
-  await voyage.setMaxTwapStaleness(
-    crab.address,
-    reserveConfiguration.maxStaleness
-  );
-  await voyage.updateProtocolFee(treasury, reserveConfiguration.protocolFee);
-  await voyage.updateMarketPlaceData(
-    marketPlace.address,
-    looksRareAdapter.address
-  );
-  await voyage.updateMarketPlaceData(seaport.address, seaportAdapter.address);
+  await configurator.initReserves([reserveConfiguration]);
   const [senior, junior] = await voyage.getDepositTokens(crab.address);
   const seniorDepositToken = await ethers.getContractAt<SeniorDepositToken>(
     'SeniorDepositToken',
