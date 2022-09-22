@@ -72,14 +72,15 @@ const executeAction = async (
       break;
     }
     case 'buyNow': {
-      const { cname, tokenId, nftprice, purchasingData, user } = action.args;
+      const { cname, tokenId, nftprice, user } = action.args;
       const owner = testEnv.users[userIndex];
       const vault = testEnv.vaults.get(owner.address);
+      await testEnv.weth.transfer(vault, '1000000000000000000000');
       await buyNow(
         cname,
         tokenId,
         nftprice,
-        purchasingData,
+        testEnv.purchaseData,
         action.expected,
         parseInt(user),
         vault!,

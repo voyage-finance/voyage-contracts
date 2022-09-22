@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { makeSuite } from './helpers/make-suite';
+import { initializeMakeSuite, makeSuite } from './helpers/make-suite';
 import { executeStory } from './helpers/scenario-engine';
 
 const scenarioFolder = 'test/helpers/scenarios/';
@@ -9,7 +9,8 @@ fs.readdirSync(scenarioFolder).forEach((file) => {
   makeSuite(scenario.title, async (testEnv) => {
     for (const story of scenario.stories) {
       it(story.description, async function () {
-        await executeStory(story, testEnv);
+        const env = await initializeMakeSuite();
+        await executeStory(story, env);
       });
     }
   });

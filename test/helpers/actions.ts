@@ -200,8 +200,8 @@ export const buyNow = async (
     userData: userDataBefore,
     creditLine: creditLineBefore,
   } = await getContractsData(collection!, user.address, testEnv);
-
   await testEnv.priceOracle.updateTwap(collection!, nftprice);
+  console.log('nft price: ', nftprice);
   if (expected != 'success') {
     await expect(
       testEnv.voyage

@@ -9,8 +9,11 @@ import { isFork, isHardhat } from './chain';
 import { HRE as hre } from './hre';
 
 export async function getWETH9() {
+  console.log('is hardhat: ', isHardhat());
+  console.log('is fork: ', isFork());
   if (isHardhat() && !isFork()) {
     const { address } = await hre.ethers.getContract('WETH9');
+    console.log('weth9 address: ', address);
     return address;
   }
 

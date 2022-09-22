@@ -1,0 +1,109 @@
+{
+  "title": "Pool: BuyNow",
+  "description": "Test cases for the buyNow function.",
+  "stories": [
+    {
+      "description": "User deposit 120 eth to junior, buy with a invalid vault",
+      "actions": [
+        {
+          "name": "deposit",
+          "args": {
+            "cname": "crab",
+            "tranche": "0",
+            "amount": "120000000000000000000",
+            "user": "0"
+          },
+          "expected": "success"
+        },
+        {
+          "name": "buyNow",
+          "args": {
+            "cname": "crab",
+            "tokenId": "1",
+            "nftprice": "1000000000000000000",
+            "user": "1"
+          },
+          "expected": "Unauthorised"
+        }
+      ]
+    },
+    {
+      "description": "User deposit 120 eth to junior, buy a invalid nft and revert",
+      "actions": [
+        {
+          "name": "deposit",
+          "args": {
+            "cname": "crab",
+            "tranche": "0",
+            "amount": "120000000000000000000",
+            "user": "0"
+          },
+          "expected": "success"
+        },
+        {
+          "name": "buyNow",
+          "args": {
+            "cname": "crab",
+            "tokenId": "1",
+            "nftprice": "0",
+            "user": "0"
+          },
+          "expected": "InvalidFloorPrice"
+        }
+      ]
+    },
+    {
+      "description": "User deposit 50 eth to junior, 120 eth to senior, then buy nft",
+      "actions": [
+        {
+          "name": "deposit",
+          "args": {
+            "cname": "crab",
+            "tranche": "1",
+            "amount": "50000000000000000000",
+            "user": "0"
+          },
+          "expected": "success"
+        },
+        {
+          "name": "deposit",
+          "args": {
+            "cname": "crab",
+            "tranche": "0",
+            "amount": "120000000000000000000",
+            "user": "0"
+          },
+          "expected": "success"
+        },
+        {
+          "name": "buyNow",
+          "args": {
+            "cname": "crab",
+            "tokenId": "1",
+            "nftprice": "10000000000000000000",
+            "user": "0"
+          },
+          "expected": "success"
+        },
+        {
+          "name": "repay",
+          "args": {
+            "cname": "crab",
+            "loan": "0",
+            "user": "0"
+          },
+          "expected": "success"
+        },
+        {
+          "name": "repay",
+          "args": {
+            "cname": "crab",
+            "loan": "0",
+            "user": "0"
+          },
+          "expected": "success"
+        }
+      ]
+    }
+  ]
+}

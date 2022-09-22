@@ -20,7 +20,7 @@ import { deployments as d } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { deployFacets, FacetCutAction } from './diamond';
 import { decimals, MAX_UINT_256, toWad } from './math';
-import { getRelayHub } from './task-helpers/addresses';
+import { getRelayHub, getWETH9 } from './task-helpers/addresses';
 import { setHRE } from './task-helpers/hre';
 import './wadraymath';
 
@@ -125,12 +125,12 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
   // fund vault for first payment
   const tx = {
     to: deployedVault,
-    value: ethers.utils.parseEther('100'),
+    value: ethers.utils.parseEther('1000'),
   };
   const ownerSigner = await ethers.getSigner(owner);
   const createReceipt = await ownerSigner.sendTransaction(tx);
   await createReceipt.wait();
-  await weth.transfer(deployedVault, toWad(10));
+  await weth.transfer(deployedVault, toWad(100));
   await weth.approve(deployedVault, MAX_UINT_256);
 
   /// todo delete
@@ -175,8 +175,11 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     s: '0x6db5028edf4f90eba89576e8181a4b4051ae9053b08b0dfb5c0fd6c580b73f66',
   });
 
-  const looksRareMakerOrderData =
-    generateLooksRareMakerOrderData(WETH_GOERLI_ADDRESS);
+  // send the vault some ETH
+  const weth9 = await ethers.getContract<WETH9>('WETH9');
+  const looksRareMakerOrderData = generateLooksRareMakerOrderData(
+    await getWETH9()
+  );
   const looksRareMakerOrderDataWithWrongCurrency =
     generateLooksRareMakerOrderData(WRONG_GOERLI_ADDRESS);
 
@@ -195,6 +198,8 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
       looksRareMakerOrderData
     )
   ).data!;
+
+  console.log('purchaseDataFromLooksRare: ', purchaseDataFromLooksRare);
 
   const purchaseDataFromLooksRareWithWrongCurrency = (
     await looks.populateTransaction.matchAskWithTakerBidUsingETHAndWETH(
@@ -242,8 +247,6 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
   const purchaseDataFromOpensea = (
     await seaportInstance.populateTransaction.fulfillBasicOrder(basicOrder)
   ).data!;
-  // send the vault some ETH
-  const weth9 = await ethers.getContract<WETH9>('WETH9');
   const signer = await ethers.getSigner(owner);
   await signer.sendTransaction({
     to: deployedVault,

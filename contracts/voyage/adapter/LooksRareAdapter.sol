@@ -116,7 +116,9 @@ contract LooksRareAdapter is IMarketPlaceAdapter {
     }
 
     function _validate(bytes calldata _data) private view returns (bool) {
-        (bytes4 selector, , MakerOrder memory makerOrder) = _decodeCalldata(_data);
+        (bytes4 selector, , MakerOrder memory makerOrder) = _decodeCalldata(
+            _data
+        );
         // bytes4(keccak256(matchAskWithTakerBidUsingETHAndWETH())) -> 0xb4e4b296
         // bytes4(keccak256(matchAskWithTakerBid())) -> 0x38e29209
         if (
@@ -131,7 +133,8 @@ contract LooksRareAdapter is IMarketPlaceAdapter {
         }
 
         if (
-            makerOrder.currency != address(LibAppStorage.ds().WETH9) || makerOrder.currency != address(0)
+            makerOrder.currency != address(LibAppStorage.ds().WETH9) &&
+            makerOrder.currency != address(0)
         ) {
             return false;
         }

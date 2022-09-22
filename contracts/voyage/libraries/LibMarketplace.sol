@@ -17,8 +17,19 @@ library LibMarketplace {
             .ds()
             .marketPlaceData[_marketplace]
             .adapterAddr;
-        bytes memory data = IMarketPlaceAdapter(adapterAddr).execute(_data);
-        bytes memory encodedData = abi.encode(_marketplace, data);
+        (bool success, bytes memory data) = adapterAddr.delegatecall(
+            abi.encodeWithSelector(
+                IMarketPlaceAdapter(address(0)).execute.selector,
+                _data
+            )
+        );
+        if (!success) {
+            revert(string(data));
+        }
+        bytes memory encodedData = abi.encode(
+            _marketplace,
+            abi.decode(data, (bytes))
+        );
         IVault(_vault).execute(encodedData, _value);
     }
 
