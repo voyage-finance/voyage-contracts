@@ -27,7 +27,8 @@ contract TestDeposit is TestBase {
         vm.stopPrank();
     }
 
-    function invariantDeposit() public {
+    function invariantBalance() public {
+        // hacker's operation should not affect the balance
         uint256 juniorTokenBalance = juniorDepositToken.balanceOf(owner);
         uint256 seniorTokenBalance = seniorDepositToken.balanceOf(owner);
 
@@ -159,7 +160,10 @@ contract TestDeposit is TestBase {
             )
         );
 
-        // JuniorDepositToken does not have a unbonding function
+    }
+
+    function invariantUnbonding() public {
+
         uint256 unbondingSenior = seniorDepositToken.unbonding(owner);
 
         require(
@@ -174,6 +178,9 @@ contract TestDeposit is TestBase {
             )
         );
 
+    }
+
+    function invariantTerm() public {
         LibLoan.LoanDetail memory loan = DataProviderFacet(address(voyage))
             .getLoanDetail(address(vault), address(crab), 0);
 
@@ -189,12 +196,21 @@ contract TestDeposit is TestBase {
                 )
             )
         );
+    }
 
+    function invariantWithdraw() public {
+        vm.startPrank(owner);
         LiquidityFacet(address(voyage)).withdraw(
             address(crab),
             Tranche.JUNIOR,
             juniorDepositAmount
         );
+        LiquidityFacet(address(voyage)).withdraw(
+            address(crab),
+            Tranche.SENIOR,
+            seniorDepositAmount
+        );
+        vm.stopPrank();
 
         require(
             address(crab).balance == juniorDepositAmount,
@@ -207,12 +223,6 @@ contract TestDeposit is TestBase {
                     ")"
                 )
             )
-        );
-
-        LiquidityFacet(address(voyage)).withdraw(
-            address(crab),
-            Tranche.SENIOR,
-            seniorDepositAmount
         );
 
         require(
@@ -230,4 +240,5 @@ contract TestDeposit is TestBase {
             )
         );
     }
+
 }
