@@ -158,6 +158,14 @@ contract VoyageReserveConfigurator is Ownable {
         );
     }
 
+    function upgradeJuniorDepositTokenImpl(address _impl) public onlyOwner {
+        ConfigurationFacet(voyage).upgradeJuniorDepositTokenImpl(_impl);
+    }
+
+    function upgradeSeniorDepositTokenImpl(address _impl) public onlyOwner {
+        ConfigurationFacet(voyage).upgradeSeniorDepositTokenImpl(_impl);
+    }
+
     function _initReserve(ConfigureReserveInput calldata input) internal {
         initReserve(input);
         activateReserve(input);
