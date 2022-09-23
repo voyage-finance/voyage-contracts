@@ -219,7 +219,6 @@ contract VaultFacet is Storage, ReentrancyGuard {
             IVault(address(0)).initialize.selector,
             address(this),
             _user,
-            LibAppStorage.ds().paymaster,
             LibAppStorage.ds().WETH9
         );
         return data;
