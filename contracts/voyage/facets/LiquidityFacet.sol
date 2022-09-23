@@ -133,7 +133,7 @@ contract LiquidityFacet is Storage, ReentrancyGuard {
         address _collection,
         Tranche _tranche,
         uint256 _amount
-    ) external nonReentrant {
+    ) external whenNotPaused nonReentrant {
         ReserveData memory reserve = LibAppStorage.ds()._reserveData[
             _collection
         ];
@@ -162,7 +162,7 @@ contract LiquidityFacet is Storage, ReentrancyGuard {
         address _collection,
         Tranche _tranche,
         uint256 _amount
-    ) external nonReentrant {
+    ) external whenNotPaused nonReentrant {
         ReserveData memory reserve = LibAppStorage.ds()._reserveData[
             _collection
         ];
