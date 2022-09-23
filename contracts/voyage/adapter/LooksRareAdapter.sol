@@ -3,6 +3,7 @@ pragma solidity ^0.8.9;
 
 import {IMarketPlaceAdapter, AssetInfo} from "../interfaces/IMarketPlaceAdapter.sol";
 import {LibAppStorage} from "../libraries/LibAppStorage.sol";
+import {IVault} from "../../vault/Vault.sol";
 
 struct MakerOrder {
     bool isOrderAsk; // true --> ask / false --> bid
@@ -96,23 +97,18 @@ contract LooksRareAdapter is IMarketPlaceAdapter {
         return _validate(_data);
     }
 
-    function execute(bytes calldata _data)
-        external
-        view
-        returns (bytes memory)
-    {
-        if (_validate(_data)) {
-            (
-                bytes4 selector,
-                TakerOrder memory takerOrder,
-                MakerOrder memory makerOrder
-            ) = _decodeCalldata(_data);
-            bytes memory data = abi.encode(takerOrder, makerOrder);
-            data = abi.encodePacked(selector, data);
-            return data;
+    function execute(
+        bytes calldata _data,
+        address _vault,
+        address _marketplace,
+        uint256 _value
+    ) external payable returns (bytes memory) {
+        if (!_validate(_data)) {
+            // use native error type here cause an ABI issue
+            revert("invalid data");
         }
-        // use native error type here cause an ABI issue
-        revert("invalid data");
+        bytes memory encodedData = abi.encode(_marketplace, _data);
+        IVault(_vault).execute(encodedData, _value);
     }
 
     function _validate(bytes calldata _data) private view returns (bool) {

@@ -3,6 +3,7 @@ pragma solidity ^0.8.9;
 
 import {IMarketPlaceAdapter, AssetInfo} from "../interfaces/IMarketPlaceAdapter.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IVault} from "../../vault/Vault.sol";
 
 uint256 constant BasicOrder_basicOrderType_cdPtr = 0x124;
 
@@ -214,18 +215,17 @@ contract SeaportAdapter is IMarketPlaceAdapter {
         return _validate(_data);
     }
 
-    function execute(bytes calldata _data)
-        external
-        pure
-        returns (bytes memory)
-    {
+    function execute(
+        bytes calldata _data,
+        address _vault,
+        address _marketplace,
+        uint256 _value
+    ) external payable returns (bytes memory) {
         if (!_validate(_data)) {
             revert("invalid data");
         }
-
-        (bytes4 selector, BasicOrderParameters memory order) = _decode(_data);
-
-        return abi.encodePacked(selector, abi.encode(order));
+        bytes memory encodedData = abi.encode(_marketplace, _data);
+        IVault(_vault).execute(encodedData, _value);
     }
 
     function _decode(bytes calldata _data)

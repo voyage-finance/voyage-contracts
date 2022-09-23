@@ -17,20 +17,19 @@ library LibMarketplace {
             .ds()
             .marketPlaceData[_marketplace]
             .adapterAddr;
+
         (bool success, bytes memory data) = adapterAddr.delegatecall(
             abi.encodeWithSelector(
                 IMarketPlaceAdapter(address(0)).execute.selector,
-                _data
+                _data,
+                _vault,
+                _marketplace,
+                _value
             )
         );
         if (!success) {
             revert(string(data));
         }
-        bytes memory encodedData = abi.encode(
-            _marketplace,
-            abi.decode(data, (bytes))
-        );
-        IVault(_vault).execute(encodedData, _value);
     }
 
     function extractAssetInfo(address _marketplace, bytes calldata _data)
