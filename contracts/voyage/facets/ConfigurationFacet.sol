@@ -145,6 +145,14 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
         emit MarketplaceAdapterUpdated(_marketplace, _strategy);
     }
 
+    function upgradeJuniorDepositTokenImpl(address _impl) external authorised {
+        LibAppStorage.ds().juniorDepositTokenBeacon.upgradeTo(_impl);
+    }
+
+    function upgradeSeniorDepositTokenImpl(address _impl) external authorised {
+        LibAppStorage.ds().seniorDepositTokenBeacon.upgradeTo(_impl);
+    }
+
     function getIncomeRatio(address _collection) public view returns (uint256) {
         ReserveConfigurationMap memory conf = LibReserveConfiguration
             .getConfiguration(_collection);
