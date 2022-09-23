@@ -17,4 +17,6 @@ task('dev:configure-gsn', 'Sets trustedForwarder and voyagePaymaster')
     const voyage = await ethers.getContract<Voyage>('Voyage');
     const tx = await voyage.setGSNConfiguration(paymaster, forwarder);
     await tx.wait();
+    console.log(`set forwarder to ${forwarder}`);
+    console.log(`set paymaster to ${paymaster}`);
   });
