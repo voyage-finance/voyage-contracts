@@ -75,7 +75,7 @@ contract SecurityFacet is Storage {
         if (_configurator == address(0) || !Address.isContract(_configurator)) {
             revert InvalidConfiguratorContract();
         }
-        bytes4[] memory selectors = new bytes4[](13);
+        bytes4[] memory selectors = new bytes4[](15);
         selectors[0] = LiquidityFacet(address(0)).initReserve.selector;
         selectors[1] = LiquidityFacet(address(0)).activateReserve.selector;
         selectors[2] = LiquidityFacet(address(0)).deactivateReserve.selector;
@@ -102,6 +102,12 @@ contract SecurityFacet is Storage {
 
         selectors[12] = ConfigurationFacet(address(0))
             .setGSNConfiguration
+            .selector;
+        selectors[13] = ConfigurationFacet(address(0))
+            .upgradeJuniorDepositTokenImpl
+            .selector;
+        selectors[14] = ConfigurationFacet(address(0))
+            .upgradeSeniorDepositTokenImpl
             .selector;
 
         LibSecurity.grantPermissions(
