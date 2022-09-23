@@ -134,6 +134,10 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
         emit GSNConfigurationUpdated(_paymaster, _trustedForwarder);
     }
 
+    function getPaymasterAddr() external view returns (address) {
+        return LibAppStorage.ds().paymaster;
+    }
+
     function updateMarketPlaceData(address _marketplace, address _strategy)
         external
         authorised

@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ConfigurationFacet} from "../voyage/facets/ConfigurationFacet.sol";
 import {VaultFacet} from "../voyage/facets/VaultFacet.sol";
 import {SecurityFacet} from "../voyage/facets/SecurityFacet.sol";
 import {IWETH9} from "../shared/interfaces/IWETH9.sol";
@@ -11,7 +12,6 @@ import {IWETH9} from "../shared/interfaces/IWETH9.sol";
 struct VaultStorageV1 {
     address voyage;
     address user;
-    address paymaster;
     address weth;
     // subvault array, for retrieval by DataProviderFacet and client-side enumeration
     address[] subvaults;
@@ -60,7 +60,6 @@ interface IVault {
     function initialize(
         address _voyage,
         address _user,
-        address _paymaster,
         address _weth
     ) external;
 
@@ -101,12 +100,10 @@ contract Vault is Initializable, IERC1271, IVault {
     function initialize(
         address _voyage,
         address _user,
-        address _paymaster,
         address _weth
     ) public initializer {
         LibVaultStorage.ds().voyage = _voyage;
         LibVaultStorage.ds().user = _user;
-        LibVaultStorage.ds().paymaster = _paymaster;
         LibVaultStorage.ds().weth = _weth;
         IERC20(_weth).approve(_voyage, type(uint256).max);
     }
@@ -151,7 +148,7 @@ contract Vault is Initializable, IERC1271, IVault {
             revert GasRefundFailed(_dst);
         }
         emit GasRefunded(
-            LibVaultStorage.ds().paymaster,
+            _getPaymaster(),
             _dst,
             amountRefundable,
             _amount - amountRefundable,
@@ -320,8 +317,13 @@ contract Vault is Initializable, IERC1271, IVault {
         return LibVaultStorage.ds().tokenSet[_collection];
     }
 
+    function _getPaymaster() internal view returns (address) {
+        return
+            ConfigurationFacet(LibVaultStorage.ds().voyage).getPaymasterAddr();
+    }
+
     function _isPaymaster(address _src) internal view returns (bool) {
-        return _src == LibVaultStorage.ds().paymaster;
+        return _src == _getPaymaster();
     }
 
     function bytesToHex(bytes memory buffer)
