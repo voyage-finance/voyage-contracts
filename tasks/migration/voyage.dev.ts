@@ -12,9 +12,15 @@ task(
   log.info('Configuring marketplace adapters');
   await hre.run('dev:configure-marketplace-adapters');
 
-  log.info('Configure Vault implementation');
+  log.info('Configuring Vault implementation');
   await hre.run('dev:configure-vault-impl');
 
   log.info('Configuring GSN');
   await hre.run('dev:configure-gsn');
+
+  log.info('Configuring Junior Deposit Token implementation');
+  await hre.run('dev:configure-jd-impl');
+
+  log.info('Configuring Senior Deposit Token implementation');
+  await hre.run('dev:configure-sd-impl');
 });
