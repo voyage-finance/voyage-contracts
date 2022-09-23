@@ -1,5 +1,3 @@
-import { Voyage } from '@contracts';
-import { formatWad } from '@helpers/math';
 import { LooksRareExchangeAbi } from '@looksrare/sdk';
 import { task } from 'hardhat/config';
 
