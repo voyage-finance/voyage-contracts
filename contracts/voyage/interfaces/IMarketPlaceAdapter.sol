@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 struct AssetInfo {
     uint256 tokenId;
     uint256 assetPrice;
+    address currency;
 }
 
 interface IMarketPlaceAdapter {

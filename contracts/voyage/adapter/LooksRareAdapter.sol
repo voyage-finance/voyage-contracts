@@ -86,10 +86,14 @@ contract LooksRareAdapter is IMarketPlaceAdapter {
         pure
         returns (AssetInfo memory assetInfo)
     {
-        (, TakerOrder memory takerOrder, ) = _decodeCalldata(_data);
+        (
+            ,
+            TakerOrder memory takerOrder,
+            MakerOrder memory makerOrder
+        ) = _decodeCalldata(_data);
         assetInfo.assetPrice = takerOrder.price;
         assetInfo.tokenId = takerOrder.tokenId;
-
+        assetInfo.currency = makerOrder.currency;
         return assetInfo;
     }
 
