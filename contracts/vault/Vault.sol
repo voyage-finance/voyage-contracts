@@ -124,7 +124,7 @@ contract Vault is Initializable, IERC1271, IVault {
         emit Execute(address(this), target, data);
     }
 
-    function refundGas(uint256 _amount, address _dst) external onlyPaymaster {
+    function refundGas(uint256 _amount, address _dst) external onlyAuthorised {
         uint256 amountRefundable = _amount;
         uint256 ethBal = address(this).balance;
         // we need to unwrap some WETH in this case.

@@ -1,5 +1,6 @@
 import { task } from 'hardhat/config';
 import { Voyage } from '@contracts';
+import { REFUND_GAS_UNITS } from '@helpers/constants';
 
 task(
   'dev:create-vault',
@@ -20,7 +21,7 @@ task(
           salt
         )}`
       );
-      const tx = await voyage.createVault(user, salt);
+      const tx = await voyage.createVault(user, salt,REFUND_GAS_UNITS);
       await tx.wait();
       vaultAddress = await voyage.getVault(user);
     }

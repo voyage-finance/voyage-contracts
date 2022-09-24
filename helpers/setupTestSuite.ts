@@ -18,6 +18,7 @@ import {
 import { BigNumber } from 'ethers';
 import { deployments as d } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { REFUND_GAS_UNITS } from './constants';
 import { deployFacets, FacetCutAction } from './diamond';
 import { decimals, MAX_UINT_256, toWad } from './math';
 import { getRelayHub, getWETH9 } from './task-helpers/addresses';
@@ -120,7 +121,7 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
 
   // create an empty vault
   const salt = ethers.utils.toUtf8Bytes('hw.kk@voyage.finance').slice(0, 42);
-  await voyage.createVault(owner, salt);
+  await voyage.createVault(owner, salt, REFUND_GAS_UNITS);
   const deployedVault = await voyage.getVault(owner);
   // fund vault for first payment
   const tx = {

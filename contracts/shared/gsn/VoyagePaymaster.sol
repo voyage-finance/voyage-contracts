@@ -103,6 +103,6 @@ contract VoyagePaymaster is BasePaymaster {
         uint256 refund = vault.balance >= minimumFees
             ? minimumFees
             : minimumFees + 21000 * relayData.gasPrice; // cover cost of unwrapping WETH
-        IVault(vault).refundGas(refund, treasury);
+        // IVault(vault).refundGas(refund, treasury);
     }
 }

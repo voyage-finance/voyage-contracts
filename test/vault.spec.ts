@@ -2,7 +2,11 @@ import { toWad } from '@helpers/math';
 import { expect } from 'chai';
 import { randomBytes } from 'crypto';
 import { deployments, ethers } from 'hardhat';
-import { MAX_UINT256, ZERO_ADDRESS } from '../helpers/constants';
+import {
+  MAX_UINT256,
+  REFUND_GAS_UNITS,
+  ZERO_ADDRESS,
+} from '../helpers/constants';
 import { setupTestSuite } from '../helpers/setupTestSuite';
 
 describe('Vault', function () {
@@ -41,7 +45,7 @@ describe('Vault', function () {
 
   it('Granted acount should be able to create vault', async function () {
     const { voyage, alice } = await setupTestSuite();
-    var abi = ['function createVault(address,bytes20)'];
+    var abi = ['function createVault(address,bytes20,uint256)'];
     var iface = new ethers.utils.Interface(abi);
     var selector = iface.getSighash('createVault');
 
@@ -49,7 +53,7 @@ describe('Vault', function () {
     const salt = randomBytes(20);
     await voyage
       .connect(await ethers.getSigner(alice))
-      .createVault(alice, salt);
+      .createVault(alice, salt, REFUND_GAS_UNITS);
     const deployedVault = await voyage.getVault(alice);
     console.log('deployed vault address for alice: ', deployedVault);
   });
