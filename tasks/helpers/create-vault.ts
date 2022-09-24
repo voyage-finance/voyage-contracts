@@ -1,5 +1,6 @@
 import { task } from 'hardhat/config';
 import { Voyage } from '@contracts';
+import { getTxCostAndTimestamp } from 'test/helpers/actions';
 
 task(
   'dev:create-vault',
@@ -21,7 +22,14 @@ task(
         )}`
       );
       const tx = await voyage.createVault(user, salt);
-      await tx.wait();
+      const receipt = await tx.wait();
+      const gasUsed = receipt.gasUsed;
+      console.log(`createVault used ${gasUsed.toString()} gas`);
+      console.log(
+        `The cost is ${ethers.utils.formatEther(
+          gasUsed.mul(ethers.utils.parseUnits('5', 'gwei'))
+        )} ETH`
+      );
       vaultAddress = await voyage.getVault(user);
     }
     console.log(`Vault address for ${user} is ${vaultAddress}`);
