@@ -200,6 +200,7 @@ contract SeaportAdapter is IMarketPlaceAdapter {
         (, BasicOrderParameters memory order) = _decode(_data);
         assetInfo.tokenId = order.offerIdentifier;
         assetInfo.assetPrice = order.considerationAmount;
+        assetInfo.currency = order.considerationToken;
         // Iterate over each additional recipient.
         for (uint256 i = 0; i < order.additionalRecipients.length; ) {
             assetInfo.assetPrice += order.additionalRecipients[i].amount;
