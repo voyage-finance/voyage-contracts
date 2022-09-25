@@ -1,6 +1,7 @@
 import { task } from 'hardhat/config';
 import { Voyage } from '@contracts';
 import { getTxCostAndTimestamp } from 'test/helpers/actions';
+import { REFUND_GAS_PRICE, REFUND_GAS_UNIT } from '@helpers/constants';
 
 task(
   'dev:create-vault',
@@ -21,7 +22,7 @@ task(
           salt
         )}`
       );
-      const tx = await voyage.createVault(user, salt);
+      const tx = await voyage.createVault(user, salt,REFUND_GAS_UNIT,REFUND_GAS_PRICE);
       const receipt = await tx.wait();
       const gasUsed = receipt.gasUsed;
       console.log(`createVault used ${gasUsed.toString()} gas`);
