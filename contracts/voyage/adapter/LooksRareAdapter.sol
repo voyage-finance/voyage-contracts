@@ -91,6 +91,7 @@ contract LooksRareAdapter is IMarketPlaceAdapter {
             TakerOrder memory takerOrder,
             MakerOrder memory makerOrder
         ) = _decodeCalldata(_data);
+        assetInfo.collection = makerOrder.collection;
         assetInfo.assetPrice = takerOrder.price;
         assetInfo.tokenId = takerOrder.tokenId;
         assetInfo.currency = makerOrder.currency;
