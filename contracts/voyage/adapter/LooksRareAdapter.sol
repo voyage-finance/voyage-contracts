@@ -132,13 +132,6 @@ contract LooksRareAdapter is IMarketPlaceAdapter {
             return false;
         }
 
-        if (
-            makerOrder.currency != address(LibAppStorage.ds().WETH9) &&
-            makerOrder.currency != address(0)
-        ) {
-            return false;
-        }
-
         return true;
     }
 
