@@ -341,7 +341,15 @@ contract LoanFacet is Storage, ReentrancyGuard {
                 params.loanId
             );
 
-        // 9.1 if currency is eth
+        // 9 check if currency is suported
+        if (
+            params.assetInfo.currency != address(0) &&
+            params.assetInfo.currency != address(LibAppStorage.ds().WETH9)
+        ) {
+            revert InvalidCurrencyType();
+        }
+
+        // 10.1 if currency is eth
         if (params.assetInfo.currency == address(0)) {
             LibPayments.unwrapWETH9(params.outstandingPrincipal, address(this));
             SafeTransferLib.safeTransferETH(
@@ -355,7 +363,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
                 _data
             );
         } else {
-            // 9.2 if currency is weth
+            // 10.2 if currency is weth
             IERC20(LibAppStorage.ds().WETH9).safeTransfer(
                 params.vault,
                 params.outstandingPrincipal
@@ -364,7 +372,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
             LibMarketplace.purchase(params.marketplace, params.vault, 0, _data);
         }
 
-        // 10. first payment
+        // 11. first payment
         BorrowData storage debtData = LibLoan.getBorrowData(
             params.collection,
             reserveData.currency,
@@ -843,6 +851,7 @@ error InvalidFloorPrice();
 error InvalidTokenid();
 error InvalidPrincipal();
 error InvalidJuniorTrancheBalance();
+error InvalidCurrencyType();
 error ExceedsFloorPrice();
 error BuyNowStaleTwap();
 error LiquidateStaleTwap();

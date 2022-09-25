@@ -269,13 +269,6 @@ contract SeaportAdapter is IMarketPlaceAdapter {
             return false;
         }
 
-        if (
-            order.considerationToken != address(LibAppStorage.ds().WETH9) &&
-            order.considerationToken != address(0)
-        ) {
-            return false;
-        }
-
         return true;
     }
 }
