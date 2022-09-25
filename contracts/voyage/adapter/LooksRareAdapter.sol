@@ -111,8 +111,7 @@ contract LooksRareAdapter is IMarketPlaceAdapter {
             // use native error type here cause an ABI issue
             revert("invalid data");
         }
-        bytes memory encodedData = abi.encode(_marketplace, _data);
-        IVault(_vault).execute(encodedData, _value);
+        IVault(_vault).execute(_data, _marketplace, _value);
     }
 
     function _validate(bytes calldata _data) private view returns (bool) {

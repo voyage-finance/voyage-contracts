@@ -226,8 +226,7 @@ contract SeaportAdapter is IMarketPlaceAdapter {
         if (!_validate(_data)) {
             revert("invalid data");
         }
-        bytes memory encodedData = abi.encode(_marketplace, _data);
-        IVault(_vault).execute(encodedData, _value);
+        IVault(_vault).execute(_data, _marketplace, _value);
     }
 
     function _decode(bytes calldata _data)

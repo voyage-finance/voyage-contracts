@@ -87,8 +87,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         bytes4 selector = IERC721(_collection).transferFrom.selector;
         bytes memory param = abi.encode(_vault, _msgSender(), _tokenId);
         bytes memory data = abi.encodePacked(selector, param);
-        bytes memory encodedData = abi.encode(_collection, data);
-        IVault(_vault).execute(encodedData, 0);
+        IVault(_vault).execute(data, _collection, 0);
     }
 
     function transferCurrency(
@@ -105,8 +104,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         bytes4 selector = IERC20(_currency).transferFrom.selector;
         bytes memory param = abi.encode(_vault, _to, _amount);
         bytes memory data = abi.encodePacked(selector, param);
-        bytes memory encodedData = abi.encode(_currency, data);
-        IVault(_vault).execute(encodedData, 0);
+        IVault(_vault).execute(data, _currency, 0);
     }
 
     function wrapVaultETH(address _vault, uint256 _value)
@@ -117,8 +115,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
     {
         bytes4 selector = IWETH9(address(0)).deposit.selector;
         bytes memory data = abi.encodePacked(selector);
-        bytes memory encodedData = abi.encode(LibAppStorage.ds().WETH9, data);
-        IVault(_vault).execute(encodedData, _value);
+        IVault(_vault).execute(data, address(LibAppStorage.ds().WETH9), _value);
     }
 
     function unwrapVaultETH(address _vault, uint256 _vaule)
@@ -130,8 +127,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         bytes4 selector = IWETH9(address(0)).withdraw.selector;
         bytes memory param = abi.encode(_vaule);
         bytes memory data = abi.encodePacked(selector, param);
-        bytes memory encodedData = abi.encode(LibAppStorage.ds().WETH9, data);
-        IVault(_vault).execute(encodedData, 0);
+        IVault(_vault).execute(data, address(LibAppStorage.ds().WETH9), 0);
     }
 
     function approveMarketplace(
@@ -153,8 +149,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         );
         bytes memory data = abi.encodePacked(selector, param);
         address currency = address(LibAppStorage.ds().WETH9);
-        bytes memory encodedData = abi.encode(currency, data);
-        IVault(_vault).execute(encodedData, 0);
+        IVault(_vault).execute(data, currency, 0);
     }
 
     /* ---------------------- view functions --------------------- */
