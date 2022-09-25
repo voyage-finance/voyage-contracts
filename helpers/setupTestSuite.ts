@@ -18,6 +18,7 @@ import {
 import { BigNumber } from 'ethers';
 import { deployments as d } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { REFUND_GAS_PRICE, REFUND_GAS_UNIT } from './constants';
 import { deployFacets, FacetCutAction } from './diamond';
 import { decimals, MAX_UINT_256, toWad } from './math';
 import { getRelayHub, getWETH9 } from './task-helpers/addresses';
@@ -120,16 +121,20 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
 
   // create an empty vault
   const salt = ethers.utils.toUtf8Bytes('hw.kk@voyage.finance').slice(0, 42);
-  await voyage.createVault(owner, salt);
-  const deployedVault = await voyage.getVault(owner);
+  const computedVaultAddress = await voyage.computeCounterfactualAddress(
+    owner,
+    salt
+  );
   // fund vault for first payment
   const tx = {
-    to: deployedVault,
+    to: computedVaultAddress,
     value: ethers.utils.parseEther('1000'),
   };
   const ownerSigner = await ethers.getSigner(owner);
   const createReceipt = await ownerSigner.sendTransaction(tx);
   await createReceipt.wait();
+  await voyage.createVault(owner, salt, REFUND_GAS_UNIT, REFUND_GAS_PRICE);
+  const deployedVault = await voyage.getVault(owner);
   await weth.transfer(deployedVault, toWad(100));
   await weth.approve(deployedVault, MAX_UINT_256);
 

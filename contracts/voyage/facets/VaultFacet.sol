@@ -21,7 +21,12 @@ contract VaultFacet is Storage, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using LibReserveConfiguration for ReserveConfigurationMap;
     /* --------------------------------- events --------------------------------- */
-    event VaultCreated(address _vault, address _owner, uint256 _numVaults);
+    event VaultCreated(
+        address _vault,
+        address _owner,
+        uint256 _numVaults,
+        uint256 refundAmount
+    );
     event VaultMarginCredited(
         address indexed _vault,
         address indexed _asset,
@@ -37,7 +42,12 @@ contract VaultFacet is Storage, ReentrancyGuard {
     event VaultImplementationUpdated(address _impl);
 
     /* ----------------------------- admin interface ---------------------------- */
-    function createVault(address _user, bytes20 _salt) external authorised {
+    function createVault(
+        address _user,
+        bytes20 _salt,
+        uint256 _gasUnits,
+        uint256 _gasPrice
+    ) external authorised {
         bytes memory data = getEncodedVaultInitData(_user);
         bytes32 newsalt = newSalt(_salt, _user);
         address vaultBeaconProxy;
@@ -56,8 +66,14 @@ contract VaultFacet is Storage, ReentrancyGuard {
         if (vaultBeaconProxy == address(0)) {
             revert FailedDeployVault();
         }
+        address treasury = LibAppStorage.ds().protocolFee.treasuryAddress;
+        if (treasury == address(0)) {
+            revert InvalidTreasuryAddress();
+        }
+        uint256 refundAmount = _gasUnits * _gasPrice;
+        IVault(vaultBeaconProxy).execute("", treasury, refundAmount);
         uint256 numVaults = LibVault.recordVault(_user, vaultBeaconProxy);
-        emit VaultCreated(vaultBeaconProxy, _user, numVaults);
+        emit VaultCreated(vaultBeaconProxy, _user, numVaults, refundAmount);
     }
 
     /* ---------------------- vault configuration interface --------------------- */
@@ -233,3 +249,4 @@ error InvalidCurrencyAddress();
 error FailedDeployVault();
 error InvalidWithdrawal();
 error InvalidMarketplace();
+error InvalidTreasuryAddress();

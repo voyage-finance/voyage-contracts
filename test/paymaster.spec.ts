@@ -1,5 +1,6 @@
 import { WETH9 } from '@contracts';
 import { BigNumber } from '@ethersproject/bignumber';
+import { REFUND_GAS_PRICE, REFUND_GAS_UNIT } from '@helpers/constants';
 import { anyValue } from '@nomicfoundation/hardhat-chai-matchers/withArgs';
 import { RelayRequest } from '@opengsn/common/dist/EIP712/RelayRequest';
 import { expect } from 'chai';
@@ -120,14 +121,24 @@ describe('VoyagePaymaster', function () {
   });
 
   it('should not accept transactions if the vault has insufficient balance', async () => {
-    const { alice, forwarder, paymaster, voyage } = await setupTestSuite();
+    const { alice, forwarder, paymaster, voyage, owner } =
+      await setupTestSuite();
     // vault has no ETH or WETH balance.
-    await voyage.createVault(
+    const salt = ethers.utils
+      .keccak256(ethers.utils.toUtf8Bytes('alice@wonder.land'))
+      .slice(0, 42);
+    const computedVaultAddress = await voyage.computeCounterfactualAddress(
       alice,
-      ethers.utils
-        .keccak256(ethers.utils.toUtf8Bytes('alice@wonder.land'))
-        .slice(0, 42)
+      salt
     );
+    const tx = {
+      to: computedVaultAddress,
+      value: REFUND_GAS_PRICE * REFUND_GAS_UNIT,
+    };
+    const ownerSigner = await ethers.getSigner(owner);
+    const createReceipt = await ownerSigner.sendTransaction(tx);
+    await createReceipt.wait();
+    await voyage.createVault(alice, salt, REFUND_GAS_UNIT, REFUND_GAS_PRICE);
     const relayRequest: RelayRequest = {
       request: {
         from: alice,
@@ -160,14 +171,24 @@ describe('VoyagePaymaster', function () {
   });
 
   it('should accept transactions if the vault has sufficient balance', async () => {
-    const { alice, forwarder, paymaster, voyage } = await setupTestSuite();
+    const { alice, owner, forwarder, paymaster, voyage } =
+      await setupTestSuite();
     // vault has no ETH or WETH balance.
-    await voyage.createVault(
+    const salt = ethers.utils
+      .keccak256(ethers.utils.toUtf8Bytes('alice@wonder.land'))
+      .slice(0, 42);
+    const computedVaultAddress = await voyage.computeCounterfactualAddress(
       alice,
-      ethers.utils
-        .keccak256(ethers.utils.toUtf8Bytes('alice@wonder.land'))
-        .slice(0, 42)
+      salt
     );
+    const tx = {
+      to: computedVaultAddress,
+      value: REFUND_GAS_PRICE * REFUND_GAS_UNIT,
+    };
+    const ownerSigner = await ethers.getSigner(owner);
+    const createReceipt = await ownerSigner.sendTransaction(tx);
+    await createReceipt.wait();
+    await voyage.createVault(alice, salt, REFUND_GAS_UNIT, REFUND_GAS_PRICE);
     const deployedVault = await voyage.getVaultAddr(alice);
     // send her Vault some $
     const weth9 = await ethers.getContract<WETH9>('WETH9');
@@ -215,14 +236,30 @@ describe('VoyagePaymaster', function () {
   });
 
   it('postRelayedCalled should get a refund from the Vault', async () => {
-    const { alice, forwarder, paymaster, relayHub, treasury, voyage } =
+    const { alice, owner, forwarder, paymaster, relayHub, treasury, voyage } =
       await setupTestSuite();
     // vault has no ETH or WETH balance.
+    const salt = ethers.utils
+      .keccak256(ethers.utils.toUtf8Bytes('alice@wonder.land'))
+      .slice(0, 42);
+    const computedVaultAddress = await voyage.computeCounterfactualAddress(
+      alice,
+      salt
+    );
+    const fundTx = {
+      to: computedVaultAddress,
+      value: REFUND_GAS_PRICE * REFUND_GAS_UNIT,
+    };
+    const ownerSigner = await ethers.getSigner(owner);
+    const createReceipt = await ownerSigner.sendTransaction(fundTx);
+    await createReceipt.wait();
     await voyage.createVault(
       alice,
       ethers.utils
         .keccak256(ethers.utils.toUtf8Bytes('alice@wonder.land'))
-        .slice(0, 42)
+        .slice(0, 42),
+      REFUND_GAS_UNIT,
+      REFUND_GAS_PRICE
     );
     const deployedVault = await voyage.getVaultAddr(alice);
     // send her Vault some $
@@ -280,15 +317,24 @@ describe('VoyagePaymaster', function () {
   });
 
   it('should unwrap WETH and refund', async () => {
-    const { alice, forwarder, paymaster, relayHub, treasury, voyage } =
+    const { alice, owner, forwarder, paymaster, relayHub, treasury, voyage } =
       await setupTestSuite();
     // vault has no ETH or WETH balance.
-    await voyage.createVault(
+    const salt = ethers.utils
+      .keccak256(ethers.utils.toUtf8Bytes('alice@wonder.land'))
+      .slice(0, 42);
+    const computedVaultAddress = await voyage.computeCounterfactualAddress(
       alice,
-      ethers.utils
-        .keccak256(ethers.utils.toUtf8Bytes('alice@wonder.land'))
-        .slice(0, 42)
+      salt
     );
+    const fundTx = {
+      to: computedVaultAddress,
+      value: REFUND_GAS_PRICE * REFUND_GAS_UNIT,
+    };
+    const ownerSigner = await ethers.getSigner(owner);
+    const createReceipt = await ownerSigner.sendTransaction(fundTx);
+    await createReceipt.wait();
+    await voyage.createVault(alice, salt, REFUND_GAS_UNIT, REFUND_GAS_PRICE);
     const deployedVault = await voyage.getVaultAddr(alice);
     // send her Vault some $, but not enough to cover gas fees
     const ETH_TO_DEPOSIT = ethers.utils.parseEther('0.01');
