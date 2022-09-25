@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 import {IMarketPlaceAdapter, AssetInfo} from "../interfaces/IMarketPlaceAdapter.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IVault} from "../../vault/Vault.sol";
+import {LibAppStorage} from "../libraries/LibAppStorage.sol";
 
 uint256 constant BasicOrder_basicOrderType_cdPtr = 0x124;
 
@@ -212,7 +213,7 @@ contract SeaportAdapter is IMarketPlaceAdapter {
         }
     }
 
-    function validate(bytes calldata _data) external pure returns (bool) {
+    function validate(bytes calldata _data) external view returns (bool) {
         return _validate(_data);
     }
 
@@ -238,7 +239,7 @@ contract SeaportAdapter is IMarketPlaceAdapter {
         order = abi.decode(_data[4:], (BasicOrderParameters));
     }
 
-    function _validate(bytes calldata _data) private pure returns (bool) {
+    function _validate(bytes calldata _data) private view returns (bool) {
         (bytes4 selector, BasicOrderParameters memory order) = _decode(_data);
 
         // bytes4(keccak256(fulfillBasicOrder()))
@@ -268,7 +269,10 @@ contract SeaportAdapter is IMarketPlaceAdapter {
             return false;
         }
 
-        if (order.considerationToken != address(0)) {
+        if (
+            order.considerationToken != address(LibAppStorage.ds().WETH9) &&
+            order.considerationToken != address(0)
+        ) {
             return false;
         }
 
