@@ -333,15 +333,6 @@ contract LoanFacet is Storage, ReentrancyGuard {
             params.treasury
         );
 
-        // 9. unwrap weth
-        LibPayments.unwrapWETH9(params.outstandingPrincipal, address(this));
-
-        SafeTransferLib.safeTransferETH(
-            params.vault,
-            params.outstandingPrincipal
-        );
-
-        // 10. purchase nft
         (params.pmt.principal, params.pmt.interest, params.pmt.fee) = LibLoan
             .getPMT(
                 params.collection,
@@ -350,14 +341,30 @@ contract LoanFacet is Storage, ReentrancyGuard {
                 params.loanId
             );
 
-        LibMarketplace.purchase(
-            params.marketplace,
-            params.vault,
-            params.totalPrincipal,
-            _data
-        );
+        // 9.1 if currency is eth
+        if (params.assetInfo.currency == address(0)) {
+            LibPayments.unwrapWETH9(params.outstandingPrincipal, address(this));
+            SafeTransferLib.safeTransferETH(
+                params.vault,
+                params.outstandingPrincipal
+            );
+            LibMarketplace.purchase(
+                params.marketplace,
+                params.vault,
+                params.totalPrincipal,
+                _data
+            );
+        } else {
+            // 9.2 if currency is weth
+            IERC20(LibAppStorage.ds().WETH9).safeTransfer(
+                params.vault,
+                params.outstandingPrincipal
+            );
 
-        // 11. first payment
+            LibMarketplace.purchase(params.marketplace, params.vault, 0, _data);
+        }
+
+        // 10. first payment
         BorrowData storage debtData = LibLoan.getBorrowData(
             params.collection,
             reserveData.currency,
