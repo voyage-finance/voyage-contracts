@@ -619,8 +619,7 @@ library LibLoan {
                 selector,
                 abi.encode(vault, liquidator, collaterals[i])
             );
-            bytes memory encodedData = abi.encode(collection, data);
-            IVault(vault).execute(encodedData, 0);
+            IVault(vault).execute(data, collection, 0);
         }
         emit CollateralTransferred(collection, vault, liquidator, collaterals);
     }

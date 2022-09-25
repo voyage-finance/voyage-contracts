@@ -63,7 +63,11 @@ interface IVault {
         address _weth
     ) external;
 
-    function execute(bytes calldata _data, uint256 _value) external payable;
+    function execute(
+        bytes calldata _data,
+        address _target,
+        uint256 _value
+    ) external payable;
 
     function refundGas(uint256 _amount, address _dst) external;
 
@@ -108,20 +112,16 @@ contract Vault is Initializable, IERC1271, IVault {
         IERC20(_weth).approve(_voyage, type(uint256).max);
     }
 
-    function execute(bytes calldata _data, uint256 _value)
-        external
-        payable
-        onlyAuthorised
-    {
-        (address target, bytes memory data) = abi.decode(
-            _data,
-            (address, bytes)
-        );
-        (bool success, bytes memory ret) = target.call{value: _value}(data);
+    function execute(
+        bytes calldata _data,
+        address _target,
+        uint256 _value
+    ) external payable onlyAuthorised {
+        (bool success, bytes memory ret) = _target.call{value: _value}(_data);
         if (!success) {
             revert ExternalCallFailed(bytesToHex(ret));
         }
-        emit Execute(address(this), target, data);
+        emit Execute(address(this), _target, _data);
     }
 
     function refundGas(uint256 _amount, address _dst) external onlyPaymaster {
