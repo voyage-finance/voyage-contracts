@@ -67,6 +67,30 @@ describe('BuyNow', function () {
     ).to.be.revertedWithCustomError(voyage, 'InvalidTokenid');
   });
 
+  it('Buy with wrong collection address should revert', async function () {
+    const {
+      crab,
+      owner,
+      voyage,
+      priceOracle,
+      purchaseDataFromLooksRare,
+      marketPlace,
+    } = await setupTestSuite();
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    const vault = await voyage.getVault(owner);
+    const juniorDeposit = toWad(50);
+    await voyage.deposit(crab.address, 0, juniorDeposit);
+    await expect(
+      voyage.buyNow(
+        marketPlace.address,
+        1,
+        vault,
+        marketPlace.address,
+        purchaseDataFromLooksRare
+      )
+    ).to.be.revertedWithCustomError(voyage, 'InvalidCollection');
+  });
+
   it('Buy with insufficient senior liquidity should revert', async function () {
     const {
       crab,

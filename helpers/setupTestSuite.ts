@@ -159,7 +159,7 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
   ) => MakerOrderWithVRS = (currency) => ({
     isOrderAsk: true,
     signer: '0xAc786F3E609eeBC3830A26881bd026B6b9211ae2',
-    collection: '0xd10E39Afe133eF729aE7f4266B26d173BC5AD1B1',
+    collection: crab.address,
     price: toWad(10),
     tokenId: '1',
     amount: 1,
@@ -225,7 +225,7 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     considerationIdentifier: ethers.BigNumber.from(0),
     considerationAmount: ethers.BigNumber.from(1),
     offerer: owner,
-    offerToken: '0xBd3531dA5CF5857e7CfAA92426877b022e612cf8',
+    offerToken: crab.address,
     offerIdentifier: ethers.BigNumber.from(6532),
     offerAmount: BigNumber.from(1),
     zone: '0x004C00500000aD104D7DBd00e3ae0A5C00560C00',
