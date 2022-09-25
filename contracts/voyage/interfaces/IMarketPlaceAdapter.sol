@@ -2,6 +2,7 @@
 pragma solidity ^0.8.9;
 
 struct AssetInfo {
+    address collection;
     uint256 tokenId;
     uint256 assetPrice;
     address currency;

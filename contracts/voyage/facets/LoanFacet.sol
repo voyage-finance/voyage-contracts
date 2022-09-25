@@ -191,9 +191,15 @@ contract LoanFacet is Storage, ReentrancyGuard {
         // 1. get price for params.tokenId  and floor price pv
         params.assetInfo = LibMarketplace.extractAssetInfo(_marketplace, _data);
         params.totalPrincipal = params.assetInfo.assetPrice;
+
+        if (params.collection != params.assetInfo.collection) {
+            revert InvalidCollection();
+        }
+
         if (params.tokenId != params.assetInfo.tokenId) {
             revert InvalidTokenid();
         }
+
         (params.fv, params.timestamp) = IPriceOracle(
             reserveData.priceOracle.implementation()
         ).getTwap(params.collection);
@@ -848,6 +854,7 @@ error InsufficientCreditLimit();
 error InvalidDebt();
 error InvalidLiquidate();
 error InvalidFloorPrice();
+error InvalidCollection();
 error InvalidTokenid();
 error InvalidPrincipal();
 error InvalidJuniorTrancheBalance();
