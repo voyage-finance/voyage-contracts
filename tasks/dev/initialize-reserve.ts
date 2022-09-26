@@ -8,13 +8,13 @@ task('dev:initialize-reserve', 'Initializes a reserve.')
     'collection',
     'The collections to initialize. Defaults to Mock Crab'
   )
-  .addOptionalParam('tenure', 'The loan tenure.', 90, types.int)
-  .addOptionalParam('epoch', 'Repayment interval.', 30, types.int)
-  .addOptionalParam('grace', 'The grace period.', 7, types.int)
+  .addOptionalParam('tenure', 'The loan tenure.', 42, types.int)
+  .addOptionalParam('epoch', 'Repayment interval.', 14, types.int)
+  .addOptionalParam('grace', 'The grace period.', 0, types.int)
   .addOptionalParam(
     'liquidationBonus',
     'Liquidation bonus in basis points.',
-    10500,
+    12000,
     types.int
   )
   .addOptionalParam(
@@ -43,8 +43,8 @@ task('dev:initialize-reserve', 'Initializes a reserve.')
   )
   .addOptionalParam(
     'staleness',
-    'The maximum staleness. Defaults to 48 hours.',
-    48 * 60 * 60,
+    'The maximum staleness. Defaults to 6 hours.',
+    6 * 60 * 60,
     types.int
   )
   .setAction(async (params, hre) => {
