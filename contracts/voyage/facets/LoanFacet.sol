@@ -222,7 +222,6 @@ contract LoanFacet is Storage, ReentrancyGuard {
         }
 
         // 2. get borrow params and borrow rate
-
         (params.epoch, params.term) = reserveConf.getBorrowParams();
         params.nper = params.term / params.epoch;
         params.outstandingPrincipal =
@@ -311,20 +310,35 @@ contract LoanFacet is Storage, ReentrancyGuard {
             revert InsufficientCreditLimit();
         }
 
+        // 7. check if currency is suported
         if (
-            IERC20(reserveData.currency).balanceOf(params.vault) <
-            params.downpayment
+            params.assetInfo.currency != address(0) &&
+            params.assetInfo.currency != address(LibAppStorage.ds().WETH9)
         ) {
-            revert InsufficientVaultBalance();
+            revert InvalidCurrencyType();
         }
 
-        // 7. transfer money to this
+        // 8. check vault balance according to currency type
+        if (params.assetInfo.currency == address(0)) {
+            if (params.vault.balance < params.downpayment) {
+                revert InsufficientVaultETHBalance();
+            }
+        } else {
+            if (
+                IERC20(reserveData.currency).balanceOf(params.vault) <
+                params.downpayment
+            ) {
+                revert InsufficientVaultWETHBalance();
+            }
+        }
+
+        // 9. transfer money to this
         IVToken(reserveData.seniorDepositTokenAddress).transferUnderlyingTo(
             address(this),
             params.outstandingPrincipal
         );
 
-        // 8. distrubute interest and protocol fee before unwrap weth to eth
+        // 10. distrubute interest and protocol fee before unwrap weth to eth
         LibLoan.distributeInterest(
             reserveData,
             params.pmt.interest,
@@ -347,15 +361,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
                 params.loanId
             );
 
-        // 9 check if currency is suported
-        if (
-            params.assetInfo.currency != address(0) &&
-            params.assetInfo.currency != address(LibAppStorage.ds().WETH9)
-        ) {
-            revert InvalidCurrencyType();
-        }
-
-        // 10.1 if currency is eth
+        // 11.1 if currency is eth
         if (params.assetInfo.currency == address(0)) {
             LibPayments.unwrapWETH9(params.outstandingPrincipal, address(this));
             SafeTransferLib.safeTransferETH(
@@ -369,7 +375,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
                 _data
             );
         } else {
-            // 10.2 if currency is weth
+            // 11.2 if currency is weth
             IERC20(LibAppStorage.ds().WETH9).safeTransfer(
                 params.vault,
                 params.outstandingPrincipal
@@ -378,7 +384,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
             LibMarketplace.purchase(params.marketplace, params.vault, 0, _data);
         }
 
-        // 11. first payment
+        // 12. first payment
         BorrowData storage debtData = LibLoan.getBorrowData(
             params.collection,
             reserveData.currency,
@@ -848,7 +854,8 @@ error Unauthorised();
 error InsufficientCash();
 error InsufficientLiquidity();
 error InsufficientJuniorLiquidity();
-error InsufficientVaultBalance();
+error InsufficientVaultWETHBalance();
+error InsufficientVaultETHBalance();
 error InsufficientMaxCreditLimit();
 error InsufficientCreditLimit();
 error InvalidDebt();
