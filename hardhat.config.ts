@@ -28,6 +28,8 @@ const HARDHAT_MNEMONIC =
   process.env.HARDHAT_MNEMONIC ||
   'test test test test test test test test test test test junk';
 
+const MAINNET_MNEMONIC = process.env.MAINNET_MNEMONIC || '';
+
 const HARDHAT_CHAIN_ID = process.env.HARDHAT_CHAIN_ID
   ? parseInt(process.env.HARDHAT_CHAIN_ID)
   : 31337;
@@ -89,7 +91,7 @@ const config: HardhatUserConfig = {
       chainId: 1,
       url: `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_MAINNET_API_KEY}`,
       accounts: {
-        mnemonic: process.env.MAINNET_MNEMONIC,
+        mnemonic: MAINNET_MNEMONIC,
       },
     }
   },
