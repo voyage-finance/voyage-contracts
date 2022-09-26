@@ -55,9 +55,7 @@ contract LiquidityFacet is Storage, ReentrancyGuard {
         address _interestRateStrategyAddress,
         address _priceOracle
     ) external authorised {
-        if (
-            !Address.isContract(_collection) || !Address.isContract(_currency)
-        ) {
+        if (_currency != address(LibAppStorage.ds().WETH9)) {
             revert InvalidContract();
         }
         ReserveData storage reserveData = LibLiquidity.getReserveData(
