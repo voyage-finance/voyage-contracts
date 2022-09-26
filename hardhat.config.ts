@@ -85,6 +85,13 @@ const config: HardhatUserConfig = {
         mnemonic: process.env.GOERLI_MNEMONIC,
       },
     },
+    mainnet: {
+      chainId: 1,
+      url: `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_MAINNET_API_KEY}`,
+      accounts: {
+        mnemonic: process.env.MAINNET_MNEMONIC,
+      },
+    }
   },
   watcher: {
     test: {
