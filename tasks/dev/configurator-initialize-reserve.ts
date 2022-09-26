@@ -1,8 +1,8 @@
 import { Voyage } from '@contracts';
+import { BASE_RATE, EPOCH, GRACE_PERIOD, INCOME_RATIO, LIQUIDATION_BONUS, OPTIMAL_LIQUIDITY_RATIO, PROTOCOL_FEE, STALENESS, TENURE } from '@helpers/configuration';
 import { ReserveConfiguration } from '@helpers/setupTestSuite';
 import { getTreasury, getWETH9 } from '@helpers/task-helpers/addresses';
 import { task,types } from 'hardhat/config';
-//hardhat --network goerli dev:configure-configurator
 
 task('dev:configurator-initialize-reserve', 'Initializes a reserve.')
   .addOptionalParam('collection', 'The collections to initialize. Defaults to Mock Crab')
@@ -10,34 +10,34 @@ task('dev:configurator-initialize-reserve', 'Initializes a reserve.')
   .addOptionalParam(
     'liquidationBonus',
     'Liquidation bonus in basis points.',
-    10500,
+    LIQUIDATION_BONUS,
     types.int
   )
   .addOptionalParam(
     'incomeRatio',
     'The senior tranche income allocation in basis points.',
-    5000,
+    INCOME_RATIO,
     types.int
   )
   .addOptionalParam(
     'optimalLiquidityRatio',
     'The optimal senior:junior tranche liquidity in basis points.',
-    50000,
+    OPTIMAL_LIQUIDITY_RATIO,
     types.int
   )
   .addOptionalParam(
     'staleness',
     'The maximum staleness. Defaults to 48 hours.',
-    48 * 60 * 60,
+    STALENESS,
     types.int
   )
-  .addOptionalParam('epoch', 'Repayment interval.', 30, types.int)
-  .addOptionalParam('tenure', 'The loan tenure.', 90, types.int)
-  .addOptionalParam('grace', 'The grace period.', 7, types.int)
+  .addOptionalParam('epoch', 'Repayment interval.', EPOCH, types.int)
+  .addOptionalParam('tenure', 'The loan tenure.', TENURE, types.int)
+  .addOptionalParam('grace', 'The grace period.', GRACE_PERIOD, types.int)
   .addOptionalParam(
     'protocolFee',
     'The protocol fee expressed in basis points.',
-    100,
+    PROTOCOL_FEE,
     types.int
   )
   .setAction(async (params, hre) => {
@@ -83,7 +83,7 @@ task('dev:configurator-initialize-reserve', 'Initializes a reserve.')
         gracePeriod: grace,
         protocolFee: protocolFee,
         maxTwapStaleness: staleness,
-        baseRate: 0.2,
+        baseRate: BASE_RATE.toString(),
         treasury: treasury,
         marketplaces: [],
         adapters: [],

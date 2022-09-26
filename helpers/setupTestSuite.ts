@@ -18,6 +18,17 @@ import {
 import { BigNumber } from 'ethers';
 import { deployments as d } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import {
+  BASE_RATE,
+  EPOCH,
+  GRACE_PERIOD,
+  INCOME_RATIO,
+  LIQUIDATION_BONUS,
+  OPTIMAL_LIQUIDITY_RATIO,
+  PROTOCOL_FEE,
+  STALENESS,
+  TENURE,
+} from './configuration';
 import { REFUND_GAS_PRICE, REFUND_GAS_UNIT } from './constants';
 import { deployFacets, FacetCutAction } from './diamond';
 import { decimals, MAX_UINT_256, toWad } from './math';
@@ -40,7 +51,7 @@ export interface ReserveConfiguration {
   gracePeriod: number;
   protocolFee: number;
   maxTwapStaleness: number;
-  baseRate: number;
+  baseRate: string;
   treasury: string;
   marketplaces: string[];
   adapters: string[];
@@ -93,15 +104,15 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     currency: weth.address,
     interestRateStrategyAddress: defaultReserveInterestRateStrategy.address,
     priceOracle: priceOracle.address,
-    liquidationBonus: 10500,
-    incomeRatio: 0.5 * 1e4,
-    optimalLiquidityRatio: 0.5 * 1e4,
-    epoch: 30,
-    term: 90,
-    gracePeriod: 10,
-    protocolFee: 200,
-    maxTwapStaleness: 10000,
-    baseRate: 0.2,
+    liquidationBonus: LIQUIDATION_BONUS,
+    incomeRatio: INCOME_RATIO,
+    optimalLiquidityRatio: OPTIMAL_LIQUIDITY_RATIO,
+    epoch: EPOCH,
+    term: TENURE,
+    gracePeriod: GRACE_PERIOD,
+    protocolFee: PROTOCOL_FEE,
+    maxTwapStaleness: STALENESS,
+    baseRate: BASE_RATE.toString(),
     treasury: treasury,
     marketplaces: [seaport.address, marketPlace.address],
     adapters: [seaportAdapter.address, looksRareAdapter.address],
