@@ -266,7 +266,7 @@ describe('Liquidate', function () {
     const effectiveInterestRate = calculateEffectiveInterestRate(
       BigNumber.from(reserveConfiguration.epoch),
       BigNumber.from(nper),
-      BigNumber.from(toRay2(reserveConfiguration.baseRate))
+      BigNumber.from(reserveConfiguration.baseRate)
     );
     const outstandingSeniorInterest = getOutstandingSeniorInterest(
       nftPrice,
@@ -361,7 +361,7 @@ describe('Liquidate', function () {
     const effectiveInterestRate = calculateEffectiveInterestRate(
       BigNumber.from(reserveConfiguration.epoch),
       BigNumber.from(nper),
-      BigNumber.from(toRay2(reserveConfiguration.baseRate))
+      BigNumber.from(reserveConfiguration.baseRate)
     );
     const outstandingSeniorInterest = getOutstandingSeniorInterest(
       nftPrice,
@@ -455,7 +455,7 @@ describe('Liquidate', function () {
     const effectiveInterestRate = calculateEffectiveInterestRate(
       BigNumber.from(reserveConfiguration.epoch),
       BigNumber.from(nper),
-      BigNumber.from(toRay2(reserveConfiguration.baseRate))
+      BigNumber.from(reserveConfiguration.baseRate)
     );
     const outstandingSeniorInterest = getOutstandingSeniorInterest(
       nftPrice,
@@ -538,7 +538,7 @@ describe('Liquidate', function () {
     const effectiveInterestRate = calculateEffectiveInterestRate(
       BigNumber.from(reserveConfiguration.epoch),
       BigNumber.from(nper),
-      BigNumber.from(toRay2(reserveConfiguration.baseRate))
+      BigNumber.from(reserveConfiguration.baseRate)
     );
     const outstandingSeniorInterest = getOutstandingSeniorInterest(
       nftPrice,
@@ -674,7 +674,7 @@ describe('Liquidate', function () {
     const effectiveInterestRate = calculateEffectiveInterestRate(
       BigNumber.from(reserveConfiguration.epoch),
       BigNumber.from(nper),
-      BigNumber.from(toRay2(reserveConfiguration.baseRate))
+      BigNumber.from(reserveConfiguration.baseRate)
     );
 
     const outstandingSeniorInterest = getOutstandingSeniorInterest(

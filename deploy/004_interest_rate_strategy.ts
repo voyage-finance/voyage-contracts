@@ -7,14 +7,9 @@ const main: DeployFunction = async (hre) => {
   const { deploy } = deployments;
   const { owner } = await getNamedAccounts();
 
-  // 0.6
-  const utilisationRate = ethers.BigNumber.from(6).mul(RAY).div(10);
-  // 8
-  const slope = ethers.BigNumber.from(800).mul(RAY).div(100);
-  // 0.5214286714290
-  const baseInterest = ethers.BigNumber.from(521428671429)
-    .mul(RAY)
-    .div(1000000000000);
+  const utilisationRate = ethers.BigNumber.from(8).mul(RAY).div(10);
+  const slope = ethers.BigNumber.from(4).mul(RAY).div(100);
+  const baseInterest = ethers.BigNumber.from(2).mul(RAY).div(10);
 
   const wrm = await deploy('WadRayMath', { from: owner, log: true });
   await deploy('DefaultReserveInterestRateStrategy', {
