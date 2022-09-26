@@ -14,6 +14,7 @@
     "hardhat:goerli": "hardhat --network goerli",
     "hardhat:tenderly": "hardhat --network tenderly",
     "deploy:local": "yarn hardhat:local deploy:dev",
+    "deploy:mainnet": "yarn hardhat:mainnet deploy:dev",
     "deploy:goerli": "TENDERLY=true yarn hardhat:goerli deploy:dev",
     "deploy:tenderly": "TENDERLY=true yarn hardhat:tenderly deploy:dev",
     "dev": "hardhat node --hostname 0.0.0.0 --watch --no-deploy",
