@@ -6,3 +6,4 @@ import './configure-gsn';
 import './configure-configurator';
 import './configure-jd-impl';
 import './configure-sd-impl';
+import './configurator-initialize-reserve';
