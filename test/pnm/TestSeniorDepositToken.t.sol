@@ -2,7 +2,7 @@ pragma solidity ^0.8.9;
 
 import "./TestBase.t.sol";
 
-// This is a testing of the vault used by Voyage.
+// SeniorDepositToken is a tokenized vault used by Voyage
 contract TestSeniorDepositToken is TestBase {
     // Shared setUp() process in TestBase
 
