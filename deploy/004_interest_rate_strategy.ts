@@ -9,8 +9,8 @@ const main: DeployFunction = async (hre) => {
 
   // 0.6
   const utilisationRate = ethers.BigNumber.from(6).mul(RAY).div(10);
-  // 1
-  const slope = ethers.BigNumber.from(100).mul(RAY).div(100);
+  // 8
+  const slope = ethers.BigNumber.from(800).mul(RAY).div(100);
   // 0.5214286714290
   const baseInterest = ethers.BigNumber.from(521428671429)
     .mul(RAY)
