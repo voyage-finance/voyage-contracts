@@ -1,4 +1,5 @@
 import { Voyage } from '@contracts';
+import { INCOME_RATIO, LIQUIDATION_BONUS, OPTIMAL_LIQUIDITY_RATIO, PROTOCOL_FEE,TENURE,EPOCH,GRACE_PERIOD,STALENESS } from '@helpers/configuration';
 import { getWETH9 } from '@helpers/task-helpers/addresses';
 import { setTwap } from '@helpers/task-helpers/configuration';
 import { task, types } from 'hardhat/config';
@@ -8,31 +9,31 @@ task('dev:initialize-reserve', 'Initializes a reserve.')
     'collection',
     'The collections to initialize. Defaults to Mock Crab'
   )
-  .addOptionalParam('tenure', 'The loan tenure.', 90, types.int)
-  .addOptionalParam('epoch', 'Repayment interval.', 30, types.int)
-  .addOptionalParam('grace', 'The grace period.', 7, types.int)
+  .addOptionalParam('tenure', 'The loan tenure.', TENURE, types.int)
+  .addOptionalParam('epoch', 'Repayment interval.', EPOCH, types.int)
+  .addOptionalParam('grace', 'The grace period.', GRACE_PERIOD, types.int)
   .addOptionalParam(
     'liquidationBonus',
     'Liquidation bonus in basis points.',
-    10500,
+    LIQUIDATION_BONUS,
     types.int
   )
   .addOptionalParam(
     'incomeRatio',
     'The senior tranche income allocation in basis points.',
-    5000,
+    INCOME_RATIO,
     types.int
   )
   .addOptionalParam(
     'optimalLiquidityRatio',
     'The optimal senior:junior tranche liquidity in basis points.',
-    50000,
+    OPTIMAL_LIQUIDITY_RATIO,
     types.int
   )
   .addOptionalParam(
     'protocolFee',
     'The protocol fee expressed in basis points.',
-    100,
+    PROTOCOL_FEE,
     types.int
   )
   .addOptionalParam(
@@ -44,7 +45,7 @@ task('dev:initialize-reserve', 'Initializes a reserve.')
   .addOptionalParam(
     'staleness',
     'The maximum staleness. Defaults to 48 hours.',
-    48 * 60 * 60,
+    STALENESS,
     types.int
   )
   .setAction(async (params, hre) => {
