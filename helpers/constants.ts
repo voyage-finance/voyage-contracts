@@ -67,3 +67,9 @@ export const SEAPORT_ADDRESS: ExternalContractMapping = {
   [ChainID.Rinkeby]: CROSS_CHAIN_SEAPORT_ADDRESS,
   [ChainID.Goerli]: CROSS_CHAIN_SEAPORT_ADDRESS,
 };
+
+export const TWAP_OPERATOR_ADDRESS: ExternalContractMapping = {
+  [ChainID.Mainnet]: '0x989d103d87dc8ee0fd06212bfd0bd6c08c661ed4',
+  [ChainID.Rinkeby]: '0xbeb4b7a96dd4fc94767e6cc9e5ce881bc0db2b5d',
+  [ChainID.Goerli]: '0xbeb4b7a96dd4fc94767e6cc9e5ce881bc0db2b5d',
+};
