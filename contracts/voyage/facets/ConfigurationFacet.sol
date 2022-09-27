@@ -4,7 +4,7 @@ pragma solidity ^0.8.9;
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IPaymaster} from "@opengsn/contracts/src/BasePaymaster.sol";
-import {LibAppStorage, AppStorage, Storage, ReserveConfigurationMap} from "../libraries/LibAppStorage.sol";
+import {LibAppStorage, AppStorage, Storage, ReserveConfigurationMap, ReserveData} from "../libraries/LibAppStorage.sol";
 import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
 import {LibVault} from "../libraries/LibVault.sol";
 
@@ -134,6 +134,19 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
         emit GSNConfigurationUpdated(_paymaster, _trustedForwarder);
     }
 
+    function setInterestRateStrategyAddress(
+        address _reserve,
+        address _interestRateStrategyAddress
+    ) external authorised {
+        ReserveData storage reserveData = LibAppStorage.ds()._reserveData[
+            _reserve
+        ];
+        if (!reserveData.initialized) {
+            revert ReserveNotInitialized();
+        }
+        reserveData.interestRateStrategyAddress = _interestRateStrategyAddress;
+    }
+
     function getPaymasterAddr() external view returns (address) {
         return LibAppStorage.ds().paymaster;
     }
@@ -173,3 +186,5 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
         return conf.getMaxTwapStaleness();
     }
 }
+
+error ReserveNotInitialized();

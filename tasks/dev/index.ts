@@ -10,3 +10,6 @@ import './configurator-initialize-reserve';
 import './configure-treasury';
 import './grant_relayer';
 import './configure-twap-operator';
+import './configure-interest-strategy';
+import './approve-marketplace';
+import './withdraw-nft';

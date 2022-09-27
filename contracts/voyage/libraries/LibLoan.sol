@@ -249,15 +249,23 @@ library LibLoan {
         // code inlined
         borrowState.totalDebt = borrowState.totalDebt - loan.pmt.principal;
         uint256 seniorInterest = loan.pmt.interest.percentMul(incomeRatio);
-        borrowState.totalInterest =
-            borrowState.totalInterest -
-            loan.pmt.interest;
-        borrowState.totalSeniorInterest =
-            borrowState.totalSeniorInterest -
-            seniorInterest;
-        borrowState.totalJuniorInterest =
-            borrowState.totalJuniorInterest -
-            (loan.pmt.interest - seniorInterest);
+        if (borrowState.totalInterest < loan.pmt.interest) {
+            borrowState.totalInterest = 0;
+        } else {
+            borrowState.totalInterest -= loan.pmt.interest;
+        }
+        if (borrowState.totalSeniorInterest < seniorInterest) {
+            borrowState.totalSeniorInterest = 0;
+        } else {
+            borrowState.totalSeniorInterest -= seniorInterest;
+        }
+        uint256 juniorInterest = loan.pmt.interest - seniorInterest;
+
+        if (borrowState.totalJuniorInterest < juniorInterest) {
+            borrowState.totalJuniorInterest = 0;
+        } else {
+            borrowState.totalJuniorInterest -= juniorInterest;
+        }
     }
 
     function closeDebt(
@@ -357,12 +365,17 @@ library LibLoan {
             borrowState.totalInterest -
             loan.pmt.interest;
         uint256 seniorInterest = loan.pmt.interest.percentMul(loan.incomeRatio);
-        borrowState.totalSeniorInterest =
-            borrowState.totalSeniorInterest -
-            seniorInterest;
-        borrowState.totalJuniorInterest =
-            borrowState.totalJuniorInterest -
-            (loan.pmt.interest - seniorInterest);
+        if (borrowState.totalSeniorInterest < seniorInterest) {
+            borrowState.totalSeniorInterest = 0;
+        } else {
+            borrowState.totalSeniorInterest -= seniorInterest;
+        }
+        uint256 juniorInterest = loan.pmt.interest - seniorInterest;
+        if (borrowState.totalJuniorInterest < juniorInterest) {
+            borrowState.totalJuniorInterest = 0;
+        } else {
+            borrowState.totalJuniorInterest -= juniorInterest;
+        }
     }
 
     function writedownSeniorInterest(
