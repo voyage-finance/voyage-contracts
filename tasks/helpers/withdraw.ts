@@ -31,7 +31,8 @@ task('dev:withdraw', 'Withdraws from the specified pool.')
     }
 
     const jrVToken = await ethers.getContractAt('JuniorDepositToken', jr);
-    const jrVTokenAllowance = await srVToken.allowance(owner, voyage.address);
+    const jrVTokenAllowance = await jrVToken.allowance(owner, voyage.address);
+    console.log('jrVTokenAllowance: ', jrVTokenAllowance);
     if (jrVTokenAllowance.lt(MAX_UINT_256)) {
       const tx = await jrVToken.approve(voyage.address, MAX_UINT_256);
       await tx.wait();

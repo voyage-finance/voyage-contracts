@@ -2,6 +2,7 @@ import { task } from 'hardhat/config';
 import { Voyage } from '@contracts';
 import { getTxCostAndTimestamp } from 'test/helpers/actions';
 import { REFUND_GAS_PRICE, REFUND_GAS_UNIT } from '@helpers/constants';
+import { fund } from '@helpers/task-helpers/vault';
 
 task(
   'dev:create-vault',
@@ -15,6 +16,13 @@ task(
     const voyage = await ethers.getContract<Voyage>('Voyage');
     const { owner } = await getNamedAccounts();
     const { user = owner, salt = ethers.utils.randomBytes(20) } = params;
+    const computedVaultAddr = await voyage.computeCounterfactualAddress(owner,salt);
+    const receipt = await fund(
+      computedVaultAddr,
+      hre.ethers.utils.parseEther('10'),
+      owner,
+      true
+    );
     let vaultAddress = await voyage.getVault(user);
     if (vaultAddress === ethers.constants.AddressZero) {
       console.log(

@@ -130,3 +130,4 @@ task('dev:initialize-reserve', 'Initializes a reserve.')
     });
     console.log(`Set ${collection} floor price to ${floorPrice}. \n`);
   });
+  

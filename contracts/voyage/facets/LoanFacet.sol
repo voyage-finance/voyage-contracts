@@ -244,9 +244,9 @@ contract LoanFacet is Storage, ReentrancyGuard {
         }
 
         if (
-            params.totalJuniorBalance.percentDiv(
+            params.outstandingPrincipal.percentDiv(
                 reserveConf.getOptimalLiquidityRatio()
-            ) < params.outstandingPrincipal
+            ) > params.totalJuniorBalance
         ) {
             revert InsufficientJuniorLiquidity();
         }

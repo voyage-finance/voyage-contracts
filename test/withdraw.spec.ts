@@ -317,7 +317,7 @@ describe('Withdraw', function () {
     const vault = await voyage.getVault(owner);
 
     const depositAmount = toWad(120);
-    const juniorDeposit = toWad(5);
+    const juniorDeposit = toWad(50);
     await voyage.deposit(crab.address, 0, juniorDeposit);
     await voyage.deposit(crab.address, 1, depositAmount);
     await priceOracle.updateTwap(crab.address, toWad(100));
@@ -372,7 +372,7 @@ describe('Withdraw', function () {
     const vault = await voyage.getVault(owner);
 
     const depositAmount = toWad(120);
-    const juniorDeposit = toWad(5);
+    const juniorDeposit = toWad(50);
     await voyage.deposit(crab.address, 0, juniorDeposit);
     await voyage.deposit(crab.address, 1, depositAmount);
     await priceOracle.updateTwap(crab.address, toWad(100));
