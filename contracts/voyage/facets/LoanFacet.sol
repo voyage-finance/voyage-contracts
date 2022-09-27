@@ -244,12 +244,20 @@ contract LoanFacet is Storage, ReentrancyGuard {
         }
 
         if (
-            params.totalJuniorBalance.percentDiv(
+            params.outstandingPrincipal.percentDiv(
                 reserveConf.getOptimalLiquidityRatio()
-            ) < params.outstandingPrincipal
+            ) > params.totalJuniorBalance
         ) {
             revert InsufficientJuniorLiquidity();
         }
+
+        // if (
+        //     params.totalJuniorBalance.percentDiv(
+        //         reserveConf.getOptimalLiquidityRatio()
+        //     ) < params.outstandingPrincipal
+        // ) {
+        //     revert InsufficientJuniorLiquidity();
+        // }
 
         // 3.2 check if available liquidity sufficient
         params.totalPending = IUnbondingToken(
