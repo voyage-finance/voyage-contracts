@@ -3,6 +3,7 @@ import './deposit-reserve';
 import './deposit-weth';
 import './unwrap-weth';
 import './approve-weth';
+import './approve-marketplace';
 import './unbonding';
 import './withdraw';
 import './claim';
