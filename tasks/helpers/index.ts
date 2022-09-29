@@ -16,6 +16,7 @@ import './bootstrap-user';
 import './decode-looks';
 import './decode-looks-error';
 import './decode-buy-now';
+import './decode-create-vault';
 import './decode-relaycall';
 import './decode-seaport-error';
 import './decode-seaport';
