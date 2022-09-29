@@ -13,7 +13,7 @@ contract VoyagePaymaster is BasePaymaster {
 
     address public immutable voyage;
     address public immutable weth9;
-    address public immutable treasury;
+    address public treasury;
 
     uint256 public constant REFUND_GAS_OVERHEAD = 35000;
     uint256 public constant PRE_RELAYED_CALL_OVERHEAD = 60000;
@@ -113,6 +113,10 @@ contract VoyagePaymaster is BasePaymaster {
             ? minimumFees
             : minimumFees + 21000 * relayData.gasPrice; // cover cost of unwrapping WETH
         IVault(vault).refundGas(refund, treasury);
+    }
+
+    function setTreasuryAddress(address _treasury) public onlyOwner {
+        treasury = _treasury;
     }
 }
 
