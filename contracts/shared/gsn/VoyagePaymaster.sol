@@ -27,6 +27,15 @@ contract VoyagePaymaster is BasePaymaster {
         address _weth9,
         address _treasury
     ) {
+        if (_voyage == address(0)) {
+            revert InvalidVoyageAddress();
+        }
+        if (_weth9 == address(0)) {
+            revert InvalidWeth9Address();
+        }
+        if (_treasury == address(0)) {
+            revert InvalidTreasuryAddress();
+        }
         voyage = _voyage;
         weth9 = _weth9;
         treasury = _treasury;
@@ -106,3 +115,7 @@ contract VoyagePaymaster is BasePaymaster {
         IVault(vault).refundGas(refund, treasury);
     }
 }
+
+error InvalidVoyageAddress();
+error InvalidWeth9Address();
+error InvalidTreasuryAddress();
