@@ -6,6 +6,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
+import {ILiquidityFacet} from "../interfaces/ILiquidityFacet.sol";
 import {JuniorDepositToken} from "../tokenization/JuniorDepositToken.sol";
 import {SeniorDepositToken} from "../tokenization/SeniorDepositToken.sol";
 import {LibAppStorage, AppStorage, Storage, Tranche, ReserveData, BorrowState, ReserveConfigurationMap} from "../libraries/LibAppStorage.sol";
@@ -16,37 +17,11 @@ import {IERC4626} from "../../shared/interfaces/IERC4626.sol";
 import {IWETH9, LibPayments} from "../../shared/libraries/LibPayments.sol";
 import {IUnbondingToken} from "../tokenization/SeniorDepositToken.sol";
 
-contract LiquidityFacet is Storage, ReentrancyGuard {
+contract LiquidityFacet is Storage, ReentrancyGuard, ILiquidityFacet {
     using LibLiquidity for ReserveData;
     using LibReserveConfiguration for ReserveConfigurationMap;
     using WadRayMath for uint256;
     using SafeERC20 for IERC20;
-
-    event ReserveInitialized(
-        address indexed _collection,
-        address indexed _currency,
-        address _juniorDepositTokenAddress,
-        address _seniorDepositTokenAddress,
-        address _interestRateStrategyAddress
-    );
-    event ReserveActivated(address indexed _collection);
-    event ReserveInactived(address indexed _collection);
-    event Deposit(
-        address indexed _collection,
-        address indexed _currency,
-        address indexed _user,
-        Tranche _tranche,
-        uint256 amount
-    );
-    event Withdraw(
-        address indexed _collection,
-        address indexed _currency,
-        address indexed _user,
-        Tranche _tranche,
-        uint256 amount
-    );
-
-    event ProtocolFeeUpdated(address indexed _treasury, uint256 _fee);
 
     /* ----------------------------- admin interface ---------------------------- */
     function initReserve(
@@ -190,7 +165,7 @@ contract LiquidityFacet is Storage, ReentrancyGuard {
     /* ---------------------------------- views --------------------------------- */
 
     function getReserveStatus(address _collection)
-        public
+        external
         view
         returns (bool initialized, bool activated)
     {
@@ -204,12 +179,12 @@ contract LiquidityFacet is Storage, ReentrancyGuard {
         address _collection,
         address _user,
         Tranche _tranche
-    ) public view returns (uint256) {
+    ) external view returns (uint256) {
         return LibLiquidity.balance(_collection, _user, _tranche);
     }
 
     function unbonding(address _collection, address _user)
-        public
+        external
         view
         returns (uint256)
     {

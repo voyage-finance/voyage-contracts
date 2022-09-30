@@ -12,34 +12,15 @@ import {LibAppStorage, AppStorage, Storage, NFTInfo, DiamondFacet, ReserveConfig
 import {LibVault} from "../libraries/LibVault.sol";
 import {LibSecurity} from "../libraries/LibSecurity.sol";
 import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
+import {IVaultFacet} from "../interfaces/IVaultFacet.sol";
 import {IVault} from "../../vault/Vault.sol";
 import {IDiamondCut} from "../../shared/diamond/interfaces/IDiamondCut.sol";
 import {DiamondCutFacet} from "../../shared/diamond/facets/DiamondCutFacet.sol";
 import {IWETH9} from "../../shared/interfaces/IWETH9.sol";
 
-contract VaultFacet is Storage, ReentrancyGuard {
+contract VaultFacet is Storage, ReentrancyGuard, IVaultFacet {
     using SafeERC20 for IERC20;
     using LibReserveConfiguration for ReserveConfigurationMap;
-    /* --------------------------------- events --------------------------------- */
-    event VaultCreated(
-        address _vault,
-        address _owner,
-        uint256 _numVaults,
-        uint256 refundAmount
-    );
-    event VaultMarginCredited(
-        address indexed _vault,
-        address indexed _asset,
-        address _sponsor,
-        uint256 _amount
-    );
-    event VaultMarginRedeemed(
-        address indexed _vault,
-        address indexed _asset,
-        address _sponsor,
-        uint256 _amount
-    );
-    event VaultImplementationUpdated(address _impl);
 
     /* ----------------------------- admin interface ---------------------------- */
     function createVault(
@@ -94,7 +75,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         address _vault,
         address _collection,
         uint256 _tokenId
-    ) public onlyVaultOwner(_vault, _msgSender()) whenNotPaused nonReentrant {
+    ) external onlyVaultOwner(_vault, _msgSender()) whenNotPaused nonReentrant {
         checkContractAddr(_collection);
         if (LibAppStorage.ds().nftIndex[_collection][_tokenId].isCollateral) {
             revert InvalidWithdrawal();
@@ -111,7 +92,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         address _currency,
         address _to,
         uint256 _amount
-    ) public onlyVaultOwner(_vault, _msgSender()) nonReentrant {
+    ) external onlyVaultOwner(_vault, _msgSender()) nonReentrant {
         checkContractAddr(_currency);
         // to prevent currency being a collection address
         if (LibAppStorage.ds()._reserveData[_currency].currency != address(0)) {
@@ -124,7 +105,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
     }
 
     function wrapVaultETH(address _vault, uint256 _value)
-        public
+        external
         onlyVaultOwner(_vault, _msgSender())
         whenNotPaused
         nonReentrant
@@ -135,7 +116,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
     }
 
     function unwrapVaultETH(address _vault, uint256 _vaule)
-        public
+        external
         onlyVaultOwner(_vault, _msgSender())
         whenNotPaused
         nonReentrant
@@ -150,7 +131,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         address _vault,
         address _marketplace,
         bool revoke
-    ) public onlyVaultOwner(_vault, _msgSender()) whenNotPaused nonReentrant {
+    ) external onlyVaultOwner(_vault, _msgSender()) whenNotPaused nonReentrant {
         address adapterAddr = LibAppStorage
             .ds()
             .marketPlaceData[_marketplace]
@@ -213,11 +194,11 @@ contract VaultFacet is Storage, ReentrancyGuard {
         return LibVault.vaultBeacon();
     }
 
-    function subVaultBeacon() public view returns (address) {
+    function subVaultBeacon() external view returns (address) {
         return LibVault.subVaultBeacon();
     }
 
-    function getVaultAddr(address _user) public view returns (address) {
+    function getVaultAddr(address _user) external view returns (address) {
         return LibVault.getVaultAddress(_user);
     }
 

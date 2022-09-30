@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import {VaultFacet} from "../../voyage/facets/VaultFacet.sol";
+import {IVaultFacet} from "../../voyage/interfaces/IVaultFacet.sol";
 import {IVault} from "../../vault/Vault.sol";
 import {IPaymaster, BasePaymaster, GsnTypes} from "@opengsn/contracts/src/BasePaymaster.sol";
 import {IForwarder} from "@opengsn/contracts/src/forwarder/IForwarder.sol";
@@ -71,7 +71,7 @@ contract VoyagePaymaster is BasePaymaster {
         returns (bytes memory context, bool revertOnRecipientRevert)
     {
         _verifyForwarder(relayRequest);
-        address vault = VaultFacet(voyage).getVaultAddr(
+        address vault = IVaultFacet(voyage).getVaultAddr(
             relayRequest.request.from
         );
         if (vault == address(0)) {

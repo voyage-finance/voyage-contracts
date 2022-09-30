@@ -6,7 +6,6 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {DSRoles} from "../auth/DSRoles.sol";
 import {DSGuard} from "../auth/DSGuard.sol";
 import {LibSecurity} from "./LibSecurity.sol";
-import {IVaultFactory} from "../interfaces/IVaultFactory.sol";
 import {LibVault} from "./LibVault.sol";
 import {IWETH9} from "../../shared/libraries/LibPayments.sol";
 import {IDiamondCut} from "../../shared/diamond/interfaces/IDiamondCut.sol";
@@ -194,7 +193,6 @@ struct AppStorage {
     UpgradeableBeacon subVaultBeacon;
     UpgradeableBeacon vaultBeacon;
     DiamondFacet diamondFacet;
-    IVaultFactory vaultFactory;
     address[] vaults;
     // mapping of vault owner to vault instance address
     mapping(address => address) vaultMap;

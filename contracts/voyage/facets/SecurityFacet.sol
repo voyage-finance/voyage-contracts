@@ -5,8 +5,7 @@ import {Pausable} from "@openzeppelin/contracts/security/Pausable.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {Storage, Authorisation, LibAppStorage} from "../libraries/LibAppStorage.sol";
 import {LibSecurity} from "../libraries/LibSecurity.sol";
-import {VaultFacet} from "./VaultFacet.sol";
-import {LiquidityFacet} from "../facets/LiquidityFacet.sol";
+import {ILiquidityFacet} from "../interfaces/ILiquidityFacet.sol";
 import {ConfigurationFacet} from "../facets/ConfigurationFacet.sol";
 
 contract SecurityFacet is Storage {
@@ -76,13 +75,13 @@ contract SecurityFacet is Storage {
             revert InvalidConfiguratorContract();
         }
         bytes4[] memory selectors = new bytes4[](15);
-        selectors[0] = LiquidityFacet(address(0)).initReserve.selector;
-        selectors[1] = LiquidityFacet(address(0)).activateReserve.selector;
-        selectors[2] = LiquidityFacet(address(0)).deactivateReserve.selector;
-        selectors[3] = LiquidityFacet(address(0)).updateProtocolFee.selector;
-        selectors[4] = LiquidityFacet(address(0)).updateWETH9.selector;
+        selectors[0] = ILiquidityFacet(address(0)).initReserve.selector;
+        selectors[1] = ILiquidityFacet(address(0)).activateReserve.selector;
+        selectors[2] = ILiquidityFacet(address(0)).deactivateReserve.selector;
+        selectors[3] = ILiquidityFacet(address(0)).updateProtocolFee.selector;
+        selectors[4] = ILiquidityFacet(address(0)).updateWETH9.selector;
 
-        selectors[5] = LiquidityFacet(address(0))
+        selectors[5] = ILiquidityFacet(address(0))
             .upgradePriceOracleImpl
             .selector;
         selectors[6] = ConfigurationFacet(address(0))

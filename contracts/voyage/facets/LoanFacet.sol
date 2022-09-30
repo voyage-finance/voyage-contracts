@@ -14,6 +14,7 @@ import {IReserveInterestRateStrategy} from "../interfaces/IReserveInterestRateSt
 import {IVToken} from "../interfaces/IVToken.sol";
 import {AssetInfo} from "../interfaces/IMarketPlaceAdapter.sol";
 import {IPriceOracle} from "../interfaces/IPriceOracle.sol";
+import {ILoanFacet, ExecuteRepayParams, PreviewBuyNowParams} from "../interfaces/ILoanFacet.sol";
 import {LibAppStorage, AppStorage, Storage, BorrowData, BorrowState, Loan, ReserveConfigurationMap, ReserveData, PMT} from "../libraries/LibAppStorage.sol";
 import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
@@ -23,38 +24,13 @@ import {SafeTransferLib} from "../../shared/libraries/SafeTransferLib.sol";
 import {IVault} from "../../vault/Vault.sol";
 import {IUnbondingToken} from "../tokenization/SeniorDepositToken.sol";
 
-contract LoanFacet is Storage, ReentrancyGuard {
+contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
     using WadRayMath for uint256;
     using SafeERC20 for IERC20;
     using PercentageMath for uint256;
     using LibReserveConfiguration for ReserveConfigurationMap;
 
     uint256 public immutable TEN_THOUSANDS = 10000;
-
-    struct ExecuteRepayParams {
-        address vault;
-        uint256 principal;
-        uint256 interest;
-        uint256 fee;
-        uint256 total;
-        uint256 totalDebt;
-        uint256 incomeRatio;
-        uint256 takeRate;
-        address treasury;
-    }
-
-    struct PreviewBuyNowParams {
-        uint256 epoch;
-        uint256 term;
-        uint256 nper;
-        uint256 totalPrincipal;
-        uint256 totalInterest;
-        uint256 borrowRate;
-        uint256 takeRate;
-        uint256 protocolFee;
-        uint256 loanId;
-        PMT pmt;
-    }
 
     event Borrow(
         address indexed _vault,
@@ -95,7 +71,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
         address _collection,
         address _vault,
         uint256 _principal
-    ) public view returns (PreviewBuyNowParams memory) {
+    ) external view returns (PreviewBuyNowParams memory) {
         PreviewBuyNowParams memory params;
         params.totalPrincipal = _principal;
         ReserveData memory reserveData = LibLiquidity.getReserveData(
@@ -769,7 +745,7 @@ contract LoanFacet is Storage, ReentrancyGuard {
     }
 
     function getVaultDebt(address _collection, address _vault)
-        public
+        external
         view
         returns (uint256, uint256)
     {
