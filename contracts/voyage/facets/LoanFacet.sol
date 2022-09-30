@@ -14,6 +14,7 @@ import {IReserveInterestRateStrategy} from "../interfaces/IReserveInterestRateSt
 import {IVToken} from "../interfaces/IVToken.sol";
 import {AssetInfo} from "../interfaces/IMarketPlaceAdapter.sol";
 import {IPriceOracle} from "../interfaces/IPriceOracle.sol";
+import {IVaultFacet} from "../interfaces/IVaultFacet.sol";
 import {ILoanFacet, ExecuteRepayParams, PreviewBuyNowParams} from "../interfaces/ILoanFacet.sol";
 import {LibAppStorage, AppStorage, Storage, BorrowData, BorrowState, Loan, ReserveConfigurationMap, ReserveData, PMT} from "../libraries/LibAppStorage.sol";
 import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
@@ -297,7 +298,17 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
         // 8. check vault balance according to currency type
         if (params.assetInfo.currency == address(0)) {
             if (params.vault.balance < params.downpayment) {
-                revert InsufficientVaultETHBalance();
+                // unwrap from weth
+                if (
+                    IERC20(reserveData.currency).balanceOf(params.vault) <
+                    params.downpayment - params.vault.balance
+                ) {
+                    revert InsufficientVaultETHBalance();
+                }
+                IVaultFacet(address(this)).unwrapVaultETH(
+                    params.vault,
+                    params.downpayment - params.vault.balance
+                );
             }
         } else {
             if (
