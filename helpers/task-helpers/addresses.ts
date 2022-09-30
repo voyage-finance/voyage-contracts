@@ -4,7 +4,7 @@ import {
   TREASURY_ADDRESS,
   WETH_ADDRESS,
 } from '@helpers/constants';
-import { ChainID, ExternalChainID } from '@helpers/types';
+import { ExternalChainID } from '@helpers/types';
 import { isFork, isHardhat } from './chain';
 import { HRE as hre } from './hre';
 
