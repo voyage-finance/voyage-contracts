@@ -39,7 +39,7 @@ export const WETH_ADDRESS: ExternalContractMapping = {
 };
 
 export const TREASURY_ADDRESS: ExternalContractMapping = {
-  [ChainID.Mainnet]: '0x0000000000000000000000000000000000000000',
+  [ChainID.Mainnet]: '0x28178038f7b235b3F6DB3995C1B70D479918Fab8',
   [ChainID.Rinkeby]: '0x7bB17c9401110D05ec39894334cC9d7721E90688',
   [ChainID.Goerli]: '0x7bB17c9401110D05ec39894334cC9d7721E90688',
 };
