@@ -282,7 +282,9 @@ contract Vault is Initializable, IERC1271, IVault {
         return signer;
     }
 
-    receive() external payable {}
+    receive() external payable {
+        IWETH9(LibVaultStorage.ds().weth).deposit{value: msg.value}();
+    }
 
     /// @notice Get sub vault address of a specific user
     /// @param _owner The address of the user
