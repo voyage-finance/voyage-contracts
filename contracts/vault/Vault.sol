@@ -5,7 +5,7 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ConfigurationFacet} from "../voyage/facets/ConfigurationFacet.sol";
-import {VaultFacet} from "../voyage/facets/VaultFacet.sol";
+import {IVaultFacet} from "../voyage/interfaces/IVaultFacet.sol";
 import {SecurityFacet} from "../voyage/facets/SecurityFacet.sol";
 import {IWETH9} from "../shared/interfaces/IWETH9.sol";
 
@@ -168,7 +168,7 @@ contract Vault is Initializable, IERC1271, IVault {
         view
         returns (bool)
     {
-        VaultFacet vf = VaultFacet(LibVaultStorage.ds().voyage);
+        IVaultFacet vf = IVaultFacet(LibVaultStorage.ds().voyage);
         return vf.collectionInitialized(_collection);
     }
 

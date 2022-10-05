@@ -2,7 +2,7 @@
 pragma solidity ^0.8.9;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {LiquidityFacet} from "../voyage/facets/LiquidityFacet.sol";
+import {ILiquidityFacet} from "../voyage/interfaces/ILiquidityFacet.sol";
 import {ConfigurationFacet} from "../voyage/facets/ConfigurationFacet.sol";
 
 struct ConfigureReserveInput {
@@ -43,7 +43,7 @@ contract VoyageReserveConfigurator is Ownable {
         public
         onlyOwner
     {
-        LiquidityFacet(voyage).initReserve(
+        ILiquidityFacet(voyage).initReserve(
             input.collection,
             input.currency,
             input.interestRateStrategyAddress,
@@ -55,21 +55,21 @@ contract VoyageReserveConfigurator is Ownable {
         public
         onlyOwner
     {
-        LiquidityFacet(voyage).activateReserve(input.collection);
+        ILiquidityFacet(voyage).activateReserve(input.collection);
     }
 
     function deactivateReserve(ConfigureReserveInput calldata input)
         public
         onlyOwner
     {
-        LiquidityFacet(voyage).deactivateReserve(input.collection);
+        ILiquidityFacet(voyage).deactivateReserve(input.collection);
     }
 
     function upgradePriceOracleImpl(ConfigureReserveInput calldata input)
         public
         onlyOwner
     {
-        LiquidityFacet(voyage).upgradePriceOracleImpl(
+        ILiquidityFacet(voyage).upgradePriceOracleImpl(
             input.collection,
             input.priceOracle
         );
@@ -79,14 +79,14 @@ contract VoyageReserveConfigurator is Ownable {
         public
         onlyOwner
     {
-        LiquidityFacet(voyage).updateProtocolFee(
+        ILiquidityFacet(voyage).updateProtocolFee(
             input.treasury,
             input.protocolFee
         );
     }
 
     function updateWETH9(address weth9) public onlyOwner {
-        LiquidityFacet(voyage).updateWETH9(weth9);
+        ILiquidityFacet(voyage).updateWETH9(weth9);
     }
 
     function setLoanParams(ConfigureReserveInput calldata input)
