@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
-import {LoanFacet} from "../facets/LoanFacet.sol";
+import {ILoanFacet} from "../interfaces/ILoanFacet.sol";
 import {VToken} from "./VToken.sol";
 import {ERC4626, IERC4626} from "../../shared/tokenization/ERC4626.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
@@ -32,10 +32,10 @@ contract SeniorDepositToken is VToken, IUnbondingToken {
 
     function totalAssets() public view override returns (uint256) {
         uint256 underlyingBalance = asset.balanceOf(address(this));
-        uint256 outstandingPrincipal = LoanFacet(voyage).principalBalance(
+        uint256 outstandingPrincipal = ILoanFacet(voyage).principalBalance(
             collection
         );
-        uint256 outstandingInterest = LoanFacet(voyage).seniorInterestBalance(
+        uint256 outstandingInterest = ILoanFacet(voyage).seniorInterestBalance(
             collection,
             address(asset)
         );
