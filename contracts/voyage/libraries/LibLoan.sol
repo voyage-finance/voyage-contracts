@@ -104,6 +104,7 @@ library LibLoan {
         uint40 epoch;
         uint256 apr;
         uint256 loanNumber;
+        uint256 repaymentId;
     }
 
     event CollateralTransferred(
@@ -317,6 +318,7 @@ library LibLoan {
         Loan storage loan = debtData.loans[_loanNumber];
         debtData.paidLoanNumber += 1;
         loan.paidTimes += 1;
+        param.repaymentId = loan.paidTimes - 1;
 
         updateDebtData(debtData, loan);
         updateGlobalBorrowState(borrowState, loan);
@@ -327,7 +329,7 @@ library LibLoan {
             insertRapayment(loan);
         }
 
-        return (isFinal ? 0 : loan.repayments.length - 1, isFinal);
+        return (param.repaymentId, isFinal);
     }
 
     function updateDebtData(BorrowData storage debtData, Loan storage loan)
