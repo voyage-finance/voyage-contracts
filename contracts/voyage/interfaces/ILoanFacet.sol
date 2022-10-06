@@ -41,7 +41,7 @@ interface ILoanFacet {
         address payable _vault,
         address _marketplace,
         bytes calldata _data
-    ) external;
+    ) external payable;
 
     function repay(
         address _collection,

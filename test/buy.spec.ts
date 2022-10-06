@@ -283,7 +283,6 @@ describe('BuyNow', function () {
       voyage,
       priceOracle,
       purchaseDataFromLooksRare,
-      purchaseDataFromLooksRareWithWETH,
       marketPlace,
       reserveConfiguration,
     } = await setupTestSuite();
@@ -370,6 +369,226 @@ describe('BuyNow', function () {
     expect(
       loanDetail.totalPrincipalPaid.add(loanDetail.totalInterestPaid)
     ).to.eq(firstPmt);
+  });
+
+  it('Buy with sufficient credit limit with insufficient ETH+WETH from looks should revert', async function () {
+    const {
+      crab,
+      owner,
+      voyage,
+      priceOracle,
+      purchaseDataFromLooksRareWithWETH,
+      marketPlace,
+      weth,
+    } = await setupTestSuite();
+    await voyage.deposit(crab.address, 0, toWad(50));
+    await voyage.deposit(crab.address, 1, toWad(120));
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    const vault = await voyage.getVault(owner);
+
+    // check vault balance
+    const ethBalance = await ethers.provider.getBalance(vault);
+    const wethBalance = await weth.balanceOf(vault);
+    console.log('eth balance: ', ethBalance.toString());
+    console.log('weth balance: ', wethBalance.toString());
+
+    // transfer eth out
+    await voyage.transferETH(vault, owner, ethBalance.sub(toWad(1)));
+    await voyage.transferCurrency(
+      vault,
+      weth.address,
+      owner,
+      wethBalance.sub(toWad(1))
+    );
+    const ethBalanceAfter = await ethers.provider.getBalance(vault);
+    const wethBalanceAfter = await weth.balanceOf(vault);
+    console.log('eth balance after: ', ethBalanceAfter.toString());
+    console.log('weth balance after: ', wethBalanceAfter.toString());
+
+    await expect(
+      voyage.buyNow(
+        crab.address,
+        1,
+        vault,
+        marketPlace.address,
+        purchaseDataFromLooksRareWithWETH
+      )
+    ).to.be.revertedWithCustomError(voyage, 'InsufficientVaultETHBalance');
+  });
+
+  it('Buy with sufficient credit limit with 0 ETH + WETH from looks should revert', async function () {
+    const {
+      crab,
+      owner,
+      voyage,
+      priceOracle,
+      purchaseDataFromLooksRareWithWETH,
+      marketPlace,
+      weth,
+    } = await setupTestSuite();
+    await voyage.deposit(crab.address, 0, toWad(50));
+    await voyage.deposit(crab.address, 1, toWad(120));
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    const vault = await voyage.getVault(owner);
+
+    // check vault balance
+    const ethBalance = await ethers.provider.getBalance(vault);
+    const wethBalance = await weth.balanceOf(vault);
+    console.log('eth balance: ', ethBalance.toString());
+    console.log('weth balance: ', wethBalance.toString());
+
+    // transfer eth out
+    await voyage.transferETH(vault, owner, ethBalance);
+    await voyage.transferCurrency(vault, weth.address, owner, wethBalance);
+    const ethBalanceAfter = await ethers.provider.getBalance(vault);
+    const wethBalanceAfter = await weth.balanceOf(vault);
+    console.log('eth balance after: ', ethBalanceAfter.toString());
+    console.log('weth balance after: ', wethBalanceAfter.toString());
+
+    await expect(
+      voyage.buyNow(
+        crab.address,
+        1,
+        vault,
+        marketPlace.address,
+        purchaseDataFromLooksRareWithWETH
+      )
+    ).to.be.revertedWithCustomError(voyage, 'InsufficientVaultETHBalance');
+  });
+
+  it('Buy with sufficient credit limit with sufficient ETH from looks should pass', async function () {
+    const {
+      crab,
+      owner,
+      voyage,
+      priceOracle,
+      purchaseDataFromLooksRareWithWETH,
+      marketPlace,
+      weth,
+    } = await setupTestSuite();
+    await voyage.deposit(crab.address, 0, toWad(50));
+    await voyage.deposit(crab.address, 1, toWad(120));
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    const vault = await voyage.getVault(owner);
+
+    // check vault balance
+    const ethBalance = await ethers.provider.getBalance(vault);
+    const wethBalance = await weth.balanceOf(vault);
+    console.log('eth balance: ', ethBalance.toString());
+    console.log('weth balance: ', wethBalance.toString());
+
+    // await voyage.transferETH(vault, owner, ethBalance);
+    await voyage.transferCurrency(vault, weth.address, owner, wethBalance);
+    const ethBalanceAfter = await ethers.provider.getBalance(vault);
+    const wethBalanceAfter = await weth.balanceOf(vault);
+    console.log('eth balance after: ', ethBalanceAfter.toString());
+    console.log('weth balance after: ', wethBalanceAfter.toString());
+    voyage.buyNow(
+      crab.address,
+      1,
+      vault,
+      marketPlace.address,
+      purchaseDataFromLooksRareWithWETH
+    );
+
+    // check pool data
+    const creditLine = await voyage.getCreditLineData(vault, crab.address);
+    console.log('total debt: ', creditLine.totalDebt.toString());
+    expect(creditLine.loanList.head).to.eq(0);
+    expect(creditLine.loanList.tail).to.eq(1);
+  });
+
+  it('Buy with sufficient credit limit with sufficient WETH from looks should pass', async function () {
+    const {
+      crab,
+      owner,
+      voyage,
+      priceOracle,
+      purchaseDataFromLooksRareWithWETH,
+      marketPlace,
+      weth,
+    } = await setupTestSuite();
+    await voyage.deposit(crab.address, 0, toWad(50));
+    await voyage.deposit(crab.address, 1, toWad(120));
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    const vault = await voyage.getVault(owner);
+
+    // check vault balance
+    const ethBalance = await ethers.provider.getBalance(vault);
+    const wethBalance = await weth.balanceOf(vault);
+    console.log('eth balance: ', ethBalance.toString());
+    console.log('weth balance: ', wethBalance.toString());
+
+    // transfer eth out
+    await voyage.transferETH(vault, owner, ethBalance);
+    // await voyage.transferCurrency(vault, weth.address, owner, wethBalance);
+    const ethBalanceAfter = await ethers.provider.getBalance(vault);
+    const wethBalanceAfter = await weth.balanceOf(vault);
+    console.log('eth balance after: ', ethBalanceAfter.toString());
+    console.log('weth balance after: ', wethBalanceAfter.toString());
+
+    voyage.buyNow(
+      crab.address,
+      1,
+      vault,
+      marketPlace.address,
+      purchaseDataFromLooksRareWithWETH
+    );
+
+    // check pool data
+    const creditLine = await voyage.getCreditLineData(vault, crab.address);
+    console.log('total debt: ', creditLine.totalDebt.toString());
+    expect(creditLine.loanList.head).to.eq(0);
+    expect(creditLine.loanList.tail).to.eq(1);
+  });
+
+  it('Buy with sufficient credit limit with sufficient ETH+WETH from looks should pass', async function () {
+    const {
+      crab,
+      owner,
+      voyage,
+      priceOracle,
+      purchaseDataFromLooksRareWithWETH,
+      marketPlace,
+      weth,
+    } = await setupTestSuite();
+    await voyage.deposit(crab.address, 0, toWad(50));
+    await voyage.deposit(crab.address, 1, toWad(120));
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    const vault = await voyage.getVault(owner);
+
+    // check vault balance
+    const ethBalance = await ethers.provider.getBalance(vault);
+    const wethBalance = await weth.balanceOf(vault);
+    console.log('eth balance: ', ethBalance.toString());
+    console.log('weth balance: ', wethBalance.toString());
+
+    // transfer eth out
+    await voyage.transferETH(vault, owner, ethBalance.sub(toWad(5)));
+    await voyage.transferCurrency(
+      vault,
+      weth.address,
+      owner,
+      wethBalance.sub(toWad(5))
+    );
+    const ethBalanceAfter = await ethers.provider.getBalance(vault);
+    const wethBalanceAfter = await weth.balanceOf(vault);
+    console.log('eth balance after: ', ethBalanceAfter.toString());
+    console.log('weth balance after: ', wethBalanceAfter.toString());
+
+    voyage.buyNow(
+      crab.address,
+      1,
+      vault,
+      marketPlace.address,
+      purchaseDataFromLooksRareWithWETH
+    );
+
+    // check pool data
+    const creditLine = await voyage.getCreditLineData(vault, crab.address);
+    console.log('total debt: ', creditLine.totalDebt.toString());
+    expect(creditLine.loanList.head).to.eq(0);
+    expect(creditLine.loanList.tail).to.eq(1);
   });
 
   it('Buy with sufficient credit limit from OS should pass', async function () {
