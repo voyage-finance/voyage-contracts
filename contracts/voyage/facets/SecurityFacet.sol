@@ -13,6 +13,12 @@ contract SecurityFacet is Storage {
 
     event Paused(address account);
     event Unpaused(address account);
+    event RoleGranted(address user, uint8 role, bool enabled);
+    event RolePermissionGranted(uint8 role, address target, bytes4 sig);
+    event PermissionGranted(address src, address dst, bytes4 sig);
+    event RoleRevoked(address user, uint8 role);
+    event RolePermissionRevoked(uint8 role, address target, bytes4 sig);
+    event PermissionRevoked(address src, address dst, bytes4 sig);
 
     function paused() public view returns (bool) {
         return LibAppStorage.ds()._paused;
@@ -34,6 +40,7 @@ contract SecurityFacet is Storage {
         bool enabled
     ) public authorised {
         LibSecurity.grantRole(LibAppStorage.ds().auth, user, role, enabled);
+        emit RoleGranted(user, role, enabled);
     }
 
     function grantRolePermission(
@@ -47,6 +54,7 @@ contract SecurityFacet is Storage {
             target,
             sig
         );
+        emit RolePermissionGranted(role, target, sig);
     }
 
     function revokeRolePermission(
@@ -60,6 +68,7 @@ contract SecurityFacet is Storage {
             target,
             sig
         );
+        emit RolePermissionRevoked(role, target, sig);
     }
 
     function grantPermission(
@@ -68,6 +77,7 @@ contract SecurityFacet is Storage {
         bytes4 sig
     ) public authorised {
         LibSecurity.grantPermission(LibAppStorage.ds().auth, src, dst, sig);
+        emit PermissionGranted(src, dst, sig);
     }
 
     function authorizeConfigurator(address _configurator) public authorised {
@@ -123,6 +133,7 @@ contract SecurityFacet is Storage {
         bytes4 sig
     ) public authorised {
         LibSecurity.revokePermission(LibAppStorage.ds().auth, src, dst, sig);
+        emit PermissionRevoked(src, dst, sig);
     }
 
     function isAuthorisedInbound(address src, bytes4 sig)
