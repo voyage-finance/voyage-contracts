@@ -46,7 +46,7 @@ interface IVaultFacet {
         uint256 _amount
     ) external;
 
-    function wrapVaultETH(address _vault, uint256 _value) external;
+    function wrapVaultETH(address _vault, uint256 _value) external payable;
 
     function unwrapVaultETH(address _vault, uint256 _vaule) external;
 

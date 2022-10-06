@@ -75,7 +75,12 @@ contract VaultFacet is Storage, ReentrancyGuard, IVaultFacet {
         address _vault,
         address _collection,
         uint256 _tokenId
-    ) external onlyVaultOwner(_vault, _msgSender()) whenNotPaused nonReentrant {
+    )
+        external
+        vaultOwnerOrVoyage(_vault, _msgSender())
+        whenNotPaused
+        nonReentrant
+    {
         checkContractAddr(_collection);
         if (LibAppStorage.ds().nftIndex[_collection][_tokenId].isCollateral) {
             revert InvalidWithdrawal();
@@ -92,7 +97,7 @@ contract VaultFacet is Storage, ReentrancyGuard, IVaultFacet {
         address _currency,
         address _to,
         uint256 _amount
-    ) external onlyVaultOwner(_vault, _msgSender()) nonReentrant {
+    ) external vaultOwnerOrVoyage(_vault, _msgSender()) nonReentrant {
         checkContractAddr(_currency);
         // to prevent currency being a collection address
         if (LibAppStorage.ds()._reserveData[_currency].currency != address(0)) {
@@ -104,11 +109,19 @@ contract VaultFacet is Storage, ReentrancyGuard, IVaultFacet {
         IVault(_vault).execute(data, _currency, 0);
     }
 
+    function transferETH(
+        address _vault,
+        address to,
+        uint256 _amount
+    ) external vaultOwnerOrVoyage(_vault, _msgSender()) nonReentrant {
+        IVault(_vault).execute("", to, _amount);
+    }
+
     function wrapVaultETH(address _vault, uint256 _value)
         external
-        onlyVaultOwner(_vault, _msgSender())
+        payable
+        vaultOwnerOrVoyage(_vault, _msgSender())
         whenNotPaused
-        nonReentrant
     {
         bytes4 selector = IWETH9(address(0)).deposit.selector;
         bytes memory data = abi.encodePacked(selector);
@@ -117,9 +130,8 @@ contract VaultFacet is Storage, ReentrancyGuard, IVaultFacet {
 
     function unwrapVaultETH(address _vault, uint256 _vaule)
         external
-        onlyVaultOwner(_vault, _msgSender())
+        vaultOwnerOrVoyage(_vault, _msgSender())
         whenNotPaused
-        nonReentrant
     {
         bytes4 selector = IWETH9(address(0)).withdraw.selector;
         bytes memory param = abi.encode(_vaule);
@@ -131,7 +143,12 @@ contract VaultFacet is Storage, ReentrancyGuard, IVaultFacet {
         address _vault,
         address _marketplace,
         bool revoke
-    ) external onlyVaultOwner(_vault, _msgSender()) whenNotPaused nonReentrant {
+    )
+        external
+        vaultOwnerOrVoyage(_vault, _msgSender())
+        whenNotPaused
+        nonReentrant
+    {
         address adapterAddr = LibAppStorage
             .ds()
             .marketPlaceData[_marketplace]

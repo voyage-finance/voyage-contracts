@@ -135,7 +135,7 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
         address payable _vault,
         address _marketplace,
         bytes calldata _data
-    ) external whenNotPaused nonReentrant {
+    ) external payable whenNotPaused nonReentrant {
         ExecuteBuyNowParams memory params;
         params.collection = _collection;
         params.tokenId = _tokenId;
@@ -165,7 +165,7 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
             revert Unauthorised();
         }
 
-        // 1. get price for params.tokenId  and floor price pv
+        // 1. check collection address and token id
         params.assetInfo = LibMarketplace.extractAssetInfo(_marketplace, _data);
         params.totalPrincipal = params.assetInfo.assetPrice;
 
@@ -181,8 +181,10 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
             reserveData.priceOracle.implementation()
         ).getTwap(params.collection);
 
+        // 2. check twap
         ReserveConfigurationMap memory reserveConf = LibReserveConfiguration
             .getConfiguration(params.collection);
+
         if (
             (block.timestamp - params.timestamp) >
             reserveConf.getMaxTwapStaleness()
@@ -190,6 +192,7 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
             revert BuyNowStaleTwap();
         }
 
+        // 3. check floor price
         if (params.fv == 0) {
             revert InvalidFloorPrice();
         }
@@ -198,15 +201,17 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
             revert ExceedsFloorPrice();
         }
 
-        // 2. get borrow params and borrow rate
+        // 4. get borrow params and borrow rate
         (params.epoch, params.term) = reserveConf.getBorrowParams();
+
         params.nper = params.term / params.epoch;
+
         params.outstandingPrincipal =
             params.totalPrincipal -
             params.totalPrincipal /
             params.nper;
 
-        // 3.0 get liquidity of senior tranche and junior tranche
+        // 5. check junior tranche balance and available liquidity
         params.totalSeniorBalance = IERC20(reserveData.currency).balanceOf(
             reserveData.seniorDepositTokenAddress
         );
@@ -215,7 +220,6 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
             reserveData.juniorDepositTokenAddress
         );
 
-        // 3.1 junior tranche cannot be 0
         if (params.totalJuniorBalance == 0) {
             revert InvalidJuniorTrancheBalance();
         }
@@ -228,7 +232,6 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
             revert InsufficientJuniorLiquidity();
         }
 
-        // 3.2 check if available liquidity sufficient
         params.totalPending = IUnbondingToken(
             reserveData.seniorDepositTokenAddress
         ).totalUnbondingAsset();
@@ -254,7 +257,7 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
                 borrowState.totalDebt
             );
 
-        // 4. insert debt, get total interest and PMT
+        // 6. insert debt, get total interest and PMT
         params.incomeRatio = LibReserveConfiguration
             .getConfiguration(params.collection)
             .getIncomeRatio();
@@ -263,11 +266,11 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
         (params.loanId, params.pmt, params.totalInterest, params.fee) = LibLoan
             .initDebt(borrowState, borrowData, params);
 
-        // 5. calculate downpayment and outstanding interest and debt
+        // 7. calculate downpayment and outstanding interest and debt
         params.downpayment = params.pmt.principal;
         params.outstandingInterest = params.totalInterest - params.pmt.interest;
 
-        // 6. check credit limit against with outstanding debt
+        // 8. check credit limit against with outstanding debt
         params.maxCreditLimit = LibVault.getCreditLimit(
             params.vault,
             params.collection,
@@ -287,7 +290,7 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
             revert InsufficientCreditLimit();
         }
 
-        // 7. check if currency is suported
+        // 9. check if currency is suported
         if (
             params.assetInfo.currency != address(0) &&
             params.assetInfo.currency != address(LibAppStorage.ds().WETH9)
@@ -295,37 +298,85 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
             revert InvalidCurrencyType();
         }
 
-        // 8. check vault balance according to currency type
-        if (params.assetInfo.currency == address(0)) {
-            if (params.vault.balance < params.downpayment) {
-                // unwrap from weth
-                if (
-                    IERC20(reserveData.currency).balanceOf(params.vault) <
-                    params.downpayment - params.vault.balance
-                ) {
-                    revert InsufficientVaultETHBalance();
-                }
-                IVaultFacet(address(this)).unwrapVaultETH(
-                    params.vault,
-                    params.downpayment - params.vault.balance
-                );
-            }
-        } else {
-            if (
-                IERC20(reserveData.currency).balanceOf(params.vault) <
-                params.downpayment
-            ) {
-                revert InsufficientVaultWETHBalance();
-            }
-        }
-
-        // 9. transfer money to this
+        // 10. transfer money to this
         IVToken(reserveData.seniorDepositTokenAddress).transferUnderlyingTo(
             address(this),
             params.outstandingPrincipal
         );
 
-        // 10. distrubute interest and protocol fee before unwrap weth to eth
+        // 11. check the combined balance against downpayment and interest
+        if (
+            (params.vault.balance +
+                IERC20(reserveData.currency).balanceOf(params.vault)) <
+            params.downpayment + params.pmt.interest + params.pmt.fee
+        ) {
+            revert InsufficientVaultETHBalance();
+        }
+
+        {
+            uint256 vaultWETHBalance = IERC20(reserveData.currency).balanceOf(
+                params.vault
+            );
+            uint256 vaultETHBalance = params.vault.balance;
+            // if currency is native eth
+            if (params.assetInfo.currency == address(0)) {
+                if (params.downpayment > vaultETHBalance) {
+                    IVaultFacet(address(this)).unwrapVaultETH(
+                        params.vault,
+                        params.downpayment - vaultETHBalance
+                    );
+                }
+                if (params.pmt.interest + params.pmt.fee > vaultWETHBalance) {
+                    IVaultFacet(address(this)).wrapVaultETH(
+                        params.vault,
+                        params.pmt.interest + params.pmt.fee - vaultWETHBalance
+                    );
+                }
+                LibPayments.unwrapWETH9(
+                    params.outstandingPrincipal,
+                    address(this)
+                );
+
+                SafeTransferLib.safeTransferETH(
+                    params.vault,
+                    params.outstandingPrincipal
+                );
+                LibMarketplace.purchase(
+                    params.marketplace,
+                    params.vault,
+                    params.totalPrincipal,
+                    _data
+                );
+            } else {
+                // if currency is weth
+                if (
+                    vaultWETHBalance <
+                    params.downpayment + params.pmt.interest + params.pmt.fee
+                ) {
+                    IVaultFacet(address(this)).wrapVaultETH(
+                        params.vault,
+                        params.downpayment +
+                            params.pmt.interest +
+                            params.pmt.fee -
+                            vaultWETHBalance
+                    );
+                }
+
+                IERC20(LibAppStorage.ds().WETH9).safeTransfer(
+                    params.vault,
+                    params.outstandingPrincipal
+                );
+
+                LibMarketplace.purchase(
+                    params.marketplace,
+                    params.vault,
+                    0,
+                    _data
+                );
+            }
+        }
+
+        // 12. distrubute interest and protocol fee before unwrap weth to eth
         LibLoan.distributeInterest(
             reserveData,
             params.pmt.interest,
@@ -348,30 +399,7 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
                 params.loanId
             );
 
-        // 11.1 if currency is eth
-        if (params.assetInfo.currency == address(0)) {
-            LibPayments.unwrapWETH9(params.outstandingPrincipal, address(this));
-            SafeTransferLib.safeTransferETH(
-                params.vault,
-                params.outstandingPrincipal
-            );
-            LibMarketplace.purchase(
-                params.marketplace,
-                params.vault,
-                params.totalPrincipal,
-                _data
-            );
-        } else {
-            // 11.2 if currency is weth
-            IERC20(LibAppStorage.ds().WETH9).safeTransfer(
-                params.vault,
-                params.outstandingPrincipal
-            );
-
-            LibMarketplace.purchase(params.marketplace, params.vault, 0, _data);
-        }
-
-        // 12. first payment
+        // 13. first payment
         BorrowData storage debtData = LibLoan.getBorrowData(
             params.collection,
             reserveData.currency,
