@@ -85,7 +85,21 @@ describe('Repay', function () {
     const nper = ethers.BigNumber.from(term).div(epoch);
 
     // repay draw down 0
-    await voyage.repay(crab.address, 0, vault);
+    const repayAmount = loanDetail00.pmt.principal.add(
+      loanDetail00.pmt.interest
+    );
+    await expect(voyage.repay(crab.address, 0, vault))
+      .to.emit(voyage, 'Repayment')
+      .withArgs(
+        owner,
+        vault,
+        crab.address,
+        weth.address,
+        0,
+        1,
+        repayAmount,
+        false
+      );
     const loanDetail01 = await voyage.getLoanDetail(vault, crab.address, 0);
     console.log('draw down 01: ');
     showLoan(loanDetail01);
@@ -97,7 +111,19 @@ describe('Repay', function () {
     );
 
     // repay draw down 0 again
-    await voyage.repay(crab.address, 0, vault);
+    await expect(voyage.repay(crab.address, 0, vault))
+      .to.emit(voyage, 'Repayment')
+      .withArgs(
+        owner,
+        vault,
+        crab.address,
+        weth.address,
+        0,
+        2,
+        repayAmount,
+        true
+      );
+
     const loanDetail02 = await voyage.getLoanDetail(vault, crab.address, 0);
     console.log('draw down 02: ');
     showLoan(loanDetail02);
