@@ -316,7 +316,6 @@ library LibLoan {
                 param.vault
             );
         Loan storage loan = debtData.loans[_loanNumber];
-        debtData.paidLoanNumber += 1;
         loan.paidTimes += 1;
         param.repaymentId = loan.paidTimes - 1;
 
@@ -324,6 +323,7 @@ library LibLoan {
         updateGlobalBorrowState(borrowState, loan);
         isFinal = loan.paidTimes == loan.nper;
         if (isFinal) {
+            debtData.paidLoanNumber += 1;
             clearLoan(debtData, borrowState, loan, param);
         } else {
             insertRapayment(loan);
