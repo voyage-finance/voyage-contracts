@@ -270,27 +270,7 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
         params.downpayment = params.pmt.principal;
         params.outstandingInterest = params.totalInterest - params.pmt.interest;
 
-        // 8. check credit limit against with outstanding debt
-        params.maxCreditLimit = LibVault.getCreditLimit(
-            params.vault,
-            params.collection,
-            reserveData.currency,
-            params.fv
-        );
-
-        if (params.maxCreditLimit < params.totalOutstandingDebt) {
-            revert InsufficientMaxCreditLimit();
-        }
-
-        params.availableCreditLimit =
-            params.maxCreditLimit -
-            params.totalOutstandingDebt;
-
-        if (params.availableCreditLimit < params.outstandingPrincipal) {
-            revert InsufficientCreditLimit();
-        }
-
-        // 9. check if currency is suported
+        // 8. check if currency is suported
         if (
             params.assetInfo.currency != address(0) &&
             params.assetInfo.currency != address(LibAppStorage.ds().WETH9)
@@ -298,13 +278,13 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
             revert InvalidCurrencyType();
         }
 
-        // 10. transfer money to this
+        // 9. transfer money to this
         IVToken(reserveData.seniorDepositTokenAddress).transferUnderlyingTo(
             address(this),
             params.outstandingPrincipal
         );
 
-        // 11. check the combined balance against downpayment and interest
+        // 10. check the combined balance against downpayment and interest
         if (
             (params.vault.balance +
                 IERC20(reserveData.currency).balanceOf(params.vault)) <
@@ -376,7 +356,7 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
             }
         }
 
-        // 12. distrubute interest and protocol fee before unwrap weth to eth
+        // 11. distrubute interest and protocol fee before unwrap weth to eth
         LibLoan.distributeInterest(
             reserveData,
             params.pmt.interest,
@@ -399,7 +379,7 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
                 params.loanId
             );
 
-        // 13. first payment
+        // 12. first payment
         BorrowData storage debtData = LibLoan.getBorrowData(
             params.collection,
             reserveData.currency,
@@ -871,8 +851,6 @@ error InsufficientLiquidity();
 error InsufficientJuniorLiquidity();
 error InsufficientVaultWETHBalance();
 error InsufficientVaultETHBalance();
-error InsufficientMaxCreditLimit();
-error InsufficientCreditLimit();
 error InvalidDebt();
 error InvalidLiquidate();
 error InvalidFloorPrice();

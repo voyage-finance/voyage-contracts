@@ -63,16 +63,6 @@ describe('Repay', function () {
       ']'
     );
 
-    await expect(
-      voyage.buyNow(
-        crab.address,
-        1,
-        vault,
-        marketPlace.address,
-        purchaseDataFromLooksRare
-      )
-    ).to.be.revertedWithCustomError(voyage, 'InsufficientCreditLimit');
-
     const loanDetail00 = await voyage.getLoanDetail(vault, crab.address, 0);
     console.log('draw down 00: ');
     showLoan(loanDetail00);
