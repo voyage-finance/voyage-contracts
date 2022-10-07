@@ -55,13 +55,8 @@ describe('Repay', function () {
     const creditLineData = await voyage.getCreditLineData(vault, crab.address);
 
     console.log('total debt: ', creditLineData.totalDebt.toString());
-    console.log(
-      'draw down list: [',
-      creditLineData.loanList.head.toString(),
-      ',',
-      creditLineData.loanList.tail.toString(),
-      ']'
-    );
+    expect(creditLineData.loanList.head).to.eq(0);
+    expect(creditLineData.loanList.tail).to.eq(1);
 
     const loanDetail00 = await voyage.getLoanDetail(vault, crab.address, 0);
     console.log('draw down 00: ');
@@ -90,6 +85,9 @@ describe('Repay', function () {
         repayAmount,
         false
       );
+    const creditLineData2 = await voyage.getCreditLineData(vault, crab.address);
+    expect(creditLineData2.loanList.head).to.eq(0);
+    expect(creditLineData2.loanList.tail).to.eq(1);
     const loanDetail01 = await voyage.getLoanDetail(vault, crab.address, 0);
     console.log('draw down 01: ');
     showLoan(loanDetail01);
@@ -113,6 +111,10 @@ describe('Repay', function () {
         repayAmount,
         true
       );
+
+    const creditLineData3 = await voyage.getCreditLineData(vault, crab.address);
+    expect(creditLineData3.loanList.head).to.eq(1);
+    expect(creditLineData3.loanList.tail).to.eq(1);
 
     const loanDetail02 = await voyage.getLoanDetail(vault, crab.address, 0);
     console.log('draw down 02: ');
