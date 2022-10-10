@@ -407,7 +407,7 @@ library LibLoan {
         borrowState.totalDebt = borrowState.totalDebt - principal;
     }
 
-    `function insertRapayment(Loan storage loan) internal {
+    function insertRapayment(Loan storage loan) internal {
         loan.totalPrincipalPaid = loan.totalPrincipalPaid + loan.pmt.principal;
         loan.totalInterestPaid = loan.totalInterestPaid + loan.pmt.interest;
         RepaymentData memory repayment;
