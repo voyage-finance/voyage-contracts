@@ -14,3 +14,4 @@ import './configure-interest-strategy';
 import './approve-marketplace';
 import './withdraw-nft';
 import './withdraw-from-relayhub';
+import './update-twap';
