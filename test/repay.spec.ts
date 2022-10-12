@@ -13,6 +13,132 @@ describe('Repay', function () {
     console.log('pmt: ', loan.pmt.pmt.toString());
   }
 
+  it('Repay with insufficient eth should revert', async function () {
+    const {
+      crab,
+      owner,
+      voyage,
+      priceOracle,
+      purchaseDataFromLooksRare,
+      marketPlace,
+      weth,
+      seniorDepositToken,
+      juniorDepositToken,
+    } = await setupTestSuite();
+    const vault = await voyage.getVault(owner);
+
+    const depositAmount = toWad(100);
+    await voyage.deposit(crab.address, 0, depositAmount);
+    await voyage.deposit(crab.address, 1, depositAmount);
+    const seniorLiquidity = await weth.balanceOf(seniorDepositToken.address);
+    const juniorLiquidity = await weth.balanceOf(juniorDepositToken.address);
+    console.log('senior liquidity: ', seniorLiquidity.toString());
+    console.log('junior liquidity: ', juniorLiquidity.toString());
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    await voyage.setMaxTwapStaleness(crab.address, '100000000000');
+    await voyage.buyNow(
+      crab.address,
+      1,
+      vault,
+      marketPlace.address,
+      purchaseDataFromLooksRare
+    );
+    await crab.safeMint(vault, 1);
+
+    // increase seven days
+    const sevenDays = 7 * 24 * 60 * 60;
+    await ethers.provider.send('evm_increaseTime', [sevenDays]);
+    await ethers.provider.send('evm_mine', []);
+
+    const creditLineData = await voyage.getCreditLineData(vault, crab.address);
+
+    const loanDetail00 = await voyage.getLoanDetail(vault, crab.address, 0);
+    // repay draw down 0
+    const repayAmount = loanDetail00.pmt.principal.add(
+      loanDetail00.pmt.interest
+    );
+
+    // check vault balance
+    const ethBalance = await ethers.provider.getBalance(vault);
+    const wethBalance = await weth.balanceOf(vault);
+    console.log('eth balance: ', ethBalance.toString());
+    console.log('weth balance: ', wethBalance.toString());
+
+    // transfer weth out
+    await voyage.transferCurrency(vault, weth.address, owner, wethBalance);
+    await voyage.transferETH(vault, owner, ethBalance);
+
+    await expect(voyage.repay(crab.address, 0, vault)).to.reverted;
+  });
+
+  it('Repay with sufficient eth should pass', async function () {
+    const {
+      crab,
+      owner,
+      voyage,
+      priceOracle,
+      purchaseDataFromLooksRare,
+      marketPlace,
+      weth,
+      seniorDepositToken,
+      juniorDepositToken,
+    } = await setupTestSuite();
+    const vault = await voyage.getVault(owner);
+
+    const depositAmount = toWad(100);
+    await voyage.deposit(crab.address, 0, depositAmount);
+    await voyage.deposit(crab.address, 1, depositAmount);
+    const seniorLiquidity = await weth.balanceOf(seniorDepositToken.address);
+    const juniorLiquidity = await weth.balanceOf(juniorDepositToken.address);
+    console.log('senior liquidity: ', seniorLiquidity.toString());
+    console.log('junior liquidity: ', juniorLiquidity.toString());
+    await priceOracle.updateTwap(crab.address, toWad(10));
+    await voyage.setMaxTwapStaleness(crab.address, '100000000000');
+    await voyage.buyNow(
+      crab.address,
+      1,
+      vault,
+      marketPlace.address,
+      purchaseDataFromLooksRare
+    );
+    await crab.safeMint(vault, 1);
+
+    // increase seven days
+    const sevenDays = 7 * 24 * 60 * 60;
+    await ethers.provider.send('evm_increaseTime', [sevenDays]);
+    await ethers.provider.send('evm_mine', []);
+
+    const creditLineData = await voyage.getCreditLineData(vault, crab.address);
+
+    const loanDetail00 = await voyage.getLoanDetail(vault, crab.address, 0);
+    // repay draw down 0
+    const repayAmount = loanDetail00.pmt.principal.add(
+      loanDetail00.pmt.interest
+    );
+
+    // check vault balance
+    const ethBalance = await ethers.provider.getBalance(vault);
+    const wethBalance = await weth.balanceOf(vault);
+    console.log('eth balance: ', ethBalance.toString());
+    console.log('weth balance: ', wethBalance.toString());
+
+    // transfer weth out
+    await voyage.transferCurrency(vault, weth.address, owner, wethBalance);
+
+    await expect(voyage.repay(crab.address, 0, vault))
+      .to.emit(voyage, 'Repayment')
+      .withArgs(
+        owner,
+        vault,
+        crab.address,
+        weth.address,
+        0,
+        1,
+        repayAmount,
+        false
+      );
+  });
+
   it('Repay should return correct value', async function () {
     const {
       owner,

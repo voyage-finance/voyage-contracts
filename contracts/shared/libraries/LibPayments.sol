@@ -5,9 +5,23 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {LibAppStorage} from "../../voyage/libraries/LibAppStorage.sol";
 import {SafeTransferLib} from "./SafeTransferLib.sol";
+import {IVaultFacet} from "../../voyage/interfaces/IVaultFacet.sol";
 
 library LibPayments {
     using SafeERC20 for IERC20;
+
+    function wrapAndUnwrapETH(
+        address _vault,
+        uint256 _ethNeeded,
+        uint256 _wethNeeded
+    ) internal {
+        if (_ethNeeded != 0) {
+            IVaultFacet(address(this)).unwrapVaultETH(_vault, _ethNeeded);
+        }
+        if (_wethNeeded != 0) {
+            IVaultFacet(address(this)).wrapVaultETH(_vault, _wethNeeded);
+        }
+    }
 
     function unwrapWETH9(uint256 amountMinimum, address recipient) internal {
         uint256 balanceWETH9 = LibAppStorage.ds().WETH9.balanceOf(

@@ -300,18 +300,22 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
             uint256 vaultETHBalance = params.vault.balance;
             // if currency is native eth
             if (params.assetInfo.currency == address(0)) {
+                uint256 ethNeeded;
+                uint256 wethNeeded;
                 if (params.downpayment > vaultETHBalance) {
-                    IVaultFacet(address(this)).unwrapVaultETH(
-                        params.vault,
-                        params.downpayment - vaultETHBalance
-                    );
+                    ethNeeded = params.downpayment - vaultETHBalance;
                 }
                 if (params.pmt.interest + params.pmt.fee > vaultWETHBalance) {
-                    IVaultFacet(address(this)).wrapVaultETH(
-                        params.vault,
-                        params.pmt.interest + params.pmt.fee - vaultWETHBalance
-                    );
+                    wethNeeded =
+                        params.pmt.interest +
+                        params.pmt.fee -
+                        vaultWETHBalance;
                 }
+                LibPayments.wrapAndUnwrapETH(
+                    params.vault,
+                    ethNeeded,
+                    wethNeeded
+                );
                 LibPayments.unwrapWETH9(
                     params.outstandingPrincipal,
                     address(this)
@@ -333,8 +337,9 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
                     vaultWETHBalance <
                     params.downpayment + params.pmt.interest + params.pmt.fee
                 ) {
-                    IVaultFacet(address(this)).wrapVaultETH(
+                    LibPayments.wrapAndUnwrapETH(
                         params.vault,
+                        0,
                         params.downpayment +
                             params.pmt.interest +
                             params.pmt.fee -
@@ -451,6 +456,22 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
             _vault,
             _loan
         );
+
+        uint256 vaultWETHBalance = IERC20(reserveData.currency).balanceOf(
+            params.vault
+        );
+        if (
+            params.interest + params.fee + params.principal > vaultWETHBalance
+        ) {
+            LibPayments.wrapAndUnwrapETH(
+                params.vault,
+                0,
+                params.interest +
+                    params.fee +
+                    params.principal -
+                    vaultWETHBalance
+            );
+        }
 
         // 3. distribute interest
         LibLoan.distributeInterest(
