@@ -98,8 +98,12 @@ contract LooksRareAdapter is IMarketPlaceAdapter {
         return assetInfo;
     }
 
-    function validate(bytes calldata _data) external view returns (bool) {
-        return _validate(_data);
+    function validate(bytes calldata _data, address _vault)
+        external
+        view
+        returns (bool)
+    {
+        return _validate(_data, _vault);
     }
 
     function execute(
@@ -108,17 +112,23 @@ contract LooksRareAdapter is IMarketPlaceAdapter {
         address _marketplace,
         uint256 _value
     ) external payable returns (bytes memory) {
-        if (!_validate(_data)) {
+        if (!_validate(_data, _vault)) {
             // use native error type here cause an ABI issue
             revert("invalid data");
         }
         IVault(_vault).execute(_data, _marketplace, _value);
     }
 
-    function _validate(bytes calldata _data) private view returns (bool) {
-        (bytes4 selector, , MakerOrder memory makerOrder) = _decodeCalldata(
-            _data
-        );
+    function _validate(bytes calldata _data, address _vault)
+        private
+        view
+        returns (bool)
+    {
+        (
+            bytes4 selector,
+            TakerOrder memory takerOrder,
+            MakerOrder memory makerOrder
+        ) = _decodeCalldata(_data);
         // bytes4(keccak256(matchAskWithTakerBidUsingETHAndWETH())) -> 0xb4e4b296
         // bytes4(keccak256(matchAskWithTakerBid())) -> 0x38e29209
         if (
@@ -129,6 +139,14 @@ contract LooksRareAdapter is IMarketPlaceAdapter {
             selector !=
             ILooksRareExchange(address(0)).matchAskWithTakerBid.selector
         ) {
+            return false;
+        }
+
+        if (!makerOrder.isOrderAsk || takerOrder.isOrderAsk) {
+            return false;
+        }
+
+        if (takerOrder.taker != _vault) {
             return false;
         }
 

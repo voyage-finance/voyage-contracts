@@ -214,8 +214,12 @@ contract SeaportAdapter is IMarketPlaceAdapter {
         }
     }
 
-    function validate(bytes calldata _data) external view returns (bool) {
-        return _validate(_data);
+    function validate(bytes calldata _data, address _vault)
+        external
+        view
+        returns (bool)
+    {
+        return _validate(_data, _vault);
     }
 
     function execute(
@@ -224,7 +228,7 @@ contract SeaportAdapter is IMarketPlaceAdapter {
         address _marketplace,
         uint256 _value
     ) external payable returns (bytes memory) {
-        if (!_validate(_data)) {
+        if (!_validate(_data, _vault)) {
             revert("invalid data");
         }
         IVault(_vault).execute(_data, _marketplace, _value);
@@ -239,7 +243,11 @@ contract SeaportAdapter is IMarketPlaceAdapter {
         order = abi.decode(_data[4:], (BasicOrderParameters));
     }
 
-    function _validate(bytes calldata _data) private view returns (bool) {
+    function _validate(bytes calldata _data, address _vault)
+        private
+        view
+        returns (bool)
+    {
         (bytes4 selector, BasicOrderParameters memory order) = _decode(_data);
 
         // bytes4(keccak256(fulfillBasicOrder()))
@@ -266,6 +274,13 @@ contract SeaportAdapter is IMarketPlaceAdapter {
         }
 
         if (order.offerAmount != 1) {
+            return false;
+        }
+
+        if (
+            order.fulfillerConduitKey !=
+            0x0000000000000000000000000000000000000000000000000000000000000000
+        ) {
             return false;
         }
 
