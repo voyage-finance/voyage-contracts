@@ -14,7 +14,10 @@ interface IMarketPlaceAdapter {
         pure
         returns (AssetInfo memory);
 
-    function validate(bytes calldata _data) external view returns (bool);
+    function validate(bytes calldata _data, address _vault)
+        external
+        view
+        returns (bool);
 
     function execute(
         bytes calldata _data,
