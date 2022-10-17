@@ -8,7 +8,6 @@ import {LibAppStorage, AppStorage, RepayRecord, BorrowData, NFTInfo, DiamondFace
 import {LibReserveConfiguration} from "./LibReserveConfiguration.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
-import {LogarithmMath} from "../../shared/libraries/LogarithmMath.sol";
 
 library LibVault {
     using WadRayMath for uint256;
@@ -64,31 +63,6 @@ library LibVault {
     function getDiamondFacets() internal view returns (DiamondFacet memory) {
         AppStorage storage s = LibAppStorage.ds();
         return s.diamondFacet;
-    }
-
-    /**
-     * @dev Get credit limit for a specific reserve
-     * @param _vault vault address
-     * @return _collection collection address
-     **/
-    function getCreditLimit(
-        address _vault,
-        address _collection,
-        address _currency,
-        uint256 _fv
-    ) internal view returns (uint256) {
-        AppStorage storage s = LibAppStorage.ds();
-        RepayRecord memory repayRecord = s
-        ._borrowState[_collection][_currency].repayRecord[_vault];
-        uint256 rep;
-        if (repayRecord.repaidTimes > repayRecord.defaultTimes) {
-            rep = repayRecord.repaidTimes - repayRecord.defaultTimes;
-        }
-        uint256 scaledRep = (rep + 1) * 1e18;
-        uint256 multiplier = rep == 0
-            ? 1e18 + 1
-            : LogarithmMath.log2(scaledRep) + 1;
-        return (_fv * multiplier) / 1e18;
     }
 
     function slashRep(
