@@ -15,3 +15,4 @@ import './approve-marketplace';
 import './withdraw-nft';
 import './withdraw-from-relayhub';
 import './update-twap';
+import './set-loan-params';

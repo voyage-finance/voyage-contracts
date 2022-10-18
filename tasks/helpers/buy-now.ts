@@ -49,7 +49,7 @@ task(
       tokenId: tokenId.toString(),
       amount: 1,
       strategy: '0x732319A3590E4fA838C111826f9584a9A2fDEa1a',
-      currency: '0xc778417E063141139Fce010982780140Aa0cD5Ab',
+      currency: '0x0000000000000000000000000000000000000000',
       nonce: hre.ethers.constants.Zero,
       startTime: 1661852317,
       endTime: 1662457076,
