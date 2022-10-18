@@ -191,31 +191,6 @@ contract LiquidityFacet is Storage, ReentrancyGuard, ILiquidityFacet {
         return LibLiquidity.unbonding(_collection, _user);
     }
 
-    function utilizationRate(address _collection, address _currency)
-        external
-        view
-        returns (uint256)
-    {
-        ReserveData memory reserve = LibLiquidity.getReserveData(_currency);
-        BorrowState storage borrowState = LibAppStorage.ds()._borrowState[
-            _collection
-        ][_currency];
-        uint256 totalDebt = borrowState.totalDebt + borrowState.totalInterest;
-
-        uint256 totalPendingWithdrawal = IUnbondingToken(
-            reserve.seniorDepositTokenAddress
-        ).totalUnbondingAsset();
-
-        uint256 availableLiquidity = IERC20(_currency).balanceOf(
-            reserve.seniorDepositTokenAddress
-        ) - totalPendingWithdrawal;
-
-        return
-            totalDebt == 0
-                ? 0
-                : totalDebt.rayDiv(availableLiquidity + totalDebt);
-    }
-
     function getReserveFlags(address _currency)
         external
         view
