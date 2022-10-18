@@ -52,55 +52,52 @@ describe('Withdraw', function () {
     );
   });
 
-  it('Withdraw with interest should return correct value', async function () {
+  it('withdraw senior token through voyage should return correct value', async function () {
     const {
       voyage,
+      crab,
+      weth,
       seniorDepositToken,
       juniorDepositToken,
-      weth,
-      crab,
       owner,
-      priceOracle,
-      purchaseDataFromLooksRare,
-      marketPlace,
     } = await setupTestSuite();
-    const amount = ethers.BigNumber.from(100).mul(decimals(18));
-    await voyage.deposit(crab.address, 1, amount);
-    await voyage.deposit(crab.address, 0, amount);
-    const vault = await voyage.getVaultAddr(owner);
-    await priceOracle.updateTwap(crab.address, toWad(10));
-    await voyage.buyNow(
-      crab.address,
-      1,
-      vault,
-      marketPlace.address,
-      purchaseDataFromLooksRare
-    );
-    const tenDay = 10 * 24 * 60 * 60;
-
-    await ethers.provider.send('evm_increaseTime', [tenDay]);
-    // @ts-ignore
-    await ethers.provider.send('evm_mine');
-
-    const originalBalance = await weth.balanceOf(owner);
-    console.log('original balance: ', originalBalance.toString());
-
-    const accumulatedBalance = await seniorDepositToken.balanceOf(owner);
-    console.log('accumulated balance: ', accumulatedBalance.toString());
     await seniorDepositToken.approve(voyage.address, MAX_UINT_256);
     await juniorDepositToken.approve(voyage.address, MAX_UINT_256);
-    await voyage.withdraw(crab.address, 1, '10000000000000000000');
-    const accumulatedBalanceAfter = await seniorDepositToken.balanceOf(owner);
-    console.log(
-      'cumulated balance after withdrawing: ',
-      accumulatedBalanceAfter
-    );
+    const amount = ethers.BigNumber.from(100).mul(decimals(18));
+    await voyage.deposit(crab.address, 1, amount);
+    await voyage.withdraw(crab.address, 1, amount);
+    const balance = await voyage.balance(crab.address, owner, 1);
+    const shares = await seniorDepositToken.balanceOf(owner);
+    const unbonding = await voyage.unbonding(crab.address, owner);
+    const maxRedeem = await seniorDepositToken.maxRedeem(owner);
+    const maxWithdraw = await seniorDepositToken.maxWithdraw(owner);
+    const maxClaimable = await seniorDepositToken.maximumClaimable(owner);
+    const totalUnbondingAsset = await seniorDepositToken.totalUnbondingAsset();
 
-    const updatedBalance = await weth.balanceOf(owner);
-    console.log('updated balance: ', updatedBalance.toString());
+    expect(balance).to.equal(ethers.BigNumber.from('0'));
+    expect(shares).to.equal(ethers.BigNumber.from('0'));
+    expect(unbonding).to.equal(amount);
+    expect(maxRedeem).to.equal(ethers.BigNumber.from('0'));
+    expect(maxWithdraw).to.equal(ethers.BigNumber.from('0'));
+    expect(maxClaimable).to.equal(amount);
+    expect(totalUnbondingAsset).to.equal(amount);
+
+    const balanceBeforeClaim = await weth.balanceOf(owner);
+    await seniorDepositToken.claim();
+    const balanceAfterClaim = await weth.balanceOf(owner);
+    expect(balanceAfterClaim.sub(balanceBeforeClaim)).to.equal(amount);
+
+    const maxClaimableAfterClaim = await seniorDepositToken.maximumClaimable(
+      owner
+    );
+    expect(maxClaimableAfterClaim).to.equal(0);
+
+    const totalUnbondingAssetAfter =
+      await seniorDepositToken.totalUnbondingAsset();
+    expect(totalUnbondingAssetAfter).to.equal(0);
   });
 
-  it('withdraw senior token should return correct value', async function () {
+  it('withdraw senior token through voyage should return correct value', async function () {
     const {
       voyage,
       crab,

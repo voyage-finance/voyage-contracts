@@ -77,11 +77,6 @@ interface ILiquidityFacet {
         view
         returns (uint256);
 
-    function utilizationRate(address _collection, address _currency)
-        external
-        view
-        returns (uint256);
-
     function getReserveFlags(address _currency)
         external
         view
