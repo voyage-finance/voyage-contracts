@@ -91,6 +91,7 @@ library LibLoan {
         uint256 totalInterestPaid;
         uint256 paidTimes;
         uint256[] collateral;
+        bool defaultFlag;
     }
 
     struct ExecuteDebtParam {
@@ -689,6 +690,7 @@ library LibLoan {
         loanDetail.paidTimes = loan.paidTimes;
         loanDetail.reserve = _currency;
         loanDetail.collateral = loan.collateral;
+        loanDetail.defaultFlag = loan.defaultFlag;
         return loanDetail;
     }
 

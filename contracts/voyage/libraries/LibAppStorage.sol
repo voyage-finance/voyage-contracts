@@ -96,6 +96,7 @@ struct Loan {
     // size of repayments
     uint40 paidTimes;
     uint256[] collateral;
+    bool defaultFlag;
 }
 
 struct LoanList {

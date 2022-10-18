@@ -540,15 +540,17 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
 
         // 2. check if the debt is qualified to be liquidated
         {
-            uint256 gracePeriod;
-            (param.liquidationBonus, gracePeriod) = reserveConf
-                .getLiquidationParams();
-            if (
-                block.timestamp <= loanDetail.nextPaymentDue ||
-                block.timestamp - loanDetail.nextPaymentDue <=
-                gracePeriod * LibLoan.SECOND_PER_DAY
-            ) {
-                revert InvalidLiquidate();
+            if (!loanDetail.defaultFlag) {
+                uint256 gracePeriod;
+                (param.liquidationBonus, gracePeriod) = reserveConf
+                    .getLiquidationParams();
+                if (
+                    block.timestamp <= loanDetail.nextPaymentDue ||
+                    block.timestamp - loanDetail.nextPaymentDue <=
+                    gracePeriod * LibLoan.SECOND_PER_DAY
+                ) {
+                    revert InvalidLiquidate();
+                }
             }
         }
 
@@ -853,6 +855,20 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
             _asset
         );
         return borrowState.totalJuniorInterest;
+    }
+
+    function defaultDebt(
+        address _collection,
+        address _currency,
+        address _vault,
+        uint256 _loanId
+    ) external authorised {
+        BorrowData storage borrowData = LibLoan.getBorrowData(
+            _collection,
+            _currency,
+            _vault
+        );
+        borrowData.loans[_loanId].defaultFlag = true;
     }
 
     function getDiscount(uint256 _value, uint256 _liquidationBonus)
