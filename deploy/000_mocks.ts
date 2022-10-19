@@ -1,7 +1,12 @@
 import { getWETH9 } from '@helpers/task-helpers/addresses';
+import { isHardhat } from '@helpers/task-helpers/chain';
 import { DeployFunction } from 'hardhat-deploy/types';
 
 const deployFn: DeployFunction = async (hre) => {
+  if (!isHardhat()) {
+    console.log('Not hardhat, skipping mock deployments.');
+    return;
+  }
   const { deployments, getNamedAccounts } = hre;
   const { deploy } = deployments;
   const { owner } = await getNamedAccounts();

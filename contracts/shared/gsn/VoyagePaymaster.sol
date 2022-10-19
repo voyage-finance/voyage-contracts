@@ -15,7 +15,8 @@ contract VoyagePaymaster is BasePaymaster {
     address public immutable weth9;
     address public treasury;
 
-    uint256 public constant REFUND_GAS_OVERHEAD = 35000;
+    uint256 public constant BASE_REFUND_OVERHEAD = 25000;
+    uint256 public constant WETH_REFUND_OVERHEAD = 15000;
     uint256 public constant PRE_RELAYED_CALL_OVERHEAD = 60000;
     uint256 public constant POST_RELAYED_CALL_OVERHEAD = 80000;
     uint256 public constant ACCEPTANCE_BUDGET =
@@ -101,17 +102,15 @@ contract VoyagePaymaster is BasePaymaster {
         uint256 gasUseWithoutPost,
         GsnTypes.RelayData calldata relayData
     ) external virtual override relayHubOnly {
+        uint256 startGas = gasleft();
         address vault = abi.decode(context, (address));
-        // calldata overhead = 21k + non_zero_bytes * 16 + zero_bytes * 4
-        //            ~= 21k + calldata.length * [1/3 * 16 + 2/3 * 4]
-        uint256 minimumFees = (gasUseWithoutPost +
-            21000 +
-            msg.data.length *
-            8 +
-            REFUND_GAS_OVERHEAD) * relayData.gasPrice;
-        uint256 refund = vault.balance >= minimumFees
-            ? minimumFees
-            : minimumFees + 21000 * relayData.gasPrice; // cover cost of unwrapping WETH
+        uint256 baseTxFee = (gasUseWithoutPost +
+            startGas -
+            gasleft() +
+            BASE_REFUND_OVERHEAD) * relayData.gasPrice;
+        uint256 refund = vault.balance >= baseTxFee
+            ? baseTxFee
+            : baseTxFee + WETH_REFUND_OVERHEAD * relayData.gasPrice; // cover cost of unwrapping WETH
         IVault(vault).refundGas(refund, treasury);
     }
 

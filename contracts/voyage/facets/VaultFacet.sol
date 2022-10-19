@@ -52,8 +52,8 @@ contract VaultFacet is Storage, ReentrancyGuard, IVaultFacet {
             revert InvalidTreasuryAddress();
         }
         uint256 refundAmount = _gasUnits * _gasPrice;
-        IVault(vaultBeaconProxy).execute("", treasury, refundAmount);
         uint256 numVaults = LibVault.recordVault(_user, vaultBeaconProxy);
+        IVault(vaultBeaconProxy).execute("", treasury, refundAmount);
         emit VaultCreated(vaultBeaconProxy, _user, numVaults, refundAmount);
     }
 
