@@ -1,3 +1,4 @@
+import { isHardhat } from '@helpers/task-helpers/chain';
 import { setMarketplaceAdapters } from '@helpers/task-helpers/configuration';
 import { getMarketplaceAdapterConfiguration } from '@helpers/task-helpers/contracts';
 import { task } from 'hardhat/config';
@@ -10,7 +11,7 @@ task(
   .setAction(async (params, hre) => {
     await hre.run('set-hre');
     const adapterConfiguration = await getMarketplaceAdapterConfiguration();
-    if (!params.disableMock) {
+    if (!params.disableMock && isHardhat()) {
       const mockMarketplace = await hre.ethers.getContract('MockMarketPlace');
       const looksAdapter = await hre.ethers.getContract('LooksRareAdapter');
       adapterConfiguration.push({

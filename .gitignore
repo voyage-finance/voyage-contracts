@@ -72,6 +72,7 @@ artifacts
 /deployments/localhost
 /deployments/localhost_31337
 /deployments/hardhat
+/deployments/tenderly
 
 # yarn zero-install
 .pnp.*
