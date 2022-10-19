@@ -18,3 +18,4 @@ import './transfer-eth-from-vault';
 import './withdraw-from-relayhub';
 import './update-twap';
 import './set-loan-params';
+import './poc';
