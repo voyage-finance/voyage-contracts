@@ -40,14 +40,14 @@ describe('an attacker can steal NFTs by abusing withdraw/claim', async () => {
 
     /* ----------- cause Alice to deposit 6k ETH to the senior tranche ----------- */
     // deposit 3k ETH to junior
-    const initialJuniorDeposit = ethers.utils.parseEther('3000');
+    const initialJuniorDeposit = ethers.utils.parseEther('10000');
     // deposit 6k ETH to senior
     const initialSeniorDeposit = ethers.utils.parseEther('6000');
     // alice will do the deposit.
     const aSigner = await ethers.getSigner(alice);
     await weth
       .connect(aSigner)
-      .deposit({ value: ethers.utils.parseEther('10000') });
+      .deposit({ value: ethers.utils.parseEther('20000') });
     await weth.connect(aSigner).approve(voyage.address, MAX_UINT_256);
     const aVoyage = voyage.connect(aSigner);
     console.log('alice deposit to junior tranche');
@@ -108,9 +108,8 @@ describe('an attacker can steal NFTs by abusing withdraw/claim', async () => {
       value: ethers.utils.parseEther('100'),
     });
     await bWeth.deposit({ value: ethers.utils.parseEther('100000') });
-    await bWeth.transfer(bVaultAddress, ethers.utils.parseEther('3000'));
+    await bWeth.transfer(bVaultAddress, ethers.utils.parseEther('1060'));
     await bWeth.approve(bVaultAddress, MAX_UINT_256);
-    // set the to 9 ETH
     console.log('setup twap');
     await priceOracle.updateTwap(crab.address, ethers.utils.parseEther('3000'));
 
@@ -127,7 +126,7 @@ describe('an attacker can steal NFTs by abusing withdraw/claim', async () => {
       isOrderAsk: true,
       signer: '0xAc786F3E609eeBC3830A26881bd026B6b9211ae2',
       collection: crab.address,
-      price: ethers.utils.parseEther('9'), // 9 ETH value
+      price: ethers.utils.parseEther('3000'), // 9 ETH value
       tokenId: '1',
       amount: 1,
       strategy: '0x732319A3590E4fA838C111826f9584a9A2fDEa1a',
@@ -219,7 +218,7 @@ describe('an attacker can steal NFTs by abusing withdraw/claim', async () => {
     const loan = await voyage.getLoanDetail(bVaultAddress, crab.address, 0);
     const pmtPrincipal = loan.pmt.principal;
     const pmtInterest = loan.pmt.interest;
-    await bWeth.transfer(bVaultAddress, ethers.utils.parseEther('7'));
+    await bWeth.transfer(bVaultAddress, ethers.utils.parseEther('2300'));
     await bVoyage.repay(crab.address, 0, bVaultAddress);
     await dumpState(
       'After repay 1',
