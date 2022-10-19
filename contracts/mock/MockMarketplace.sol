@@ -10,6 +10,7 @@ contract MockMarketPlace {
         MakerOrder calldata makerAsk
     ) external payable {
         console.log("in matchAskWithTakerBidUsingETHAndWETH");
+        console.log("value: %s", msg.value);
         logTakerOrder(takerBid);
         logMakerOrder(makerAsk);
     }
@@ -19,6 +20,7 @@ contract MockMarketPlace {
         MakerOrder calldata makerAsk
     ) external payable {
         console.log("in matchAskWithTakerBid");
+        console.log("value: %s", msg.value);
         logTakerOrder(takerBid);
         logMakerOrder(makerAsk);
     }
