@@ -13,6 +13,8 @@ import './configure-twap-operator';
 import './configure-interest-strategy';
 import './approve-marketplace';
 import './withdraw-nft';
+import './transfer-currency-from-vault';
+import './transfer-eth-from-vault';
 import './withdraw-from-relayhub';
 import './update-twap';
 import './set-loan-params';
