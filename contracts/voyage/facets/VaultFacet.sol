@@ -8,6 +8,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {LibAppStorage, AppStorage, Storage, NFTInfo, DiamondFacet, ReserveConfigurationMap} from "../libraries/LibAppStorage.sol";
 import {LibVault} from "../libraries/LibVault.sol";
 import {LibSecurity} from "../libraries/LibSecurity.sol";
@@ -29,6 +30,7 @@ contract VaultFacet is Storage, ReentrancyGuard, IVaultFacet {
         uint256 _gasUnits,
         uint256 _gasPrice
     ) external authorised {
+        uint256 startGas = gasleft();
         bytes memory data = getEncodedVaultInitData(_user);
         bytes32 newsalt = newSalt(_salt, _user);
         address vaultBeaconProxy;
@@ -51,7 +53,9 @@ contract VaultFacet is Storage, ReentrancyGuard, IVaultFacet {
         if (treasury == address(0)) {
             revert InvalidTreasuryAddress();
         }
-        uint256 refundAmount = _gasUnits * _gasPrice;
+        uint256 gasConsumed = startGas - gasleft();
+        uint256 refundAmount = Math.min(_gasUnits, gasConsumed) *
+            Math.min(_gasPrice, tx.gasprice);
         uint256 numVaults = LibVault.recordVault(_user, vaultBeaconProxy);
         IVault(vaultBeaconProxy).execute("", treasury, refundAmount);
         emit VaultCreated(vaultBeaconProxy, _user, numVaults, refundAmount);

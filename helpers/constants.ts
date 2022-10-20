@@ -24,7 +24,7 @@ export const ONE_ADDRESS = '0x0000000000000000000000000000000000000001';
 export const MAX_UINT256 =
   '115792089237316195423570985008687907853269984665640564039457584007913129639935';
 export const REFUND_GAS_UNIT = 1;
-export const REFUND_GAS_PRICE = 100000000;
+export const REFUND_GAS_PRICE = 1;
 
 type ContractMapping = { [K in ChainID]: string };
 type ExternalContractMapping = Omit<ContractMapping, ChainID.Hardhat>;
