@@ -10,8 +10,8 @@ task('dev:transfer-currency-from-vault', 'Transfer currency out of vault')
     await hre.run('set-hre');
     const { ethers } = hre;
     const { owner } = await hre.getNamedAccounts();
-    const { currency = await getWETH9(), to = owner, amount} = params;
+    const { currency = await getWETH9(), to = owner, amount } = params;
     const voyage = await ethers.getContract<Voyage>('Voyage');
     let vaultAddress = await voyage.getVault(owner);
-    await voyage.transferCurrency(vaultAddress, currency, to,amount);
+    await voyage.transferCurrency(vaultAddress, currency, to, amount);
   });

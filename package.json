@@ -29,7 +29,7 @@
     "test-scenarios": "NODE_ENV=test npx hardhat test test/__setup.spec.ts test/scenario.spec.ts",
     "test:gas": "NODE_ENV=test REPORT_GAS=true hardhat test",
     "format": "yarn format:sol && yarn format:js",
-    "format:js": "prettier --config .prettierrc.js.json --write {helpers,deploy,test,scripts,test/helpers,test/helpers/**}/*.ts",
+    "format:js": "prettier --config .prettierrc.js.json --write {helpers,deploy,test,scripts,test/helpers,test/helpers/**,tasks/dev/**}/*.ts",
     "format:sol": "hardhat format",
     "scan": "slither --print human-summary .",
     "postinstall": "husky install"

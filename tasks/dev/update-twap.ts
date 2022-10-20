@@ -7,7 +7,7 @@ task('dev:update-twap', 'Update twap')
   .setAction(async (params, hre) => {
     await hre.run('set-hre');
     const { ethers } = hre;
-    const { currency,priceAverage } = params;
+    const { currency, priceAverage } = params;
     const priceOracle = await ethers.getContract<PriceOracle>('PriceOracle');
     const tx = await priceOracle.updateTwap(currency, priceAverage);
     await tx.wait();
