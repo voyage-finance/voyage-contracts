@@ -100,16 +100,16 @@ describe('Vault', function () {
   });
 
   it('Pass zero vault address should be revert', async function () {
-    const { voyage, crab } = await setupTestSuite();
+    const { voyage, crab, owner } = await setupTestSuite();
     await expect(
-      voyage.withdrawNFT(ZERO_ADDRESS, crab.address, 1)
+      voyage.withdrawNFT(ZERO_ADDRESS, crab.address, owner, 1)
     ).to.be.rejectedWith('InvalidVaultAddress');
   });
 
   it('Pass zero collection address should be revert', async function () {
-    const { voyage, deployedVault } = await setupTestSuite();
+    const { voyage, deployedVault, owner } = await setupTestSuite();
     await expect(
-      voyage.withdrawNFT(deployedVault, ZERO_ADDRESS, 1)
+      voyage.withdrawNFT(deployedVault, ZERO_ADDRESS, owner, 1)
     ).to.be.revertedWithCustomError(voyage, 'InvalidCollectionAddress');
   });
 
@@ -174,7 +174,7 @@ describe('Vault', function () {
     );
     await crab.safeMint(vault, 1);
     await expect(
-      voyage.withdrawNFT(deployedVault, crab.address, 1)
+      voyage.withdrawNFT(deployedVault, crab.address, owner, 1)
     ).to.be.revertedWithCustomError(voyage, 'InvalidWithdrawal');
   });
 
@@ -204,7 +204,7 @@ describe('Vault', function () {
     await voyage.repay(crab.address, 0, vault);
     const onwerBefore = await crab.ownerOf(1);
     expect(onwerBefore).to.eq(deployedVault);
-    await voyage.withdrawNFT(deployedVault, crab.address, 1);
+    await voyage.withdrawNFT(deployedVault, crab.address, owner, 1);
     const onwerAfter = await crab.ownerOf(1);
     expect(onwerAfter).to.eq(owner);
   });

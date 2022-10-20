@@ -249,7 +249,7 @@ describe('Repay', function () {
     expect(loanDetail02.totalPrincipalPaid).to.equal(ethers.constants.Zero);
 
     // withdraw nft
-    await voyage.withdrawNFT(vault, crab.address, '1');
+    await voyage.withdrawNFT(vault, crab.address, owner, '1');
     await expect(await crab.ownerOf(1)).to.equal(owner);
   });
 });

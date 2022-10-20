@@ -12,5 +12,5 @@ task('dev:withdraw-nft', 'Withdraw nft from a vault')
     const { collection = mc.address, tokenId = 2519} = params;
     const voyage = await ethers.getContract<Voyage>('Voyage');
     let vaultAddress = await voyage.getVault(owner);
-    await voyage.withdrawNFT(vaultAddress, collection, tokenId);
+    await voyage.withdrawNFT(vaultAddress, collection, owner,tokenId);
   });
