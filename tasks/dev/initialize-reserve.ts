@@ -1,5 +1,14 @@
 import { Voyage } from '@contracts';
-import { INCOME_RATIO, LIQUIDATION_BONUS, OPTIMAL_LIQUIDITY_RATIO, PROTOCOL_FEE,TENURE,EPOCH,GRACE_PERIOD,STALENESS } from '@helpers/configuration';
+import {
+  INCOME_RATIO,
+  LIQUIDATION_BONUS,
+  OPTIMAL_LIQUIDITY_RATIO,
+  PROTOCOL_FEE,
+  TENURE,
+  EPOCH,
+  GRACE_PERIOD,
+  STALENESS,
+} from '@helpers/configuration';
 import { getWETH9 } from '@helpers/task-helpers/addresses';
 import { setTwap } from '@helpers/task-helpers/configuration';
 import { task, types } from 'hardhat/config';
@@ -130,4 +139,3 @@ task('dev:initialize-reserve', 'Initializes a reserve.')
     });
     console.log(`Set ${collection} floor price to ${floorPrice}. \n`);
   });
-  

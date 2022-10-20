@@ -6,10 +6,10 @@ task('dev:configure-configurator', 'Sets configurator')
   .setAction(async (params, hre) => {
     await hre.run('set-hre');
     const { ethers } = hre;
-    const voyageReserveConfigurator = await ethers.getContract('VoyageReserveConfigurator');
-    const {
-      configurator = voyageReserveConfigurator.address,
-    } = params;
+    const voyageReserveConfigurator = await ethers.getContract(
+      'VoyageReserveConfigurator'
+    );
+    const { configurator = voyageReserveConfigurator.address } = params;
     const voyage = await ethers.getContract<Voyage>('Voyage');
     const tx = await voyage.authorizeConfigurator(configurator);
     await tx.wait();

@@ -1,5 +1,5 @@
 import { Voyage } from '@contracts';
-import { TENURE,EPOCH,GRACE_PERIOD } from '@helpers/configuration';
+import { TENURE, EPOCH, GRACE_PERIOD } from '@helpers/configuration';
 import { task, types } from 'hardhat/config';
 
 task('dev:set-loan-params', 'Initializes a reserve.')
@@ -15,12 +15,7 @@ task('dev:set-loan-params', 'Initializes a reserve.')
     const { ethers } = hre;
     const voyage = await ethers.getContract<Voyage>('Voyage');
     const mc = await ethers.getContract('Crab');
-    const {
-      collection = mc.address,
-      tenure,
-      epoch,
-      grace
-    } = params;
+    const { collection = mc.address, tenure, epoch, grace } = params;
     const [initialized, activated] = await voyage.getReserveStatus(collection);
 
     console.log(
@@ -30,4 +25,3 @@ task('dev:set-loan-params', 'Initializes a reserve.')
       .setLoanParams(collection, epoch, tenure, grace)
       .then((tx) => tx.wait());
   });
-  

@@ -1,12 +1,28 @@
 import { Voyage } from '@contracts';
-import { BASE_RATE, EPOCH, GRACE_PERIOD, INCOME_RATIO, LIQUIDATION_BONUS, OPTIMAL_LIQUIDITY_RATIO, PROTOCOL_FEE, STALENESS, TENURE } from '@helpers/configuration';
+import {
+  BASE_RATE,
+  EPOCH,
+  GRACE_PERIOD,
+  INCOME_RATIO,
+  LIQUIDATION_BONUS,
+  OPTIMAL_LIQUIDITY_RATIO,
+  PROTOCOL_FEE,
+  STALENESS,
+  TENURE,
+} from '@helpers/configuration';
 import { ReserveConfiguration } from '@helpers/setupTestSuite';
 import { getTreasury, getWETH9 } from '@helpers/task-helpers/addresses';
-import { task,types } from 'hardhat/config';
+import { task, types } from 'hardhat/config';
 
 task('dev:configurator-initialize-reserve', 'Initializes a reserve.')
-  .addOptionalParam('collection', 'The collections to initialize. Defaults to Mock Crab')
-  .addOptionalParam('currency', 'The currency that this collection supports. Defaults to mock weth')
+  .addOptionalParam(
+    'collection',
+    'The collections to initialize. Defaults to Mock Crab'
+  )
+  .addOptionalParam(
+    'currency',
+    'The currency that this collection supports. Defaults to mock weth'
+  )
   .addOptionalParam(
     'liquidationBonus',
     'Liquidation bonus in basis points.',
@@ -88,8 +104,9 @@ task('dev:configurator-initialize-reserve', 'Initializes a reserve.')
         marketplaces: [],
         adapters: [],
       };
-      const configurator = await ethers.getContract('VoyageReserveConfigurator');
+      const configurator = await ethers.getContract(
+        'VoyageReserveConfigurator'
+      );
       await configurator.initReserves([reserveConfiguration]);
     }
-   
   });
