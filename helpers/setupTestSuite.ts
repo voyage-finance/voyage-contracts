@@ -216,8 +216,6 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     )
   ).data!;
 
-  console.log('purchaseDataFromLooksRare: ', purchaseDataFromLooksRare);
-
   const purchaseDataFromLooksRareWithWrongCurrency = (
     await looks.populateTransaction.matchAskWithTakerBidUsingETHAndWETH(
       looksRareTakerOrderData,

@@ -61,14 +61,76 @@ describe('Vault', function () {
     const createReceipt = await ownerSigner.sendTransaction(tx);
     await createReceipt.wait();
     const treasuryBalanceBefore = await ethers.provider.getBalance(treasury);
-    console.log('treasuryBalanceBefore: ', treasuryBalanceBefore.toString());
     await voyage.createVault(alice, salt, REFUND_GAS_UNIT, REFUND_GAS_PRICE);
-    const deployedVault = await voyage.getVault(alice);
     const treasuryBalanceAfter = await ethers.provider.getBalance(treasury);
+    console.log('actual: ', treasuryBalanceAfter.toString());
+    console.log(
+      'expected: ',
+      treasuryBalanceBefore.add(REFUND_GAS_UNIT * REFUND_GAS_PRICE).toString()
+    );
     expect(treasuryBalanceAfter).to.eq(
       treasuryBalanceBefore.add(REFUND_GAS_UNIT * REFUND_GAS_PRICE)
     );
-    console.log('treasuryBalanceAfter: ', treasuryBalanceAfter.toString());
+  });
+
+  it('createVault should use min(_gasPrice, tx.gasprice)', async function () {
+    const { voyage, alice, owner, treasury } = await setupTestSuite();
+    const salt = randomBytes(20);
+    const computedVaultAddress = await voyage.computeCounterfactualAddress(
+      alice,
+      salt
+    );
+    // fund vault for first payment
+    const tx = {
+      to: computedVaultAddress,
+      value: ethers.utils.parseEther('1000'),
+    };
+    const ownerSigner = await ethers.getSigner(owner);
+    const createReceipt = await ownerSigner.sendTransaction(tx);
+    await createReceipt.wait();
+    const treasuryBalanceBefore = await ethers.provider.getBalance(treasury);
+
+    const refundGasUnits = ethers.BigNumber.from(200000);
+    const refundGasPrice = ethers.utils.parseUnits('20', 'gwei');
+    const actualGasPrice = ethers.utils.parseUnits('18', 'gwei');
+    await voyage.createVault(alice, salt, refundGasUnits, refundGasPrice, {
+      gasPrice: actualGasPrice,
+    });
+
+    const treasuryBalanceAfter = await ethers.provider.getBalance(treasury);
+    expect(treasuryBalanceAfter).to.eq(
+      treasuryBalanceBefore.add(refundGasUnits.mul(actualGasPrice))
+    );
+  });
+
+  it('createVault should use min(_gasUnits, startGas - gasleft())', async function () {
+    const { voyage, alice, owner, treasury } = await setupTestSuite();
+    const salt = randomBytes(20);
+    const computedVaultAddress = await voyage.computeCounterfactualAddress(
+      alice,
+      salt
+    );
+    // fund vault for first payment
+    const tx = {
+      to: computedVaultAddress,
+      value: ethers.utils.parseEther('1000'),
+    };
+    const ownerSigner = await ethers.getSigner(owner);
+    const createReceipt = await ownerSigner.sendTransaction(tx);
+    await createReceipt.wait();
+    const treasuryBalanceBefore = await ethers.provider.getBalance(treasury);
+
+    const refundGasUnits = ethers.BigNumber.from(600000);
+    const refundGasPrice = ethers.utils.parseUnits('10', 'gwei');
+    const actualGasPrice = ethers.utils.parseUnits('18', 'gwei');
+    await voyage.createVault(alice, salt, refundGasUnits, refundGasPrice, {
+      gasPrice: actualGasPrice,
+    });
+
+    const treasuryBalanceAfter = await ethers.provider.getBalance(treasury);
+    expect(treasuryBalanceAfter).to.be.lt(
+      treasuryBalanceBefore.add(refundGasUnits.mul(refundGasPrice))
+    );
   });
 
   it('Granted acount should be able to create vault', async function () {
