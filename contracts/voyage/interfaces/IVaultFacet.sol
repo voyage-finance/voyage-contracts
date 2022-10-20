@@ -36,6 +36,7 @@ interface IVaultFacet {
     function withdrawNFT(
         address _vault,
         address _collection,
+        address _to,
         uint256 _tokenId
     ) external;
 

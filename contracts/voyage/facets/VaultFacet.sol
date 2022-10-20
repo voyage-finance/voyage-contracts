@@ -74,6 +74,7 @@ contract VaultFacet is Storage, ReentrancyGuard, IVaultFacet {
     function withdrawNFT(
         address _vault,
         address _collection,
+        address _to,
         uint256 _tokenId
     )
         external
@@ -87,7 +88,7 @@ contract VaultFacet is Storage, ReentrancyGuard, IVaultFacet {
         }
         delete LibAppStorage.ds().nftIndex[_collection][_tokenId];
         bytes4 selector = IERC721(_collection).transferFrom.selector;
-        bytes memory param = abi.encode(_vault, _msgSender(), _tokenId);
+        bytes memory param = abi.encode(_vault, _to, _tokenId);
         bytes memory data = abi.encodePacked(selector, param);
         IVault(_vault).execute(data, _collection, 0);
     }
