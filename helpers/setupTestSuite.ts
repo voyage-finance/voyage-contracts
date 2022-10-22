@@ -148,6 +148,7 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
   const deployedVault = await voyage.getVault(owner);
   await weth.transfer(deployedVault, toWad(100));
   await weth.approve(deployedVault, MAX_UINT_256);
+  await voyage.approveMarketplace(deployedVault, marketPlace.address, false);
 
   /// todo delete
   var input =
