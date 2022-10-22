@@ -211,6 +211,7 @@ describe('Vault', function () {
 
   it('Approve a valid marketplace should return correct vaule', async function () {
     const { voyage, deployedVault, marketPlace, weth } = await setupTestSuite();
+    await voyage.approveMarketplace(deployedVault, marketPlace.address, true);
     const allowanceBefore = await weth.allowance(
       deployedVault,
       marketPlace.address
@@ -226,6 +227,7 @@ describe('Vault', function () {
 
   it("Revoking marketplace's approval should return correct vaule", async function () {
     const { voyage, deployedVault, marketPlace, weth } = await setupTestSuite();
+    await voyage.approveMarketplace(deployedVault, marketPlace.address, true);
     const allowanceBefore = await weth.allowance(
       deployedVault,
       marketPlace.address
