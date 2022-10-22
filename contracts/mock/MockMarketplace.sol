@@ -19,9 +19,9 @@ contract MockMarketPlace {
         TakerOrder calldata takerBid,
         MakerOrder calldata makerAsk
     ) external payable {
-        // console.log("in matchAskWithTakerBidUsingETHAndWETH");
-        // logTakerOrder(takerBid);
-        // logMakerOrder(makerAsk);
+        console.log("in matchAskWithTakerBidUsingETHAndWETH");
+        logTakerOrder(takerBid);
+        logMakerOrder(makerAsk);
         safeTransferFrom(makerAsk.currency, msg.sender, makerAsk.price);
     }
 
