@@ -20,6 +20,7 @@ import './decode-create-vault';
 import './decode-relaycall';
 import './decode-seaport-error';
 import './decode-seaport';
+import './decode-vault-error';
 import './vault-balance';
 import './vault-approve-weth';
 import './nft-owner';
