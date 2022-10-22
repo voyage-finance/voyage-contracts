@@ -17,12 +17,8 @@ task(
     const signer = await ethers.getSigner(sender ?? owner);
     const voyage = await ethers.getContract<Voyage>('Voyage', signer);
     const juniorDepositToken = await ethers.getContract('JuniorDepositToken');
-    const tx = await voyage.upgradeJuniorDepositTokenImpl(
-      juniorDepositToken.address
-    );
+    const tx = await voyage.upgradeJuniorDepositTokenImpl(juniorDepositToken.address);
     const receipt = await tx.wait();
-    console.log(
-      `Set junior deposit implementation to ${juniorDepositToken.address}`
-    );
+    console.log(`Set junior deposit implementation to ${juniorDepositToken.address}`);
     console.log(`Transaction hash: ${receipt.transactionHash}`);
   });
