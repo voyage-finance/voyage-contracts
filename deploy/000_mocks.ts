@@ -1,4 +1,3 @@
-import { getWETH9 } from '@helpers/task-helpers/addresses';
 import { DeployFunction } from 'hardhat-deploy/types';
 
 const deployFn: DeployFunction = async (hre) => {
@@ -22,11 +21,8 @@ const deployFn: DeployFunction = async (hre) => {
     args: ['Mocked Crab', 'MC'],
   });
 
-  const weth9 = await getWETH9();
-
   await deploy('MockMarketPlace', {
     from: owner,
-    args: [weth9],
     log: true,
   });
 
