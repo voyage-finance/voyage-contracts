@@ -8,7 +8,7 @@ task('dev:approve-marketplace', 'Approve marketplace on weth for vaule')
     await hre.run('set-hre');
     const { ethers } = hre;
     const { owner } = await hre.getNamedAccounts();
-    const { marketplace = LOOKS_RARE } = params;
+    const { marketplace = LOOKS_RARE} = params;
     const voyage = await ethers.getContract<Voyage>('Voyage');
     let vaultAddress = await voyage.getVault(owner);
     await voyage.approveMarketplace(vaultAddress, marketplace, false);
