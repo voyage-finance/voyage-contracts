@@ -2,27 +2,17 @@
 pragma solidity ^0.8.9;
 
 import {TakerOrder, MakerOrder} from "../voyage/adapter/LooksRareAdapter.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "hardhat/console.sol";
 
 contract MockMarketPlace {
-    using SafeERC20 for IERC20;
-
-    address weth;
-
-    constructor(address _weth) {
-        weth = _weth;
-    }
-
     function matchAskWithTakerBidUsingETHAndWETH(
         TakerOrder calldata takerBid,
         MakerOrder calldata makerAsk
     ) external payable {
         console.log("in matchAskWithTakerBidUsingETHAndWETH");
+        console.log("value: %s", msg.value);
         logTakerOrder(takerBid);
         logMakerOrder(makerAsk);
-        safeTransferFrom(makerAsk.currency, msg.sender, makerAsk.price);
     }
 
     function matchAskWithTakerBid(
@@ -33,7 +23,6 @@ contract MockMarketPlace {
         console.log("value: %s", msg.value);
         logTakerOrder(takerBid);
         logMakerOrder(makerAsk);
-        safeTransferFrom(makerAsk.currency, msg.sender, makerAsk.price);
     }
 
     function logTakerOrder(TakerOrder calldata takerBid) internal {
@@ -47,16 +36,6 @@ contract MockMarketPlace {
         );
         console.log("TakerOrder.params:");
         console.logBytes(takerBid.params);
-    }
-
-    function safeTransferFrom(
-        address currency,
-        address payer,
-        uint256 value
-    ) internal {
-        if (currency != 0x0000000000000000000000000000000000000000) {
-            IERC20(weth).safeTransferFrom(payer, address(this), value);
-        }
     }
 
     function logMakerOrder(MakerOrder calldata makerAsk) internal {
