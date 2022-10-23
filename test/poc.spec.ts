@@ -12,8 +12,8 @@ import {
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
-describe('an attacker can steal NFTs by abusing withdraw/claim', async () => {
-  it('should be able to withdraw Principal + Interest incorrectly', async () => {
+describe('an attacker should not be able to steal NFTs by abusing withdraw/claim', async () => {
+  it('should be able to withdraw Principal + Interest correctly', async () => {
     const {
       crab,
       owner,
