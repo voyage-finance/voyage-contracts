@@ -15,7 +15,7 @@ import {
   BasicOrderParametersStruct,
   Seaport,
 } from '@opensea/seaport-js/lib/typechain/Seaport';
-import { BigNumber } from 'ethers';
+import { BigNumber, Wallet } from 'ethers';
 import { deployments as d } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import {
@@ -32,12 +32,14 @@ import {
 import { REFUND_GAS_PRICE, REFUND_GAS_UNIT } from './constants';
 import { deployFacets, FacetCutAction } from './diamond';
 import { decimals, MAX_UINT_256, toWad } from './math';
-import { getRelayHub, getWETH9 } from './task-helpers/addresses';
-import { setHRE } from './task-helpers/hre';
+import { getRelayHub, getTwapSigner, getWETH9 } from './task-helpers/addresses';
+import { HRE as hre, setHRE } from './task-helpers/hre';
 import './wadraymath';
+import { ExternalChainID } from '@helpers/types';
+import { _TypedDataEncoder, arrayify, defaultAbiCoder } from 'ethers/lib/utils';
 
 const dec = decimals(18);
-
+const PRICE = 10;
 export interface ReserveConfiguration {
   collection: string;
   currency: string;
@@ -55,6 +57,7 @@ export interface ReserveConfiguration {
   treasury: string;
   marketplaces: string[];
   adapters: string[];
+  twapTolerance: number;
 }
 
 const setupBase = async (hre: HardhatRuntimeEnvironment) => {
@@ -116,6 +119,7 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     treasury: treasury,
     marketplaces: [seaport.address, marketPlace.address],
     adapters: [seaportAdapter.address, looksRareAdapter.address],
+    twapTolerance: 2000,
   };
   await configurator.initReserves([reserveConfiguration]);
   const [senior, junior] = await voyage.getDepositTokens(crab.address);
@@ -128,6 +132,7 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     junior
   );
   await weth.approve(voyage.address, MAX_UINT_256);
+  await voyage.setOracleSigner('0xad5792b1d998f607d3eeb2f357138a440b03f19f');
   /* -------------------------- vault initialisation -------------------------- */
 
   // create an empty vault
@@ -177,7 +182,7 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     isOrderAsk: true,
     signer: '0xAc786F3E609eeBC3830A26881bd026B6b9211ae2',
     collection: crab.address,
-    price: toWad(10),
+    price: toWad(PRICE),
     tokenId: '1',
     amount: 1,
     strategy: '0x732319A3590E4fA838C111826f9584a9A2fDEa1a',
@@ -361,3 +366,51 @@ export const setupTestSuiteWithMocks = d.createFixture(async (hre, args) => {
     voyage,
   };
 });
+
+// TWAP Tolerance
+
+const EIP712_TYPES = {
+  Message: {
+    Message: [
+      { name: 'id', type: 'bytes32' },
+      { name: 'payload', type: 'bytes' },
+      { name: 'timestamp', type: 'uint256' },
+    ],
+  },
+  ContractWideCollectionPrice: {
+    ContractWideCollectionPrice: [
+      { name: 'kind', type: 'uint8' },
+      { name: 'twapHours', type: 'uint256' },
+      { name: 'contract', type: 'address' },
+    ],
+  },
+};
+
+export async function setupTestTwapToleranceMock(
+  collection: string,
+  voyage: Voyage,
+  currency: string,
+  timestamp: number,
+  price = PRICE,
+  signerKey = '0xafd746101717d4ffbb8e387164e562e6299d290979ae66b76178c8088c314e0a'
+) {
+  const id = await voyage.getMessageId(collection);
+  const priceWad = toWad(price);
+  const message = {
+    id: id.toString(), // random id for goerli only
+    payload: defaultAbiCoder.encode(
+      ['address', 'uint256'],
+      [currency, priceWad]
+    ),
+    timestamp: timestamp,
+    signature: '',
+  };
+  const signer = new Wallet(signerKey);
+  console.log('Singer: ', signer.address);
+  message.signature = await signer.signMessage(
+    arrayify(
+      _TypedDataEncoder.hashStruct('Message', EIP712_TYPES.Message, message)
+    )
+  );
+  return message;
+}

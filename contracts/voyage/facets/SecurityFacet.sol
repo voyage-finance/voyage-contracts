@@ -7,6 +7,7 @@ import {Storage, Authorisation, LibAppStorage} from "../libraries/LibAppStorage.
 import {LibSecurity} from "../libraries/LibSecurity.sol";
 import {ILiquidityFacet} from "../interfaces/ILiquidityFacet.sol";
 import {ConfigurationFacet} from "../facets/ConfigurationFacet.sol";
+import {OracleFacet} from "../facets/OracleFacet.sol";
 
 contract SecurityFacet is Storage {
     using LibSecurity for Authorisation;
@@ -84,7 +85,7 @@ contract SecurityFacet is Storage {
         if (_configurator == address(0) || !Address.isContract(_configurator)) {
             revert InvalidConfiguratorContract();
         }
-        bytes4[] memory selectors = new bytes4[](15);
+        bytes4[] memory selectors = new bytes4[](16);
         selectors[0] = ILiquidityFacet(address(0)).initReserve.selector;
         selectors[1] = ILiquidityFacet(address(0)).activateReserve.selector;
         selectors[2] = ILiquidityFacet(address(0)).deactivateReserve.selector;
@@ -117,6 +118,9 @@ contract SecurityFacet is Storage {
             .selector;
         selectors[14] = ConfigurationFacet(address(0))
             .upgradeSeniorDepositTokenImpl
+            .selector;
+        selectors[15] = ConfigurationFacet(address(0))
+            .setTwapTolerance
             .selector;
 
         LibSecurity.grantPermissions(

@@ -39,6 +39,13 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
         address _strategy
     );
 
+    event OracleSignerUpdated(address _signer);
+
+    event TwapToleranceUpdated(
+        address indexed _collection,
+        uint256 _twapTolerance
+    );
+
     /* --------------------------------- errors --------------------------------- */
     error IllegalLoanParameters();
     error InvalidGSNConfiguration();
@@ -184,6 +191,36 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
         ReserveConfigurationMap memory conf = LibReserveConfiguration
             .getConfiguration(_collection);
         return conf.getMaxTwapStaleness();
+    }
+
+    function setOracleSigner(address _signer) external authorised {
+        LibAppStorage.ds().oracleSignerAddress = _signer;
+        emit OracleSignerUpdated(_signer);
+    }
+
+    function getOracleSigner() external view returns (address) {
+        return LibAppStorage.ds().oracleSignerAddress;
+    }
+
+    function getTwapTolerance(address _collection)
+        public
+        view
+        returns (uint256)
+    {
+        ReserveConfigurationMap memory conf = LibReserveConfiguration
+            .getConfiguration(_collection);
+        return conf.getTwapTolerance();
+    }
+
+    function setTwapTolerance(address _collection, uint256 _twapTolerance)
+        external
+        authorised
+    {
+        ReserveConfigurationMap memory conf = LibReserveConfiguration
+            .getConfiguration(_collection);
+        conf.setTwapTolerance(_twapTolerance);
+        LibReserveConfiguration.saveConfiguration(_collection, conf);
+        emit TwapToleranceUpdated(_collection, _twapTolerance);
     }
 }
 

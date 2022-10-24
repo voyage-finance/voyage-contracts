@@ -68,8 +68,9 @@ export const SEAPORT_ADDRESS: ExternalContractMapping = {
   [ChainID.Goerli]: CROSS_CHAIN_SEAPORT_ADDRESS,
 };
 
-export const TWAP_OPERATOR_ADDRESS: ExternalContractMapping = {
-  [ChainID.Mainnet]: '0x989d103d87dc8ee0fd06212bfd0bd6c08c661ed4',
-  [ChainID.Rinkeby]: '0xbeb4b7a96dd4fc94767e6cc9e5ce881bc0db2b5d',
-  [ChainID.Goerli]: '0xbeb4b7a96dd4fc94767e6cc9e5ce881bc0db2b5d',
+export const TWAP_SIGNER_ADDRESS: ContractMapping = {
+  [ChainID.Mainnet]: '0x32da57e736e05f75aa4fae2e9be60fd904492726',
+  [ChainID.Rinkeby]: '0xad5792b1d998f607d3eeb2f357138a440b03f19f',
+  [ChainID.Goerli]: '0xad5792b1d998f607d3eeb2f357138a440b03f19f',
+  [ChainID.Hardhat]: '0xad5792b1d998f607d3eeb2f357138a440b03f19f',
 };

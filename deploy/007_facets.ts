@@ -51,7 +51,17 @@ const deployFn: DeployFunction = async (hre) => {
       log: true,
     },
     {
+      name: 'LiquidateFacet',
+      from: owner,
+      log: true,
+    },
+    {
       name: 'LoanFacet',
+      from: owner,
+      log: true,
+    },
+    {
+      name: 'RepaymentFacet',
       from: owner,
       log: true,
     },
@@ -67,6 +77,11 @@ const deployFn: DeployFunction = async (hre) => {
     },
     {
       name: 'DataProviderFacet',
+      from: owner,
+      log: true,
+    },
+    {
+      name: 'OracleFacet',
       from: owner,
       log: true,
     }

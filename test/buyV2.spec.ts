@@ -1,26 +1,30 @@
 import { expect } from 'chai';
-import { setupTestSuite } from '../helpers/setupTestSuite';
+import {
+  setupTestSuite,
+  setupTestTwapToleranceMock,
+} from '../helpers/setupTestSuite';
 import { toWad } from '../helpers/math';
 import { ethers } from 'hardhat';
 import { getCurrentTimestamp } from '@helpers/chain';
 
-describe('BuyNow', function () {
+describe('BuyNowV2', function () {
   it('Buy with wrong vault address should revert', async function () {
-    const {
-      crab,
+    const { crab, voyage, purchaseDataFromLooksRare, marketPlace, weth } =
+      await setupTestSuite();
+    const message = await setupTestTwapToleranceMock(
+      crab.address,
       voyage,
-      priceOracle,
-      purchaseDataFromLooksRare,
-      marketPlace,
-    } = await setupTestSuite();
-    await priceOracle.updateTwap(crab.address, toWad(10));
+      weth.address,
+      Math.floor(Date.now() / 1000)
+    );
     await expect(
-      voyage.buyNow(
+      voyage.buyNowV2(
         crab.address,
         1,
         voyage.address,
         marketPlace.address,
-        purchaseDataFromLooksRare
+        purchaseDataFromLooksRare,
+        message
       )
     ).to.be.revertedWithCustomError(voyage, 'Unauthorised');
   });
@@ -29,18 +33,24 @@ describe('BuyNow', function () {
     const {
       crab,
       voyage,
-      priceOracle,
       purchaseDataFromLooksRareWithWrongCurrency,
       marketPlace,
+      weth,
     } = await setupTestSuite();
-    await priceOracle.updateTwap(crab.address, toWad(10));
+    const message = await setupTestTwapToleranceMock(
+      crab.address,
+      voyage,
+      weth.address,
+      Math.floor(Date.now() / 1000)
+    );
     await expect(
-      voyage.buyNow(
+      voyage.buyNowV2(
         crab.address,
         1,
         voyage.address,
         marketPlace.address,
-        purchaseDataFromLooksRareWithWrongCurrency
+        purchaseDataFromLooksRareWithWrongCurrency,
+        message
       )
     ).to.be.revertedWithCustomError(voyage, 'Unauthorised');
   });
@@ -50,19 +60,25 @@ describe('BuyNow', function () {
       crab,
       owner,
       voyage,
-      priceOracle,
       purchaseDataFromLooksRare,
       marketPlace,
+      weth,
     } = await setupTestSuite();
-    await priceOracle.updateTwap(crab.address, toWad(10));
+    const message = await setupTestTwapToleranceMock(
+      crab.address,
+      voyage,
+      weth.address,
+      Math.floor(Date.now() / 1000)
+    );
     const vault = await voyage.getVault(owner);
     await expect(
-      voyage.buyNow(
+      voyage.buyNowV2(
         crab.address,
         2,
         vault,
         marketPlace.address,
-        purchaseDataFromLooksRare
+        purchaseDataFromLooksRare,
+        message
       )
     ).to.be.revertedWithCustomError(voyage, 'InvalidTokenid');
   });
@@ -72,21 +88,27 @@ describe('BuyNow', function () {
       crab,
       owner,
       voyage,
-      priceOracle,
       purchaseDataFromLooksRare,
       marketPlace,
+      weth,
     } = await setupTestSuite();
-    await priceOracle.updateTwap(crab.address, toWad(10));
+    const message = await setupTestTwapToleranceMock(
+      crab.address,
+      voyage,
+      weth.address,
+      Math.floor(Date.now() / 1000)
+    );
     const vault = await voyage.getVault(owner);
     const juniorDeposit = toWad(50);
     await voyage.deposit(crab.address, 0, juniorDeposit);
     await expect(
-      voyage.buyNow(
+      voyage.buyNowV2(
         marketPlace.address,
         1,
         vault,
         marketPlace.address,
-        purchaseDataFromLooksRare
+        purchaseDataFromLooksRare,
+        message
       )
     ).to.be.revertedWithCustomError(voyage, 'InvalidCollection');
   });
@@ -96,21 +118,27 @@ describe('BuyNow', function () {
       crab,
       owner,
       voyage,
-      priceOracle,
       purchaseDataFromLooksRare,
       marketPlace,
+      weth,
     } = await setupTestSuite();
-    await priceOracle.updateTwap(crab.address, toWad(10));
+    const message = await setupTestTwapToleranceMock(
+      crab.address,
+      voyage,
+      weth.address,
+      Math.floor(Date.now() / 1000)
+    );
     const vault = await voyage.getVault(owner);
     const juniorDeposit = toWad(50);
     await voyage.deposit(crab.address, 0, juniorDeposit);
     await expect(
-      voyage.buyNow(
+      voyage.buyNowV2(
         crab.address,
         1,
         vault,
         marketPlace.address,
-        purchaseDataFromLooksRare
+        purchaseDataFromLooksRare,
+        message
       )
     ).to.be.revertedWithCustomError(voyage, 'InsufficientCash');
   });
@@ -122,17 +150,24 @@ describe('BuyNow', function () {
       voyage,
       purchaseDataFromLooksRare,
       marketPlace,
-      priceOracle,
+      weth,
     } = await setupTestSuite();
+    const message = await setupTestTwapToleranceMock(
+      crab.address,
+      voyage,
+      weth.address,
+      Math.floor(Date.now() / 1000),
+      0
+    );
     const vault = await voyage.getVault(owner);
-    await priceOracle.updateTwap(crab.address, 0);
     await expect(
-      voyage.buyNow(
+      voyage.buyNowV2(
         crab.address,
         1,
         vault,
         marketPlace.address,
-        purchaseDataFromLooksRare
+        purchaseDataFromLooksRare,
+        message
       )
     ).to.be.revertedWithCustomError(voyage, 'InvalidFloorPrice');
   });
@@ -144,7 +179,7 @@ describe('BuyNow', function () {
       voyage,
       purchaseDataFromLooksRare,
       marketPlace,
-      priceOracle,
+      weth,
     } = await setupTestSuite();
     const depositAmount = toWad(120);
     const juniorDeposit = toWad(50);
@@ -152,71 +187,30 @@ describe('BuyNow', function () {
     await voyage.deposit(crab.address, 1, depositAmount);
     const vault = await voyage.getVault(owner);
     await voyage.setMaxTwapStaleness(crab.address, 0);
-    await priceOracle.updateTwap(crab.address, toWad(10));
+    console.log(
+      'getMaxTwapStaleness',
+      await voyage.getMaxTwapStaleness(crab.address)
+    );
     const timestampBefore = await getCurrentTimestamp();
-    await ethers.provider.send('evm_mine', [timestampBefore + 100]);
-
-    await expect(
-      voyage.buyNow(
-        crab.address,
-        1,
-        vault,
-        marketPlace.address,
-        purchaseDataFromLooksRare
-      )
-    ).to.be.revertedWithCustomError(voyage, 'BuyNowStaleTwap');
-  });
-
-  it('Buy with just staled floor price should revert', async function () {
-    const {
-      crab,
-      owner,
+    const currentTime = Math.floor(Date.now() / 1000);
+    const message = await setupTestTwapToleranceMock(
+      crab.address,
       voyage,
-      purchaseDataFromLooksRare,
-      marketPlace,
-      priceOracle,
-    } = await setupTestSuite();
-    const vault = await voyage.getVault(owner);
-    await voyage.setMaxTwapStaleness(crab.address, 100);
-    await priceOracle.updateTwap(crab.address, toWad(10));
-    const timestampBefore = await getCurrentTimestamp();
-    await ethers.provider.send('evm_mine', [timestampBefore + 100]);
+      weth.address,
+      currentTime - 1000
+    );
+    await ethers.provider.send('evm_mine', [currentTime + 1000]);
 
     await expect(
-      voyage.buyNow(
+      voyage.buyNowV2(
         crab.address,
         1,
         vault,
         marketPlace.address,
-        purchaseDataFromLooksRare
+        purchaseDataFromLooksRare,
+        message
       )
-    ).to.be.revertedWithCustomError(voyage, 'BuyNowStaleTwap');
-  });
-
-  it('Buy with outdated floor price should revert', async function () {
-    const {
-      crab,
-      owner,
-      voyage,
-      purchaseDataFromLooksRare,
-      marketPlace,
-      priceOracle,
-    } = await setupTestSuite();
-    const vault = await voyage.getVault(owner);
-    await voyage.setMaxTwapStaleness(crab.address, 100);
-    await priceOracle.updateTwap(crab.address, toWad(10));
-    const timestampBefore = await getCurrentTimestamp();
-    await ethers.provider.send('evm_mine', [timestampBefore + 1000]);
-
-    await expect(
-      voyage.buyNow(
-        crab.address,
-        1,
-        vault,
-        marketPlace.address,
-        purchaseDataFromLooksRare
-      )
-    ).to.be.revertedWithCustomError(voyage, 'BuyNowStaleTwap');
+    ).to.be.revertedWithCustomError(voyage, 'InvalidTwapMessage');
   });
 
   it('Buy with insufficient junior liquidity should revert', async function () {
@@ -224,32 +218,39 @@ describe('BuyNow', function () {
       crab,
       owner,
       voyage,
-      priceOracle,
       marketPlace,
       purchaseDataFromLooksRare,
+      weth,
     } = await setupTestSuite();
     const depositAmount = toWad(120);
     await voyage.deposit(crab.address, 1, depositAmount);
-    await priceOracle.updateTwap(crab.address, toWad(10));
+    const message = await setupTestTwapToleranceMock(
+      crab.address,
+      voyage,
+      weth.address,
+      Math.floor(Date.now() / 1000)
+    );
     const vault = await voyage.getVault(owner);
     await expect(
-      voyage.buyNow(
+      voyage.buyNowV2(
         crab.address,
         1,
         vault,
         marketPlace.address,
-        purchaseDataFromLooksRare
+        purchaseDataFromLooksRare,
+        message
       )
     ).to.be.revertedWithCustomError(voyage, 'InvalidJuniorTrancheBalance');
 
     await voyage.deposit(crab.address, 0, toWad(1));
     await expect(
-      voyage.buyNow(
+      voyage.buyNowV2(
         crab.address,
         1,
         vault,
         marketPlace.address,
-        purchaseDataFromLooksRare
+        purchaseDataFromLooksRare,
+        message
       )
     ).to.be.revertedWithCustomError(voyage, 'InsufficientJuniorLiquidity');
   });
@@ -259,23 +260,30 @@ describe('BuyNow', function () {
       crab,
       owner,
       voyage,
-      priceOracle,
       marketPlace,
       purchaseDataFromLooksRare,
+      weth,
     } = await setupTestSuite();
     const depositAmount = toWad(120);
     const juniorDeposit = toWad(50);
     await voyage.deposit(crab.address, 0, juniorDeposit);
     await voyage.deposit(crab.address, 1, depositAmount);
-    await priceOracle.updateTwap(crab.address, toWad(0.000001));
+    const message = await setupTestTwapToleranceMock(
+      crab.address,
+      voyage,
+      weth.address,
+      Math.floor(Date.now() / 1000),
+      0.000001
+    );
     const vault = await voyage.getVault(owner);
     await expect(
-      voyage.buyNow(
+      voyage.buyNowV2(
         crab.address,
         1,
         vault,
         marketPlace.address,
-        purchaseDataFromLooksRare
+        purchaseDataFromLooksRare,
+        message
       )
     ).to.be.revertedWithCustomError(voyage, 'ExceedsFloorPrice');
   });
@@ -285,22 +293,28 @@ describe('BuyNow', function () {
       crab,
       owner,
       voyage,
-      priceOracle,
       purchaseDataFromLooksRare,
       marketPlace,
       reserveConfiguration,
+      weth,
     } = await setupTestSuite();
     await voyage.deposit(crab.address, 0, toWad(50));
     await voyage.deposit(crab.address, 1, toWad(120));
-    await priceOracle.updateTwap(crab.address, toWad(10));
+    const message = await setupTestTwapToleranceMock(
+      crab.address,
+      voyage,
+      weth.address,
+      Math.floor(Date.now() / 1000)
+    );
     const vault = await voyage.getVault(owner);
 
-    await voyage.buyNow(
+    await voyage.buyNowV2(
       crab.address,
       1,
       vault,
       marketPlace.address,
-      purchaseDataFromLooksRare
+      purchaseDataFromLooksRare,
+      message
     );
 
     // check pool data
@@ -331,21 +345,27 @@ describe('BuyNow', function () {
       crab,
       owner,
       voyage,
-      priceOracle,
       purchaseDataFromLooksRareWithWETH,
       marketPlace,
       reserveConfiguration,
+      weth,
     } = await setupTestSuite();
     await voyage.deposit(crab.address, 0, toWad(50));
     await voyage.deposit(crab.address, 1, toWad(120));
-    await priceOracle.updateTwap(crab.address, toWad(10));
+    const message = await setupTestTwapToleranceMock(
+      crab.address,
+      voyage,
+      weth.address,
+      Math.floor(Date.now() / 1000)
+    );
     const vault = await voyage.getVault(owner);
-    await voyage.buyNow(
+    await voyage.buyNowV2(
       crab.address,
       1,
       vault,
       marketPlace.address,
-      purchaseDataFromLooksRareWithWETH
+      purchaseDataFromLooksRareWithWETH,
+      message
     );
     console.log(
       'purchaseDataFromLooksRareWithWETH: ',
@@ -380,14 +400,18 @@ describe('BuyNow', function () {
       crab,
       owner,
       voyage,
-      priceOracle,
       purchaseDataFromLooksRareWithWETH,
       marketPlace,
       weth,
     } = await setupTestSuite();
     await voyage.deposit(crab.address, 0, toWad(50));
     await voyage.deposit(crab.address, 1, toWad(120));
-    await priceOracle.updateTwap(crab.address, toWad(10));
+    const message = await setupTestTwapToleranceMock(
+      crab.address,
+      voyage,
+      weth.address,
+      Math.floor(Date.now() / 1000)
+    );
     const vault = await voyage.getVault(owner);
 
     // check vault balance
@@ -410,12 +434,13 @@ describe('BuyNow', function () {
     console.log('weth balance after: ', wethBalanceAfter.toString());
 
     await expect(
-      voyage.buyNow(
+      voyage.buyNowV2(
         crab.address,
         1,
         vault,
         marketPlace.address,
-        purchaseDataFromLooksRareWithWETH
+        purchaseDataFromLooksRareWithWETH,
+        message
       )
     ).to.be.revertedWithCustomError(voyage, 'InsufficientVaultETHBalance');
   });
@@ -425,14 +450,18 @@ describe('BuyNow', function () {
       crab,
       owner,
       voyage,
-      priceOracle,
       purchaseDataFromLooksRareWithWETH,
       marketPlace,
       weth,
     } = await setupTestSuite();
     await voyage.deposit(crab.address, 0, toWad(50));
     await voyage.deposit(crab.address, 1, toWad(120));
-    await priceOracle.updateTwap(crab.address, toWad(10));
+    const message = await setupTestTwapToleranceMock(
+      crab.address,
+      voyage,
+      weth.address,
+      Math.floor(Date.now() / 1000)
+    );
     const vault = await voyage.getVault(owner);
 
     // check vault balance
@@ -450,12 +479,13 @@ describe('BuyNow', function () {
     console.log('weth balance after: ', wethBalanceAfter.toString());
 
     await expect(
-      voyage.buyNow(
+      voyage.buyNowV2(
         crab.address,
         1,
         vault,
         marketPlace.address,
-        purchaseDataFromLooksRareWithWETH
+        purchaseDataFromLooksRareWithWETH,
+        message
       )
     ).to.be.revertedWithCustomError(voyage, 'InsufficientVaultETHBalance');
   });
@@ -465,14 +495,18 @@ describe('BuyNow', function () {
       crab,
       owner,
       voyage,
-      priceOracle,
       purchaseDataFromLooksRareWithWETH,
       marketPlace,
       weth,
     } = await setupTestSuite();
     await voyage.deposit(crab.address, 0, toWad(50));
     await voyage.deposit(crab.address, 1, toWad(120));
-    await priceOracle.updateTwap(crab.address, toWad(10));
+    const message = await setupTestTwapToleranceMock(
+      crab.address,
+      voyage,
+      weth.address,
+      Math.floor(Date.now() / 1000)
+    );
     const vault = await voyage.getVault(owner);
 
     // check vault balance
@@ -487,12 +521,13 @@ describe('BuyNow', function () {
     const wethBalanceAfter = await weth.balanceOf(vault);
     console.log('eth balance after: ', ethBalanceAfter.toString());
     console.log('weth balance after: ', wethBalanceAfter.toString());
-    voyage.buyNow(
+    voyage.buyNowV2(
       crab.address,
       1,
       vault,
       marketPlace.address,
-      purchaseDataFromLooksRareWithWETH
+      purchaseDataFromLooksRareWithWETH,
+      message
     );
 
     // check pool data
@@ -507,14 +542,18 @@ describe('BuyNow', function () {
       crab,
       owner,
       voyage,
-      priceOracle,
       purchaseDataFromLooksRareWithWETH,
       marketPlace,
       weth,
     } = await setupTestSuite();
     await voyage.deposit(crab.address, 0, toWad(50));
     await voyage.deposit(crab.address, 1, toWad(120));
-    await priceOracle.updateTwap(crab.address, toWad(10));
+    const message = await setupTestTwapToleranceMock(
+      crab.address,
+      voyage,
+      weth.address,
+      Math.floor(Date.now() / 1000)
+    );
     const vault = await voyage.getVault(owner);
 
     // check vault balance
@@ -531,12 +570,13 @@ describe('BuyNow', function () {
     console.log('eth balance after: ', ethBalanceAfter.toString());
     console.log('weth balance after: ', wethBalanceAfter.toString());
 
-    voyage.buyNow(
+    voyage.buyNowV2(
       crab.address,
       1,
       vault,
       marketPlace.address,
-      purchaseDataFromLooksRareWithWETH
+      purchaseDataFromLooksRareWithWETH,
+      message
     );
 
     // check pool data
@@ -551,14 +591,18 @@ describe('BuyNow', function () {
       crab,
       owner,
       voyage,
-      priceOracle,
       purchaseDataFromLooksRareWithWETH,
       marketPlace,
       weth,
     } = await setupTestSuite();
     await voyage.deposit(crab.address, 0, toWad(50));
     await voyage.deposit(crab.address, 1, toWad(120));
-    await priceOracle.updateTwap(crab.address, toWad(10));
+    const message = await setupTestTwapToleranceMock(
+      crab.address,
+      voyage,
+      weth.address,
+      Math.floor(Date.now() / 1000)
+    );
     const vault = await voyage.getVault(owner);
 
     // check vault balance
@@ -580,12 +624,13 @@ describe('BuyNow', function () {
     console.log('eth balance after: ', ethBalanceAfter.toString());
     console.log('weth balance after: ', wethBalanceAfter.toString());
 
-    voyage.buyNow(
+    voyage.buyNowV2(
       crab.address,
       1,
       vault,
       marketPlace.address,
-      purchaseDataFromLooksRareWithWETH
+      purchaseDataFromLooksRareWithWETH,
+      message
     );
 
     // check pool data
@@ -596,19 +641,18 @@ describe('BuyNow', function () {
   });
 
   it('Buy with sufficient credit limit from OS should pass', async function () {
-    const {
-      crab,
-      owner,
-      voyage,
-      priceOracle,
-      purchaseDataFromOpensea,
-      seaport,
-    } = await setupTestSuite();
+    const { crab, owner, voyage, purchaseDataFromOpensea, seaport, weth } =
+      await setupTestSuite();
     const depositAmount = toWad(120);
     const juniorDeposit = toWad(50);
     await voyage.deposit(crab.address, 0, juniorDeposit);
     await voyage.deposit(crab.address, 1, depositAmount);
-    await priceOracle.updateTwap(crab.address, toWad(10));
+    const message = await setupTestTwapToleranceMock(
+      crab.address,
+      voyage,
+      weth.address,
+      Math.floor(Date.now() / 1000)
+    );
     const vault = await voyage.getVault(owner);
     const param = await voyage.previewBuyNowParams(
       crab.address,
@@ -617,12 +661,13 @@ describe('BuyNow', function () {
     );
     console.log('purchaseDataFromOpensea: ', purchaseDataFromOpensea);
     console.log(param);
-    await voyage.buyNow(
+    await voyage.buyNowV2(
       crab.address,
       6532,
       vault,
       seaport.address,
-      purchaseDataFromOpensea
+      purchaseDataFromOpensea,
+      message
     );
   });
 });
