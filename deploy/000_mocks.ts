@@ -37,6 +37,7 @@ const deployFn: DeployFunction = async (hre) => {
 
   await deploy('MockSeaport', {
     from: owner,
+    args: [weth9],
     log: true,
   });
 };
