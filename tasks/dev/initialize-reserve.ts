@@ -155,4 +155,9 @@ task("dev:initialize-reserve", "Initializes a reserve.")
             twap: hre.ethers.utils.parseEther(floorPrice),
         });
         console.log(`Set ${collection} floor price to ${floorPrice}. \n`);
+        console.log(
+            `Tolerance from contract ${await voyage.getTwapTolerance(
+                collection
+            )}`
+        );
     });

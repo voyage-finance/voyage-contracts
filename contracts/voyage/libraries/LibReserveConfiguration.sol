@@ -33,7 +33,7 @@ library LibReserveConfiguration {
     uint256 internal constant GRACE_PERIOD_MASK_BIT_POSITION = 156;
     uint256 internal constant OPTIMAL_LIQUIDITY_RATIO_MASK_BIT_POSITION = 164;
     uint256 internal constant MAX_TWAP_STALENESS_MASK_BIT_POSITION = 180;
-    uint256 internal constant TWAP_TOLERANCE_MASK_BIT_POSITION = 196;
+    uint256 internal constant TWAP_TOLERANCE_MASK_BIT_POSITION = 220;
 
     uint256 internal constant MAX_VALID_LIQUIDATION_BONUS = 65535; // percentage
     uint256 internal constant MAX_VALID_DECIMALS = 255;

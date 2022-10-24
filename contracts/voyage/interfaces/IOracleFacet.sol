@@ -15,7 +15,7 @@ interface IOracleFacet {
         bytes32 id,
         uint256 validFor,
         Message memory message
-    ) external returns (bool success);
+    ) external;
 
     function getMessageId(address _collection) external returns (bytes32);
 }
