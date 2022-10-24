@@ -17,3 +17,5 @@ import './withdraw-from-relayhub';
 import './update-twap';
 import './set-loan-params';
 import './poc';
+import "./configure-oracle-signer";
+import './poc';

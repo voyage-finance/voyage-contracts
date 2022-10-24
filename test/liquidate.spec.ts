@@ -74,7 +74,7 @@ describe('Liquidate', function () {
     await priceOracle.updateTwap(crab.address, toWad(0));
     await expect(
       voyage.liquidate(crab.address, vault, 1)
-    ).to.be.revertedWithCustomError(voyage, 'InvalidFloorPrice');
+    ).to.be.revertedWithCustomError(voyage, 'InvalidLiquidateFloorPrice');
   });
 
   it('Outdated floor price should revert', async function () {

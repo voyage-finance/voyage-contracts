@@ -211,6 +211,7 @@ struct AppStorage {
     /* ---------------------------------- helper --------------------------------- */
     // mapping of sender address to helper maps, need to clear after computing
     UpgradeParam upgradeParam;
+    address oracleSignerAddress;
 }
 
 library LibAppStorage {

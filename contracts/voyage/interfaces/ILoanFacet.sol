@@ -2,6 +2,7 @@
 pragma solidity ^0.8.9;
 
 import {PMT} from "../libraries/LibAppStorage.sol";
+import {Message} from "../interfaces/IOracleFacet.sol";
 
 struct ExecuteRepayParams {
     address vault;
@@ -43,17 +44,14 @@ interface ILoanFacet {
         bytes calldata _data
     ) external payable;
 
-    function repay(
+    function buyNowV2(
         address _collection,
-        uint256 _loan,
-        address payable _vault
-    ) external;
-
-    function liquidate(
-        address _collection,
-        address _vault,
-        uint256 _loanId
-    ) external;
+        uint256 _tokenId,
+        address payable _vault,
+        address _marketplace,
+        bytes calldata _data,
+        Message calldata message
+    ) external payable;
 
     function getVaultDebt(address _collection, address _vault)
         external

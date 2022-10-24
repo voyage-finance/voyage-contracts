@@ -11,4 +11,5 @@ export const INCOME_RATIO = 5000;
 export const OPTIMAL_LIQUIDITY_RATIO = 5000;
 export const PROTOCOL_FEE = 100;
 export const STALENESS = 6 * 60 * 60;
+export const TWAP_TOLERANCE = 2000; // 20%
 export const BASE_RATE = BigNumber.from(RAY).div(10).mul(2);

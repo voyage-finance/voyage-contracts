@@ -21,6 +21,7 @@ struct ConfigureReserveInput {
     uint40 protocolFee;
     address[] marketplaces;
     address[] adapters;
+    uint256 twapTolerance;
 }
 
 contract VoyageReserveConfigurator is Ownable {
@@ -166,6 +167,16 @@ contract VoyageReserveConfigurator is Ownable {
         ConfigurationFacet(voyage).upgradeSeniorDepositTokenImpl(_impl);
     }
 
+    function setTwapTolerance(ConfigureReserveInput calldata input)
+        public
+        onlyOwner
+    {
+        ConfigurationFacet(voyage).setTwapTolerance(
+            input.collection,
+            input.twapTolerance
+        );
+    }
+
     function _initReserve(ConfigureReserveInput calldata input) internal {
         initReserve(input);
         activateReserve(input);
@@ -175,6 +186,7 @@ contract VoyageReserveConfigurator is Ownable {
         setOptimalLiquidityRatio(input);
         setMaxTwapStaleness(input);
         setLoanParams(input);
+        setTwapTolerance(input);
         for (uint256 i = 0; i < input.marketplaces.length; i++) {
             updateMarketPlaceData(input.marketplaces[i], input.adapters[i]);
         }

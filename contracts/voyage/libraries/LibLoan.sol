@@ -16,6 +16,7 @@ struct ExecuteBuyNowParams {
     address collection;
     address currency;
     address marketplace;
+    bytes data;
     uint256 tokenId;
     address vault;
     uint256 totalPrincipal;

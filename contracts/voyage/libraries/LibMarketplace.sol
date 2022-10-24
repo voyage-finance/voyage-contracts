@@ -11,7 +11,7 @@ library LibMarketplace {
         address _marketplace,
         address _vault,
         uint256 _value,
-        bytes calldata _data
+        bytes memory _data
     ) internal {
         address adapterAddr = LibAppStorage
             .ds()
@@ -32,7 +32,7 @@ library LibMarketplace {
         }
     }
 
-    function extractAssetInfo(address _marketplace, bytes calldata _data)
+    function extractAssetInfo(address _marketplace, bytes memory _data)
         internal
         view
         returns (AssetInfo memory)
