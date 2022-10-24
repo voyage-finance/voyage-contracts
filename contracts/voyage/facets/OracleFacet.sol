@@ -10,18 +10,18 @@ contract OracleFacet is IOracleFacet {
         bytes32 id,
         uint256 validFor,
         Message memory message
-    ) external view returns (bool success) {
+    ) external view {
         // Ensure the message matches the requested id
         if (id != message.id) {
-            return false;
+            revert InvalidTwapMessageId();
         }
 
         // Ensure the message timestamp is valid
         if (
             message.timestamp > block.timestamp ||
-            message.timestamp + validFor < block.timestamp
+            message.timestamp + validFor <= block.timestamp
         ) {
-            return false;
+            revert InvalidTwapTimestamp();
         }
 
         bytes32 r;
@@ -29,7 +29,6 @@ contract OracleFacet is IOracleFacet {
         uint8 v;
         // Extract the individual signature fields from the signature
         bytes memory signature = message.signature;
-
         if (signature.length == 64) {
             // EIP-2098 compact signature
             bytes32 vs;
@@ -50,7 +49,7 @@ contract OracleFacet is IOracleFacet {
                 v := byte(0, mload(add(signature, 0x60)))
             }
         } else {
-            return false;
+            revert InvalidTwapMessageSignature();
         }
 
         address signerAddress = ecrecover(
@@ -76,7 +75,9 @@ contract OracleFacet is IOracleFacet {
         );
 
         // Ensure the signer matches the designated oracle address
-        return signerAddress == LibAppStorage.ds().oracleSignerAddress;
+        if (signerAddress != LibAppStorage.ds().oracleSignerAddress) {
+            revert InvalidTwapSigner();
+        }
     }
 
     function getMessageId(address _collection) external pure returns (bytes32) {
@@ -97,3 +98,4 @@ contract OracleFacet is IOracleFacet {
 error InvalidTwapMessageId();
 error InvalidTwapMessageSignature();
 error InvalidTwapTimestamp();
+error InvalidTwapSigner();

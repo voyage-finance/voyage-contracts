@@ -15,8 +15,8 @@ import {
   BasicOrderParametersStruct,
   Seaport,
 } from '@opensea/seaport-js/lib/typechain/Seaport';
-import { BigNumber, Wallet } from 'ethers';
-import { deployments as d } from 'hardhat';
+import { BigNumber } from 'ethers';
+import { deployments as d, ethers } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import {
   BASE_RATE,
@@ -33,7 +33,7 @@ import { REFUND_GAS_PRICE, REFUND_GAS_UNIT } from './constants';
 import { deployFacets, FacetCutAction } from './diamond';
 import { decimals, MAX_UINT_256, toWad } from './math';
 import { getRelayHub, getTwapSigner, getWETH9 } from './task-helpers/addresses';
-import { HRE as hre, setHRE } from './task-helpers/hre';
+import { setHRE } from './task-helpers/hre';
 import './wadraymath';
 import { ExternalChainID } from '@helpers/types';
 import { _TypedDataEncoder, arrayify, defaultAbiCoder } from 'ethers/lib/utils';
@@ -60,7 +60,7 @@ export interface ReserveConfiguration {
   twapTolerance: number;
 }
 
-const setupBase = async (hre: HardhatRuntimeEnvironment) => {
+const setupBase = async (hre: HardhatRuntimeEnvironment, tokenId = '1') => {
   setHRE(hre);
   const { deployments, getNamedAccounts, ethers } = hre;
   await deployments.fixture([
@@ -75,7 +75,8 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     'Paymaster',
     'Configurator',
   ]);
-  const { owner, alice, bob, forwarder, treasury } = await getNamedAccounts();
+  const { owner, alice, bob, twapSigner, forwarder, treasury } =
+    await getNamedAccounts();
 
   /* --------------------------------- voyage -------------------------------- */
   const voyage = await ethers.getContract<Voyage>('Voyage');
@@ -132,7 +133,7 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     junior
   );
   await weth.approve(voyage.address, MAX_UINT_256);
-  await voyage.setOracleSigner('0xad5792b1d998f607d3eeb2f357138a440b03f19f');
+  await voyage.setOracleSigner(twapSigner);
   /* -------------------------- vault initialisation -------------------------- */
 
   // create an empty vault
@@ -183,7 +184,7 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     signer: '0xAc786F3E609eeBC3830A26881bd026B6b9211ae2',
     collection: crab.address,
     price: toWad(PRICE),
-    tokenId: '1',
+    tokenId: tokenId,
     amount: 1,
     strategy: '0x732319A3590E4fA838C111826f9584a9A2fDEa1a',
     currency: currency,
@@ -284,6 +285,7 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     owner,
     alice,
     bob,
+    twapSigner,
     forwarder,
     treasury,
     defaultReserveInterestRateStrategy,
@@ -355,6 +357,10 @@ export const setupTestSuite = d.createFixture(async (hre) => {
   return setupBase(hre);
 });
 
+export const setupTestSuiteSecondToken = d.createFixture(async (hre) => {
+  return setupBase(hre, '2');
+});
+
 export const setupTestSuiteWithMocks = d.createFixture(async (hre, args) => {
   const base = await setupBase(hre);
   await setupMocks(hre, args);
@@ -386,14 +392,23 @@ const EIP712_TYPES = {
   },
 };
 
-export async function setupTestTwapToleranceMock(
+interface ITwapTolerance {
+  id?: string;
+  collection: string;
+  voyage: Voyage;
+  currency: string;
+  timestamp: number;
+  price: number;
+}
+
+export const setupTestTwapTolerance = async (
+  twapSigner: string,
   collection: string,
   voyage: Voyage,
   currency: string,
   timestamp: number,
-  price = PRICE,
-  signerKey = '0xafd746101717d4ffbb8e387164e562e6299d290979ae66b76178c8088c314e0a'
-) {
+  price = PRICE
+) => {
   const id = await voyage.getMessageId(collection);
   const priceWad = toWad(price);
   const message = {
@@ -405,12 +420,12 @@ export async function setupTestTwapToleranceMock(
     timestamp: timestamp,
     signature: '',
   };
-  const signer = new Wallet(signerKey);
-  console.log('Singer: ', signer.address);
+  const signer = await ethers.getSigner(twapSigner);
+  console.log('signing message, signer: ', twapSigner);
   message.signature = await signer.signMessage(
     arrayify(
       _TypedDataEncoder.hashStruct('Message', EIP712_TYPES.Message, message)
     )
   );
   return message;
-}
+};
