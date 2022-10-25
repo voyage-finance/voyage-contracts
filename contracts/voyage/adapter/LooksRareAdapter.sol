@@ -2,6 +2,8 @@
 pragma solidity ^0.8.9;
 
 import {IMarketPlaceAdapter, AssetInfo} from "../interfaces/IMarketPlaceAdapter.sol";
+import {LibAppStorage} from "../libraries/LibAppStorage.sol";
+import {IVault} from "../../vault/Vault.sol";
 
 struct MakerOrder {
     bool isOrderAsk; // true --> ask / false --> bid
@@ -84,48 +86,70 @@ contract LooksRareAdapter is IMarketPlaceAdapter {
         pure
         returns (AssetInfo memory assetInfo)
     {
-        (, TakerOrder memory takerOrder, ) = _decodeCalldata(_data);
+        (
+            ,
+            TakerOrder memory takerOrder,
+            MakerOrder memory makerOrder
+        ) = _decodeCalldata(_data);
+        assetInfo.collection = makerOrder.collection;
         assetInfo.assetPrice = takerOrder.price;
         assetInfo.tokenId = takerOrder.tokenId;
-
+        assetInfo.currency = makerOrder.currency;
         return assetInfo;
     }
 
-    function validate(bytes calldata _data) external pure returns (bool) {
-        return _validate(_data);
-    }
-
-    function execute(bytes calldata _data)
+    function validate(bytes calldata _data, address _vault)
         external
-        pure
-        returns (bytes memory)
+        view
+        returns (bool)
     {
-        if (_validate(_data)) {
-            (
-                bytes4 selector,
-                TakerOrder memory takerOrder,
-                MakerOrder memory makerOrder
-            ) = _decodeCalldata(_data);
-            bytes memory data = abi.encode(takerOrder, makerOrder);
-            data = abi.encodePacked(selector, data);
-            return data;
-        }
-        // use native error type here cause an ABI issue
-        revert("invalid data");
+        return _validate(_data, _vault);
     }
 
-    function _validate(bytes calldata _data) private pure returns (bool) {
-        (bytes4 selector, , ) = _decodeCalldata(_data);
-        // bytes4(keccak256(matchAskWithTakerBidUsingETHAndWETH()))
-        // 0xb4e4b296
+    function execute(
+        bytes calldata _data,
+        address _vault,
+        address _marketplace,
+        uint256 _value
+    ) external payable returns (bytes memory) {
+        if (!_validate(_data, _vault)) {
+            // use native error type here cause an ABI issue
+            revert("invalid data");
+        }
+        IVault(_vault).execute(_data, _marketplace, _value);
+    }
+
+    function _validate(bytes calldata _data, address _vault)
+        private
+        view
+        returns (bool)
+    {
+        (
+            bytes4 selector,
+            TakerOrder memory takerOrder,
+            MakerOrder memory makerOrder
+        ) = _decodeCalldata(_data);
+        // bytes4(keccak256(matchAskWithTakerBidUsingETHAndWETH())) -> 0xb4e4b296
+        // bytes4(keccak256(matchAskWithTakerBid())) -> 0x38e29209
         if (
             selector !=
             ILooksRareExchange(address(0))
                 .matchAskWithTakerBidUsingETHAndWETH
-                .selector
+                .selector &&
+            selector !=
+            ILooksRareExchange(address(0)).matchAskWithTakerBid.selector
         ) {
             return false;
         }
+
+        if (!makerOrder.isOrderAsk || takerOrder.isOrderAsk) {
+            return false;
+        }
+
+        if (takerOrder.taker != _vault) {
+            return false;
+        }
+
         return true;
     }
 

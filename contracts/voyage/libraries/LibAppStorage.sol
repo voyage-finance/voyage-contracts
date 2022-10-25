@@ -211,6 +211,7 @@ struct AppStorage {
     /* ---------------------------------- helper --------------------------------- */
     // mapping of sender address to helper maps, need to clear after computing
     UpgradeParam upgradeParam;
+    address oracleSignerAddress;
 }
 
 library LibAppStorage {
@@ -238,7 +239,7 @@ contract Storage {
         _;
     }
 
-    modifier onlyVaultOwner(address _vault, address _sender) {
+    modifier vaultOwnerOrVoyage(address _vault, address _sender) {
         checkVaultAddr(_vault, _sender);
         _;
     }
@@ -256,7 +257,10 @@ contract Storage {
         if (!Address.isContract(_vault)) {
             revert("InvalidVaultAddress");
         }
-        if (LibVault.getVaultAddress(_sender) != _vault) {
+        if (
+            LibVault.getVaultAddress(_sender) != _vault &&
+            _sender != address(this)
+        ) {
             revert("InvalidVaultCall");
         }
     }

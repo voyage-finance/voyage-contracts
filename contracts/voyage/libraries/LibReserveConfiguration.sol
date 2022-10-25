@@ -20,6 +20,7 @@ library LibReserveConfiguration {
     uint256 constant internal GRACE_PERIOD_MASK =            0xFFFFFFFFFFFFFFFFFFFFFFF00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
     uint256 constant internal OPTIMAL_LIQUIDITY_RATIO_MASK = 0xFFFFFFFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
     uint256 constant internal MAX_TWAP_STALENESS_MASK      = 0xFFFFFFFFF0000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
+    uint256 internal constant TWAP_TOLERANCE_MASK          = 0xFFFFF0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
 
     uint256 internal constant DECIMAL_MASK_BIT_POSITION = 16;
     uint256 internal constant ACTIVE_MASK_BIT_POSITION = 24;
@@ -32,6 +33,7 @@ library LibReserveConfiguration {
     uint256 internal constant GRACE_PERIOD_MASK_BIT_POSITION = 156;
     uint256 internal constant OPTIMAL_LIQUIDITY_RATIO_MASK_BIT_POSITION = 164;
     uint256 internal constant MAX_TWAP_STALENESS_MASK_BIT_POSITION = 180;
+    uint256 internal constant TWAP_TOLERANCE_MASK_BIT_POSITION = 196;
 
     uint256 internal constant MAX_VALID_LIQUIDATION_BONUS = 65535; // percentage
     uint256 internal constant MAX_VALID_DECIMALS = 255;
@@ -41,6 +43,7 @@ library LibReserveConfiguration {
     uint256 internal constant MAX_VALID_GRACE_PERIOD = 255; // days
     uint256 internal constant MAX_VALID_OPTIMAL_RATIO = type(uint32).max; // percentage
     uint256 internal constant MAX_VALID_TWAP_STALENESS = type(uint40).max;
+    uint256 internal constant MAX_VALID_TWAP_TOLERANCE = type(uint16).max; // percentage, max 625%/62500 bps
 
     error InvalidLiquidationBonus();
     error InvalidDecimals();
@@ -50,6 +53,7 @@ library LibReserveConfiguration {
     error InvalidGracePeriod();
     error InvalidOptimalRatio();
     error InvalidMaxTwapStaleness();
+    error InvalidTwapTolerance();
 
     event LiquidationConfigurationUpdated(
         address indexed _asset,
@@ -286,5 +290,27 @@ library LibReserveConfiguration {
     ) internal {
         AppStorage storage s = LibAppStorage.ds();
         s._reserveData[_collection].configuration = _conf;
+    }
+
+    function setTwapTolerance(
+        ReserveConfigurationMap memory self,
+        uint256 twapTolerance
+    ) internal pure {
+        if (twapTolerance > MAX_VALID_TWAP_TOLERANCE) {
+            revert InvalidTwapTolerance();
+        }
+        self.data =
+            (self.data & TWAP_TOLERANCE_MASK) |
+            (twapTolerance << TWAP_TOLERANCE_MASK_BIT_POSITION);
+    }
+
+    function getTwapTolerance(ReserveConfigurationMap memory self)
+        internal
+        pure
+        returns (uint256)
+    {
+        return
+            (self.data & ~TWAP_TOLERANCE_MASK) >>
+            TWAP_TOLERANCE_MASK_BIT_POSITION;
     }
 }

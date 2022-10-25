@@ -8,36 +8,29 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {LibAppStorage, AppStorage, Storage, NFTInfo, DiamondFacet, ReserveConfigurationMap} from "../libraries/LibAppStorage.sol";
 import {LibVault} from "../libraries/LibVault.sol";
 import {LibSecurity} from "../libraries/LibSecurity.sol";
 import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
+import {IVaultFacet} from "../interfaces/IVaultFacet.sol";
 import {IVault} from "../../vault/Vault.sol";
 import {IDiamondCut} from "../../shared/diamond/interfaces/IDiamondCut.sol";
 import {DiamondCutFacet} from "../../shared/diamond/facets/DiamondCutFacet.sol";
 import {IWETH9} from "../../shared/interfaces/IWETH9.sol";
 
-contract VaultFacet is Storage, ReentrancyGuard {
+contract VaultFacet is Storage, ReentrancyGuard, IVaultFacet {
     using SafeERC20 for IERC20;
     using LibReserveConfiguration for ReserveConfigurationMap;
-    /* --------------------------------- events --------------------------------- */
-    event VaultCreated(address _vault, address _owner, uint256 _numVaults);
-    event VaultMarginCredited(
-        address indexed _vault,
-        address indexed _asset,
-        address _sponsor,
-        uint256 _amount
-    );
-    event VaultMarginRedeemed(
-        address indexed _vault,
-        address indexed _asset,
-        address _sponsor,
-        uint256 _amount
-    );
-    event VaultImplementationUpdated(address _impl);
 
     /* ----------------------------- admin interface ---------------------------- */
-    function createVault(address _user, bytes20 _salt) external authorised {
+    function createVault(
+        address _user,
+        bytes20 _salt,
+        uint256 _gasUnits,
+        uint256 _gasPrice
+    ) external authorised {
+        uint256 startGas = gasleft();
         bytes memory data = getEncodedVaultInitData(_user);
         bytes32 newsalt = newSalt(_salt, _user);
         address vaultBeaconProxy;
@@ -56,8 +49,16 @@ contract VaultFacet is Storage, ReentrancyGuard {
         if (vaultBeaconProxy == address(0)) {
             revert FailedDeployVault();
         }
+        address treasury = LibAppStorage.ds().protocolFee.treasuryAddress;
+        if (treasury == address(0)) {
+            revert InvalidTreasuryAddress();
+        }
+        uint256 gasConsumed = startGas - gasleft();
+        uint256 refundAmount = Math.min(_gasUnits, gasConsumed) *
+            Math.min(_gasPrice, tx.gasprice);
         uint256 numVaults = LibVault.recordVault(_user, vaultBeaconProxy);
-        emit VaultCreated(vaultBeaconProxy, _user, numVaults);
+        IVault(vaultBeaconProxy).execute("", treasury, refundAmount);
+        emit VaultCreated(vaultBeaconProxy, _user, numVaults, refundAmount);
     }
 
     /* ---------------------- vault configuration interface --------------------- */
@@ -77,18 +78,23 @@ contract VaultFacet is Storage, ReentrancyGuard {
     function withdrawNFT(
         address _vault,
         address _collection,
+        address _to,
         uint256 _tokenId
-    ) public onlyVaultOwner(_vault, _msgSender()) nonReentrant {
+    )
+        external
+        vaultOwnerOrVoyage(_vault, _msgSender())
+        whenNotPaused
+        nonReentrant
+    {
         checkContractAddr(_collection);
         if (LibAppStorage.ds().nftIndex[_collection][_tokenId].isCollateral) {
             revert InvalidWithdrawal();
         }
         delete LibAppStorage.ds().nftIndex[_collection][_tokenId];
         bytes4 selector = IERC721(_collection).transferFrom.selector;
-        bytes memory param = abi.encode(_vault, _msgSender(), _tokenId);
+        bytes memory param = abi.encode(_vault, _to, _tokenId);
         bytes memory data = abi.encodePacked(selector, param);
-        bytes memory encodedData = abi.encode(_collection, data);
-        IVault(_vault).execute(encodedData, 0);
+        IVault(_vault).execute(data, _collection, 0);
     }
 
     function transferCurrency(
@@ -96,7 +102,7 @@ contract VaultFacet is Storage, ReentrancyGuard {
         address _currency,
         address _to,
         uint256 _amount
-    ) public onlyVaultOwner(_vault, _msgSender()) nonReentrant {
+    ) external vaultOwnerOrVoyage(_vault, _msgSender()) nonReentrant {
         checkContractAddr(_currency);
         // to prevent currency being a collection address
         if (LibAppStorage.ds()._reserveData[_currency].currency != address(0)) {
@@ -105,31 +111,64 @@ contract VaultFacet is Storage, ReentrancyGuard {
         bytes4 selector = IERC20(_currency).transferFrom.selector;
         bytes memory param = abi.encode(_vault, _to, _amount);
         bytes memory data = abi.encodePacked(selector, param);
-        bytes memory encodedData = abi.encode(_currency, data);
-        IVault(_vault).execute(encodedData, 0);
+        IVault(_vault).execute(data, _currency, 0);
+    }
+
+    function transferETH(
+        address _vault,
+        address to,
+        uint256 _amount
+    ) external vaultOwnerOrVoyage(_vault, _msgSender()) nonReentrant {
+        IVault(_vault).execute("", to, _amount);
     }
 
     function wrapVaultETH(address _vault, uint256 _value)
-        public
-        onlyVaultOwner(_vault, _msgSender())
-        nonReentrant
+        external
+        payable
+        vaultOwnerOrVoyage(_vault, _msgSender())
+        whenNotPaused
     {
         bytes4 selector = IWETH9(address(0)).deposit.selector;
         bytes memory data = abi.encodePacked(selector);
-        bytes memory encodedData = abi.encode(LibAppStorage.ds().WETH9, data);
-        IVault(_vault).execute(encodedData, _value);
+        IVault(_vault).execute(data, address(LibAppStorage.ds().WETH9), _value);
     }
 
     function unwrapVaultETH(address _vault, uint256 _vaule)
-        public
-        onlyVaultOwner(_vault, _msgSender())
-        nonReentrant
+        external
+        vaultOwnerOrVoyage(_vault, _msgSender())
+        whenNotPaused
     {
         bytes4 selector = IWETH9(address(0)).withdraw.selector;
         bytes memory param = abi.encode(_vaule);
         bytes memory data = abi.encodePacked(selector, param);
-        bytes memory encodedData = abi.encode(LibAppStorage.ds().WETH9, data);
-        IVault(_vault).execute(encodedData, 0);
+        IVault(_vault).execute(data, address(LibAppStorage.ds().WETH9), 0);
+    }
+
+    function approveMarketplace(
+        address _vault,
+        address _marketplace,
+        bool revoke
+    )
+        external
+        vaultOwnerOrVoyage(_vault, _msgSender())
+        whenNotPaused
+        nonReentrant
+    {
+        address adapterAddr = LibAppStorage
+            .ds()
+            .marketPlaceData[_marketplace]
+            .adapterAddr;
+        if (adapterAddr == address(0)) {
+            revert InvalidMarketplace();
+        }
+        bytes4 selector = IERC20(address(0)).approve.selector;
+        bytes memory param = abi.encode(
+            _marketplace,
+            revoke ? 0 : type(uint256).max
+        );
+        bytes memory data = abi.encodePacked(selector, param);
+        address currency = address(LibAppStorage.ds().WETH9);
+        IVault(_vault).execute(data, currency, 0);
     }
 
     /* ---------------------- view functions --------------------- */
@@ -177,11 +216,11 @@ contract VaultFacet is Storage, ReentrancyGuard {
         return LibVault.vaultBeacon();
     }
 
-    function subVaultBeacon() public view returns (address) {
+    function subVaultBeacon() external view returns (address) {
         return LibVault.subVaultBeacon();
     }
 
-    function getVaultAddr(address _user) public view returns (address) {
+    function getVaultAddr(address _user) external view returns (address) {
         return LibVault.getVaultAddress(_user);
     }
 
@@ -194,7 +233,6 @@ contract VaultFacet is Storage, ReentrancyGuard {
             IVault(address(0)).initialize.selector,
             address(this),
             _user,
-            LibAppStorage.ds().paymaster,
             LibAppStorage.ds().WETH9
         );
         return data;
@@ -213,3 +251,5 @@ error InvalidCollectionAddress();
 error InvalidCurrencyAddress();
 error FailedDeployVault();
 error InvalidWithdrawal();
+error InvalidMarketplace();
+error InvalidTreasuryAddress();

@@ -21,6 +21,10 @@ export const oneRay = parseUnits('1', 27);
 export const ONE_YEAR = '31536000';
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 export const ONE_ADDRESS = '0x0000000000000000000000000000000000000001';
+export const MAX_UINT256 =
+  '115792089237316195423570985008687907853269984665640564039457584007913129639935';
+export const REFUND_GAS_UNIT = 1;
+export const REFUND_GAS_PRICE = 1;
 
 type ContractMapping = { [K in ChainID]: string };
 type ExternalContractMapping = Omit<ContractMapping, ChainID.Hardhat>;
@@ -35,7 +39,7 @@ export const WETH_ADDRESS: ExternalContractMapping = {
 };
 
 export const TREASURY_ADDRESS: ExternalContractMapping = {
-  [ChainID.Mainnet]: '0x0000000000000000000000000000000000000000',
+  [ChainID.Mainnet]: '0x28178038f7b235b3F6DB3995C1B70D479918Fab8',
   [ChainID.Rinkeby]: '0x7bB17c9401110D05ec39894334cC9d7721E90688',
   [ChainID.Goerli]: '0x7bB17c9401110D05ec39894334cC9d7721E90688',
 };
@@ -62,4 +66,11 @@ export const SEAPORT_ADDRESS: ExternalContractMapping = {
   [ChainID.Mainnet]: CROSS_CHAIN_SEAPORT_ADDRESS,
   [ChainID.Rinkeby]: CROSS_CHAIN_SEAPORT_ADDRESS,
   [ChainID.Goerli]: CROSS_CHAIN_SEAPORT_ADDRESS,
+};
+
+export const TWAP_SIGNER_ADDRESS: ContractMapping = {
+  [ChainID.Mainnet]: '0x32da57e736e05f75aa4fae2e9be60fd904492726',
+  [ChainID.Rinkeby]: '0xad5792b1d998f607d3eeb2f357138a440b03f19f',
+  [ChainID.Goerli]: '0xad5792b1d998f607d3eeb2f357138a440b03f19f',
+  [ChainID.Hardhat]: '0xad5792b1d998f607d3eeb2f357138a440b03f19f',
 };

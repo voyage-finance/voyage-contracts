@@ -2,8 +2,10 @@
 pragma solidity ^0.8.9;
 
 struct AssetInfo {
+    address collection;
     uint256 tokenId;
     uint256 assetPrice;
+    address currency;
 }
 
 interface IMarketPlaceAdapter {
@@ -12,7 +14,15 @@ interface IMarketPlaceAdapter {
         pure
         returns (AssetInfo memory);
 
-    function validate(bytes calldata _data) external view returns (bool);
+    function validate(bytes calldata _data, address _vault)
+        external
+        view
+        returns (bool);
 
-    function execute(bytes calldata _data) external view returns (bytes memory);
+    function execute(
+        bytes calldata _data,
+        address _vault,
+        address _marketplace,
+        uint256 _value
+    ) external payable returns (bytes memory);
 }

@@ -2,7 +2,12 @@ import { toWad } from '@helpers/math';
 import { expect } from 'chai';
 import { randomBytes } from 'crypto';
 import { deployments, ethers } from 'hardhat';
-import { ZERO_ADDRESS } from '../helpers/constants';
+import {
+  MAX_UINT256,
+  REFUND_GAS_PRICE,
+  REFUND_GAS_UNIT,
+  ZERO_ADDRESS,
+} from '../helpers/constants';
 import { setupTestSuite } from '../helpers/setupTestSuite';
 
 describe('Vault', function () {
@@ -39,32 +44,134 @@ describe('Vault', function () {
     expect(await voyage.getVaultImpl()).to.equal(vaultImpl.address);
   });
 
+  it('Create vault should refund correct vaule', async function () {
+    const { voyage, alice, owner, treasury } = await setupTestSuite();
+    const salt = randomBytes(20);
+    const computedVaultAddress = await voyage.computeCounterfactualAddress(
+      alice,
+      salt
+    );
+    console.log('computedVaultAddress: ', computedVaultAddress);
+    // fund vault for first payment
+    const tx = {
+      to: computedVaultAddress,
+      value: ethers.utils.parseEther('1000'),
+    };
+    const ownerSigner = await ethers.getSigner(owner);
+    const createReceipt = await ownerSigner.sendTransaction(tx);
+    await createReceipt.wait();
+    const treasuryBalanceBefore = await ethers.provider.getBalance(treasury);
+    await voyage.createVault(alice, salt, REFUND_GAS_UNIT, REFUND_GAS_PRICE);
+    const treasuryBalanceAfter = await ethers.provider.getBalance(treasury);
+    console.log('actual: ', treasuryBalanceAfter.toString());
+    console.log(
+      'expected: ',
+      treasuryBalanceBefore.add(REFUND_GAS_UNIT * REFUND_GAS_PRICE).toString()
+    );
+    expect(treasuryBalanceAfter).to.eq(
+      treasuryBalanceBefore.add(REFUND_GAS_UNIT * REFUND_GAS_PRICE)
+    );
+  });
+
+  it('createVault should use min(_gasPrice, tx.gasprice)', async function () {
+    const { voyage, alice, owner, treasury } = await setupTestSuite();
+    const salt = randomBytes(20);
+    const computedVaultAddress = await voyage.computeCounterfactualAddress(
+      alice,
+      salt
+    );
+    // fund vault for first payment
+    const tx = {
+      to: computedVaultAddress,
+      value: ethers.utils.parseEther('1000'),
+    };
+    const ownerSigner = await ethers.getSigner(owner);
+    const createReceipt = await ownerSigner.sendTransaction(tx);
+    await createReceipt.wait();
+    const treasuryBalanceBefore = await ethers.provider.getBalance(treasury);
+
+    const refundGasUnits = ethers.BigNumber.from(200000);
+    const refundGasPrice = ethers.utils.parseUnits('20', 'gwei');
+    const actualGasPrice = ethers.utils.parseUnits('18', 'gwei');
+    await voyage.createVault(alice, salt, refundGasUnits, refundGasPrice, {
+      gasPrice: actualGasPrice,
+    });
+
+    const treasuryBalanceAfter = await ethers.provider.getBalance(treasury);
+    expect(treasuryBalanceAfter).to.eq(
+      treasuryBalanceBefore.add(refundGasUnits.mul(actualGasPrice))
+    );
+  });
+
+  it('createVault should use min(_gasUnits, startGas - gasleft())', async function () {
+    const { voyage, alice, owner, treasury } = await setupTestSuite();
+    const salt = randomBytes(20);
+    const computedVaultAddress = await voyage.computeCounterfactualAddress(
+      alice,
+      salt
+    );
+    // fund vault for first payment
+    const tx = {
+      to: computedVaultAddress,
+      value: ethers.utils.parseEther('1000'),
+    };
+    const ownerSigner = await ethers.getSigner(owner);
+    const createReceipt = await ownerSigner.sendTransaction(tx);
+    await createReceipt.wait();
+    const treasuryBalanceBefore = await ethers.provider.getBalance(treasury);
+
+    const refundGasUnits = ethers.BigNumber.from(600000);
+    const refundGasPrice = ethers.utils.parseUnits('10', 'gwei');
+    const actualGasPrice = ethers.utils.parseUnits('18', 'gwei');
+    await voyage.createVault(alice, salt, refundGasUnits, refundGasPrice, {
+      gasPrice: actualGasPrice,
+    });
+
+    const treasuryBalanceAfter = await ethers.provider.getBalance(treasury);
+    expect(treasuryBalanceAfter).to.be.lt(
+      treasuryBalanceBefore.add(refundGasUnits.mul(refundGasPrice))
+    );
+  });
+
   it('Granted acount should be able to create vault', async function () {
-    const { voyage, alice } = await setupTestSuite();
-    var abi = ['function createVault(address,bytes20)'];
+    const { voyage, owner, alice } = await setupTestSuite();
+    var abi = ['function createVault(address,bytes20,uint256,uint256)'];
     var iface = new ethers.utils.Interface(abi);
     var selector = iface.getSighash('createVault');
 
     await voyage.grantPermission(alice, voyage.address, selector);
-    const salt = randomBytes(20);
+    const salt = ethers.utils
+      .keccak256(ethers.utils.toUtf8Bytes('alice@wonder.land'))
+      .slice(0, 42);
+    const computedVaultAddress = await voyage.computeCounterfactualAddress(
+      alice,
+      salt
+    );
+    const fundTx = {
+      to: computedVaultAddress,
+      value: REFUND_GAS_PRICE * REFUND_GAS_UNIT,
+    };
+    const ownerSigner = await ethers.getSigner(owner);
+    const createReceipt = await ownerSigner.sendTransaction(fundTx);
+    await createReceipt.wait();
     await voyage
       .connect(await ethers.getSigner(alice))
-      .createVault(alice, salt);
+      .createVault(alice, salt, REFUND_GAS_UNIT, REFUND_GAS_PRICE);
     const deployedVault = await voyage.getVault(alice);
     console.log('deployed vault address for alice: ', deployedVault);
   });
 
   it('Pass zero vault address should be revert', async function () {
-    const { voyage, crab } = await setupTestSuite();
+    const { voyage, crab, owner } = await setupTestSuite();
     await expect(
-      voyage.withdrawNFT(ZERO_ADDRESS, crab.address, 1)
+      voyage.withdrawNFT(ZERO_ADDRESS, crab.address, owner, 1)
     ).to.be.rejectedWith('InvalidVaultAddress');
   });
 
   it('Pass zero collection address should be revert', async function () {
-    const { voyage, deployedVault } = await setupTestSuite();
+    const { voyage, deployedVault, owner } = await setupTestSuite();
     await expect(
-      voyage.withdrawNFT(deployedVault, ZERO_ADDRESS, 1)
+      voyage.withdrawNFT(deployedVault, ZERO_ADDRESS, owner, 1)
     ).to.be.revertedWithCustomError(voyage, 'InvalidCollectionAddress');
   });
 
@@ -129,7 +236,7 @@ describe('Vault', function () {
     );
     await crab.safeMint(vault, 1);
     await expect(
-      voyage.withdrawNFT(deployedVault, crab.address, 1)
+      voyage.withdrawNFT(deployedVault, crab.address, owner, 1)
     ).to.be.revertedWithCustomError(voyage, 'InvalidWithdrawal');
   });
 
@@ -159,8 +266,47 @@ describe('Vault', function () {
     await voyage.repay(crab.address, 0, vault);
     const onwerBefore = await crab.ownerOf(1);
     expect(onwerBefore).to.eq(deployedVault);
-    await voyage.withdrawNFT(deployedVault, crab.address, 1);
+    await voyage.withdrawNFT(deployedVault, crab.address, owner, 1);
     const onwerAfter = await crab.ownerOf(1);
     expect(onwerAfter).to.eq(owner);
+  });
+
+  it('Approve a valid marketplace should return correct vaule', async function () {
+    const { voyage, deployedVault, marketPlace, weth } = await setupTestSuite();
+    await voyage.approveMarketplace(deployedVault, marketPlace.address, true);
+    const allowanceBefore = await weth.allowance(
+      deployedVault,
+      marketPlace.address
+    );
+    expect(allowanceBefore).to.eq(0);
+    await voyage.approveMarketplace(deployedVault, marketPlace.address, false);
+    const allowanceAfter = await weth.allowance(
+      deployedVault,
+      marketPlace.address
+    );
+    expect(allowanceAfter).to.eq(MAX_UINT256);
+  });
+
+  it("Revoking marketplace's approval should return correct vaule", async function () {
+    const { voyage, deployedVault, marketPlace, weth } = await setupTestSuite();
+    await voyage.approveMarketplace(deployedVault, marketPlace.address, true);
+    const allowanceBefore = await weth.allowance(
+      deployedVault,
+      marketPlace.address
+    );
+    expect(allowanceBefore).to.eq(0);
+    await voyage.approveMarketplace(deployedVault, marketPlace.address, true);
+    const allowanceAfter = await weth.allowance(
+      deployedVault,
+      marketPlace.address
+    );
+    expect(allowanceAfter).to.eq(0);
+  });
+
+  it('Approve a invalid marketplace should revert', async function () {
+    const { voyage, deployedVault } = await setupTestSuite();
+    await expect(
+      voyage.approveMarketplace(deployedVault, voyage.address, false)
+    ).to.be.revertedWithCustomError(voyage, 'InvalidMarketplace');
   });
 });

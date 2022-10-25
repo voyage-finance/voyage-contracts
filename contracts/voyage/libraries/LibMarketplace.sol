@@ -11,18 +11,28 @@ library LibMarketplace {
         address _marketplace,
         address _vault,
         uint256 _value,
-        bytes calldata _data
+        bytes memory _data
     ) internal {
         address adapterAddr = LibAppStorage
             .ds()
             .marketPlaceData[_marketplace]
             .adapterAddr;
-        bytes memory data = IMarketPlaceAdapter(adapterAddr).execute(_data);
-        bytes memory encodedData = abi.encode(_marketplace, data);
-        IVault(_vault).execute(encodedData, _value);
+
+        (bool success, bytes memory data) = adapterAddr.delegatecall(
+            abi.encodeWithSelector(
+                IMarketPlaceAdapter(address(0)).execute.selector,
+                _data,
+                _vault,
+                _marketplace,
+                _value
+            )
+        );
+        if (!success) {
+            revert(string(data));
+        }
     }
 
-    function extractAssetInfo(address _marketplace, bytes calldata _data)
+    function extractAssetInfo(address _marketplace, bytes memory _data)
         internal
         view
         returns (AssetInfo memory)

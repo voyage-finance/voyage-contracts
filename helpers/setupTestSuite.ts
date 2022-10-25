@@ -1,4 +1,10 @@
-import { Voyage, VoyagePaymaster, WETH9 } from '@contracts';
+import {
+  JuniorDepositToken,
+  SeniorDepositToken,
+  Voyage,
+  VoyagePaymaster,
+  WETH9,
+} from '@contracts';
 import {
   LooksRareExchangeAbi,
   MakerOrderWithVRS,
@@ -9,18 +15,36 @@ import {
   BasicOrderParametersStruct,
   Seaport,
 } from '@opensea/seaport-js/lib/typechain/Seaport';
-import { BigNumber } from 'ethers';
+import { BigNumber, Wallet } from 'ethers';
 import { deployments as d } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import {
+  BASE_RATE,
+  EPOCH,
+  GRACE_PERIOD,
+  INCOME_RATIO,
+  LIQUIDATION_BONUS,
+  OPTIMAL_LIQUIDITY_RATIO,
+  PROTOCOL_FEE,
+  STALENESS,
+  TENURE,
+} from './configuration';
+import { REFUND_GAS_PRICE, REFUND_GAS_UNIT } from './constants';
 import { deployFacets, FacetCutAction } from './diamond';
 import { decimals, MAX_UINT_256, toWad } from './math';
-import { getRelayHub } from './task-helpers/addresses';
-import { setHRE } from './task-helpers/hre';
+import { getRelayHub, getTwapSigner, getWETH9 } from './task-helpers/addresses';
+import { HRE as hre, setHRE } from './task-helpers/hre';
 import './wadraymath';
+import { ExternalChainID } from '@helpers/types';
+import { _TypedDataEncoder, arrayify, defaultAbiCoder } from 'ethers/lib/utils';
 
 const dec = decimals(18);
-
-interface ReserveConfiguration {
+const PRICE = 10;
+export interface ReserveConfiguration {
+  collection: string;
+  currency: string;
+  interestRateStrategyAddress: string;
+  priceOracle: string;
   liquidationBonus: number;
   incomeRatio: number;
   optimalLiquidityRatio: number;
@@ -28,8 +52,12 @@ interface ReserveConfiguration {
   term: number;
   gracePeriod: number;
   protocolFee: number;
-  maxStaleness: number;
-  baseRate: number;
+  maxTwapStaleness: number;
+  baseRate: string;
+  treasury: string;
+  marketplaces: string[];
+  adapters: string[];
+  twapTolerance: number;
 }
 
 const setupBase = async (hre: HardhatRuntimeEnvironment) => {
@@ -45,6 +73,7 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     'Diamond',
     'Facets',
     'Paymaster',
+    'Configurator',
   ]);
   const { owner, alice, bob, forwarder, treasury } = await getNamedAccounts();
 
@@ -71,77 +100,60 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     'DefaultReserveInterestRateStrategy'
   );
   /* ------------------------- reserve initialisation ------------------------- */
+  const configurator = await ethers.getContract('VoyageReserveConfigurator');
+  await voyage.authorizeConfigurator(configurator.address);
   const reserveConfiguration: ReserveConfiguration = {
-    liquidationBonus: 10500,
-    incomeRatio: 0.5 * 1e4,
-    optimalLiquidityRatio: 0.5 * 1e4,
-    epoch: 30,
-    term: 90,
-    gracePeriod: 10,
-    protocolFee: 200,
-    maxStaleness: 10000,
-    baseRate: 0.2,
+    collection: crab.address,
+    currency: weth.address,
+    interestRateStrategyAddress: defaultReserveInterestRateStrategy.address,
+    priceOracle: priceOracle.address,
+    liquidationBonus: LIQUIDATION_BONUS,
+    incomeRatio: INCOME_RATIO,
+    optimalLiquidityRatio: OPTIMAL_LIQUIDITY_RATIO,
+    epoch: EPOCH,
+    term: TENURE,
+    gracePeriod: GRACE_PERIOD,
+    protocolFee: PROTOCOL_FEE,
+    maxTwapStaleness: STALENESS,
+    baseRate: BASE_RATE.toString(),
+    treasury: treasury,
+    marketplaces: [seaport.address, marketPlace.address],
+    adapters: [seaportAdapter.address, looksRareAdapter.address],
+    twapTolerance: 2000,
   };
-
-  await voyage.initReserve(
-    crab.address,
-    weth.address,
-    defaultReserveInterestRateStrategy.address,
-    priceOracle.address
-  );
-  // 105%
-  await voyage.setLiquidationBonus(
-    crab.address,
-    reserveConfiguration.liquidationBonus
-  );
-  await voyage.setIncomeRatio(crab.address, reserveConfiguration.incomeRatio);
-  await voyage.setOptimalLiquidityRatio(
-    crab.address,
-    reserveConfiguration.optimalLiquidityRatio
-  );
-  await voyage.setLoanParams(
-    crab.address,
-    reserveConfiguration.epoch,
-    reserveConfiguration.term,
-    reserveConfiguration.gracePeriod
-  );
-  await voyage.activateReserve(crab.address);
-  await voyage.setMaxTwapStaleness(
-    crab.address,
-    reserveConfiguration.maxStaleness
-  );
-  await voyage.updateProtocolFee(treasury, reserveConfiguration.protocolFee);
-  await voyage.updateMarketPlaceData(
-    marketPlace.address,
-    looksRareAdapter.address
-  );
-  await voyage.updateMarketPlaceData(seaport.address, seaportAdapter.address);
+  await configurator.initReserves([reserveConfiguration]);
   const [senior, junior] = await voyage.getDepositTokens(crab.address);
-  const seniorDepositToken = await ethers.getContractAt(
+  const seniorDepositToken = await ethers.getContractAt<SeniorDepositToken>(
     'SeniorDepositToken',
     senior
   );
-  const juniorDepositToken = await ethers.getContractAt(
+  const juniorDepositToken = await ethers.getContractAt<JuniorDepositToken>(
     'JuniorDepositToken',
     junior
   );
   await weth.approve(voyage.address, MAX_UINT_256);
+  await voyage.setOracleSigner('0xad5792b1d998f607d3eeb2f357138a440b03f19f');
   /* -------------------------- vault initialisation -------------------------- */
 
   // create an empty vault
   const salt = ethers.utils.toUtf8Bytes('hw.kk@voyage.finance').slice(0, 42);
-  await voyage.createVault(owner, salt);
-  const deployedVault = await voyage.getVault(owner);
+  const computedVaultAddress = await voyage.computeCounterfactualAddress(
+    owner,
+    salt
+  );
   // fund vault for first payment
   const tx = {
-    to: deployedVault,
-    value: ethers.utils.parseEther('100'),
+    to: computedVaultAddress,
+    value: ethers.utils.parseEther('1000'),
   };
   const ownerSigner = await ethers.getSigner(owner);
   const createReceipt = await ownerSigner.sendTransaction(tx);
   await createReceipt.wait();
-  await weth.transfer(deployedVault, toWad(10));
+  await voyage.createVault(owner, salt, REFUND_GAS_UNIT, REFUND_GAS_PRICE);
+  const deployedVault = await voyage.getVault(owner);
+  await weth.transfer(deployedVault, toWad(100));
   await weth.approve(deployedVault, MAX_UINT_256);
+  await voyage.approveMarketplace(deployedVault, marketPlace.address, false);
 
   /// todo delete
   var input =
@@ -160,15 +172,21 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     LooksRareExchangeAbi,
     provider
   );
-  const looksRareMakerOrderData: MakerOrderWithVRS = {
+
+  const WETH_GOERLI_ADDRESS = '0xc778417E063141139Fce010982780140Aa0cD5Ab';
+  const WRONG_GOERLI_ADDRESS = '0xd0A1E359811322d97991E03f863a0C30C2cF029C';
+
+  const generateLooksRareMakerOrderData: (
+    currency: string
+  ) => MakerOrderWithVRS = (currency) => ({
     isOrderAsk: true,
     signer: '0xAc786F3E609eeBC3830A26881bd026B6b9211ae2',
-    collection: '0xd10E39Afe133eF729aE7f4266B26d173BC5AD1B1',
-    price: toWad(10),
+    collection: crab.address,
+    price: toWad(PRICE),
     tokenId: '1',
     amount: 1,
     strategy: '0x732319A3590E4fA838C111826f9584a9A2fDEa1a',
-    currency: '0xc778417E063141139Fce010982780140Aa0cD5Ab',
+    currency: currency,
     nonce: ethers.constants.Zero,
     startTime: 1661852317,
     endTime: 1662457076,
@@ -177,7 +195,16 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     v: 27,
     r: '0x66f2bf329cf885420596359ed1b435ef3ffe3b35efcbf10854b393724482369b',
     s: '0x6db5028edf4f90eba89576e8181a4b4051ae9053b08b0dfb5c0fd6c580b73f66',
-  };
+  });
+
+  // send the vault some ETH
+  const weth9 = await ethers.getContract<WETH9>('WETH9');
+  const looksRareMakerOrderData = generateLooksRareMakerOrderData(
+    await getWETH9()
+  );
+  const looksRareMakerOrderDataWithWrongCurrency =
+    generateLooksRareMakerOrderData(WRONG_GOERLI_ADDRESS);
+
   const looksRareTakerOrderData: TakerOrderWithEncodedParams = {
     isOrderAsk: false,
     taker: deployedVault,
@@ -186,12 +213,28 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     minPercentageToAsk: 9800,
     params: ethers.utils.defaultAbiCoder.encode([], []),
   };
+
   const purchaseDataFromLooksRare = (
     await looks.populateTransaction.matchAskWithTakerBidUsingETHAndWETH(
       looksRareTakerOrderData,
       looksRareMakerOrderData
     )
   ).data!;
+
+  const purchaseDataFromLooksRareWithWrongCurrency = (
+    await looks.populateTransaction.matchAskWithTakerBidUsingETHAndWETH(
+      looksRareTakerOrderData,
+      looksRareMakerOrderDataWithWrongCurrency
+    )
+  ).data!;
+
+  const purchaseDataFromLooksRareWithWETH = (
+    await looks.populateTransaction.matchAskWithTakerBid(
+      looksRareTakerOrderData,
+      looksRareMakerOrderData
+    )
+  ).data!;
+
   const seaportInstance: Seaport = new ethers.Contract(
     ethers.constants.AddressZero,
     SeaportABI,
@@ -202,7 +245,7 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     considerationIdentifier: ethers.BigNumber.from(0),
     considerationAmount: ethers.BigNumber.from(1),
     offerer: owner,
-    offerToken: '0xBd3531dA5CF5857e7CfAA92426877b022e612cf8',
+    offerToken: crab.address,
     offerIdentifier: ethers.BigNumber.from(6532),
     offerAmount: BigNumber.from(1),
     zone: '0x004C00500000aD104D7DBd00e3ae0A5C00560C00',
@@ -224,8 +267,6 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
   const purchaseDataFromOpensea = (
     await seaportInstance.populateTransaction.fulfillBasicOrder(basicOrder)
   ).data!;
-  // send the vault some ETH
-  const weth9 = await ethers.getContract<WETH9>('WETH9');
   const signer = await ethers.getSigner(owner);
   await signer.sendTransaction({
     to: deployedVault,
@@ -257,6 +298,8 @@ const setupBase = async (hre: HardhatRuntimeEnvironment) => {
     deployedVault,
     voyage,
     purchaseDataFromLooksRare,
+    purchaseDataFromLooksRareWithWrongCurrency,
+    purchaseDataFromLooksRareWithWETH,
     purchaseDataFromOpensea,
     weth,
     reserveConfiguration,
@@ -323,3 +366,51 @@ export const setupTestSuiteWithMocks = d.createFixture(async (hre, args) => {
     voyage,
   };
 });
+
+// TWAP Tolerance
+
+const EIP712_TYPES = {
+  Message: {
+    Message: [
+      { name: 'id', type: 'bytes32' },
+      { name: 'payload', type: 'bytes' },
+      { name: 'timestamp', type: 'uint256' },
+    ],
+  },
+  ContractWideCollectionPrice: {
+    ContractWideCollectionPrice: [
+      { name: 'kind', type: 'uint8' },
+      { name: 'twapHours', type: 'uint256' },
+      { name: 'contract', type: 'address' },
+    ],
+  },
+};
+
+export async function setupTestTwapToleranceMock(
+  collection: string,
+  voyage: Voyage,
+  currency: string,
+  timestamp: number,
+  price = PRICE,
+  signerKey = '0xafd746101717d4ffbb8e387164e562e6299d290979ae66b76178c8088c314e0a'
+) {
+  const id = await voyage.getMessageId(collection);
+  const priceWad = toWad(price);
+  const message = {
+    id: id.toString(), // random id for goerli only
+    payload: defaultAbiCoder.encode(
+      ['address', 'uint256'],
+      [currency, priceWad]
+    ),
+    timestamp: timestamp,
+    signature: '',
+  };
+  const signer = new Wallet(signerKey);
+  console.log('Singer: ', signer.address);
+  message.signature = await signer.signMessage(
+    arrayify(
+      _TypedDataEncoder.hashStruct('Message', EIP712_TYPES.Message, message)
+    )
+  );
+  return message;
+}

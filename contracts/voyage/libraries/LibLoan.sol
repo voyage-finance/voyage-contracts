@@ -16,6 +16,7 @@ struct ExecuteBuyNowParams {
     address collection;
     address currency;
     address marketplace;
+    bytes data;
     uint256 tokenId;
     address vault;
     uint256 totalPrincipal;
@@ -104,6 +105,7 @@ library LibLoan {
         uint40 epoch;
         uint256 apr;
         uint256 loanNumber;
+        uint256 repaymentId;
     }
 
     event CollateralTransferred(
@@ -249,15 +251,23 @@ library LibLoan {
         // code inlined
         borrowState.totalDebt = borrowState.totalDebt - loan.pmt.principal;
         uint256 seniorInterest = loan.pmt.interest.percentMul(incomeRatio);
-        borrowState.totalInterest =
-            borrowState.totalInterest -
-            loan.pmt.interest;
-        borrowState.totalSeniorInterest =
-            borrowState.totalSeniorInterest -
-            seniorInterest;
-        borrowState.totalJuniorInterest =
-            borrowState.totalJuniorInterest -
-            (loan.pmt.interest - seniorInterest);
+        if (borrowState.totalInterest < loan.pmt.interest) {
+            borrowState.totalInterest = 0;
+        } else {
+            borrowState.totalInterest -= loan.pmt.interest;
+        }
+        if (borrowState.totalSeniorInterest < seniorInterest) {
+            borrowState.totalSeniorInterest = 0;
+        } else {
+            borrowState.totalSeniorInterest -= seniorInterest;
+        }
+        uint256 juniorInterest = loan.pmt.interest - seniorInterest;
+
+        if (borrowState.totalJuniorInterest < juniorInterest) {
+            borrowState.totalJuniorInterest = 0;
+        } else {
+            borrowState.totalJuniorInterest -= juniorInterest;
+        }
     }
 
     function closeDebt(
@@ -280,9 +290,9 @@ library LibLoan {
                 param.vault
             );
         Loan storage loan = debtData.loans[_loanNumber];
-        clearLoan(debtData, borrowState, loan, param);
         updateDebtData(debtData, loan);
         updateGlobalBorrowState(borrowState, loan);
+        clearLoan(debtData, borrowState, loan, param);
     }
 
     function repay(
@@ -307,22 +317,20 @@ library LibLoan {
                 param.vault
             );
         Loan storage loan = debtData.loans[_loanNumber];
-        debtData.paidLoanNumber += 1;
         loan.paidTimes += 1;
-        if (loan.paidTimes == loan.nper) {
-            isFinal = true;
+        param.repaymentId = loan.paidTimes - 1;
+
+        updateDebtData(debtData, loan);
+        updateGlobalBorrowState(borrowState, loan);
+        isFinal = loan.paidTimes == loan.nper;
+        if (isFinal) {
+            debtData.paidLoanNumber += 1;
             clearLoan(debtData, borrowState, loan, param);
         } else {
             insertRapayment(loan);
         }
 
-        updateDebtData(debtData, loan);
-        updateGlobalBorrowState(borrowState, loan);
-
-        return (
-            loan.repayments.length == 0 ? 0 : loan.repayments.length - 1,
-            isFinal
-        );
+        return (param.repaymentId, isFinal);
     }
 
     function updateDebtData(BorrowData storage debtData, Loan storage loan)
@@ -337,26 +345,40 @@ library LibLoan {
         BorrowState storage borrowState,
         Loan storage loan
     ) internal {
-        if (borrowState.totalDebt == loan.pmt.principal) {
+        if (borrowState.totalDebt <= loan.pmt.principal) {
             borrowState.avgBorrowRate = 0;
         } else {
-            uint256 numer = borrowState.totalDebt.rayMul(
+            uint256 term1 = borrowState.totalDebt.rayMul(
                 borrowState.avgBorrowRate
-            ) - loan.pmt.principal.rayMul(loan.apr);
-            uint256 denom = borrowState.totalDebt - loan.pmt.principal;
-            borrowState.avgBorrowRate = numer.rayDiv(denom);
+            );
+            uint256 term2 = loan.pmt.principal.rayMul(loan.apr);
+            // when the final open loan is being closed, integer arithmetic rounding issues can cause term1 to be <= term2
+            // this occurs when principal is not factored by nper: e.g. principal of 100 and nper of 3
+            // when taking the weighted rates, this can cause the computation to underflow by 1 wei
+            if (term1 <= term2) {
+                borrowState.avgBorrowRate = 0;
+            } else {
+                uint256 numer = term1 - term2;
+                uint256 denom = borrowState.totalDebt - loan.pmt.principal;
+                borrowState.avgBorrowRate = numer.rayDiv(denom);
+            }
         }
         borrowState.totalDebt = borrowState.totalDebt - loan.pmt.principal;
         borrowState.totalInterest =
             borrowState.totalInterest -
             loan.pmt.interest;
         uint256 seniorInterest = loan.pmt.interest.percentMul(loan.incomeRatio);
-        borrowState.totalSeniorInterest =
-            borrowState.totalSeniorInterest -
-            seniorInterest;
-        borrowState.totalJuniorInterest =
-            borrowState.totalJuniorInterest -
-            (loan.pmt.interest - seniorInterest);
+        if (borrowState.totalSeniorInterest < seniorInterest) {
+            borrowState.totalSeniorInterest = 0;
+        } else {
+            borrowState.totalSeniorInterest -= seniorInterest;
+        }
+        uint256 juniorInterest = loan.pmt.interest - seniorInterest;
+        if (borrowState.totalJuniorInterest < juniorInterest) {
+            borrowState.totalJuniorInterest = 0;
+        } else {
+            borrowState.totalJuniorInterest -= juniorInterest;
+        }
     }
 
     function writedownSeniorInterest(
@@ -479,7 +501,7 @@ library LibLoan {
         pmt.principal = principal / nper;
         pmt.interest = interest / nper;
         pmt.fee = fee / nper;
-        pmt.pmt = pmt.principal + pmt.interest;
+        pmt.pmt = pmt.principal + pmt.interest + pmt.fee;
         return pmt;
     }
 
@@ -613,8 +635,7 @@ library LibLoan {
                 selector,
                 abi.encode(vault, liquidator, collaterals[i])
             );
-            bytes memory encodedData = abi.encode(collection, data);
-            IVault(vault).execute(encodedData, 0);
+            IVault(vault).execute(data, collection, 0);
         }
         emit CollateralTransferred(collection, vault, liquidator, collaterals);
     }

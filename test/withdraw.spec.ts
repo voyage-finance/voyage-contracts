@@ -1,3 +1,4 @@
+import { BigNumber } from 'ethers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { decimals, MAX_UINT_256 } from '../helpers/math';
@@ -6,6 +7,26 @@ import { toWad } from '../helpers/math';
 import { WAD } from '@helpers/constants';
 
 describe('Withdraw', function () {
+  it('Withdraw with invalid amount should revert', async function () {
+    const { voyage, seniorDepositToken, crab, owner } = await setupTestSuite();
+    await seniorDepositToken.approve(voyage.address, MAX_UINT_256);
+    const amount = ethers.BigNumber.from(100).mul(decimals(18));
+    await voyage.deposit(crab.address, 1, amount);
+    await expect(
+      seniorDepositToken.withdraw(toWad(200), owner, owner)
+    ).to.revertedWithCustomError(seniorDepositToken, 'InsufficientBalance');
+  });
+
+  it('Redeem with invalid amount should revert', async function () {
+    const { voyage, seniorDepositToken, crab, owner } = await setupTestSuite();
+    await seniorDepositToken.approve(voyage.address, MAX_UINT_256);
+    const amount = ethers.BigNumber.from(100).mul(decimals(18));
+    await voyage.deposit(crab.address, 1, amount);
+    await expect(
+      seniorDepositToken.redeem(toWad(200), owner, owner)
+    ).to.revertedWithCustomError(seniorDepositToken, 'InsufficientBalance');
+  });
+
   it('Withdraw with no interest should return correct value', async function () {
     const { voyage, seniorDepositToken, juniorDepositToken, crab, owner } =
       await setupTestSuite();
@@ -31,55 +52,52 @@ describe('Withdraw', function () {
     );
   });
 
-  it('Withdraw with interest should return correct value', async function () {
+  it('withdraw senior token through voyage should return correct value', async function () {
     const {
       voyage,
+      crab,
+      weth,
       seniorDepositToken,
       juniorDepositToken,
-      weth,
-      crab,
       owner,
-      priceOracle,
-      purchaseDataFromLooksRare,
-      marketPlace,
     } = await setupTestSuite();
-    const amount = ethers.BigNumber.from(100).mul(decimals(18));
-    await voyage.deposit(crab.address, 1, amount);
-    await voyage.deposit(crab.address, 0, amount);
-    const vault = await voyage.getVaultAddr(owner);
-    await priceOracle.updateTwap(crab.address, toWad(10));
-    await voyage.buyNow(
-      crab.address,
-      1,
-      vault,
-      marketPlace.address,
-      purchaseDataFromLooksRare
-    );
-    const tenDay = 10 * 24 * 60 * 60;
-
-    await ethers.provider.send('evm_increaseTime', [tenDay]);
-    // @ts-ignore
-    await ethers.provider.send('evm_mine');
-
-    const originalBalance = await weth.balanceOf(owner);
-    console.log('original balance: ', originalBalance.toString());
-
-    const accumulatedBalance = await seniorDepositToken.balanceOf(owner);
-    console.log('accumulated balance: ', accumulatedBalance.toString());
     await seniorDepositToken.approve(voyage.address, MAX_UINT_256);
     await juniorDepositToken.approve(voyage.address, MAX_UINT_256);
-    await voyage.withdraw(crab.address, 1, '10000000000000000000');
-    const accumulatedBalanceAfter = await seniorDepositToken.balanceOf(owner);
-    console.log(
-      'cumulated balance after withdrawing: ',
-      accumulatedBalanceAfter
-    );
+    const amount = ethers.BigNumber.from(100).mul(decimals(18));
+    await voyage.deposit(crab.address, 1, amount);
+    await voyage.withdraw(crab.address, 1, amount);
+    const balance = await voyage.balance(crab.address, owner, 1);
+    const shares = await seniorDepositToken.balanceOf(owner);
+    const unbonding = await voyage.unbonding(crab.address, owner);
+    const maxRedeem = await seniorDepositToken.maxRedeem(owner);
+    const maxWithdraw = await seniorDepositToken.maxWithdraw(owner);
+    const maxClaimable = await seniorDepositToken.maximumClaimable(owner);
+    const totalUnbondingAsset = await seniorDepositToken.totalUnbondingAsset();
 
-    const updatedBalance = await weth.balanceOf(owner);
-    console.log('updated balance: ', updatedBalance.toString());
+    expect(balance).to.equal(ethers.BigNumber.from('0'));
+    expect(shares).to.equal(ethers.BigNumber.from('0'));
+    expect(unbonding).to.equal(amount);
+    expect(maxRedeem).to.equal(ethers.BigNumber.from('0'));
+    expect(maxWithdraw).to.equal(ethers.BigNumber.from('0'));
+    expect(maxClaimable).to.equal(amount);
+    expect(totalUnbondingAsset).to.equal(amount);
+
+    const balanceBeforeClaim = await weth.balanceOf(owner);
+    await seniorDepositToken.claim();
+    const balanceAfterClaim = await weth.balanceOf(owner);
+    expect(balanceAfterClaim.sub(balanceBeforeClaim)).to.equal(amount);
+
+    const maxClaimableAfterClaim = await seniorDepositToken.maximumClaimable(
+      owner
+    );
+    expect(maxClaimableAfterClaim).to.equal(0);
+
+    const totalUnbondingAssetAfter =
+      await seniorDepositToken.totalUnbondingAsset();
+    expect(totalUnbondingAssetAfter).to.equal(0);
   });
 
-  it('withdraw senior token should return correct value', async function () {
+  it('withdraw senior token through voyage should return correct value', async function () {
     const {
       voyage,
       crab,
@@ -282,4 +300,104 @@ describe('Withdraw', function () {
       totalAssetsExpected
     );
   });
+
+  it('totalUnbondingAsset should return correct vaule in the case of default', async function () {
+    const {
+      owner,
+      voyage,
+      priceOracle,
+      crab,
+      purchaseDataFromLooksRare,
+      marketPlace,
+      seniorDepositToken,
+    } = await setupTestSuite();
+    const vault = await voyage.getVault(owner);
+
+    const depositAmount = toWad(120);
+    const juniorDeposit = toWad(50);
+    await voyage.deposit(crab.address, 0, juniorDeposit);
+    await voyage.deposit(crab.address, 1, depositAmount);
+    await priceOracle.updateTwap(crab.address, toWad(100));
+    await voyage.buyNow(
+      crab.address,
+      1,
+      vault,
+      marketPlace.address,
+      purchaseDataFromLooksRare
+    );
+    await crab.safeMint(vault, 1);
+
+    await increase(41);
+    const updatedNftPrice = toWad(1);
+    await priceOracle.updateTwap(crab.address, updatedNftPrice);
+    await seniorDepositToken.withdraw(toWad(120), owner, owner);
+    const totalUnbondingAssetBefore =
+      await seniorDepositToken.totalUnbondingAsset();
+    const totalAssetBefore = await seniorDepositToken.totalAssets();
+    console.log('totalAssetBefore: ', totalAssetBefore.toString());
+    console.log(
+      'totalUnbondingAssetBefore: ',
+      totalUnbondingAssetBefore.toString()
+    );
+    const balanceOfBefore = await seniorDepositToken.balanceOf(owner);
+    console.log('balanceOfBefore: ', balanceOfBefore.toString());
+    // liquidate and write down
+    await voyage.liquidate(crab.address, vault, 0);
+    const totalAssetAfter = await seniorDepositToken.totalAssets();
+    const totalUnbongdingAssetAfter =
+      await seniorDepositToken.totalUnbondingAsset();
+    const balanceOfAfter = await seniorDepositToken.balanceOf(owner);
+    console.log('totalAssetAfter: ', totalAssetAfter.toString());
+    console.log(
+      'totalUnbongdingAssetAfter: ',
+      totalUnbongdingAssetAfter.toString()
+    );
+    console.log('balanceOfAfter: ', balanceOfAfter.toString());
+    expect(totalUnbongdingAssetAfter).to.lt(totalUnbondingAssetBefore);
+  });
+
+  it('totalUnbondingAsset should return correct vaule when liquidation vaule grate than debt', async function () {
+    const {
+      owner,
+      voyage,
+      priceOracle,
+      crab,
+      purchaseDataFromLooksRare,
+      marketPlace,
+      seniorDepositToken,
+    } = await setupTestSuite();
+    const vault = await voyage.getVault(owner);
+
+    const depositAmount = toWad(120);
+    const juniorDeposit = toWad(50);
+    await voyage.deposit(crab.address, 0, juniorDeposit);
+    await voyage.deposit(crab.address, 1, depositAmount);
+    await priceOracle.updateTwap(crab.address, toWad(100));
+    await voyage.buyNow(
+      crab.address,
+      1,
+      vault,
+      marketPlace.address,
+      purchaseDataFromLooksRare
+    );
+    await crab.safeMint(vault, 1);
+
+    await increase(41);
+    const updatedNftPrice = toWad(200);
+    await priceOracle.updateTwap(crab.address, updatedNftPrice);
+    await seniorDepositToken.withdraw(toWad(120), owner, owner);
+    const totalUnbondingAssetBefore =
+      await seniorDepositToken.totalUnbondingAsset();
+    // liquidate and no write down
+    await voyage.liquidate(crab.address, vault, 0);
+    const totalUnbongdingAssetAfter =
+      await seniorDepositToken.totalUnbondingAsset();
+    expect(totalUnbongdingAssetAfter).to.eq(totalUnbondingAssetBefore);
+  });
 });
+
+async function increase(n: number) {
+  const days = n * 24 * 60 * 60;
+  await ethers.provider.send('evm_increaseTime', [days]);
+  await ethers.provider.send('evm_mine', []);
+}

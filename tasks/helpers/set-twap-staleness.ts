@@ -16,8 +16,8 @@ task('dev:set-twap-staleness', 'Sets the twap staleness')
     const mc = await ethers.getContract('Crab');
     const { collection = mc.address, threshold } = params;
     console.log(`setting max staleness for ${collection} to ${threshold}`);
-    // const tx = await voyage.setMaxTwapStaleness(collection, threshold);
-    // await tx.wait();
+    const tx = await voyage.setMaxTwapStaleness(collection, threshold);
+    await tx.wait();
     const res = await voyage.getMaxTwapStaleness(collection);
     console.log('max staleness: ', res.toString());
   });

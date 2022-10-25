@@ -4,7 +4,7 @@ pragma solidity ^0.8.9;
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IPaymaster} from "@opengsn/contracts/src/BasePaymaster.sol";
-import {LibAppStorage, AppStorage, Storage, ReserveConfigurationMap} from "../libraries/LibAppStorage.sol";
+import {LibAppStorage, AppStorage, Storage, ReserveConfigurationMap, ReserveData} from "../libraries/LibAppStorage.sol";
 import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
 import {LibVault} from "../libraries/LibVault.sol";
 
@@ -37,6 +37,13 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
     event MarketplaceAdapterUpdated(
         address indexed _marketplace,
         address _strategy
+    );
+
+    event OracleSignerUpdated(address _signer);
+
+    event TwapToleranceUpdated(
+        address indexed _collection,
+        uint256 _twapTolerance
     );
 
     /* --------------------------------- errors --------------------------------- */
@@ -134,6 +141,23 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
         emit GSNConfigurationUpdated(_paymaster, _trustedForwarder);
     }
 
+    function setInterestRateStrategyAddress(
+        address _reserve,
+        address _interestRateStrategyAddress
+    ) external authorised {
+        ReserveData storage reserveData = LibAppStorage.ds()._reserveData[
+            _reserve
+        ];
+        if (!reserveData.initialized) {
+            revert ReserveNotInitialized();
+        }
+        reserveData.interestRateStrategyAddress = _interestRateStrategyAddress;
+    }
+
+    function getPaymasterAddr() external view returns (address) {
+        return LibAppStorage.ds().paymaster;
+    }
+
     function updateMarketPlaceData(address _marketplace, address _strategy)
         external
         authorised
@@ -143,6 +167,14 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
             .marketPlaceData[_marketplace]
             .adapterAddr = _strategy;
         emit MarketplaceAdapterUpdated(_marketplace, _strategy);
+    }
+
+    function upgradeJuniorDepositTokenImpl(address _impl) external authorised {
+        LibAppStorage.ds().juniorDepositTokenBeacon.upgradeTo(_impl);
+    }
+
+    function upgradeSeniorDepositTokenImpl(address _impl) external authorised {
+        LibAppStorage.ds().seniorDepositTokenBeacon.upgradeTo(_impl);
     }
 
     function getIncomeRatio(address _collection) public view returns (uint256) {
@@ -160,4 +192,36 @@ contract ConfigurationFacet is Storage, ReentrancyGuard {
             .getConfiguration(_collection);
         return conf.getMaxTwapStaleness();
     }
+
+    function setOracleSigner(address _signer) external authorised {
+        LibAppStorage.ds().oracleSignerAddress = _signer;
+        emit OracleSignerUpdated(_signer);
+    }
+
+    function getOracleSigner() external view returns (address) {
+        return LibAppStorage.ds().oracleSignerAddress;
+    }
+
+    function getTwapTolerance(address _collection)
+        public
+        view
+        returns (uint256)
+    {
+        ReserveConfigurationMap memory conf = LibReserveConfiguration
+            .getConfiguration(_collection);
+        return conf.getTwapTolerance();
+    }
+
+    function setTwapTolerance(address _collection, uint256 _twapTolerance)
+        external
+        authorised
+    {
+        ReserveConfigurationMap memory conf = LibReserveConfiguration
+            .getConfiguration(_collection);
+        conf.setTwapTolerance(_twapTolerance);
+        LibReserveConfiguration.saveConfiguration(_collection, conf);
+        emit TwapToleranceUpdated(_collection, _twapTolerance);
+    }
 }
+
+error ReserveNotInitialized();

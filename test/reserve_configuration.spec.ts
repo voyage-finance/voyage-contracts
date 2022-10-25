@@ -112,4 +112,20 @@ describe('Reserve configuration', async () => {
     const twapStaleness = await voyage.getMaxTwapStaleness(weth.address);
     expect(twapStaleness).to.eq(maxTwapStaleness);
   });
+
+  it('should be able activate and deactivate reserve', async () => {
+    const { voyage, crab } = await setupTestSuite();
+    // check reserve status
+    const reserveStatus = await voyage.getReserveStatus(crab.address);
+    expect(reserveStatus.initialized).to.be.true;
+    expect(reserveStatus.activated).to.be.true;
+
+    // deactivate reserve
+    await voyage.deactivateReserve(crab.address);
+    const reserveStatusAfterDeactivate = await voyage.getReserveStatus(
+      crab.address
+    );
+    expect(reserveStatusAfterDeactivate.initialized).to.be.true;
+    expect(reserveStatusAfterDeactivate.activated).to.be.false;
+  });
 });

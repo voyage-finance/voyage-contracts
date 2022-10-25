@@ -4,14 +4,14 @@ pragma solidity ^0.8.9;
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {VaultFacet} from "../voyage/facets/VaultFacet.sol";
+import {ConfigurationFacet} from "../voyage/facets/ConfigurationFacet.sol";
+import {IVaultFacet} from "../voyage/interfaces/IVaultFacet.sol";
 import {SecurityFacet} from "../voyage/facets/SecurityFacet.sol";
 import {IWETH9} from "../shared/interfaces/IWETH9.sol";
 
 struct VaultStorageV1 {
     address voyage;
     address user;
-    address paymaster;
     address weth;
     // subvault array, for retrieval by DataProviderFacet and client-side enumeration
     address[] subvaults;
@@ -60,11 +60,14 @@ interface IVault {
     function initialize(
         address _voyage,
         address _user,
-        address _paymaster,
         address _weth
     ) external;
 
-    function execute(bytes calldata _data, uint256 _value) external payable;
+    function execute(
+        bytes calldata _data,
+        address _target,
+        uint256 _value
+    ) external payable;
 
     function refundGas(uint256 _amount, address _dst) external;
 
@@ -101,30 +104,24 @@ contract Vault is Initializable, IERC1271, IVault {
     function initialize(
         address _voyage,
         address _user,
-        address _paymaster,
         address _weth
     ) public initializer {
         LibVaultStorage.ds().voyage = _voyage;
         LibVaultStorage.ds().user = _user;
-        LibVaultStorage.ds().paymaster = _paymaster;
         LibVaultStorage.ds().weth = _weth;
         IERC20(_weth).approve(_voyage, type(uint256).max);
     }
 
-    function execute(bytes calldata _data, uint256 _value)
-        external
-        payable
-        onlyAuthorised
-    {
-        (address target, bytes memory data) = abi.decode(
-            _data,
-            (address, bytes)
-        );
-        (bool success, bytes memory ret) = target.call{value: _value}(data);
+    function execute(
+        bytes calldata _data,
+        address _target,
+        uint256 _value
+    ) external payable onlyAuthorised {
+        (bool success, bytes memory ret) = _target.call{value: _value}(_data);
         if (!success) {
             revert ExternalCallFailed(bytesToHex(ret));
         }
-        emit Execute(address(this), target, data);
+        emit Execute(address(this), _target, _data);
     }
 
     function refundGas(uint256 _amount, address _dst) external onlyPaymaster {
@@ -151,7 +148,7 @@ contract Vault is Initializable, IERC1271, IVault {
             revert GasRefundFailed(_dst);
         }
         emit GasRefunded(
-            LibVaultStorage.ds().paymaster,
+            _getPaymaster(),
             _dst,
             amountRefundable,
             _amount - amountRefundable,
@@ -171,7 +168,7 @@ contract Vault is Initializable, IERC1271, IVault {
         view
         returns (bool)
     {
-        VaultFacet vf = VaultFacet(LibVaultStorage.ds().voyage);
+        IVaultFacet vf = IVaultFacet(LibVaultStorage.ds().voyage);
         return vf.collectionInitialized(_collection);
     }
 
@@ -320,8 +317,13 @@ contract Vault is Initializable, IERC1271, IVault {
         return LibVaultStorage.ds().tokenSet[_collection];
     }
 
+    function _getPaymaster() internal view returns (address) {
+        return
+            ConfigurationFacet(LibVaultStorage.ds().voyage).getPaymasterAddr();
+    }
+
     function _isPaymaster(address _src) internal view returns (bool) {
-        return _src == LibVaultStorage.ds().paymaster;
+        return _src == _getPaymaster();
     }
 
     function bytesToHex(bytes memory buffer)

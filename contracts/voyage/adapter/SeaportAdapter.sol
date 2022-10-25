@@ -3,6 +3,8 @@ pragma solidity ^0.8.9;
 
 import {IMarketPlaceAdapter, AssetInfo} from "../interfaces/IMarketPlaceAdapter.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IVault} from "../../vault/Vault.sol";
+import {LibAppStorage} from "../libraries/LibAppStorage.sol";
 
 uint256 constant BasicOrder_basicOrderType_cdPtr = 0x124;
 
@@ -197,8 +199,10 @@ contract SeaportAdapter is IMarketPlaceAdapter {
         returns (AssetInfo memory assetInfo)
     {
         (, BasicOrderParameters memory order) = _decode(_data);
+        assetInfo.collection = order.offerToken;
         assetInfo.tokenId = order.offerIdentifier;
         assetInfo.assetPrice = order.considerationAmount;
+        assetInfo.currency = order.considerationToken;
         // Iterate over each additional recipient.
         for (uint256 i = 0; i < order.additionalRecipients.length; ) {
             assetInfo.assetPrice += order.additionalRecipients[i].amount;
@@ -210,22 +214,24 @@ contract SeaportAdapter is IMarketPlaceAdapter {
         }
     }
 
-    function validate(bytes calldata _data) external pure returns (bool) {
-        return _validate(_data);
+    function validate(bytes calldata _data, address _vault)
+        external
+        view
+        returns (bool)
+    {
+        return _validate(_data, _vault);
     }
 
-    function execute(bytes calldata _data)
-        external
-        pure
-        returns (bytes memory)
-    {
-        if (!_validate(_data)) {
+    function execute(
+        bytes calldata _data,
+        address _vault,
+        address _marketplace,
+        uint256 _value
+    ) external payable returns (bytes memory) {
+        if (!_validate(_data, _vault)) {
             revert("invalid data");
         }
-
-        (bytes4 selector, BasicOrderParameters memory order) = _decode(_data);
-
-        return abi.encodePacked(selector, abi.encode(order));
+        IVault(_vault).execute(_data, _marketplace, _value);
     }
 
     function _decode(bytes calldata _data)
@@ -237,7 +243,11 @@ contract SeaportAdapter is IMarketPlaceAdapter {
         order = abi.decode(_data[4:], (BasicOrderParameters));
     }
 
-    function _validate(bytes calldata _data) private pure returns (bool) {
+    function _validate(bytes calldata _data, address _vault)
+        private
+        view
+        returns (bool)
+    {
         (bytes4 selector, BasicOrderParameters memory order) = _decode(_data);
 
         // bytes4(keccak256(fulfillBasicOrder()))
@@ -267,7 +277,10 @@ contract SeaportAdapter is IMarketPlaceAdapter {
             return false;
         }
 
-        if (order.considerationToken != address(0)) {
+        if (
+            order.fulfillerConduitKey !=
+            0x0000000000000000000000000000000000000000000000000000000000000000
+        ) {
             return false;
         }
 
