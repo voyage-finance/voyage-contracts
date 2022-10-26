@@ -1,6 +1,6 @@
 pragma solidity ^0.8.9;
 
-import "@pwnednomore/contracts/Agent.sol";
+import "@pwnednomore/contracts/PTest.sol";
 import "contracts/voyage/Voyage.sol";
 import "contracts/voyage/tokenization/SeniorDepositToken.sol";
 import "contracts/voyage/tokenization/JuniorDepositToken.sol";
@@ -29,8 +29,11 @@ import "contracts/shared/diamond/interfaces/IDiamondCut.sol";
 import {LiquidityFacet} from "contracts/voyage/facets/LiquidityFacet.sol";
 import "contracts/voyage/facets/ConfigurationFacet.sol";
 import "contracts/voyage/facets/DataProviderFacet.sol";
+import {LoanFacet} from "contracts/voyage/facets/LoanFacet.sol";
+import {VaultFacet} from "contracts/voyage/facets/VaultFacet.sol";
 
-contract TestBase is Agent {
+contract TestBase is PTest {
+    address agent;
     address owner = address(0x42);
     address alice = address(0x1);
     address bob = address(0x2);
@@ -56,8 +59,12 @@ contract TestBase is Agent {
     MockForwarder internal mockForwarder;
     DefaultReserveInterestRateStrategy
         internal defaultReserveInterestRateStrategy;
+    uint256 REFUND_GAS_UNIT = 1;
+    uint256 REFUND_GAS_PRICE = 1;
 
     function deploy() internal {
+        agent = getAgent();
+
         _deploy000Mock();
         _deploy001Vtoken();
         _deploy002Vault();
@@ -75,8 +82,8 @@ contract TestBase is Agent {
         mockForwarder = new MockForwarder();
 
         crab = new Crab("Mocked Crab", "MC");
-        mockMarketPlace = new MockMarketPlace();
-        mockSeaport = new MockSeaport();
+        mockMarketPlace = new MockMarketPlace(address(weth));
+        mockSeaport = new MockSeaport(address(weth));
         vm.stopPrank();
     }
 
@@ -299,7 +306,7 @@ contract TestBase is Agent {
         // vault initialization
         // --- create an empty vault
         bytes20 salt = bytes20(keccak256(abi.encodePacked("PwnedNoMore")));
-        VaultFacet(address(voyage)).createVault(owner, salt);
+        VaultFacet(address(voyage)).createVault(owner, salt, REFUND_GAS_UNIT, REFUND_GAS_PRICE);
         address deployedVault = DataProviderFacet(address(voyage)).getVault(owner);
         // --- fund vault for the first payment
         deployedVault.call{value: 100 ether}("");
