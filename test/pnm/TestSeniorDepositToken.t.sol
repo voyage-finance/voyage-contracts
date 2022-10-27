@@ -9,6 +9,6 @@ contract TestSeniorDepositToken is TestBase {
     function check() public {
         // Unbonding assets are the assets that are requested to be withdrawn and thus frozen.
         // The amount of unbounding assets should never be larger than the actual assets stored in the vault. 
-        require(seniorDepositToken.totalUnbondingAsset() <= seniorDepositToken.totalAssets());
+        assert(seniorDepositToken.totalUnbondingAsset() <= seniorDepositToken.totalAssets());
     }
 }

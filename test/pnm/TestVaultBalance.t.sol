@@ -52,6 +52,7 @@ contract TestVaultBalance is TestBase {
     }
 
     function invariantVaultBalance() public {
+        vm.prank(agent);
         (bool success,) = address(voyage).call(
             abi.encodeWithSignature("buyNow(address,uint256,address,address,bytes)", 
             address(crab),
@@ -64,9 +65,6 @@ contract TestVaultBalance is TestBase {
                 makeOrder
             )
         ));
-        require(
-            success == false,
-            "[!!!] Invariant violation: buyNow should be fail if vault balance is 0."
-        );
+        assert(success == false);
     }
 }

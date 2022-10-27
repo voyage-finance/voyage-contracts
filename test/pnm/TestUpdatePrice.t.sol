@@ -9,12 +9,10 @@ contract TestUpdatePrice is TestBase {
     }
 
     function invariantUpdatePrice() public {
+        vm.prank(agent);
         (bool success,) = address(priceOracle).call(
             abi.encodeWithSignature("updateTwap(address,uint256)", address(crab), 42 wei)
         );
-        require(
-            success == false,
-            "[!!!] Invariant violation: only owner or operator is able to update price."
-        );
+        assert(success == false);
     }
 }
