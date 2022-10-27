@@ -70,6 +70,6 @@ export const SEAPORT_ADDRESS: ExternalContractMapping = {
 
 export const TWAP_SIGNER_ADDRESS: ExternalContractMapping = {
   [ChainID.Mainnet]: '0x32da57e736e05f75aa4fae2e9be60fd904492726',
-  [ChainID.Rinkeby]: '0xad5792b1d998f607d3eeb2f357138a440b03f19f',
-  [ChainID.Goerli]: '0xad5792b1d998f607d3eeb2f357138a440b03f19f',
+  [ChainID.Rinkeby]: '0xfc5367bCe03C9e02CD86A7B02725Ccccf429208f',
+  [ChainID.Goerli]: '0xfc5367bCe03C9e02CD86A7B02725Ccccf429208f',
 };
