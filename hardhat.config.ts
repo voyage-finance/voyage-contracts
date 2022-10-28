@@ -13,6 +13,7 @@ import "hardhat-watcher";
 import { HardhatUserConfig } from "hardhat/types";
 import { resolve } from "path";
 import "tsconfig-paths/register";
+import "hardhat-ignore-warnings";
 
 if (process.env.SKIP_TASKS !== "true") {
     require("./tasks/helpers");
@@ -160,6 +161,11 @@ const config: HardhatUserConfig = {
         outDir: "contract-types",
         target: "ethers-v5",
     },
+    warnings: {
+        'contracts/mock/**/*': {
+            default: 'off',
+        },
+    }
 };
 
 export default config;

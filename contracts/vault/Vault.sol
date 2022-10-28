@@ -200,7 +200,7 @@ contract Vault is Initializable, IERC1271, IVault {
         address from,
         uint256 tokenId,
         bytes calldata data
-    ) external returns (bytes4 ret) {
+    ) external pure returns (bytes4 ret) {
         return this.onERC721Received.selector;
     }
 

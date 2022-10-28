@@ -485,7 +485,7 @@ library LibLoan {
         uint256 apr,
         uint256 epoch,
         uint256 nper
-    ) internal view returns (uint256) {
+    ) internal pure returns (uint256) {
         uint256 periodsPerYear = SECONDS_PER_YEAR / (epoch * SECOND_PER_DAY);
         uint256 effectiveInterestRate = (apr * nper) / periodsPerYear;
         return principal.rayMul(effectiveInterestRate);
@@ -614,11 +614,11 @@ library LibLoan {
         return (reducedAmount, writedownAmount);
     }
 
-    function getInterest(
-        ReserveData memory reserveData,
-        uint256 interest,
-        uint256 incomeRatio
-    ) internal view returns (uint256, uint256) {
+    function getInterest(uint256 interest, uint256 incomeRatio)
+        internal
+        pure
+        returns (uint256, uint256)
+    {
         uint256 seniorInterest = interest.percentMul(incomeRatio);
         return (seniorInterest, interest - seniorInterest);
     }

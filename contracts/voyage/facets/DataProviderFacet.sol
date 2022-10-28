@@ -5,6 +5,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
+import {IDataProvider, CreditLineData, PoolData, UserPoolData, PoolConfiguration} from "../interfaces/IDataProvider.sol";
 import {AppStorage, ReserveData, BorrowData, ReserveConfigurationMap, Tranche, LoanList, RepaymentData, LibAppStorage} from "../libraries/LibAppStorage.sol";
 import {LibLiquidity} from "../libraries/LibLiquidity.sol";
 import {LibLoan} from "../libraries/LibLoan.sol";
@@ -12,48 +13,9 @@ import {LibVault} from "../libraries/LibVault.sol";
 import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
 import {IUnbondingToken} from "../tokenization/SeniorDepositToken.sol";
 
-struct CreditLineData {
-    uint256 totalDebt;
-    LoanList loanList;
-    uint256 gav;
-    uint256 ltv;
-    uint256 healthFactor;
-}
-
-contract DataProviderFacet {
+contract DataProviderFacet is IDataProvider {
     using WadRayMath for uint256;
     using LibReserveConfiguration for ReserveConfigurationMap;
-
-    struct PoolData {
-        address currency;
-        uint256 totalLiquidity;
-        uint256 juniorLiquidity;
-        uint256 seniorLiquidity;
-        uint256 juniorLiquidityRate;
-        uint256 seniorLiquidityRate;
-        uint256 totalDebt;
-        uint256 utilizationRate;
-        uint256 trancheRatio;
-        uint256 decimals;
-        string symbol;
-        bool isActive;
-    }
-
-    struct UserPoolData {
-        uint256 juniorTrancheBalance;
-        uint256 seniorTrancheBalance;
-        uint256 withdrawableSeniorTrancheBalance;
-        uint256 decimals;
-    }
-
-    struct PoolConfiguration {
-        uint256 liquidationBonus;
-        uint256 loanInterval;
-        uint256 loanTenure;
-        uint256 incomeRatio;
-        bool isInitialized;
-        bool isActive;
-    }
 
     function getPoolConfiguration(address _collection)
         external
@@ -105,7 +67,7 @@ contract DataProviderFacet {
     }
 
     function getDepositTokens(address _collection)
-        public
+        external
         view
         returns (address senior, address junior)
     {
@@ -212,7 +174,7 @@ contract DataProviderFacet {
     }
 
     function pendingSeniorWithdrawals(address _user, address _collection)
-        public
+        external
         view
         returns (uint256)
     {
@@ -222,7 +184,7 @@ contract DataProviderFacet {
             IUnbondingToken(reserve.seniorDepositTokenAddress).unbonding(_user);
     }
 
-    function getProtocolFeeParam() public view returns (address, uint256) {
+    function getProtocolFeeParam() external view returns (address, uint256) {
         AppStorage storage s = LibAppStorage.ds();
         return (s.protocolFee.treasuryAddress, s.protocolFee.takeRate);
     }

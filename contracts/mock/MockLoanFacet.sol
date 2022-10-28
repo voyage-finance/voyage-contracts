@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
 import {Storage, TestStorage} from "./TestStorage.sol";
@@ -25,7 +26,7 @@ contract MockLoanFacet is TestStorage {
         address _asset,
         uint256 _loan,
         address payable _vault
-    ) external {
+    ) external pure {
         revert("not implemented");
     }
 

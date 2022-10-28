@@ -20,8 +20,8 @@ contract MockMarketPlace {
         MakerOrder calldata makerAsk
     ) external payable {
         // console.log("in matchAskWithTakerBidUsingETHAndWETH");
-        // logTakerOrder(takerBid);
-        // logMakerOrder(makerAsk);
+        logTakerOrder(takerBid);
+        logMakerOrder(makerAsk);
         safeTransferFrom(makerAsk.currency, msg.sender, makerAsk.price);
     }
 
@@ -36,7 +36,7 @@ contract MockMarketPlace {
         safeTransferFrom(makerAsk.currency, msg.sender, makerAsk.price);
     }
 
-    function logTakerOrder(TakerOrder calldata takerBid) internal {
+    function logTakerOrder(TakerOrder calldata takerBid) internal view {
         console.log("TakerOrder.isOrderAsk: ", takerBid.isOrderAsk);
         console.log("TakerOrder.taker: ", takerBid.taker);
         console.log("TakerOrder.price: ", takerBid.price);
@@ -59,7 +59,7 @@ contract MockMarketPlace {
         }
     }
 
-    function logMakerOrder(MakerOrder calldata makerAsk) internal {
+    function logMakerOrder(MakerOrder calldata makerAsk) internal view {
         console.log("MakerOrder.isOrderAsk: ", makerAsk.isOrderAsk);
         console.log("MakerOrder.signer: ", makerAsk.signer);
         console.log("MakerOrder.collection: ", makerAsk.collection);

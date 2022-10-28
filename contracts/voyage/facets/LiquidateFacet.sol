@@ -7,6 +7,7 @@ import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IPriceOracle} from "../interfaces/IPriceOracle.sol";
 import {IVToken} from "../interfaces/IVToken.sol";
+import {ILiquidateFacet} from "../interfaces/ILiquidateFacet.sol";
 import {LibLoan} from "../libraries/LibLoan.sol";
 import {LibVault} from "../libraries/LibVault.sol";
 import {LibLiquidity} from "../libraries/LibLiquidity.sol";
@@ -16,7 +17,7 @@ import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol"
 import {WadRayMath} from "../../shared/libraries/WadRayMath.sol";
 import {PercentageMath} from "../../shared/libraries/PercentageMath.sol";
 
-contract LiquidateFacet is Storage, ReentrancyGuard {
+contract LiquidateFacet is Storage, ReentrancyGuard, ILiquidateFacet {
     using WadRayMath for uint256;
     using SafeERC20 for IERC20;
     using PercentageMath for uint256;
@@ -192,7 +193,6 @@ contract LiquidateFacet is Storage, ReentrancyGuard {
                     uint256 outstandingSeniorInterest,
                     uint256 outstandingJuniorInterest
                 ) = LibLoan.getInterest(
-                        reserveData,
                         param.remainingInterest,
                         param.incomeRatio
                     );
@@ -221,7 +221,6 @@ contract LiquidateFacet is Storage, ReentrancyGuard {
                     uint256 outstandingSeniorInterest,
                     uint256 outstandingJuniorInterest
                 ) = LibLoan.getInterest(
-                        reserveData,
                         param.remainingInterest,
                         param.incomeRatio
                     );
@@ -266,8 +265,7 @@ contract LiquidateFacet is Storage, ReentrancyGuard {
                 }
             }
 
-            (uint256 takeRate, address treasury) = LibLiquidity
-                .getTakeRateAndTreasuryAddr();
+            (, address treasury) = LibLiquidity.getTakeRateAndTreasuryAddr();
 
             // try to repay protocol fee
             (param.reducedAmount, param.writedownAmount) = LibLoan.tryRepay(

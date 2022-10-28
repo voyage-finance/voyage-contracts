@@ -148,9 +148,6 @@ contract LiquidityFacet is Storage, ReentrancyGuard, ILiquidityFacet {
             amountToWithdraw = userBalance;
         }
         require(amountToWithdraw <= userBalance, "InvalidWithdrawal");
-        BorrowState storage borrowState = LibAppStorage.ds()._borrowState[
-            _collection
-        ][reserve.currency];
         IERC4626(vToken).withdraw(amountToWithdraw, _msgSender(), _msgSender());
 
         emit Withdraw(
