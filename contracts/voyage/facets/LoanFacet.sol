@@ -70,6 +70,39 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
             params.totalPrincipal /
             params.nper;
 
+        uint256 totalJuniorBalance = IERC20(reserveData.currency).balanceOf(
+            reserveData.juniorDepositTokenAddress
+        );
+
+        if (totalJuniorBalance == 0) {
+            revert InvalidJuniorTrancheBalance();
+        }
+
+        if (
+            outstandingPrincipal.percentDiv(
+                reserveConf.getOptimalLiquidityRatio()
+            ) > totalJuniorBalance
+        ) {
+            revert InsufficientJuniorLiquidity();
+        }
+
+        uint256 totalSeniorBalance = IERC20(reserveData.currency).balanceOf(
+            reserveData.seniorDepositTokenAddress
+        );
+
+        uint256 totalPending = IUnbondingToken(
+            reserveData.seniorDepositTokenAddress
+        ).totalUnbondingAsset();
+
+        if (totalPending >= totalSeniorBalance) {
+            revert InsufficientCash();
+        }
+        uint256 availableLiquidity = totalSeniorBalance - totalPending;
+
+        if (availableLiquidity < outstandingPrincipal) {
+            revert InsufficientLiquidity();
+        }
+
         (params.borrowRate) = IReserveInterestRateStrategy(
             reserveData.interestRateStrategyAddress
         ).calculateBorrowRate(
