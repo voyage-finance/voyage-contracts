@@ -6,10 +6,11 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {Storage, Authorisation, LibAppStorage} from "../libraries/LibAppStorage.sol";
 import {LibSecurity} from "../libraries/LibSecurity.sol";
 import {ILiquidityFacet} from "../interfaces/ILiquidityFacet.sol";
+import {ISecurityFacet} from "../interfaces/ISecurityFacet.sol";
 import {ConfigurationFacet} from "../facets/ConfigurationFacet.sol";
 import {OracleFacet} from "../facets/OracleFacet.sol";
 
-contract SecurityFacet is Storage {
+contract SecurityFacet is Storage, ISecurityFacet {
     using LibSecurity for Authorisation;
 
     event Paused(address account);
@@ -21,16 +22,12 @@ contract SecurityFacet is Storage {
     event RolePermissionRevoked(uint8 role, address target, bytes4 sig);
     event PermissionRevoked(address src, address dst, bytes4 sig);
 
-    function paused() public view returns (bool) {
-        return LibAppStorage.ds()._paused;
-    }
-
-    function pause() public authorised {
+    function pause() external authorised {
         LibAppStorage.ds()._paused = true;
         emit Paused(_msgSender());
     }
 
-    function unpause() public authorised {
+    function unpause() external authorised {
         LibAppStorage.ds()._paused = false;
         emit Unpaused(_msgSender());
     }
@@ -39,7 +36,7 @@ contract SecurityFacet is Storage {
         address user,
         uint8 role,
         bool enabled
-    ) public authorised {
+    ) external authorised {
         LibSecurity.grantRole(LibAppStorage.ds().auth, user, role, enabled);
         emit RoleGranted(user, role, enabled);
     }
@@ -48,7 +45,7 @@ contract SecurityFacet is Storage {
         uint8 role,
         address target,
         bytes4 sig
-    ) public authorised {
+    ) external authorised {
         LibSecurity.grantRolePermission(
             LibAppStorage.ds().auth,
             role,
@@ -62,7 +59,7 @@ contract SecurityFacet is Storage {
         uint8 role,
         address target,
         bytes4 sig
-    ) public authorised {
+    ) external authorised {
         LibSecurity.revokeRolePermission(
             LibAppStorage.ds().auth,
             role,
@@ -76,12 +73,12 @@ contract SecurityFacet is Storage {
         address src,
         address dst,
         bytes4 sig
-    ) public authorised {
+    ) external authorised {
         LibSecurity.grantPermission(LibAppStorage.ds().auth, src, dst, sig);
         emit PermissionGranted(src, dst, sig);
     }
 
-    function authorizeConfigurator(address _configurator) public authorised {
+    function authorizeConfigurator(address _configurator) external authorised {
         if (_configurator == address(0) || !Address.isContract(_configurator)) {
             revert InvalidConfiguratorContract();
         }
@@ -135,13 +132,14 @@ contract SecurityFacet is Storage {
         address src,
         address dst,
         bytes4 sig
-    ) public authorised {
+    ) external authorised {
         LibSecurity.revokePermission(LibAppStorage.ds().auth, src, dst, sig);
         emit PermissionRevoked(src, dst, sig);
     }
 
     function isAuthorisedInbound(address src, bytes4 sig)
-        public
+        external
+        view
         returns (bool)
     {
         return
@@ -149,7 +147,8 @@ contract SecurityFacet is Storage {
     }
 
     function isAuthorisedOutbound(address dst, bytes4 sig)
-        public
+        external
+        view
         returns (bool)
     {
         return
@@ -160,12 +159,20 @@ contract SecurityFacet is Storage {
         address src,
         address dst,
         bytes4 sig
-    ) public returns (bool) {
+    ) external view returns (bool) {
         return LibSecurity.isAuthorised(LibAppStorage.ds().auth, src, dst, sig);
     }
 
-    function isTrustedForwarder(address _forwarder) public view returns (bool) {
+    function isTrustedForwarder(address _forwarder)
+        external
+        view
+        returns (bool)
+    {
         return LibSecurity.isTrustedForwarder(_forwarder);
+    }
+
+    function paused() external view returns (bool) {
+        return LibAppStorage.ds()._paused;
     }
 }
 

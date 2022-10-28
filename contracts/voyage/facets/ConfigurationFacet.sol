@@ -7,8 +7,9 @@ import {IPaymaster} from "@opengsn/contracts/src/BasePaymaster.sol";
 import {LibAppStorage, AppStorage, Storage, ReserveConfigurationMap, ReserveData} from "../libraries/LibAppStorage.sol";
 import {LibReserveConfiguration} from "../libraries/LibReserveConfiguration.sol";
 import {LibVault} from "../libraries/LibVault.sol";
+import {IConfigurationFacet} from "../interfaces/IConfigurationFacet.sol";
 
-contract ConfigurationFacet is Storage, ReentrancyGuard {
+contract ConfigurationFacet is Storage, ReentrancyGuard, IConfigurationFacet {
     using LibReserveConfiguration for ReserveConfigurationMap;
     /* --------------------------------- events --------------------------------- */
     event LiquidationConfigurationUpdated(
