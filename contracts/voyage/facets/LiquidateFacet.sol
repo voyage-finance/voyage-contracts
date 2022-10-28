@@ -193,7 +193,6 @@ contract LiquidateFacet is Storage, ReentrancyGuard, ILiquidateFacet {
                     uint256 outstandingSeniorInterest,
                     uint256 outstandingJuniorInterest
                 ) = LibLoan.getInterest(
-                        reserveData,
                         param.remainingInterest,
                         param.incomeRatio
                     );
@@ -222,7 +221,6 @@ contract LiquidateFacet is Storage, ReentrancyGuard, ILiquidateFacet {
                     uint256 outstandingSeniorInterest,
                     uint256 outstandingJuniorInterest
                 ) = LibLoan.getInterest(
-                        reserveData,
                         param.remainingInterest,
                         param.incomeRatio
                     );
@@ -267,8 +265,7 @@ contract LiquidateFacet is Storage, ReentrancyGuard, ILiquidateFacet {
                 }
             }
 
-            (uint256 takeRate, address treasury) = LibLiquidity
-                .getTakeRateAndTreasuryAddr();
+            (, address treasury) = LibLiquidity.getTakeRateAndTreasuryAddr();
 
             // try to repay protocol fee
             (param.reducedAmount, param.writedownAmount) = LibLoan.tryRepay(

@@ -216,7 +216,7 @@ contract SeaportAdapter is IMarketPlaceAdapter {
 
     function validate(bytes calldata _data, address _vault)
         external
-        view
+        pure
         returns (bool)
     {
         return _validate(_data, _vault);
@@ -245,7 +245,7 @@ contract SeaportAdapter is IMarketPlaceAdapter {
 
     function _validate(bytes calldata _data, address _vault)
         private
-        view
+        pure
         returns (bool)
     {
         (bytes4 selector, BasicOrderParameters memory order) = _decode(_data);

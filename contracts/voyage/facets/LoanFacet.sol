@@ -135,7 +135,7 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
         _initializeLoan(params, reserveData, borrowState, borrowData);
 
         // execute buyNow
-        _executeBuyNow(params, reserveData, borrowState);
+        _executeBuyNow(params, reserveData);
 
         emit Borrow(
             params.vault,
@@ -186,7 +186,7 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
         _initializeLoan(params, reserveData, borrowState, borrowData);
 
         // execute buyNow
-        _executeBuyNow(params, reserveData, borrowState);
+        _executeBuyNow(params, reserveData);
 
         emit Borrow(
             params.vault,
@@ -275,8 +275,7 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
 
     function _executeBuyNow(
         ExecuteBuyNowParams memory params,
-        ReserveData memory reserveData,
-        BorrowState storage borrowState
+        ReserveData memory reserveData
     ) internal {
         // transfer senior deposit to this
         IVToken(reserveData.seniorDepositTokenAddress).transferUnderlyingTo(
@@ -421,14 +420,14 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
         ExecuteBuyNowParams memory params,
         ReserveData storage reserveData,
         ReserveConfigurationMap memory reserveConf
-    ) internal {
+    ) internal view {
         _validateBasic(params);
 
         (params.fv, params.timestamp) = IPriceOracle(
             reserveData.priceOracle.implementation()
         ).getTwap(params.collection);
 
-        _validateTWAPAndFloorPrice(params, reserveData, reserveConf);
+        _validateTWAPAndFloorPrice(params, reserveConf);
 
         _validateLiquidity(params, reserveData, reserveConf);
     }
@@ -454,7 +453,7 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
         params.fv = price;
         params.timestamp = message.timestamp;
 
-        _validateTWAPAndFloorPrice(params, reserveData, reserveConf);
+        _validateTWAPAndFloorPrice(params, reserveConf);
 
         _validateLiquidity(params, reserveData, reserveConf);
     }
@@ -487,7 +486,7 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
         return (messageCurrency, price);
     }
 
-    function _validateBasic(ExecuteBuyNowParams memory params) internal {
+    function _validateBasic(ExecuteBuyNowParams memory params) internal view {
         // check if the user owns the vault address
         if (LibVault.getVaultAddress(_msgSender()) != params.vault) {
             revert Unauthorised();
@@ -518,9 +517,8 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
 
     function _validateTWAPAndFloorPrice(
         ExecuteBuyNowParams memory params,
-        ReserveData storage reserveData,
         ReserveConfigurationMap memory reserveConf
-    ) internal {
+    ) internal view {
         if (
             (block.timestamp - params.timestamp) >
             reserveConf.getMaxTwapStaleness()
@@ -542,7 +540,7 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
         ExecuteBuyNowParams memory params,
         ReserveData storage reserveData,
         ReserveConfigurationMap memory reserveConf
-    ) internal {
+    ) internal view {
         // check junior tranche balance
         params.totalSeniorBalance = IERC20(reserveData.currency).balanceOf(
             reserveData.seniorDepositTokenAddress
@@ -631,7 +629,7 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
         address payable _vault,
         address _marketplace,
         bytes calldata _data
-    ) internal {
+    ) internal pure {
         params.collection = _collection;
         params.tokenId = _tokenId;
         params.vault = _vault;

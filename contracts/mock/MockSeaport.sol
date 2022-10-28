@@ -18,7 +18,7 @@ contract MockSeaport {
     function fulfillBasicOrder(BasicOrderParameters calldata parameters)
         external
         payable
-        returns (bool fulfilled)
+        returns (bool)
     {
         console.log("MockSeaport#fulfillBasicOrder");
         logParameters(parameters);
@@ -29,7 +29,10 @@ contract MockSeaport {
         );
     }
 
-    function logParameters(BasicOrderParameters calldata parameters) internal {
+    function logParameters(BasicOrderParameters calldata parameters)
+        internal
+        view
+    {
         console.log(
             "BasicOrderParameters.considerationToken: ",
             parameters.considerationToken

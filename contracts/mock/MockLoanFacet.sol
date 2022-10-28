@@ -25,7 +25,7 @@ contract MockLoanFacet is TestStorage {
         address _asset,
         uint256 _loan,
         address payable _vault
-    ) external {
+    ) external pure {
         revert("not implemented");
     }
 
