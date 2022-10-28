@@ -541,11 +541,6 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
         ReserveData storage reserveData,
         ReserveConfigurationMap memory reserveConf
     ) internal {
-        // check junior tranche balance
-        params.totalSeniorBalance = IERC20(reserveData.currency).balanceOf(
-            reserveData.seniorDepositTokenAddress
-        );
-
         // get borrow params and borrow rate
         (params.epoch, params.term) = reserveConf.getBorrowParams();
 
