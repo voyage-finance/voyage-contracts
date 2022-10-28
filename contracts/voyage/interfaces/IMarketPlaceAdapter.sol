@@ -24,5 +24,5 @@ interface IMarketPlaceAdapter {
         address _vault,
         address _marketplace,
         uint256 _value
-    ) external payable returns (bytes memory);
+    ) external payable;
 }

@@ -227,7 +227,7 @@ contract SeaportAdapter is IMarketPlaceAdapter {
         address _vault,
         address _marketplace,
         uint256 _value
-    ) external payable returns (bytes memory) {
+    ) external payable {
         if (!_validate(_data, _vault)) {
             revert("invalid data");
         }

@@ -17,6 +17,7 @@
 
 // lifted from: https://github.com/dapphub/ds-guard/blob/af05632249f98bf3942b9482c5bf69e8bd45284e/src/guard.sol
 
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.9;
 
 import "./DSAuth.sol";
