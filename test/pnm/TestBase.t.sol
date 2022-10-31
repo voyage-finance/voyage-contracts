@@ -46,6 +46,8 @@ contract TestBase is PTest {
     Voyage internal voyage;
     SeniorDepositToken internal seniorDepositToken;
     JuniorDepositToken internal juniorDepositToken;
+    address internal seniorDepositTokenImpl;
+    address internal juniorDepositTokenImpl;
     Vault internal vault;
     WETH9 internal weth;
     VoyagePaymaster internal paymaster;
@@ -89,8 +91,8 @@ contract TestBase is PTest {
 
     function _deploy001Vtoken() internal {
         vm.startPrank(owner);
-        seniorDepositToken = new SeniorDepositToken();
-        juniorDepositToken = new JuniorDepositToken();
+        seniorDepositTokenImpl = address(new SeniorDepositToken());
+        juniorDepositTokenImpl = address(new JuniorDepositToken());
         vm.stopPrank();
     }
 
@@ -193,8 +195,8 @@ contract TestBase is PTest {
 
         InitDiamond.Args memory args = InitDiamond.Args({
             initOwner: owner,
-            seniorDepositTokenImpl: address(seniorDepositToken),
-            juniorDepositTokenImpl: address(juniorDepositToken),
+            seniorDepositTokenImpl: seniorDepositTokenImpl,
+            juniorDepositTokenImpl: juniorDepositTokenImpl,
             vaultImpl: address(vault),
             weth9: address(weth)
         });
@@ -253,61 +255,75 @@ contract TestBase is PTest {
             address(defaultReserveInterestRateStrategy),
             address(priceOracle)
         );
+        (
+            address seniorDepositTokenAddr,
+            address juniorDepositTokenAddr
+        ) = DataProviderFacet(address(voyage)).getDepositTokens(address(crab));
+        juniorDepositToken = JuniorDepositToken(juniorDepositTokenAddr);
+        seniorDepositToken = SeniorDepositToken(seniorDepositTokenAddr);
 
-        uint liquidationBonus = 10500;
-        uint incomeRatio = 0.5 * 1e4;
-        uint optimalLiquidityRatio = 0.5 * 1e4;
-        uint epoch = 30;
-        uint term = 90;
-        uint gracePeriod = 10;
+        uint256 liquidationBonus = 10500;
+        uint256 incomeRatio = 0.5 * 1e4;
+        uint256 optimalLiquidityRatio = 0.5 * 1e4;
+        uint256 epoch = 30;
+        uint256 term = 90;
+        uint256 gracePeriod = 10;
         uint40 protocolFee = 200;
-        uint maxStaleness = 10000;
+        uint256 maxStaleness = 10000;
         // uint baseRate = 0.2;
 
         // --- 105%
         ConfigurationFacet(address(voyage)).setLiquidationBonus(
-            address(crab), 
+            address(crab),
             liquidationBonus
         );
         ConfigurationFacet(address(voyage)).setIncomeRatio(
-            address(crab), 
+            address(crab),
             incomeRatio
         );
         ConfigurationFacet(address(voyage)).setOptimalLiquidityRatio(
-            address(crab), 
+            address(crab),
             optimalLiquidityRatio
         );
         ConfigurationFacet(address(voyage)).setLoanParams(
-            address(crab), 
-            epoch, 
-            term, 
+            address(crab),
+            epoch,
+            term,
             gracePeriod
         );
         LiquidityFacet(address(voyage)).activateReserve(address(crab));
         ConfigurationFacet(address(voyage)).setMaxTwapStaleness(
-            address(crab), 
+            address(crab),
             maxStaleness
         );
 
         LiquidityFacet(address(voyage)).updateProtocolFee(owner, protocolFee);
         ConfigurationFacet(address(voyage)).updateMarketPlaceData(
-            address(mockMarketPlace), 
+            address(mockMarketPlace),
             address(looksRareAdapter)
         );
         ConfigurationFacet(address(voyage)).updateMarketPlaceData(
-            address(mockSeaport), 
+            address(mockSeaport),
             address(seaportAdapter)
         );
 
-        (address senior, address junior) = DataProviderFacet(address(voyage)).getDepositTokens(address(crab));
+        (address senior, address junior) = DataProviderFacet(address(voyage))
+            .getDepositTokens(address(crab));
 
         weth.approve(address(voyage), type(uint256).max);
 
         // vault initialization
         // --- create an empty vault
         bytes20 salt = bytes20(keccak256(abi.encodePacked("PwnedNoMore")));
-        VaultFacet(address(voyage)).createVault(owner, salt, REFUND_GAS_UNIT, REFUND_GAS_PRICE);
-        address deployedVault = DataProviderFacet(address(voyage)).getVault(owner);
+        VaultFacet(address(voyage)).createVault(
+            owner,
+            salt,
+            REFUND_GAS_UNIT,
+            REFUND_GAS_PRICE
+        );
+        address deployedVault = DataProviderFacet(address(voyage)).getVault(
+            owner
+        );
         // --- fund vault for the first payment
         deployedVault.call{value: 100 ether}("");
         weth.transfer(deployedVault, 10 wei);
