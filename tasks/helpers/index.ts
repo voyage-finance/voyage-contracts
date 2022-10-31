@@ -1,4 +1,5 @@
 import './balance';
+import './allowance';
 import './deposit-reserve';
 import './deposit-weth';
 import './unwrap-weth';
