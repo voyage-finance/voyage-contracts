@@ -222,6 +222,11 @@ contract TestBase is PTest {
         vm.stopPrank();
     }
 
+    function _approveVoyage() internal {
+        juniorDepositToken.approve(address(voyage), type(uint256).max);
+        seniorDepositToken.approve(address(voyage), type(uint256).max);
+    }
+
     function _generateSelectors(string memory _facetName)
         internal
         returns (bytes4[] memory selectors)
