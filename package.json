@@ -84,6 +84,7 @@
     "@openzeppelin/contracts-upgradeable": "^4.7.2",
     "@rari-capital/solmate": "^6.4.0",
     "@tenderly/hardhat-tenderly": "^1.1.4",
+    "defender-relay-client": "^1.34.0",
     "hardhat-prettier": "^0.0.1",
     "lodash": "^4.17.21",
     "openzeppelin-solidity": "^4.4.1"
