@@ -1,4 +1,6 @@
 import './initialize-reserve';
+import './deactivate-reserve';
+import './activate-reserve';
 import './configure-oracle';
 import './configure-marketplace-adapters';
 import './configure-vault-impl';
