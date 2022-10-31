@@ -69,38 +69,46 @@ contract TestDeposit is TestBase {
         assert(loan.epoch <= loan.term);
     }
 
-    function testWithdraw() public {
+    function invariantWithdraw() public {
         vm.startPrank(owner);
         juniorDepositToken.approve(address(voyage), type(uint256).max);
         seniorDepositToken.approve(address(voyage), type(uint256).max);
+        uint256 wethBalanceInit = weth.balanceOf(owner);
+
         LiquidityFacet(address(voyage)).withdraw(
             address(crab),
             Tranche.JUNIOR,
             juniorDepositAmount
         );
-        LiquidityFacet(address(voyage)).withdraw(
-            address(crab),
-            Tranche.SENIOR,
-            seniorDepositAmount
-        );
-        vm.stopPrank();
 
+        uint256 wethBalanceAfterWithdrawingJunior = weth.balanceOf(owner);
+        assert(
+            wethBalanceAfterWithdrawingJunior ==
+                wethBalanceInit + juniorDepositAmount
+        );
         uint256 juniorBalanceAfter = LiquidityFacet(address(voyage)).balance(
             address(crab),
             owner,
             Tranche.JUNIOR
+        );
+        assert(juniorBalanceAfter == 0);
+
+        LiquidityFacet(address(voyage)).withdraw(
+            address(crab),
+            Tranche.SENIOR,
+            seniorDepositAmount
         );
         uint256 seniorBalanceAfter = LiquidityFacet(address(voyage)).balance(
             address(crab),
             owner,
             Tranche.SENIOR
         );
-        assert(juniorBalanceAfter == 0);
         assert(seniorBalanceAfter == 0);
+        uint256 wethBalanceAfterWithdrawSenior = weth.balanceOf(owner);
+        assert(
+            wethBalanceAfterWithdrawSenior == wethBalanceAfterWithdrawingJunior
+        );
 
-        // assert(address(crab).balance == juniorDepositAmount);
-        // assert(
-        //     address(crab).balance == juniorDepositAmount + seniorDepositAmount
-        // );
+        vm.stopPrank();
     }
 }
