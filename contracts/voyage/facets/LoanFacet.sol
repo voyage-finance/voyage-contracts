@@ -469,22 +469,20 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
             params.collection
         );
         // validate the price message
-        if (
-            !IOracleFacet(address(this)).verifyMessage(
-                messageId,
-                reserveConf.getMaxTwapStaleness(),
-                message
-            )
-        ) {
-            revert InvalidTwapMessage();
-        }
+        IOracleFacet(address(this)).verifyMessage(
+            messageId,
+            reserveConf.getMaxTwapStaleness(),
+            message
+        );
 
-        (address messageCurrency, uint256 price) = abi.decode(
+        (address messageCurrency, uint256 twap) = abi.decode(
             message.payload,
             (address, uint256)
         );
 
-        return (messageCurrency, price);
+        twap += twap.percentMul(reserveConf.getTwapTolerance());
+
+        return (messageCurrency, twap);
     }
 
     function _validateBasic(ExecuteBuyNowParams memory params) internal {
@@ -543,11 +541,6 @@ contract LoanFacet is ILoanFacet, Storage, ReentrancyGuard {
         ReserveData storage reserveData,
         ReserveConfigurationMap memory reserveConf
     ) internal {
-        // check junior tranche balance
-        params.totalSeniorBalance = IERC20(reserveData.currency).balanceOf(
-            reserveData.seniorDepositTokenAddress
-        );
-
         // get borrow params and borrow rate
         (params.epoch, params.term) = reserveConf.getBorrowParams();
 
@@ -657,5 +650,4 @@ error InvalidCurrencyType();
 error ExceedsFloorPrice();
 error BuyNowStaleTwap();
 error LiquidateStaleTwap();
-error InvalidTwapMessage();
 error InvalidTwapCurrency();

@@ -112,6 +112,7 @@ const config: HardhatUserConfig = {
         owner: 0,
         alice: 1,
         bob: 2,
+        twapSigner: 3,
         treasury: 9,
         forwarder: 10,
     },
