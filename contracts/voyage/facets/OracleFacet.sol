@@ -85,10 +85,10 @@ contract OracleFacet is IOracleFacet {
             keccak256(
                 abi.encode(
                     keccak256(
-                        "ContractWideCollectionPrice(uint8 kind,uint256 twapHours,address contract)"
+                        "ContractWideCollectionPrice(uint8 kind,uint256 twapSeconds,address contract)"
                     ),
                     1, // PriceKind.TWAP
-                    24, // 24 hours TWAP
+                    1 days, // 24 hours TWAP
                     _collection
                 )
             );
