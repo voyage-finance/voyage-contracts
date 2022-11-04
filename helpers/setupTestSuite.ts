@@ -386,7 +386,7 @@ const EIP712_TYPES = {
   ContractWideCollectionPrice: {
     ContractWideCollectionPrice: [
       { name: 'kind', type: 'uint8' },
-      { name: 'twapHours', type: 'uint256' },
+      { name: 'twapSeconds', type: 'uint256' },
       { name: 'contract', type: 'address' },
     ],
   },
